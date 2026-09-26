@@ -1,17 +1,35 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-[#FFFDF7]">
       {/* Header */}
-      <header className="w-full border-b border-[#E8DFD4]">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-4">
+      <header className="w-full border-b border-[#E8DFD4] bg-[#FFFDF7]/80 backdrop-blur-sm sticky top-0 z-40">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-[#5C1B13] hover:text-[#4A1510] transition-colors font-medium"
+            className="flex items-center gap-2.5 group"
+          >
+            <div className="relative w-9 h-9 rounded-full overflow-hidden border border-[#E8DFD4] shadow-sm bg-[#FDEE57] shrink-0 transition-transform group-hover:scale-105">
+              <Image
+                src="/logo-mark.jpg"
+                alt="PuretyFarm Logo"
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
+            </div>
+            <span className="font-[family-name:var(--font-heading)] font-bold text-xl text-[#1A1008] tracking-tight">
+              PuretyFarm
+            </span>
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-[#5C1B13] hover:text-[#4A1510] transition-colors font-medium"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

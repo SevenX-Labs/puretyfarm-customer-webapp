@@ -15,6 +15,9 @@ const bodyFont = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://puretyfarm.example.com"
+  ),
   title: "PuretyFarm — Pure A2 Cow Milk Delivered Fresh in Raipur",
   description:
     "Farm-fresh, unadulterated A2 Gir cow milk delivered daily to your doorstep in Raipur. Start your 7-day trial today. FSSAI certified, glass bottle delivery.",
@@ -26,6 +29,10 @@ export const metadata: Metadata = {
     "organic milk Raipur",
     "milk subscription",
   ],
+  icons: {
+    icon: "/logo-mark.jpg",
+    apple: "/logo-mark.jpg",
+  },
   openGraph: {
     title: "PuretyFarm — Pure A2 Cow Milk Delivered Fresh in Raipur",
     description:
@@ -34,6 +41,14 @@ export const metadata: Metadata = {
     siteName: "PuretyFarm",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/logo.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "PuretyFarm — 100% Pure A2 Milk Products at Your Doorsteps",
+      },
+    ],
   },
 };
 

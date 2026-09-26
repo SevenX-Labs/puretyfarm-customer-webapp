@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
 
@@ -18,14 +20,26 @@ export function Hero() {
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <header className="flex items-center justify-between py-4 md:py-6">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-[#5C1B13] flex items-center justify-center">
-              <span className="text-white font-bold text-lg">P</span>
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-11 h-11 rounded-full overflow-hidden border border-[#E8DFD4] shadow-sm bg-[#FDEE57] shrink-0 transition-transform group-hover:scale-105">
+              <Image
+                src="/logo-mark.jpg"
+                alt="PuretyFarm Logo"
+                fill
+                sizes="44px"
+                className="object-cover"
+                priority
+              />
             </div>
-            <span className="text-xl font-bold text-[#1A1008] tracking-tight font-[family-name:var(--font-heading)]">
-              PuretyFarm
-            </span>
-          </div>
+            <div className="flex flex-col">
+              <span className="text-xl sm:text-2xl font-bold text-[#1A1008] tracking-tight font-[family-name:var(--font-heading)] leading-none">
+                PuretyFarm
+              </span>
+              <span className="text-[10px] sm:text-xs text-[#3A241C]/75 font-semibold tracking-wider uppercase mt-1">
+                Pure A2 Gir Cow Milk
+              </span>
+            </div>
+          </Link>
           <Button variant="primary" size="sm" onClick={handleTrialClick}>
             Start Trial
           </Button>
@@ -134,24 +148,29 @@ export function Hero() {
           </div>
 
           {/* Hero visual */}
-          <div className="flex-1 relative max-w-md lg:max-w-lg">
-            <div className="relative aspect-[4/5] rounded-3xl bg-gradient-to-br from-[#FBF6EE] to-[#F5E729]/10 border border-[#E8DFD4] overflow-hidden flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-[#5C1B13]/10 flex items-center justify-center">
-                  <svg className="w-16 h-16 text-[#5C1B13]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                  </svg>
-                </div>
+          <div className="flex-1 relative max-w-md lg:max-w-lg w-full">
+            <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBEB] via-[#FBF6EE] to-[#F5E729]/15 border border-[#E8DFD4] shadow-lg overflow-hidden flex flex-col items-center justify-center p-6 sm:p-8">
+              <div className="relative w-full max-w-[280px] sm:max-w-[320px] aspect-square rounded-2xl overflow-hidden shadow-md border border-[#F5E729]/50 mb-6 bg-[#FDEE57] group">
+                <Image
+                  src="/logo.jpg"
+                  alt="PuretyFarm - 100% Pure A2 Milk Products at Your Doorsteps"
+                  fill
+                  sizes="(max-width: 640px) 280px, 320px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  priority
+                />
+              </div>
+              <div className="text-center">
                 <p className="text-2xl font-bold text-[#5C1B13] font-[family-name:var(--font-heading)]">
-                  100% Pure A2
+                  Pure A2 Gir Cow Milk
                 </p>
-                <p className="mt-2 text-[#3A241C]">
-                  Fresh from our Gir cows, delivered in glass bottles
+                <p className="mt-2 text-sm sm:text-base text-[#3A241C]/80">
+                  Fresh from cruelty-free Gir cows, delivered in sealed glass bottles
                 </p>
                 {/* Decorative badge */}
-                <div className="mt-6 inline-flex items-center gap-2 bg-[#F5E729] rounded-full px-4 py-2">
-                  <span className="text-sm font-bold text-[#1A1008]">
-                    🥛 Delivered before 7 AM
+                <div className="mt-5 inline-flex items-center gap-2 bg-[#F5E729] border border-[#E8DFD4] rounded-full px-4 py-1.5 shadow-sm">
+                  <span className="text-xs sm:text-sm font-bold text-[#1A1008]">
+                    🥛 Delivered fresh before 7:00 AM
                   </span>
                 </div>
               </div>
