@@ -1,7 +1,13 @@
 "use client";
 
+import { useRef, useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Section } from "@/components/ui/Section";
 import { handleDownloadClick } from "@/lib/cta";
+import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const APP_SCREENS = [
   {
@@ -51,6 +57,7 @@ const FEATURES = [
 function PhoneMockup({ screen, index }: { screen: typeof APP_SCREENS[number]; index: number }) {
   return (
     <div
+      data-phone
       className={`
         relative flex-shrink-0 w-[260px] sm:w-[280px]
         ${index === 1 ? "z-10 scale-105 sm:scale-110" : "opacity-90"}
@@ -196,11 +203,25 @@ function PhoneMockup({ screen, index }: { screen: typeof APP_SCREENS[number]; in
                     {(screen.content as typeof APP_SCREENS[2]["content"]).temp}
                   </span>
                 </div>
-                {/* Map placeholder */}
-                <div className="mt-3 h-28 rounded-xl bg-gradient-to-br from-[#FBF6EE] to-[#E8DFD4] border border-[#E8DFD4] flex items-center justify-center">
-                  <div className="text-center">
-                    <span className="text-2xl">📍</span>
-                    <p className="text-[9px] text-[#3A241C]/60 mt-1">Live route map</p>
+                {/* Live Delivery Route Visual (Replaced placeholder) */}
+                <div className="mt-3 p-2.5 rounded-xl bg-gradient-to-br from-[#FFFDF7] to-[#FBF6EE] border border-[#E8DFD4]">
+                  <div className="flex items-center justify-between text-[10px] font-semibold text-[#1A1008] mb-1.5">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Live Route in Raipur
+                    </span>
+                    <span className="text-[#5C1B13] text-[9px] font-bold">ETA 6:18 AM</span>
+                  </div>
+                  {/* Route Progress Graphic */}
+                  <div className="relative py-2">
+                    <div className="h-1.5 bg-[#E8DFD4] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#5C1B13] rounded-full w-3/4" />
+                    </div>
+                    <div className="flex justify-between items-center text-[9px] text-[#3A241C]/70 mt-1.5 font-medium">
+                      <span>Farm Chilling Center</span>
+                      <span className="text-[#5C1B13] font-bold">Telibandha</span>
+                      <span className="text-emerald-700 font-bold">Your Doorstep</span>
+                    </div>
                   </div>
                 </div>
               </>
@@ -231,37 +252,84 @@ function PhoneMockup({ screen, index }: { screen: typeof APP_SCREENS[number]; in
 }
 
 export function AppShowcase() {
+  const badgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.5 });
+  const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
+  const subtitleRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.2 });
+
+  // Phone mockups get a custom 3D-style entrance
+  const phonesRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = phonesRef.current;
+    if (!el) return;
+
+    const phones = el.querySelectorAll("[data-phone]");
+    if (!phones.length) return;
+
+    gsap.set(phones, { opacity: 0, y: 80, scale: 0.85, rotateY: 15 });
+
+    const ctx = gsap.context(() => {
+      gsap.to(phones, {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        rotateY: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: "back.out(1.4)",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 80%",
+          toggleActions: "play none none none",
+        },
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  const featuresRef = useStaggerReveal<HTMLDivElement>("[data-app-feature]", {
+    y: 40,
+    stagger: 0.1,
+    duration: 0.6,
+  });
+  const ctaRef = useScrollReveal<HTMLDivElement>({ y: 30, delay: 0.1 });
+
   return (
     <Section background="default" id="app-showcase">
       {/* Badge */}
-      <div className="text-center mb-6">
+      <div ref={badgeRef} className="text-center mb-6">
         <span className="inline-flex items-center gap-2 bg-[#5C1B13]/10 border border-[#5C1B13]/20 text-[#5C1B13] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider">
           📱 PuretyFarm Mobile App
         </span>
       </div>
 
-      <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
+      <h2 ref={headingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
         Manage Everything{" "}
         <span className="text-[#5C1B13]">From Our App</span>
       </h2>
 
-      <p className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
+      <p ref={subtitleRef} className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
         Schedule deliveries, pause anytime, track your milkman live, and manage
         your subscription — all from one app.
       </p>
 
       {/* Phone mockups carousel */}
-      <div className="mt-12 flex justify-center gap-4 sm:gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide px-4 -mx-4">
+      <div
+        ref={phonesRef}
+        className="mt-12 w-full max-w-full overflow-x-auto pb-6 pt-2 scrollbar-hide flex justify-start sm:justify-center gap-4 sm:gap-6 snap-x snap-mandatory px-2 sm:px-4"
+        style={{ perspective: "1200px" }}
+      >
         {APP_SCREENS.map((screen, i) => (
           <PhoneMockup key={i} screen={screen} index={i} />
         ))}
       </div>
 
       {/* Feature badges */}
-      <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
+      <div ref={featuresRef} className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
         {FEATURES.map((feature) => (
           <div
             key={feature.label}
+            data-app-feature
             className="flex flex-col items-center gap-2 bg-white rounded-xl border border-[#E8DFD4] p-4 shadow-sm hover:shadow-md transition-shadow"
           >
             <span className="text-2xl">{feature.icon}</span>
@@ -272,7 +340,7 @@ export function AppShowcase() {
       </div>
 
       {/* Play Store CTA */}
-      <div className="mt-10 text-center">
+      <div ref={ctaRef} className="mt-10 text-center">
         <button
           onClick={handleDownloadClick}
           className="inline-flex items-center gap-3 bg-[#1A1008] text-white rounded-xl px-6 py-3.5 hover:bg-[#2A2018] transition-colors shadow-lg cursor-pointer"

@@ -3,6 +3,7 @@
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { handleTrialClick } from "@/lib/cta";
+import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 
 const PLANS = [
   {
@@ -54,29 +55,41 @@ const PLANS = [
 ] as const;
 
 export function Pricing() {
+  const badgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.5 });
+  const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
+  const subtitleRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.2 });
+  const plansRef = useStaggerReveal<HTMLDivElement>("[data-plan-card]", {
+    y: 60,
+    stagger: 0.18,
+    duration: 0.8,
+    ease: "back.out(1.3)",
+  });
+  const trustRef = useScrollReveal<HTMLParagraphElement>({ y: 20, delay: 0.1 });
+
   return (
     <Section background="cream" id="pricing">
       {/* Badge */}
-      <div className="text-center mb-6">
+      <div ref={badgeRef} className="text-center mb-6">
         <span className="inline-flex items-center gap-2 bg-[#F5E729] text-[#1A1008] text-sm font-bold px-4 py-2 rounded-full">
           💰 Simple, Transparent Pricing
         </span>
       </div>
 
-      <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
+      <h2 ref={headingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
         Choose Your Daily Milk Plan
       </h2>
 
-      <p className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
+      <p ref={subtitleRef} className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
         All plans include free home delivery before 7 AM, sealed glass bottles,
         and 100% pure A2 Gir cow milk.
       </p>
 
       {/* Plan cards */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+      <div ref={plansRef} className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {PLANS.map((plan) => (
           <div
             key={plan.name}
+            data-plan-card
             className={`
               relative flex flex-col bg-white rounded-2xl p-6
               transition-shadow duration-200
@@ -152,7 +165,7 @@ export function Pricing() {
       </div>
 
       {/* Trust line */}
-      <p className="mt-10 text-center text-sm text-[#3A241C]/60">
+      <p ref={trustRef} className="mt-10 text-center text-sm text-[#3A241C]/60">
         No commitment • Cancel anytime • 100% money-back guarantee
       </p>
     </Section>

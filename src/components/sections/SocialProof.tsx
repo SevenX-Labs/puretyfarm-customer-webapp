@@ -1,4 +1,7 @@
+"use client";
+
 import { Section } from "@/components/ui/Section";
+import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 
 const TESTIMONIALS = [
   {
@@ -71,24 +74,45 @@ const TRUST_ITEMS = [
 ] as const;
 
 export function SocialProof() {
+  // Testimonials section
+  const testBadgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.5 });
+  const testHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
+  const testimonialsRef = useStaggerReveal<HTMLDivElement>("[data-testimonial]", {
+    y: 50,
+    stagger: 0.18,
+    duration: 0.7,
+  });
+
+  // Trust section
+  const trustHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40 });
+  const trustSubRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.1 });
+  const trustGridRef = useStaggerReveal<HTMLDivElement>("[data-trust-item]", {
+    y: 50,
+    x: -20,
+    stagger: 0.15,
+    duration: 0.7,
+  });
+  const trustFootRef = useScrollReveal<HTMLDivElement>({ y: 20, delay: 0.1 });
+
   return (
     <>
       {/* Testimonials */}
       <Section background="default" id="social-proof">
-        <div className="text-center mb-6">
+        <div ref={testBadgeRef} className="text-center mb-6">
           <span className="inline-flex items-center gap-2 bg-[#F5E729]/20 border border-[#F5E729]/40 text-[#1A1008] text-sm font-bold px-4 py-2 rounded-full">
             ⭐ 500+ Happy Families in Raipur
           </span>
         </div>
 
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
+        <h2 ref={testHeadingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
           What Our Families Say
         </h2>
 
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div ref={testimonialsRef} className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {TESTIMONIALS.map((testimonial) => (
             <div
               key={testimonial.name}
+              data-testimonial
               className="bg-white rounded-xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               {/* Stars */}
@@ -133,19 +157,20 @@ export function SocialProof() {
 
       {/* Trust / Transparency */}
       <Section background="cream" id="trust">
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
+        <h2 ref={trustHeadingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
           Pure from Farm to{" "}
           <span className="text-[#5C1B13]">Your Doorstep</span>
         </h2>
 
-        <p className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
+        <p ref={trustSubRef} className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
           We believe in complete transparency about our milk.
         </p>
 
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div ref={trustGridRef} className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {TRUST_ITEMS.map((item) => (
             <div
               key={item.title}
+              data-trust-item
               className="bg-white rounded-xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="w-12 h-12 rounded-full bg-[#5C1B13] flex items-center justify-center mb-4">
@@ -161,7 +186,7 @@ export function SocialProof() {
           ))}
         </div>
 
-        <div className="mt-10 text-center space-y-2">
+        <div ref={trustFootRef} className="mt-10 text-center space-y-2">
           <a
             href="/terms"
             className="text-sm font-medium text-[#5C1B13] underline underline-offset-4 hover:text-[#4A1510] transition-colors"

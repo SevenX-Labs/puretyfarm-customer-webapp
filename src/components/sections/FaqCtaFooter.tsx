@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
-import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
+import {
+  handleTrialClick,
+  handleDownloadClick,
+  getWhatsAppUrl,
+  getPhoneUrl,
+  getEmailUrl,
+} from "@/lib/cta";
+import { ENV } from "@/config/env";
+import { useScrollReveal, useStaggerReveal, useParallax } from "@/lib/animations";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const FAQ_ITEMS = [
   {
@@ -43,8 +55,29 @@ function FaqItem({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const answerRef = useRef<HTMLDivElement>(null);
+
+  // Animate FAQ answer open/close with GSAP
+  useEffect(() => {
+    const el = answerRef.current;
+    if (!el) return;
+
+    if (isOpen) {
+      gsap.set(el, { height: "auto" });
+      const h = el.scrollHeight;
+      gsap.fromTo(
+        el,
+        { height: 0, opacity: 0 },
+        { height: h, opacity: 1, duration: 0.4, ease: "power2.out" }
+      );
+    } else {
+      gsap.to(el, { height: 0, opacity: 0, duration: 0.3, ease: "power2.in" });
+    }
+  }, [isOpen]);
+
   return (
     <div
+      data-faq-item
       className={`rounded-xl border transition-colors ${
         isOpen
           ? "bg-[#FBF6EE] border-[#E8DFD4]"
@@ -75,12 +108,8 @@ function FaqItem({
           />
         </svg>
       </button>
-      <div
-        className={`overflow-hidden transition-all duration-200 ${
-          isOpen ? "max-h-96 pb-5" : "max-h-0"
-        }`}
-      >
-        <p className="px-5 text-[#3A241C] leading-relaxed">{item.answer}</p>
+      <div ref={answerRef} className="overflow-hidden" style={{ height: 0 }}>
+        <p className="px-5 pb-5 text-[#3A241C] leading-relaxed">{item.answer}</p>
       </div>
     </div>
   );
@@ -89,19 +118,85 @@ function FaqItem({
 export function FaqCtaFooter() {
   const [openIndex, setOpenIndex] = useState(0);
 
+  // FAQ section animations
+  const faqHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40 });
+  const faqSubRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.1 });
+  const faqListRef = useStaggerReveal<HTMLDivElement>("[data-faq-item]", {
+    y: 40,
+    stagger: 0.1,
+    duration: 0.6,
+  });
+
+  // Final CTA section animations
+  const ctaSectionRef = useRef<HTMLElement>(null);
+  const ctaBlob1 = useParallax<HTMLDivElement>(-0.15);
+  const ctaBlob2 = useParallax<HTMLDivElement>(0.1);
+
+  useEffect(() => {
+    const el = ctaSectionRef.current;
+    if (!el) return;
+
+    const ctx = gsap.context(() => {
+      const items = el.querySelectorAll("[data-cta-anim]");
+      gsap.set(items, { opacity: 0, y: 40 });
+
+      gsap.to(items, {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        stagger: 0.15,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 75%",
+          toggleActions: "play none none none",
+        },
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  // Footer animation
+  const footerRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+
+    const ctx = gsap.context(() => {
+      const items = el.querySelectorAll("[data-footer-anim]");
+      gsap.set(items, { opacity: 0, y: 20 });
+
+      gsap.to(items, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 90%",
+          toggleActions: "play none none none",
+        },
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <>
       {/* FAQ */}
       <Section background="default" id="faq">
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
+        <h2 ref={faqHeadingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
           Frequently Asked Questions
         </h2>
 
-        <p className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
+        <p ref={faqSubRef} className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
           Everything you need to know about PuretyFarm.
         </p>
 
-        <div className="mt-10 max-w-2xl mx-auto space-y-3">
+        <div ref={faqListRef} className="mt-10 max-w-2xl mx-auto space-y-3">
           {FAQ_ITEMS.map((item, i) => (
             <FaqItem
               key={i}
@@ -115,25 +210,26 @@ export function FaqCtaFooter() {
 
       {/* Final CTA */}
       <section
+        ref={ctaSectionRef}
         id="final-cta"
         className="w-full py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-[#5C1B13] relative overflow-hidden"
       >
         {/* Decorative blurs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#F5E729]/10 blur-3xl" />
-          <div className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl" />
+          <div ref={ctaBlob1} className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#F5E729]/10 blur-3xl" />
+          <div ref={ctaBlob2} className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl" />
         </div>
 
         <div className="mx-auto max-w-3xl text-center relative">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white font-[family-name:var(--font-heading)] tracking-tight">
+          <h2 data-cta-anim className="text-3xl sm:text-4xl font-bold text-white font-[family-name:var(--font-heading)] tracking-tight">
             Ready to Taste the Difference?
           </h2>
 
-          <p className="mt-4 text-lg text-white/80 max-w-xl mx-auto">
+          <p data-cta-anim className="mt-4 text-lg text-white/80 max-w-xl mx-auto">
             Join 500+ Raipur families already enjoying pure A2 Gir cow milk.
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center">
+          <div data-cta-anim className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center">
             <Button variant="accent" size="lg" onClick={handleTrialClick}>
               <svg
                 className="w-5 h-5"
@@ -171,17 +267,17 @@ export function FaqCtaFooter() {
             </button>
           </div>
 
-          <p className="mt-6 text-sm text-white/50">
+          <p data-cta-anim className="mt-6 text-sm text-white/50">
             No commitment • Free delivery • Cancel anytime
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="w-full bg-[#1A1008] px-4 sm:px-6 lg:px-8 py-12">
+      <footer ref={footerRef} className="w-full bg-[#1A1008] px-4 sm:px-6 lg:px-8 py-12">
         <div className="mx-auto max-w-6xl">
           {/* Brand */}
-          <div className="text-center mb-8">
+          <div data-footer-anim className="text-center mb-8">
             <h3 className="text-2xl font-bold text-white font-[family-name:var(--font-heading)]">
               PuretyFarm
             </h3>
@@ -190,8 +286,68 @@ export function FaqCtaFooter() {
             </p>
           </div>
 
-          {/* Links */}
-          <div className="flex flex-wrap items-center justify-center gap-6 mb-8">
+          {/* Direct Contact Bar in Footer */}
+          <div data-footer-anim className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-8 text-sm">
+            {/* Clickable Phone Number */}
+            <a
+              href={getPhoneUrl()}
+              className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10"
+              title="Call PuretyFarm Farm Support"
+            >
+              <svg className="w-4 h-4 text-[#F5E729]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <span>{ENV.PHONE_DISPLAY}</span>
+            </a>
+
+            {/* Clickable WhatsApp */}
+            <a
+              href={getWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-emerald-950/40 hover:bg-emerald-900/50 px-4 py-2 rounded-full border border-emerald-500/30"
+              title="Chat with us on WhatsApp"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>WhatsApp Support</span>
+            </a>
+
+            {/* Clickable Email */}
+            <a
+              href={getEmailUrl()}
+              className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full border border-white/10"
+              title="Send an email to PuretyFarm Support"
+            >
+              <svg className="w-4 h-4 text-[#F5E729]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>{ENV.SUPPORT_EMAIL}</span>
+            </a>
+          </div>
+
+          {/* Site Navigation Links - Fixed Broken Links */}
+          <div data-footer-anim className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-8">
+            <Link
+              href="/#why-puretyfarm"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Why PuretyFarm
+            </Link>
+            <span className="text-white/20">•</span>
+            <Link
+              href="/#pricing"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Pricing Plans
+            </Link>
+            <span className="text-white/20">•</span>
+            <Link
+              href="/service-area"
+              className="text-sm text-white/70 hover:text-white transition-colors"
+            >
+              Delivery Areas
+            </Link>
+            <span className="text-white/20">•</span>
             <Link
               href="/terms"
               className="text-sm text-white/70 hover:text-white transition-colors"
@@ -199,25 +355,16 @@ export function FaqCtaFooter() {
               Terms & Conditions
             </Link>
             <span className="text-white/20">•</span>
-            <a
-              href="#"
+            <Link
+              href="/privacy"
               className="text-sm text-white/70 hover:text-white transition-colors"
             >
               Privacy Policy
-            </a>
-            <span className="text-white/20">•</span>
-            <a
-              href="https://wa.me/919XXXXXXXXX"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-white/70 hover:text-white transition-colors"
-            >
-              Contact Us on WhatsApp
-            </a>
+            </Link>
           </div>
 
           {/* Social */}
-          <div className="flex justify-center mb-8">
+          <div data-footer-anim className="flex justify-center mb-8">
             <a
               href="https://instagram.com/puretyfarm"
               target="_blank"
@@ -232,7 +379,7 @@ export function FaqCtaFooter() {
           </div>
 
           {/* Copyright */}
-          <div className="border-t border-white/10 pt-6 text-center">
+          <div data-footer-anim className="border-t border-white/10 pt-6 text-center">
             <p className="text-xs text-white/40">
               © 2025 PuretyFarm. All rights reserved.
             </p>

@@ -3,6 +3,7 @@
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { handleTrialClick } from "@/lib/cta";
+import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 
 const BENEFITS = [
   "1 Litre daily delivered before 7:00 AM in sanitized glass bottles",
@@ -12,11 +13,22 @@ const BENEFITS = [
 ] as const;
 
 export function TrialOffer() {
+  const badgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.6 });
+  const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
+  const subtitleRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.2 });
+  const benefitsRef = useStaggerReveal<HTMLDivElement>("[data-benefit]", {
+    y: 40,
+    x: -20,
+    stagger: 0.15,
+    duration: 0.6,
+  });
+  const ctaRef = useScrollReveal<HTMLDivElement>({ y: 30, delay: 0.1 });
+
   return (
     <Section background="cream" id="trial-offer">
       <div className="max-w-3xl mx-auto">
         {/* Badge */}
-        <div className="text-center mb-8">
+        <div ref={badgeRef} className="text-center mb-8">
           <span className="inline-flex items-center gap-2 bg-[#F5E729] text-[#1A1008] text-sm font-bold px-4 py-2 rounded-full">
             <svg
               className="w-4 h-4"
@@ -29,20 +41,21 @@ export function TrialOffer() {
           </span>
         </div>
 
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)]">
+        <h2 ref={headingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)]">
           Experience Pure A2 Goodness for 7 Days
         </h2>
 
-        <p className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
+        <p ref={subtitleRef} className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
           Try our farm-fresh A2 Gir cow milk with zero commitment. If you
           don&apos;t love it, we&apos;ll refund every rupee.
         </p>
 
         {/* Benefits list */}
-        <div className="mt-10 space-y-4">
+        <div ref={benefitsRef} className="mt-10 space-y-4">
           {BENEFITS.map((benefit, i) => (
             <div
               key={i}
+              data-benefit
               className="flex items-start gap-4 bg-white rounded-xl p-4 border border-[#E8DFD4]"
             >
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#5C1B13]/10 flex items-center justify-center">
@@ -64,7 +77,7 @@ export function TrialOffer() {
         </div>
 
         {/* CTA */}
-        <div className="mt-10 text-center">
+        <div ref={ctaRef} className="mt-10 text-center">
           <Button variant="primary" size="lg" onClick={handleTrialClick}>
             Start My 7-Day Trial
           </Button>

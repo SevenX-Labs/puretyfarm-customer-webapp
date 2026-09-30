@@ -1,11 +1,13 @@
-// Typed environment accessors
-// All env vars are NEXT_PUBLIC_ prefixed for client-side access
-
 export const ENV = {
   PLAY_STORE_URL:
     process.env.NEXT_PUBLIC_PLAY_STORE_URL ??
-    "https://play.google.com/store/apps/details?id=REPLACE_ME",
-  WHATSAPP_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "91XXXXXXXXXX",
+    "https://play.google.com/store/apps/details?id=com.puretyfarm.customer",
+  WHATSAPP_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "9082873561",
+  PHONE_NUMBER: process.env.NEXT_PUBLIC_PHONE_NUMBER ?? "+9082873561",
+  PHONE_DISPLAY: process.env.NEXT_PUBLIC_PHONE_DISPLAY ?? "+9082873561",
+  SUPPORT_EMAIL:
+    process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "care@puretyfarm.com",
   SITE_URL:
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://puretyfarm.example.com",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://puretyfarm.com",
 } as const;
+

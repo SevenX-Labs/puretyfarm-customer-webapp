@@ -1,19 +1,26 @@
-// Static serviceable areas — per documentation/service-area-check-spec.md
-// Full list to be provided by team lead — placeholder for now
+// Serviceable areas across Raipur, Chhattisgarh
 export const SERVICEABLE_AREAS: string[] = [
   "Shankar Nagar",
   "Civil Lines",
   "Telibandha",
-  "Pandri",
-  "Amanaka",
-  "Devendra Nagar",
-  "Samta Colony",
   "VIP Road",
+  "Samta Colony",
+  "Devendra Nagar",
+  "Pandri",
+  "Avanti Vihar",
+  "Khamardih",
+  "Pachpedi Naka",
+  "Byron Bazar",
+  "Sundar Nagar",
+  "Amanaka",
   "Tatibandh",
   "Fafadih",
   "Mowa",
   "Daldal Seoni",
-  "Byron Bazar",
   "Gudhiyari",
   "Bhanpuri",
+  "Kota",
+  "Kabir Nagar",
+  "Tagore Nagar",
+  "Katora Talab",
 ];

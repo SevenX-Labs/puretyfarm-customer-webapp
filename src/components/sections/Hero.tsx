@@ -1,56 +1,34 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
+import { useHeroEntrance, useParallax } from "@/lib/animations";
+import { HeroBottle3D } from "@/components/sections/HeroBottle3D";
 
 export function Hero() {
+  const heroRef = useHeroEntrance<HTMLElement>();
+  const bgBlob1 = useParallax<HTMLDivElement>(-0.2);
+  const bgBlob2 = useParallax<HTMLDivElement>(0.15);
+
   return (
     <section
+      ref={heroRef}
       id="hero"
       className="relative w-full bg-[#FFFDF7] overflow-hidden"
     >
       {/* Subtle decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#F5E729]/10 blur-3xl" />
-        <div className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full bg-[#5C1B13]/5 blur-3xl" />
+        <div ref={bgBlob1} className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#F5E729]/10 blur-3xl" />
+        <div ref={bgBlob2} className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full bg-[#5C1B13]/5 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="flex items-center justify-between py-4 md:py-6">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-11 h-11 rounded-full overflow-hidden border border-[#E8DFD4] shadow-sm bg-[#FDEE57] shrink-0 transition-transform group-hover:scale-105">
-              <Image
-                src="/logo-mark.jpg"
-                alt="PuretyFarm Logo"
-                fill
-                sizes="44px"
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-bold text-[#1A1008] tracking-tight font-[family-name:var(--font-heading)] leading-none">
-                PuretyFarm
-              </span>
-              <span className="text-[10px] sm:text-xs text-[#3A241C]/75 font-semibold tracking-wider uppercase mt-1">
-                Pure A2 Gir Cow Milk
-              </span>
-            </div>
-          </Link>
-          <Button variant="primary" size="sm" onClick={handleTrialClick}>
-            Start Trial
-          </Button>
-        </header>
-
         {/* Hero content */}
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 py-12 md:py-20 lg:py-24">
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 py-8 md:py-16 lg:py-20">
           {/* Text content */}
           <div className="flex-1 text-center lg:text-left">
             {/* Trust badge */}
-            <div className="inline-flex items-center gap-2 bg-[#F5E729]/20 border border-[#F5E729]/40 rounded-full px-4 py-2 mb-6">
+            <div data-hero-anim className="inline-flex items-center gap-2 bg-[#F5E729]/20 border border-[#F5E729]/40 rounded-full px-4 py-2 mb-6">
               <div className="flex -space-x-1">
                 {[...Array(5)].map((_, i) => (
                   <svg
@@ -68,20 +46,20 @@ export function Hero() {
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1A1008] leading-tight tracking-tight font-[family-name:var(--font-heading)]">
+            <h1 data-hero-anim className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1A1008] leading-tight tracking-tight font-[family-name:var(--font-heading)]">
               Pure A2 Cow Milk,{" "}
               <span className="text-[#5C1B13]">Delivered Fresh</span> to Your
               Door
             </h1>
 
-            <p className="mt-6 text-lg sm:text-xl text-[#3A241C] leading-relaxed max-w-xl mx-auto lg:mx-0">
+            <p data-hero-anim className="mt-6 text-lg sm:text-xl text-[#3A241C] leading-relaxed max-w-xl mx-auto lg:mx-0">
               Farm-fresh, unadulterated Gir cow milk delivered before 7:00 AM
               across Shankar Nagar, VIP Road, Samta Colony & all major Raipur
               localities.
             </p>
 
             {/* CTA group */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+            <div data-hero-anim className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <Button
                 variant="primary"
                 size="lg"
@@ -125,7 +103,7 @@ export function Hero() {
             </div>
 
             {/* Social proof micro */}
-            <div className="mt-8 flex items-center gap-4 justify-center lg:justify-start text-sm text-[#3A241C]/70">
+            <div data-hero-anim className="mt-8 flex items-center gap-4 justify-center lg:justify-start text-sm text-[#3A241C]/70">
               <div className="flex items-center gap-1.5">
                 <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -147,34 +125,9 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Hero visual */}
+          {/* Hero visual: 3D Floating Milk Bottle */}
           <div className="flex-1 relative max-w-md lg:max-w-lg w-full">
-            <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBEB] via-[#FBF6EE] to-[#F5E729]/15 border border-[#E8DFD4] shadow-lg overflow-hidden flex flex-col items-center justify-center p-6 sm:p-8">
-              <div className="relative w-full max-w-[280px] sm:max-w-[320px] aspect-square rounded-2xl overflow-hidden shadow-md border border-[#F5E729]/50 mb-6 bg-[#FDEE57] group">
-                <Image
-                  src="/logo.jpg"
-                  alt="PuretyFarm - 100% Pure A2 Milk Products at Your Doorsteps"
-                  fill
-                  sizes="(max-width: 640px) 280px, 320px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority
-                />
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[#5C1B13] font-[family-name:var(--font-heading)]">
-                  Pure A2 Gir Cow Milk
-                </p>
-                <p className="mt-2 text-sm sm:text-base text-[#3A241C]/80">
-                  Fresh from cruelty-free Gir cows, delivered in sealed glass bottles
-                </p>
-                {/* Decorative badge */}
-                <div className="mt-5 inline-flex items-center gap-2 bg-[#F5E729] border border-[#E8DFD4] rounded-full px-4 py-1.5 shadow-sm">
-                  <span className="text-xs sm:text-sm font-bold text-[#1A1008]">
-                    🥛 Delivered fresh before 7:00 AM
-                  </span>
-                </div>
-              </div>
-            </div>
+            <HeroBottle3D />
           </div>
         </div>
       </div>

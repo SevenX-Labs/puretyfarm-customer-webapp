@@ -1,5 +1,8 @@
+"use client";
+
 import { Section } from "@/components/ui/Section";
 import { Card } from "@/components/ui/Card";
+import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 
 const FEATURES = [
   {
@@ -41,34 +44,46 @@ const FEATURES = [
 ] as const;
 
 export function WhyUs() {
+  const badgeRef = useScrollReveal<HTMLSpanElement>({ y: 20, duration: 0.5 });
+  const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
+  const subtitleRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.2 });
+  const gridRef = useStaggerReveal<HTMLDivElement>("[data-feature-card]", {
+    y: 60,
+    stagger: 0.15,
+    duration: 0.7,
+    ease: "back.out(1.2)",
+  });
+
   return (
     <Section background="cream" id="why-puretyfarm">
       <div className="text-center mb-12">
-        <span className="inline-block text-sm font-semibold text-[#5C1B13] bg-[#5C1B13]/10 rounded-full px-4 py-1.5 mb-4">
+        <span ref={badgeRef} className="inline-block text-sm font-semibold text-[#5C1B13] bg-[#5C1B13]/10 rounded-full px-4 py-1.5 mb-4">
           Our Promise
         </span>
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
+        <h2 ref={headingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
           Why PuretyFarm?
         </h2>
-        <p className="mt-4 text-lg text-[#3A241C] max-w-xl mx-auto">
+        <p ref={subtitleRef} className="mt-4 text-lg text-[#3A241C] max-w-xl mx-auto">
           Every glass of PuretyFarm milk is a promise of purity, freshness, and
           trust — from our farm to your family.
         </p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div ref={gridRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((feature, i) => (
-          <Card key={i} hover padding="lg">
-            <div className="w-14 h-14 rounded-2xl bg-[#5C1B13]/10 flex items-center justify-center mb-5">
-              {feature.icon}
-            </div>
-            <h3 className="text-lg font-bold text-[#1A1008]">
-              {feature.title}
-            </h3>
-            <p className="mt-2 text-[#3A241C]/80 leading-relaxed">
-              {feature.description}
-            </p>
-          </Card>
+          <div key={i} data-feature-card>
+            <Card hover padding="lg">
+              <div className="w-14 h-14 rounded-2xl bg-[#5C1B13]/10 flex items-center justify-center mb-5">
+                {feature.icon}
+              </div>
+              <h3 className="text-lg font-bold text-[#1A1008]">
+                {feature.title}
+              </h3>
+              <p className="mt-2 text-[#3A241C]/80 leading-relaxed">
+                {feature.description}
+              </p>
+            </Card>
+          </div>
         ))}
       </div>
     </Section>

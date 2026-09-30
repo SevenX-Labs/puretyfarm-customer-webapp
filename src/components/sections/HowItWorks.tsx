@@ -1,4 +1,7 @@
+"use client";
+
 import { Section } from "@/components/ui/Section";
+import { useScrollReveal, useStaggerReveal, useDrawLine } from "@/lib/animations";
 
 const STEPS = [
   {
@@ -29,26 +32,37 @@ const STEPS = [
 ] as const;
 
 export function HowItWorks() {
+  const badgeRef = useScrollReveal<HTMLSpanElement>({ y: 20, duration: 0.5 });
+  const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
+  const lineRef = useDrawLine<HTMLDivElement>();
+  const stepsRef = useStaggerReveal<HTMLDivElement>("[data-step]", {
+    y: 50,
+    stagger: 0.18,
+    duration: 0.7,
+    ease: "back.out(1.3)",
+  });
+
   return (
     <Section id="how-it-works">
       <div className="text-center mb-12">
-        <span className="inline-block text-sm font-semibold text-[#5C1B13] bg-[#5C1B13]/10 rounded-full px-4 py-1.5 mb-4">
+        <span ref={badgeRef} className="inline-block text-sm font-semibold text-[#5C1B13] bg-[#5C1B13]/10 rounded-full px-4 py-1.5 mb-4">
           Simple & Easy
         </span>
-        <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
+        <h2 ref={headingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
           How It Works
         </h2>
       </div>
 
       {/* Mobile: vertical stack; Desktop: horizontal timeline */}
       <div className="relative">
-        {/* Desktop connector line */}
-        <div className="hidden lg:block absolute top-10 left-[10%] right-[10%] h-0.5 bg-[#E8DFD4]" />
+        {/* Desktop connector line — animated draw */}
+        <div ref={lineRef} className="hidden lg:block absolute top-10 left-[10%] right-[10%] h-0.5 bg-[#E8DFD4]" />
 
-        <div className="grid gap-8 lg:grid-cols-5">
+        <div ref={stepsRef} className="grid gap-8 lg:grid-cols-5">
           {STEPS.map((step) => (
             <div
               key={step.number}
+              data-step
               className="flex flex-row lg:flex-col items-start lg:items-center gap-4 lg:gap-3 text-left lg:text-center"
             >
               {/* Step number */}
