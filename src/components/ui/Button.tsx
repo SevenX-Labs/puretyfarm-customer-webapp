@@ -36,6 +36,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
+      type="button"
       className={`
         inline-flex items-center justify-center gap-2
         font-semibold rounded-xl

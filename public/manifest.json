@@ -9,15 +9,15 @@
   "icons": [
     {
       "src": "/logo-mark.webp",
-      "sizes": "192x192",
+      "sizes": "380x380",
       "type": "image/webp",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/logo.webp",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/webp",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

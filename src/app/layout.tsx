@@ -7,12 +7,14 @@ const headingFont = Playfair_Display({
   variable: "--font-heading",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 const bodyFont = Plus_Jakarta_Sans({
   variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 export const viewport: Viewport = {

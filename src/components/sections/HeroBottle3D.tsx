@@ -237,7 +237,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
           alt="PuretyFarm Pure A2 Gir Cow Milk - 3D Glass Bottle"
           width={450}
           height={608}
-          priority
+          loading="lazy"
           unoptimized
           className="w-auto h-[360px] sm:h-[430px] md:h-[470px] max-w-full object-contain drop-shadow-[0_30px_45px_rgba(92,27,19,0.22)] select-none pointer-events-none"
         />

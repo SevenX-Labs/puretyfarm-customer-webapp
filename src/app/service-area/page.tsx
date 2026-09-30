@@ -1,6 +1,4 @@
 import { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
 import { ServiceAreaChecker } from "@/components/sections/ServiceAreaChecker";
 import { Navbar } from "@/components/ui/Navbar";
 import { FaqCtaFooter } from "@/components/sections/FaqCtaFooter";

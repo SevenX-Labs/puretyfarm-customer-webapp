@@ -40,9 +40,8 @@ export function useScrollReveal<T extends HTMLElement>(
       start = "top 85%",
     } = options;
 
-    gsap.set(el, { opacity: 0, y, x });
-
     const ctx = gsap.context(() => {
+      gsap.set(el, { opacity: 0, y, x });
       gsap.to(el, {
         opacity: 1,
         y: 0,
@@ -98,9 +97,8 @@ export function useStaggerReveal<T extends HTMLElement>(
     const children = el.querySelectorAll(childSelector);
     if (!children.length) return;
 
-    gsap.set(children, { opacity: 0, y, x });
-
     const ctx = gsap.context(() => {
+      gsap.set(children, { opacity: 0, y, x });
       gsap.to(children, {
         opacity: 1,
         y: 0,
@@ -204,9 +202,8 @@ export function useScaleReveal<T extends HTMLElement>(
 
     const { delay = 0, start = "top 85%" } = options;
 
-    gsap.set(el, { opacity: 0, scale: 0.85 });
-
     const ctx = gsap.context(() => {
+      gsap.set(el, { opacity: 0, scale: 0.85 });
       gsap.to(el, {
         opacity: 1,
         scale: 1,
@@ -316,9 +313,8 @@ export function useDrawLine<T extends HTMLElement>() {
     const el = ref.current;
     if (!el) return;
 
-    gsap.set(el, { scaleX: 0, transformOrigin: "left center" });
-
     const ctx = gsap.context(() => {
+      gsap.set(el, { scaleX: 0, transformOrigin: "left center" });
       gsap.to(el, {
         scaleX: 1,
         duration: 1.2,

@@ -62,17 +62,31 @@ function FaqItem({
     const el = answerRef.current;
     if (!el) return;
 
+    gsap.killTweensOf(el);
+
     if (isOpen) {
       gsap.set(el, { height: "auto" });
       const h = el.scrollHeight;
       gsap.fromTo(
         el,
         { height: 0, opacity: 0 },
-        { height: h, opacity: 1, duration: 0.4, ease: "power2.out" }
+        {
+          height: h,
+          opacity: 1,
+          duration: 0.4,
+          ease: "power2.out",
+          onComplete: () => {
+            gsap.set(el, { height: "auto" });
+          },
+        }
       );
     } else {
       gsap.to(el, { height: 0, opacity: 0, duration: 0.3, ease: "power2.in" });
     }
+
+    return () => {
+      gsap.killTweensOf(el);
+    };
   }, [isOpen]);
 
   return (

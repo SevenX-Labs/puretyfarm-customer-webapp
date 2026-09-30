@@ -1,10 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/Navbar";
-import { Button } from "@/components/ui/Button";
 import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
-import { getWhatsAppUrl, getPhoneUrl } from "@/lib/cta";
-import { ENV } from "@/config/env";
+import { getWhatsAppUrl } from "@/lib/cta";
 
 export const metadata: Metadata = {
   title: "Delivery Coverage Status",
