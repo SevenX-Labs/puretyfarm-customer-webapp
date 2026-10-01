@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#FDEE57"/>
+  <!-- Milk Bottle Icon -->
+  <path d="M26 12C26 10.8954 26.8954 10 28 10H36C37.1046 10 38 10.8954 38 12V15H26V12Z" fill="#5C1B13"/>
+  <rect x="25" y="15" width="14" height="3" rx="1" fill="#F5E729"/>
+  <!-- Bottle Neck & Body -->
+  <path d="M27 18C27 18 25 21 21 24C19 25.5 18 28 18 31V48C18 52.4183 21.5817 56 26 56H38C42.4183 56 46 52.4183 46 48V31C46 28 45 25.5 43 24C39 21 37 18 37 18H27Z" fill="#5C1B13"/>
+  <!-- Inner Milk Level -->
+  <path d="M21 34C24 33 28 35 32 34C36 33 40 35 43 34V47C43 50.3137 40.3137 53 37 53H27C23.6863 53 21 50.3137 21 47V34Z" fill="#FFFDF7"/>
+  <!-- Golden Drop / Star in center -->
+  <path d="M32 38C32 38 35 42 35 44C35 45.6569 33.6569 47 32 47C30.3431 47 29 45.6569 29 44C29 42 32 38 32 38Z" fill="#F5E729"/>
+</svg>
