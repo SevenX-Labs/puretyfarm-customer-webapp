@@ -389,6 +389,8 @@ export function AppShowcase() {
       {/* Phone mockups carousel */}
       <div
         ref={phonesRef}
+        data-lenis-prevent="true"
+        data-lenis-prevent-touch="true"
         className="mt-8 sm:mt-10 w-full max-w-full overflow-x-auto pb-6 pt-2 scrollbar-hide flex justify-start sm:justify-center gap-4 sm:gap-6 snap-x snap-mandatory px-2 sm:px-4"
         style={{ perspective: "1200px" }}
       >

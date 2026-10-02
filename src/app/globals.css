@@ -156,22 +156,29 @@ main+div[data-testid="sticky-cta-bar"] {
   animation: shine var(--shine-duration, 5s) linear infinite;
 }
 
-/* Lenis Smooth Scroll Recommended Rules */
+/* Lenis Smooth Scroll Rules (Desktop & Mobile Touch) */
 html.lenis,
 html.lenis body {
   height: auto;
+  min-height: 100%;
+}
+
+html.lenis {
+  scroll-behavior: auto !important;
 }
 
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
 
-.lenis.lenis-smooth [data-lenis-prevent] {
+.lenis.lenis-smooth [data-lenis-prevent],
+.lenis.lenis-smooth [data-lenis-prevent-touch],
+.lenis.lenis-smooth [data-lenis-prevent-wheel] {
   overscroll-behavior: contain;
 }
 
 .lenis.lenis-stopped {
-  overflow: hidden;
+  overflow: clip !important;
 }
 
 .lenis.lenis-smooth iframe {

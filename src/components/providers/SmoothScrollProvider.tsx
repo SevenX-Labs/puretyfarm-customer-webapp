@@ -8,7 +8,10 @@ import "lenis/dist/lenis.css";
 
 interface LenisContextType {
   lenis: Lenis | null;
-  scrollTo: (target: string | number | HTMLElement, options?: { offset?: number; duration?: number }) => void;
+  scrollTo: (
+    target: string | number | HTMLElement,
+    options?: { offset?: number; duration?: number; immediate?: boolean }
+  ) => void;
   stop: () => void;
   start: () => void;
 }
@@ -38,20 +41,38 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     // Mark HTML for Lenis-controlled scrolling
     document.documentElement.classList.add("lenis", "lenis-smooth");
 
-    // Initialize Lenis with optimized settings for smooth 60fps performance
+    // Initialize Lenis with optimized settings for both Desktop and Mobile views
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      touchMultiplier: 1.5,
       wheelMultiplier: 1.0,
-      autoRaf: false, // Driven by central GSAP ticker to eliminate frame contention
+      syncTouch: true, // Enables smooth touch inertia and momentum on mobile & tablets
+      syncTouchLerp: 0.08, // Buttery smooth deceleration when lifting finger on touch
+      touchInertiaExponent: 1.6, // Natural exponential momentum decay
+      touchMultiplier: 1.2, // Snappy 1:1 tactile responsiveness during active touch dragging
+      autoRaf: false, // Driven by GSAP central ticker to eliminate frame contention
+      overscroll: true,
+      autoResize: true,
     });
 
     lenisRef.current = lenis;
     setLenisInstance(lenis);
+
+    // Ensure initial page load always starts cleanly at the top (Hero section)
+    if (typeof window !== "undefined") {
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+      }
+      // If the page was opened with a hash from a previous session, clean it up so it always shows Hero
+      if (window.location.hash) {
+        window.history.replaceState(null, "", window.location.pathname);
+      }
+      window.scrollTo(0, 0);
+      lenis.scrollTo(0, { immediate: true });
+    }
 
     // Connect Lenis scroll to GSAP ScrollTrigger updates
     lenis.on("scroll", ScrollTrigger.update);
@@ -63,12 +84,30 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     gsap.ticker.add(updateRaf);
     gsap.ticker.lagSmoothing(0);
 
-    // Smooth scroll for internal anchor links (e.g. /#pricing, #why-puretyfarm)
+    // Synchronize Lenis dimensions and ScrollTrigger positions on mobile resize & orientation change
+    const handleResize = () => {
+      lenis.resize();
+      ScrollTrigger.refresh();
+    };
+    window.addEventListener("resize", handleResize);
+
+    // Smooth scroll for internal anchor links (e.g. /#pricing, #why-puretyfarm, #how-it-works)
     const handleAnchorClick = (e: MouseEvent) => {
       const target = (e.target as HTMLElement).closest("a");
       if (!target) return;
       const href = target.getAttribute("href");
       if (!href) return;
+
+      // Handle clicking Brand Logo / Home link to smoothly scroll back to top
+      if (href === "/" && (window.location.pathname === "/" || window.location.pathname === "")) {
+        e.preventDefault();
+        lenis.scrollTo(0, {
+          offset: 0,
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        });
+        return;
+      }
 
       const isInternalHash =
         href.startsWith("#") ||
@@ -81,12 +120,12 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
         const targetElement = document.querySelector(hash);
         if (targetElement) {
           e.preventDefault();
+          const isMobile = window.innerWidth < 768;
           lenis.scrollTo(targetElement as HTMLElement, {
-            offset: -75, // Clear floating navbar
-            duration: 1.3,
+            offset: isMobile ? -64 : -75, // Responsive offset for mobile and desktop floating navbar
+            duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
           });
-          window.history.pushState(null, "", hash);
         }
       }
     };
@@ -94,6 +133,7 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     document.addEventListener("click", handleAnchorClick);
 
     return () => {
+      window.removeEventListener("resize", handleResize);
       document.removeEventListener("click", handleAnchorClick);
       document.documentElement.classList.remove("lenis", "lenis-smooth");
       gsap.ticker.remove(updateRaf);
@@ -103,10 +143,16 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const scrollTo = (target: string | number | HTMLElement, options?: { offset?: number; duration?: number }) => {
+  const scrollTo = (
+    target: string | number | HTMLElement,
+    options?: { offset?: number; duration?: number; immediate?: boolean }
+  ) => {
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const defaultOffset = isMobile ? -64 : -75;
     lenisRef.current?.scrollTo(target as HTMLElement, {
-      offset: options?.offset ?? -75,
+      offset: options?.offset ?? defaultOffset,
       duration: options?.duration ?? 1.2,
+      immediate: options?.immediate ?? false,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     });
   };

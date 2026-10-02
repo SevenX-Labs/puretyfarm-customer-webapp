@@ -7,6 +7,7 @@ import { getEmailUrl, getPhoneUrl, getWhatsAppUrl } from "@/lib/cta";
 import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
 import { FiShield, FiPhone, FiMail, FiMapPin, FiArrowRight, FiArrowUp } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
+import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import styles from "./MarketingShell.module.css";
 
 const FEATURED_AREAS = [
@@ -24,8 +25,14 @@ const FEATURED_AREAS = [
 ];
 
 export function SiteFooter() {
+  const { scrollTo } = useLenis();
+
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (scrollTo) {
+      scrollTo(0, { duration: 1.2 });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
