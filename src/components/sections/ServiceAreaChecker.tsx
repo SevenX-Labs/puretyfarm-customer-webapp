@@ -16,6 +16,8 @@ const POPULAR_AREAS = [
   "Devendra Nagar",
 ];
 
+import confetti from "canvas-confetti";
+
 export function ServiceAreaChecker() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<ServiceAreaResult | null>(null);
@@ -41,6 +43,15 @@ export function ServiceAreaChecker() {
     setCheckedArea(target);
     const res = checkServiceArea(target);
     setResult(res);
+
+    if (res.serviceable) {
+      confetti({
+        particleCount: 55,
+        spread: 70,
+        origin: { y: 0.65 },
+        colors: ["#F5E729", "#5C1B13", "#10B981", "#FFFDF7"],
+      });
+    }
   };
 
   const handleChipClick = (area: string) => {
@@ -161,39 +172,56 @@ export function ServiceAreaChecker() {
             <div
               role="status"
               aria-live="polite"
-              className="mt-6 p-5 sm:p-6 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 animate-fade-in"
+              className="mt-6 p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/50 border-2 border-emerald-500/30 text-emerald-950 shadow-lg shadow-emerald-900/5 animate-fade-in"
             >
-              <div className="flex items-start gap-3.5">
-                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/30 text-xl">
+                  ✓
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                      Service Active
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full border border-emerald-300">
+                      ⚡ Active Delivery Zone
                     </span>
-                    <span className="text-xs text-emerald-800/70">5:30 AM – 7:00 AM Delivery</span>
+                    <span className="text-xs font-semibold text-emerald-800">
+                      Morning Slot: 5:30 AM – 7:00 AM
+                    </span>
                   </div>
-                  <h3 className="text-lg font-bold text-emerald-950 mt-1">
-                    Great news! We deliver to {checkedArea}
+
+                  <h3 className="text-xl sm:text-2xl font-bold text-emerald-950 font-[family-name:var(--font-heading)] mt-2">
+                    Confirmed! We deliver to {checkedArea}
                   </h3>
-                  <p className="text-sm text-emerald-800/90 mt-1 leading-relaxed">
-                    Fresh, unadulterated A2 Gir cow milk in sanitized glass bottles is ready for morning dispatch to your doorstep.
+
+                  <p className="text-sm text-emerald-900/80 mt-1.5 leading-relaxed">
+                    Fresh, chilled A2 Gir cow milk in sanitized glass bottles is ready for morning dispatch to your doorstep.
                   </p>
 
-                  <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <Button variant="primary" size="md" onClick={handleTrialClick}>
+                  {/* Morning Delivery Breadcrumb Route */}
+                  <div className="mt-4 p-3 rounded-xl bg-white/90 border border-emerald-200 text-xs flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-semibold text-emerald-900">
+                      📍 VIP Road Chilling Hub
+                    </span>
+                    <span className="text-emerald-500">➔</span>
+                    <span className="font-semibold text-emerald-900">
+                      🚐 4°C Cold Van
+                    </span>
+                    <span className="text-emerald-500">➔</span>
+                    <span className="font-bold text-[#5C1B13]">
+                      🏡 {checkedArea} Doorstep
+                    </span>
+                  </div>
+
+                  <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <Button variant="primary" size="md" onClick={handleTrialClick} className="shadow-md shadow-[#5C1B13]/20">
                       Start 7-Day Trial in {checkedArea}
                     </Button>
                     <a
                       href={getWhatsAppUrl(`Hi PuretyFarm, I verified delivery for ${checkedArea} and would like to start my trial.`)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-emerald-800 bg-white border border-emerald-300 px-4 py-2.5 rounded-xl hover:bg-emerald-100/50 transition-colors"
+                      className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-emerald-900 bg-white border border-emerald-300 px-4 py-2.5 rounded-xl hover:bg-emerald-100/50 transition-colors shadow-xs"
                     >
-                      <span>💬 Chat on WhatsApp</span>
+                      <span>💬 Confirm on WhatsApp</span>
                     </a>
                   </div>
                 </div>

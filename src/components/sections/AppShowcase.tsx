@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Section } from "@/components/ui/Section";
+import { TiltCard } from "@/components/ui/TiltCard";
 import { handleDownloadClick } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
+import { FLAGS } from "@/config/flags";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -54,17 +56,35 @@ const FEATURES = [
   { icon: "🧾", label: "Payment History", detail: "Transparent monthly billing" },
 ] as const;
 
-function PhoneMockup({ screen, index }: { screen: typeof APP_SCREENS[number]; index: number }) {
+function PhoneMockup({
+  screen,
+  index,
+  isActive,
+  onSelect,
+}: {
+  screen: typeof APP_SCREENS[number];
+  index: number;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
   return (
     <div
       data-phone
+      onClick={onSelect}
       className={`
-        relative flex-shrink-0 w-[260px] sm:w-[280px]
-        ${index === 1 ? "z-10 scale-105 sm:scale-110" : "opacity-90"}
+        relative flex-shrink-0 w-[260px] sm:w-[280px] cursor-pointer transition-all duration-300
+        ${isActive ? "z-20 scale-105 sm:scale-110 opacity-100" : "opacity-75 hover:opacity-95 scale-95 sm:scale-100"}
       `}
     >
+
       {/* Phone frame */}
-      <div className="rounded-[32px] bg-[#1A1008] p-2 shadow-[0_25px_50px_-12px_rgba(92,27,19,0.18)]">
+      <div
+        className={`rounded-[32px] bg-[#1A1008] p-2 transition-shadow duration-300 ${
+          isActive
+            ? "shadow-[0_25px_60px_-12px_rgba(92,27,19,0.3)] ring-2 ring-[#5C1B13]/30"
+            : "shadow-[0_20px_40px_-12px_rgba(92,27,19,0.12)]"
+        }`}
+      >
         {/* Notch */}
         <div className="relative rounded-[26px] bg-white overflow-hidden">
           <div className="flex justify-center pt-2 pb-1">
@@ -252,6 +272,7 @@ function PhoneMockup({ screen, index }: { screen: typeof APP_SCREENS[number]; in
 }
 
 export function AppShowcase() {
+  const [activeScreenIndex, setActiveScreenIndex] = useState(1);
   const badgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.5 });
   const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
   const subtitleRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.2 });
@@ -313,14 +334,57 @@ export function AppShowcase() {
         your subscription — all from one app.
       </p>
 
+      {/* Interactive Screen Selector Tabs */}
+      <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3 px-4">
+        {APP_SCREENS.map((screen, i) => (
+          <button
+            key={screen.title}
+            type="button"
+            onClick={() => setActiveScreenIndex(i)}
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer select-none ${
+              activeScreenIndex === i
+                ? "bg-[#5C1B13] text-white shadow-lg shadow-[#5C1B13]/25 scale-105"
+                : "bg-white text-[#3A241C]/75 hover:bg-[#FAF3EA] border border-[#E8DFD4]"
+            }`}
+          >
+            {screen.title}
+          </button>
+        ))}
+      </div>
+
+      {/* Real-time Push Notification Alert Card */}
+      <div className="mt-6 flex justify-center px-4">
+        <div className="inline-flex items-center gap-3 bg-[#1A1008] text-white rounded-2xl px-5 py-3 shadow-xl shadow-[#1A1008]/15 border border-white/15 max-w-lg w-full sm:w-auto">
+          <span className="text-xl sm:text-2xl flex-shrink-0">🛵</span>
+          <div className="text-left flex-1 min-w-0">
+            <p className="text-[10px] sm:text-xs font-bold text-[#F5E729] flex items-center gap-1.5 uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+              Live Delivery Alert
+            </p>
+            <p className="text-xs sm:text-sm font-semibold text-white mt-0.5 leading-snug">
+              Milked at dawn — Arriving 6:18 AM!
+            </p>
+          </div>
+          <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/30 shrink-0">
+            Active Slot
+          </span>
+        </div>
+      </div>
+
       {/* Phone mockups carousel */}
       <div
         ref={phonesRef}
-        className="mt-12 w-full max-w-full overflow-x-auto pb-6 pt-2 scrollbar-hide flex justify-start sm:justify-center gap-4 sm:gap-6 snap-x snap-mandatory px-2 sm:px-4"
+        className="mt-8 sm:mt-10 w-full max-w-full overflow-x-auto pb-6 pt-2 scrollbar-hide flex justify-start sm:justify-center gap-4 sm:gap-6 snap-x snap-mandatory px-2 sm:px-4"
         style={{ perspective: "1200px" }}
       >
         {APP_SCREENS.map((screen, i) => (
-          <PhoneMockup key={i} screen={screen} index={i} />
+          <PhoneMockup
+            key={i}
+            screen={screen}
+            index={i}
+            isActive={activeScreenIndex === i}
+            onSelect={() => setActiveScreenIndex(i)}
+          />
         ))}
       </div>
 
@@ -330,11 +394,15 @@ export function AppShowcase() {
           <div
             key={feature.label}
             data-app-feature
-            className="flex flex-col items-center gap-2 bg-white rounded-xl border border-[#E8DFD4] p-4 shadow-sm hover:shadow-md transition-shadow"
+            className="h-full"
           >
-            <span className="text-2xl">{feature.icon}</span>
-            <p className="text-sm font-semibold text-[#1A1008] text-center">{feature.label}</p>
-            <p className="text-xs text-[#3A241C]/60 text-center">{feature.detail}</p>
+            <TiltCard tiltMaxAngle={6} scale={1.03} glare={true} className="h-full">
+              <div className="flex flex-col items-center gap-2 bg-white rounded-xl border border-[#E8DFD4] p-4 shadow-sm hover:shadow-md transition-all duration-200 group h-full">
+                <span className="text-2xl group-hover:scale-110 transition-transform duration-200">{feature.icon}</span>
+                <p className="text-sm font-semibold text-[#1A1008] text-center group-hover:text-[#5C1B13] transition-colors">{feature.label}</p>
+                <p className="text-xs text-[#3A241C]/60 text-center">{feature.detail}</p>
+              </div>
+            </TiltCard>
           </div>
         ))}
       </div>
@@ -343,7 +411,7 @@ export function AppShowcase() {
       <div ref={ctaRef} className="mt-10 text-center">
         <button
           onClick={handleDownloadClick}
-          className="inline-flex items-center gap-3 bg-[#1A1008] text-white rounded-xl px-6 py-3.5 hover:bg-[#2A2018] transition-colors shadow-lg cursor-pointer"
+          className="inline-flex items-center gap-3 bg-[#1A1008] text-white rounded-xl px-7 py-3.5 hover:bg-[#2A2018] active:scale-95 hover:scale-105 transition-all duration-200 shadow-xl shadow-[#1A1008]/20 cursor-pointer"
         >
           <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
             <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302-2.302 2.302-2.632-2.302 2.632-2.302zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z" />
@@ -354,9 +422,11 @@ export function AppShowcase() {
           </div>
         </button>
 
-        <p className="mt-4 text-sm text-[#3A241C]/60">
-          Rated 4.8/5 by 3,500+ families across Shankar Nagar, Telibandha & VIP Road
-        </p>
+        {FLAGS.SHOW_3500_FAMILIES_LINE && (
+          <p className="mt-4 text-sm text-[#3A241C]/60">
+            Rated 4.8/5 by 3,500+ families across Shankar Nagar, Telibandha & VIP Road
+          </p>
+        )}
       </div>
     </Section>
   );

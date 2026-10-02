@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { getWhatsAppUrl, getPhoneUrl, getEmailUrl } from "@/lib/cta";
 import { ENV } from "@/config/env";
 
@@ -14,20 +14,7 @@ export default function NotFound() {
       {/* Simple Header */}
       <header className="w-full border-b border-[#E8DFD4] bg-[#FFFDF7]/90 backdrop-blur-sm py-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[#E8DFD4] shadow-sm bg-[#FDEE57]">
-              <Image
-                src="/logo-mark.webp"
-                alt="PuretyFarm Logo"
-                fill
-                sizes="40px"
-                className="object-cover"
-              />
-            </div>
-            <span className="font-[family-name:var(--font-heading)] font-bold text-xl text-[#1A1008] tracking-tight">
-              PuretyFarm
-            </span>
-          </Link>
+          <BrandLogo />
           <Link
             href="/"
             className="text-xs sm:text-sm font-semibold text-[#5C1B13] hover:text-[#4A1510] transition-colors"

@@ -48,3 +48,12 @@ next-env.d.ts
 .graphifyignore
 .agents/
 
+# gsd & agent tooling
+.gsd/
+.agent/
+.gemini/
+adapters/
+GSD-STYLE.md
+model_capabilities.yaml
+VERSION
+PROJECT_RULES.md

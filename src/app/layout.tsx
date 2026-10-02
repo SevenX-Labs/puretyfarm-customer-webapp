@@ -58,12 +58,15 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/logo-mark.webp", sizes: "192x192", type: "image/webp" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [
-      { url: "/logo-mark.webp", sizes: "180x180", type: "image/webp" },
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
     ],
     shortcut: "/favicon.ico",
   },
@@ -179,9 +182,6 @@ export default function RootLayout({
       className={`${headingFont.variable} ${bodyFont.variable} h-full antialiased`}
     >
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/logo-mark.webp" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

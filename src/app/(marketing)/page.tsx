@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
-import { Navbar } from "@/components/ui/Navbar";
 import { Hero } from "@/components/sections/Hero";
+import { MarqueeTicker } from "@/components/ui/MarqueeTicker";
+import { FLAGS } from "@/config/flags";
 
 function SectionSkeleton({
   minHeight = "400px",
@@ -84,13 +85,13 @@ const StickyCtaBar = dynamic(
 export default function Home() {
   return (
     <>
-      <Navbar />
       <main>
         <Hero />
+        <MarqueeTicker />
         <TrialOffer />
         <WhyUs />
         <HowItWorks />
-        <AppShowcase />
+        {FLAGS.SHOW_APP_FEATURES && <AppShowcase />}
         <Pricing />
         <ServiceAreaChecker />
         <SocialProof />
