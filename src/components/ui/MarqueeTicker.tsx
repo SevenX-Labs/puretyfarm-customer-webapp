@@ -1,18 +1,28 @@
 "use client";
 
 import { FLAGS } from "@/config/flags";
+import {
+  FiShield,
+  FiCheckCircle,
+  FiPackage,
+  FiThermometer,
+  FiClock,
+  FiDroplet,
+  FiMapPin,
+  FiStar,
+} from "react-icons/fi";
 
 const TICKER_ITEMS = [
-  { icon: "🥛", text: "100% Desi Gir Cows" },
+  { icon: FiShield, text: "100% Desi Gir Cows", color: "text-[#5C1B13]" },
   ...(FLAGS.SHOW_40_TESTS_CLAIM
-    ? [{ icon: "🔬", text: "Tested for 40+ Adulterants & Heavy Metals" }]
+    ? [{ icon: FiCheckCircle, text: "Tested for 40+ Adulterants & Heavy Metals", color: "text-emerald-700" }]
     : []),
-  { icon: "🍶", text: "Sanitized Eco Glass Bottles" },
-  { icon: "❄️", text: "Chilled to 4°C Farm-to-Doorstep" },
-  { icon: "⏰", text: "Delivered Before 7:00 AM Daily" },
-  { icon: "🌱", text: "Zero Added Water, Hormones, or Preservatives" },
-  { icon: "📍", text: "Serving All Major Localities Across Raipur" },
-  { icon: "✨", text: "Risk-Free 7-Day Trial — No Deposit" },
+  { icon: FiPackage, text: "Sanitized Eco Glass Bottles", color: "text-[#5C1B13]" },
+  { icon: FiThermometer, text: "Chilled to 4°C Farm-to-Doorstep", color: "text-blue-600" },
+  { icon: FiClock, text: "Delivered Before 7:00 AM Daily", color: "text-[#5C1B13]" },
+  { icon: FiDroplet, text: "Zero Added Water, Hormones, or Preservatives", color: "text-emerald-600" },
+  { icon: FiMapPin, text: "Serving All Major Localities Across Raipur", color: "text-amber-600" },
+  { icon: FiStar, text: "Risk-Free 7-Day Trial — No Deposit", color: "text-amber-500" },
 ];
 
 export function MarqueeTicker({ className = "" }: { className?: string }) {
@@ -35,16 +45,19 @@ export function MarqueeTicker({ className = "" }: { className?: string }) {
       />
 
       <div className="animate-marquee flex items-center">
-        {duplicatedItems.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-2.5 mx-6 sm:mx-8 text-xs sm:text-sm font-semibold text-[#3A241C]"
-          >
-            <span className="text-base sm:text-lg flex-shrink-0">{item.icon}</span>
-            <span className="whitespace-nowrap">{item.text}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#5C1B13]/30 mx-3" />
-          </div>
-        ))}
+        {duplicatedItems.map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={index}
+              className="flex items-center gap-2.5 mx-6 sm:mx-8 text-xs sm:text-sm font-semibold text-[#3A241C]"
+            >
+              <Icon className={`w-4 h-4 flex-shrink-0 ${item.color}`} />
+              <span className="whitespace-nowrap">{item.text}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#5C1B13]/30 mx-3" />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

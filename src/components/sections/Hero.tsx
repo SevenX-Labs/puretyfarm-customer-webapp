@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
 import { useHeroEntrance, useParallax } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
-import { FiStar, FiZap, FiDownload, FiCheckCircle } from "react-icons/fi";
+import { FiStar, FiZap, FiDownload, FiCheckCircle, FiShield, FiPackage, FiThermometer, FiSun } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 
 const ThreeBackgroundCanvas = dynamic(
@@ -35,10 +35,10 @@ const HeroBottle3D = dynamic(
 );
 
 const TRUST_METRICS = [
-  { label: "100% Desi Gir Cows", icon: "🌿" },
-  { label: "Sanitized Glass", icon: "🍶" },
-  { label: "Chilled to 4°C", icon: "❄️" },
-  { label: "Dawn Milked Daily", icon: "🌅" },
+  { label: "100% Desi Gir Cows", icon: FiShield },
+  { label: "Sanitized Glass", icon: FiPackage },
+  { label: "Chilled to 4°C", icon: FiThermometer },
+  { label: "Dawn Milked Daily", icon: FiSun },
 ] as const;
 
 export function Hero() {
@@ -152,7 +152,7 @@ export function Hero() {
                   key={metric.label}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 border border-[#E8DFD4] shadow-xs text-xs font-semibold text-[#1A1008]"
                 >
-                  <span>{metric.icon}</span>
+                  <metric.icon className="w-3.5 h-3.5 text-[#5C1B13]" />
                   <span>{metric.label}</span>
                 </div>
               ))}

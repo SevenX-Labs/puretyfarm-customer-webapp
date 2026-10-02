@@ -6,7 +6,17 @@ import { Button } from "@/components/ui/Button";
 import { checkServiceArea, ServiceAreaResult } from "@/lib/serviceArea";
 import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
 import { handleTrialClick, getWhatsAppUrl } from "@/lib/cta";
-import { FiMapPin, FiX, FiAlertCircle, FiCheck } from "react-icons/fi";
+import {
+  FiMapPin,
+  FiX,
+  FiAlertCircle,
+  FiCheck,
+  FiZap,
+  FiTruck,
+  FiHome,
+  FiArrowRight,
+  FiPackage,
+} from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 
 const POPULAR_AREAS = [
@@ -72,8 +82,9 @@ export function ServiceAreaChecker() {
       <div className="max-w-3xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-8">
-          <span className="inline-flex items-center gap-2 bg-[#5C1B13]/10 border border-[#5C1B13]/20 text-[#5C1B13] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider mb-4">
-            📍 Delivery Coverage
+          <span className="inline-flex items-center gap-1.5 bg-[#5C1B13]/10 border border-[#5C1B13]/20 text-[#5C1B13] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider mb-4">
+            <FiMapPin className="w-3.5 h-3.5" />
+            <span>Delivery Coverage</span>
           </span>
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] tracking-tight">
             Check If We Deliver to Your Door
@@ -170,13 +181,14 @@ export function ServiceAreaChecker() {
               className="mt-6 p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/50 border-2 border-emerald-500/30 text-emerald-950 shadow-lg shadow-emerald-900/5 animate-fade-in"
             >
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/30 text-xl">
-                  ✓
+                <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/30">
+                  <FiCheck className="w-6 h-6" strokeWidth={3} />
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full border border-emerald-300">
-                      ⚡ Active Delivery Zone
+                    <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full border border-emerald-300">
+                      <FiZap className="w-3.5 h-3.5" />
+                      <span>Active Delivery Zone</span>
                     </span>
                     <span className="text-xs font-semibold text-emerald-800">
                       Morning Slot: 5:30 AM – 7:00 AM
@@ -193,16 +205,19 @@ export function ServiceAreaChecker() {
 
                   {/* Morning Delivery Breadcrumb Route */}
                   <div className="mt-4 p-3 rounded-xl bg-white/90 border border-emerald-200 text-xs flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-semibold text-emerald-900">
-                      📍 VIP Road Chilling Hub
+                    <span className="font-semibold text-emerald-900 inline-flex items-center gap-1.5">
+                      <FiMapPin className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>VIP Road Chilling Hub</span>
                     </span>
-                    <span className="text-emerald-500">➔</span>
-                    <span className="font-semibold text-emerald-900">
-                      🚐 4°C Cold Van
+                    <FiArrowRight className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="font-semibold text-emerald-900 inline-flex items-center gap-1.5">
+                      <FiTruck className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>4°C Cold Van</span>
                     </span>
-                    <span className="text-emerald-500">➔</span>
-                    <span className="font-bold text-[#5C1B13]">
-                      🏡 {checkedArea} Doorstep
+                    <FiArrowRight className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="font-bold text-[#5C1B13] inline-flex items-center gap-1.5">
+                      <FiHome className="w-3.5 h-3.5 text-[#5C1B13]" />
+                      <span>{checkedArea} Doorstep</span>
                     </span>
                   </div>
 
@@ -216,7 +231,8 @@ export function ServiceAreaChecker() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-emerald-900 bg-white border border-emerald-300 px-4 py-2.5 rounded-xl hover:bg-emerald-100/50 transition-colors shadow-xs"
                     >
-                      <span>💬 Confirm on WhatsApp</span>
+                      <FaWhatsapp className="w-4 h-4 text-emerald-600" />
+                      <span>Confirm on WhatsApp</span>
                     </a>
                   </div>
                 </div>
@@ -232,8 +248,8 @@ export function ServiceAreaChecker() {
               className="mt-6 p-6 sm:p-7 rounded-2xl bg-[#FFFDF7] border-2 border-dashed border-[#E8DFD4] text-center animate-fade-in"
             >
               {/* Empty state illustration */}
-              <div className="w-16 h-16 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] mx-auto flex items-center justify-center text-3xl mb-4">
-                🥛
+              <div className="w-16 h-16 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] mx-auto flex items-center justify-center mb-4">
+                <FiPackage className="w-8 h-8" />
               </div>
 
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F5E729]/30 text-[#1A1008] text-xs font-semibold mb-2">

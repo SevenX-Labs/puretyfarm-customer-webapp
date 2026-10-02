@@ -9,6 +9,19 @@ import { handleDownloadClick } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
 import { FaStar, FaGooglePlay } from "react-icons/fa";
+import {
+  FiCalendar,
+  FiPauseCircle,
+  FiMapPin,
+  FiCreditCard,
+  FiSmartphone,
+  FiTruck,
+  FiDroplet,
+  FiThermometer,
+  FiHome,
+  FiPackage,
+  FiUser,
+} from "react-icons/fi";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,7 +30,7 @@ const APP_SCREENS = [
     title: "Daily Subscription",
     subtitle: "Manage your morning milk",
     content: {
-      greeting: "Good Morning, Raipur! 🌅",
+      greeting: "Good Morning, Raipur!",
       card: {
         time: "Tomorrow, 6:00 – 6:30 AM",
         status: "Confirmed",
@@ -41,7 +54,7 @@ const APP_SCREENS = [
     title: "Live Tracking",
     subtitle: "Know when milk arrives",
     content: {
-      status: "Out for Delivery 🛵",
+      status: "Out for Delivery",
       eta: "Arriving in 14 mins (6:18 AM)",
       partner: "Ramesh Sahu",
       rating: "4.9",
@@ -51,10 +64,10 @@ const APP_SCREENS = [
 ] as const;
 
 const FEATURES = [
-  { icon: "📅", label: "Schedule Deliveries", detail: "Custom days & quantities" },
-  { icon: "⏸️", label: "Pause Anytime", detail: "Zero cancellation charges" },
-  { icon: "📍", label: "Track Milkman", detail: "Live GPS & morning ETA" },
-  { icon: "🧾", label: "Payment History", detail: "Transparent monthly billing" },
+  { icon: FiCalendar, label: "Schedule Deliveries", detail: "Custom days & quantities" },
+  { icon: FiPauseCircle, label: "Pause Anytime", detail: "Zero cancellation charges" },
+  { icon: FiMapPin, label: "Track Milkman", detail: "Live GPS & morning ETA" },
+  { icon: FiCreditCard, label: "Payment History", detail: "Transparent monthly billing" },
 ] as const;
 
 function PhoneMockup({
@@ -138,7 +151,9 @@ function PhoneMockup({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-[#3A241C]/60">
-                  <span className="text-base">🥛</span>
+                  <div className="w-8 h-8 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center shrink-0">
+                  <FiDroplet className="w-4 h-4" />
+                </div>
                   <span>Next delivery scheduled</span>
                 </div>
               </>
@@ -217,7 +232,7 @@ function PhoneMockup({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-2 border border-blue-100">
-                  <span className="text-[10px]">🌡️</span>
+                  <FiThermometer className="w-3.5 h-3.5 text-blue-700 shrink-0" />
                   <span className="text-[10px] font-semibold text-blue-700">
                     {(screen.content as typeof APP_SCREENS[2]["content"]).temp}
                   </span>
@@ -249,12 +264,12 @@ function PhoneMockup({
 
           {/* Bottom nav bar */}
           <div className="flex items-center justify-around py-2 border-t border-[#E8DFD4]">
-            {["🏠", "📦", "📍", "👤"].map((icon, i) => (
+            {[FiHome, FiPackage, FiMapPin, FiUser].map((Icon, i) => (
               <span
                 key={i}
-                className={`text-sm ${i === index ? "opacity-100" : "opacity-40"}`}
+                className={`text-sm ${i === index ? "text-[#5C1B13] opacity-100" : "text-[#3A241C] opacity-40"}`}
               >
-                {icon}
+                <Icon className="w-4 h-4" />
               </span>
             ))}
           </div>
@@ -319,7 +334,8 @@ export function AppShowcase() {
       {/* Badge */}
       <div ref={badgeRef} className="text-center mb-6">
         <span className="inline-flex items-center gap-2 bg-[#5C1B13]/10 border border-[#5C1B13]/20 text-[#5C1B13] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider">
-          📱 PuretyFarm Mobile App
+          <FiSmartphone className="w-3.5 h-3.5" />
+          <span>PuretyFarm Mobile App</span>
         </span>
       </div>
 
@@ -354,7 +370,7 @@ export function AppShowcase() {
       {/* Real-time Push Notification Alert Card */}
       <div className="mt-6 flex justify-center px-4">
         <div className="inline-flex items-center gap-3 bg-[#1A1008] text-white rounded-2xl px-5 py-3 shadow-xl shadow-[#1A1008]/15 border border-white/15 max-w-lg w-full sm:w-auto">
-          <span className="text-xl sm:text-2xl flex-shrink-0">🛵</span>
+          <FiTruck className="w-6 h-6 text-[#F5E729] flex-shrink-0" />
           <div className="text-left flex-1 min-w-0">
             <p className="text-[10px] sm:text-xs font-bold text-[#F5E729] flex items-center gap-1.5 uppercase tracking-wider">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
@@ -397,7 +413,9 @@ export function AppShowcase() {
           >
             <TiltCard tiltMaxAngle={6} scale={1.03} glare={true} className="h-full">
               <div className="flex flex-col items-center gap-2 bg-white rounded-xl border border-[#E8DFD4] p-4 shadow-sm hover:shadow-md transition-all duration-200 group h-full">
-                <span className="text-2xl group-hover:scale-110 transition-transform duration-200">{feature.icon}</span>
+                <div className="w-10 h-10 rounded-xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center mb-1 group-hover:scale-110 group-hover:bg-[#5C1B13] group-hover:text-white transition-all duration-200">
+                  <feature.icon className="w-5 h-5" />
+                </div>
                 <p className="text-sm font-semibold text-[#1A1008] text-center group-hover:text-[#5C1B13] transition-colors">{feature.label}</p>
                 <p className="text-xs text-[#3A241C]/60 text-center">{feature.detail}</p>
               </div>

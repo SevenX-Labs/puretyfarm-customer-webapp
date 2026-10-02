@@ -30,6 +30,8 @@ import {
   FiCheck,
   FiX,
   FiCheckSquare,
+  FiArrowRight,
+  FiArrowLeft,
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -460,15 +462,17 @@ export function WhyUs() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto items-stretch"
           >
+            {/* ─── ROW 1: CARD 1 (Spans 2 cols) + CARD 2 (Spans 1 col) ─── */}
+
             {/* Bento Card 1: The Gir Cow Genetics & Ahimsa Pastures (Spans 2 columns) */}
-            <div className="md:col-span-2 lg:col-span-2">
-              <TiltCard tiltMaxAngle={4} scale={1.015} glare={true} className="h-full">
-                <div className="relative h-full bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] rounded-3xl border-2 border-[#5C1B13]/25 p-6 sm:p-8 shadow-sm overflow-hidden flex flex-col justify-between group">
+            <div className="col-span-1 md:col-span-2 lg:col-span-2 flex flex-col">
+              <TiltCard tiltMaxAngle={3} scale={1.01} glare={true} className="h-full">
+                <div className="relative h-full bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] rounded-3xl border border-[#E8DFD4] p-6 sm:p-8 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group">
                   <div
                     aria-hidden="true"
-                    className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#F5E729]/25 blur-3xl pointer-events-none"
+                    className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#F5E729]/20 blur-3xl pointer-events-none"
                   />
 
                   <div>
@@ -487,11 +491,11 @@ export function WhyUs() {
                     </h3>
 
                     <p className="mt-3 text-sm sm:text-base text-[#3A241C]/85 leading-relaxed max-w-2xl">
-                      Commercial dairies crossbreed European HF/Jersey cows for volume. Our indigenous Gir cows possess the sacred hump that absorbs solar energy through the Surya Ketu Nadi, synthesizing 100% natural A2 beta-casein with uncompromised vitality.
+                      Commercial dairies crossbreed European HF/Jersey cows for volume. Our indigenous Desi Gir cows possess the sacred hump that absorbs solar energy through the Surya Ketu Nadi, synthesizing 100% natural A2 beta-casein with uncompromised vitality.
                     </p>
                   </div>
 
-                  {/* 4 Interactive proof badges */}
+                  {/* 4 Aligned proof metric tiles */}
                   <div className="mt-6 pt-6 border-t border-[#E8DFD4] grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                     <div className="p-3 rounded-2xl bg-white/90 border border-[#E8DFD4] shadow-2xs transition-transform hover:-translate-y-0.5">
                       <p className="text-lg sm:text-xl font-black text-[#5C1B13]">0%</p>
@@ -514,14 +518,15 @@ export function WhyUs() {
               </TiltCard>
             </div>
 
-            {/* Bento Card 2: Glass Bottle Showcase with Visual Asset */}
-            <div className="h-full">
-              <TiltCard tiltMaxAngle={5} scale={1.02} glare={true} className="h-full">
-                <div className="h-full bg-gradient-to-br from-white to-[#FAF6F0] rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group relative overflow-hidden">
+            {/* Bento Card 2: Glass Bottle Showcase with Visual Asset (Spans 1 column) */}
+            <div className="col-span-1 md:col-span-1 lg:col-span-1 flex flex-col">
+              <TiltCard tiltMaxAngle={4} scale={1.015} glare={true} className="h-full">
+                <div className="h-full bg-gradient-to-br from-white to-[#FAF6F0] rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C1B13] bg-[#FAF3EA] px-2.5 py-1 rounded-full border border-[#E8DFD4]">
-                        Zero Plastic Touch
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C1B13] bg-[#FAF3EA] px-2.5 py-1 rounded-full border border-[#E8DFD4] flex items-center gap-1">
+                        <FiPackage className="w-3 h-3" />
+                        <span>Pillar 02 · Zero Plastic</span>
                       </span>
                       <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                         85°C Sanitized
@@ -546,7 +551,7 @@ export function WhyUs() {
                       height={160}
                       className="h-28 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute -bottom-2 bg-white/90 backdrop-blur-xs border border-[#E8DFD4] text-[10px] font-bold text-[#1A1008] px-3 py-1 rounded-full shadow-2xs">
+                    <div className="absolute -bottom-1 bg-white/95 backdrop-blur-xs border border-[#E8DFD4] text-[10px] font-bold text-[#1A1008] px-3 py-1 rounded-full shadow-2xs">
                       Deposit Waived · Doorstep Pickup
                     </div>
                   </div>
@@ -559,21 +564,23 @@ export function WhyUs() {
               </TiltCard>
             </div>
 
+            {/* ─── ROW 2: 3 EQUAL BALANCED PILLARS (CARD 3, CARD 4, CARD 5) ─── */}
+
             {/* Bento Card 3: Dawn Milking to Doorstep */}
-            <div className="h-full">
-              <TiltCard tiltMaxAngle={5} scale={1.02} glare={true} className="h-full">
-                <div className="h-full bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+            <div className="col-span-1 md:col-span-1 lg:col-span-1 flex flex-col">
+              <TiltCard tiltMaxAngle={4} scale={1.015} glare={true} className="h-full">
+                <div className="h-full bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-[#F5E729]/30 text-[#5C1B13] flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <FiSun className="w-6 h-6" strokeWidth={2} />
+                      <div className="w-11 h-11 rounded-2xl bg-[#F5E729]/30 text-[#5C1B13] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FiSun className="w-5 h-5 text-[#5C1B13]" strokeWidth={2} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C1B13] bg-[#FAF3EA] px-2.5 py-1 rounded-full border border-[#E8DFD4]">
-                        Dawn to Doorstep
+                        Pillar 03 · Dawn Milking
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
+                    <h3 className="text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] min-h-[56px] flex items-center">
                       Milked at 4:30 AM · Delivered by 7:00 AM
                     </h3>
 
@@ -594,20 +601,20 @@ export function WhyUs() {
             </div>
 
             {/* Bento Card 4: Authentic Malai Layer */}
-            <div className="h-full">
-              <TiltCard tiltMaxAngle={5} scale={1.02} glare={true} className="h-full">
-                <div className="h-full bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
+            <div className="col-span-1 md:col-span-1 lg:col-span-1 flex flex-col">
+              <TiltCard tiltMaxAngle={4} scale={1.015} glare={true} className="h-full">
+                <div className="h-full bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <FiLayers className="w-6 h-6" strokeWidth={2} />
+                      <div className="w-11 h-11 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FiLayers className="w-5 h-5 text-[#5C1B13]" strokeWidth={2} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C1B13] bg-[#FAF3EA] px-2.5 py-1 rounded-full border border-[#E8DFD4]">
-                        Natural 4.2%+ Fat
+                        Pillar 04 · Natural Malai
                       </span>
                     </div>
 
-                    <h3 className="text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
+                    <h3 className="text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] min-h-[56px] flex items-center">
                       Whole Natural Golden Malai Crust
                     </h3>
 
@@ -617,45 +624,79 @@ export function WhyUs() {
                   </div>
 
                   <div className="mt-5 pt-4 border-t border-[#E8DFD4]/80 flex items-center justify-between text-xs text-[#3A241C]/75 font-semibold">
-                    <span>Non-Homogenized</span>
+                    <span>Non-Homogenized 4.2%+</span>
                     <span className="text-[#5C1B13] font-bold">Raw & Untouched</span>
                   </div>
                 </div>
               </TiltCard>
             </div>
 
-            {/* Bento Card 5: Interactive Quality Lab Station (Spans 2 columns) */}
-            <div className="md:col-span-2 lg:col-span-2">
+            {/* Bento Card 5: Sacred Ahimsa Sanctuary & Mother-Calf Care (Completes the 3-column row!) */}
+            <div className="col-span-1 md:col-span-1 lg:col-span-1 flex flex-col">
               <TiltCard tiltMaxAngle={4} scale={1.015} glare={true} className="h-full">
-                <div className="h-full bg-gradient-to-r from-white via-[#FAF3EA]/70 to-white rounded-3xl border border-[#E8DFD4] p-6 sm:p-7 shadow-sm flex flex-col justify-between">
+                <div className="h-full bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
                   <div>
-                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold">
-                        <FiCheckCircle className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>
-                          {FLAGS.SHOW_40_TESTS_CLAIM
-                            ? "40+ Daily Laboratory Checks Every Morning"
-                            : "Rigorous Daily Laboratory Checks Every Morning"}
-                        </span>
-                      </span>
-                      <span className="text-xs font-bold text-[#5C1B13] bg-[#FAF3EA] border border-[#E8DFD4] px-3 py-0.5 rounded-full">
-                        {FLAGS.SHOW_FSSAI_CLAIM
-                          ? "FSSAI Compliant · Click Test to Inspect"
-                          : "Daily Quality Screening · Click Test to Inspect"}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-11 h-11 rounded-2xl bg-rose-50 text-[#5C1B13] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FiHeart className="w-5 h-5 text-rose-700" strokeWidth={2} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
+                        Pillar 05 · Ahimsa Sanctuary
                       </span>
                     </div>
 
-                    <h3 className="text-2xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
-                      Zero Adulteration Tolerance Policy
+                    <h3 className="text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] min-h-[56px] flex items-center">
+                      Calves Feed First &amp; Lifelong Care
                     </h3>
 
                     <p className="mt-2 text-xs sm:text-sm text-[#3A241C]/80 leading-relaxed">
-                      Every batch is digitally tested on-farm before dispatch. Click any test below to inspect our testing methodology and tolerance score.
+                      Every calf drinks its full fill from its mother before milking begins. Our aging cows enjoy lifelong sanctuary care with zero slaughter or commercial exploitation.
                     </p>
                   </div>
 
-                  {/* Interactive Test Tag Badges */}
-                  <div className="mt-4 pt-4 border-t border-[#E8DFD4] flex flex-wrap gap-2">
+                  <div className="mt-5 pt-4 border-t border-[#E8DFD4]/80 flex items-center justify-between text-xs text-[#3A241C]/75 font-semibold">
+                    <span>Cruelty-Free Sanctuary</span>
+                    <span className="text-emerald-700 font-bold">100% Ethical</span>
+                  </div>
+                </div>
+              </TiltCard>
+            </div>
+
+            {/* ─── ROW 3: CARD 6 (Command Station Spans Full 3 Columns) ─── */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-col">
+              <TiltCard tiltMaxAngle={2} scale={1.008} glare={true} className="h-full">
+                <div className="h-full bg-gradient-to-r from-white via-[#FAF3EA]/80 to-white rounded-3xl border border-[#E8DFD4] p-6 sm:p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden">
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5C1B13] text-white text-xs font-bold uppercase tracking-wider shadow-2xs">
+                        <FiShield className="w-3.5 h-3.5 text-[#F5E729]" />
+                        <span>Pillar 06 · Digital On-Farm Lab Station</span>
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-emerald-900 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full">
+                          Zero Adulteration Tolerance
+                        </span>
+                        <span className="hidden sm:inline-block text-xs font-bold text-[#5C1B13] bg-[#FAF3EA] border border-[#E8DFD4] px-3 py-1 rounded-full">
+                          {FLAGS.SHOW_FSSAI_CLAIM
+                            ? "FSSAI Compliant · Click Test to Inspect"
+                            : "Daily Quality Screening · Click Test to Inspect"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
+                      {FLAGS.SHOW_40_TESTS_CLAIM
+                        ? "40+ Daily Laboratory Checks Every Morning Before Dispatch"
+                        : "Rigorous Daily Laboratory Checks Every Morning Before Dispatch"}
+                    </h3>
+
+                    <p className="mt-2 text-xs sm:text-sm text-[#3A241C]/80 leading-relaxed max-w-3xl">
+                      Every single morning batch is digitally tested on-farm before dispatch to Raipur. Click any test chip below to inspect our testing methodology and tolerance score.
+                    </p>
+                  </div>
+
+                  {/* Interactive Test Tag Badges Grid */}
+                  <div className="mt-5 pt-4 border-t border-[#E8DFD4] flex flex-wrap gap-2">
                     {LAB_TEST_CHIPS.map((chip, index) => {
                       const isSelected = inspectedLabChip === index;
                       return (
@@ -663,13 +704,13 @@ export function WhyUs() {
                           key={index}
                           type="button"
                           onClick={() => setInspectedLabChip(isSelected ? null : index)}
-                          className={`text-[11px] font-bold px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+                          className={`text-[11px] font-bold px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
                             isSelected
-                              ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-xs"
-                              : "bg-white border-[#E8DFD4] text-[#1A1008] hover:bg-[#FAF3EA]"
+                              ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-xs scale-105"
+                              : "bg-white border-[#E8DFD4] text-[#1A1008] hover:bg-[#FAF3EA] hover:border-[#5C1B13]/30"
                           }`}
                         >
-                          <FiCheck className={`w-3 h-3 ${isSelected ? "text-emerald-300" : "text-emerald-600"}`} />
+                          <FiCheck className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-300" : "text-emerald-600"}`} />
                           <span>{chip.name}:</span>
                           <span className={isSelected ? "text-[#F5E729]" : "text-[#5C1B13]"}>{chip.result}</span>
                         </button>
@@ -682,18 +723,18 @@ export function WhyUs() {
                     <m.div
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-3 p-3 bg-white rounded-xl border border-[#5C1B13]/30 shadow-xs flex items-center justify-between text-xs"
+                      className="mt-4 p-4 bg-white rounded-2xl border border-[#5C1B13]/30 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                     >
                       <div>
                         <span className="font-bold text-[#5C1B13]">
                           {LAB_TEST_CHIPS[inspectedLabChip].name}:{" "}
                         </span>
-                        <span className="text-[#3A241C]/80">
+                        <span className="text-[#3A241C]/85">
                           {LAB_TEST_CHIPS[inspectedLabChip].info}
                         </span>
                       </div>
-                      <span className="ml-2 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                        {LAB_TEST_CHIPS[inspectedLabChip].status}
+                      <span className="font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto">
+                        Status: {LAB_TEST_CHIPS[inspectedLabChip].status}
                       </span>
                     </m.div>
                   )}
@@ -755,7 +796,7 @@ export function WhyUs() {
 
                   <div className="mt-6 space-y-4 text-xs sm:text-sm text-[#3A241C]/85">
                     <div className="flex items-start gap-3">
-                      <span className="text-red-500 font-bold text-base leading-none mt-0.5">✕</span>
+                      <FiX className="w-4 h-4 text-red-500 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Source</p>
                         <p className="text-[#3A241C]/80 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].commercial.source}</p>
@@ -763,7 +804,7 @@ export function WhyUs() {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <span className="text-red-500 font-bold text-base leading-none mt-0.5">✕</span>
+                      <FiX className="w-4 h-4 text-red-500 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Mechanism</p>
                         <p className="text-[#3A241C]/80 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].commercial.mechanism}</p>
@@ -771,7 +812,7 @@ export function WhyUs() {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <span className="text-red-500 font-bold text-base leading-none mt-0.5">✕</span>
+                      <FiX className="w-4 h-4 text-red-500 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Impact On You</p>
                         <p className="text-[#3A241C]/80 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].commercial.symptoms}</p>
@@ -779,7 +820,7 @@ export function WhyUs() {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <span className="text-red-500 font-bold text-base leading-none mt-0.5">✕</span>
+                      <FiX className="w-4 h-4 text-red-500 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Processing Method</p>
                         <p className="text-[#3A241C]/80 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].commercial.processing}</p>
@@ -953,18 +994,20 @@ export function WhyUs() {
                   type="button"
                   disabled={activeJourneyStep === 0}
                   onClick={() => setActiveJourneyStep((prev) => Math.max(0, prev - 1))}
-                  className="px-3 py-1.5 rounded-lg border border-[#E8DFD4] bg-white hover:bg-[#FAF3EA] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg border border-[#E8DFD4] bg-white hover:bg-[#FAF3EA] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1"
                 >
-                  ← Previous Stage
+                  <FiArrowLeft className="w-3.5 h-3.5" />
+                  <span>Previous Stage</span>
                 </button>
                 <span>Step {activeJourneyStep + 1} of 5</span>
                 <button
                   type="button"
                   disabled={activeJourneyStep === JOURNEY_STEPS.length - 1}
                   onClick={() => setActiveJourneyStep((prev) => Math.min(JOURNEY_STEPS.length - 1, prev + 1))}
-                  className="px-3 py-1.5 rounded-lg border border-[#E8DFD4] bg-white hover:bg-[#FAF3EA] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-[#5C1B13]"
+                  className="px-3 py-1.5 rounded-lg border border-[#E8DFD4] bg-white hover:bg-[#FAF3EA] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer font-bold text-[#5C1B13] inline-flex items-center gap-1"
                 >
-                  Next Stage →
+                  <span>Next Stage</span>
+                  <FiArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -1057,7 +1100,10 @@ export function WhyUs() {
               <div className="mt-6 pt-6 border-t border-[#E8DFD4] grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-emerald-700 font-bold text-sm">✓ PuretyFarm Result:</span>
+                    <span className="text-emerald-700 font-bold text-sm flex items-center gap-1.5">
+                      <FiCheck className="w-4 h-4 text-emerald-600" />
+                      <span>PuretyFarm Result:</span>
+                    </span>
                     <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">Pass Guaranteed</span>
                   </div>
                   <p className="text-xs sm:text-sm font-bold text-emerald-950">
@@ -1070,7 +1116,10 @@ export function WhyUs() {
 
                 <div className="p-4 rounded-2xl bg-red-50/80 border border-red-200">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-red-700 font-bold text-sm">✕ Commercial Packet Warning:</span>
+                    <span className="text-red-700 font-bold text-sm flex items-center gap-1.5">
+                      <FiX className="w-4 h-4 text-red-600" />
+                      <span>Commercial Packet Warning:</span>
+                    </span>
                     <span className="text-[10px] font-bold text-red-800 bg-red-100 px-2 py-0.5 rounded-full">Common Risk</span>
                   </div>
                   <p className="text-xs text-red-900/85 leading-relaxed">
@@ -1118,11 +1167,11 @@ export function WhyUs() {
         </div>
 
         <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-[11px] text-[#3A241C]/70 font-semibold">
-          <span>✓ Pause / Resume Anytime</span>
-          <span>•</span>
-          <span>✓ Free Bottle Exchange</span>
-          <span>•</span>
-          <span>✓ Shankar Nagar, Civil Lines, VIP Rd & All Raipur</span>
+          <span className="inline-flex items-center gap-1"><FiCheck className="w-3.5 h-3.5 text-emerald-600" /> Pause / Resume Anytime</span>
+          <span className="text-[#E8DFD4]">•</span>
+          <span className="inline-flex items-center gap-1"><FiCheck className="w-3.5 h-3.5 text-emerald-600" /> Free Bottle Exchange</span>
+          <span className="text-[#E8DFD4]">•</span>
+          <span className="inline-flex items-center gap-1"><FiCheck className="w-3.5 h-3.5 text-emerald-600" /> Shankar Nagar, Civil Lines, VIP Rd & All Raipur</span>
         </div>
       </div>
     </Section>

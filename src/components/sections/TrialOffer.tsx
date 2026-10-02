@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { handleTrialClick } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
+import { FiCheck } from "react-icons/fi";
+import { FaStar } from "react-icons/fa";
 
 const BENEFITS = [
   "Delivered daily before 7:00 AM in sanitized glass bottles",
@@ -77,7 +79,7 @@ export function TrialOffer() {
             {/* Left Column: The Offer & Guarantees */}
             <div className="lg:col-span-7 text-left">
               <div ref={badgeRef} className="inline-flex items-center gap-2 bg-[#F5E729] text-[#1A1008] text-xs sm:text-sm font-bold px-4 py-1.5 rounded-full mb-5 shadow-xs">
-                <span>⭐</span>
+                <FaStar className="w-3.5 h-3.5 text-[#1A1008]" />
                 <span>No-Risk 7-Day Starter Experience</span>
               </div>
 
@@ -128,8 +130,8 @@ export function TrialOffer() {
                     data-benefit
                     className="flex items-start gap-3 p-2.5 sm:p-3 rounded-xl bg-[#FAF3EA]/60 border border-[#E8DFD4]/70 hover:bg-[#FAF3EA] transition-colors"
                   >
-                    <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#5C1B13] text-white flex items-center justify-center text-xs font-bold mt-0.5 shadow-xs">
-                      ✓
+                    <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#5C1B13] text-white flex items-center justify-center mt-0.5 shadow-xs">
+                      <FiCheck className="w-3.5 h-3.5" strokeWidth={3} />
                     </div>
                     <p className="text-xs sm:text-sm font-semibold text-[#1A1008] leading-snug">
                       {benefit}

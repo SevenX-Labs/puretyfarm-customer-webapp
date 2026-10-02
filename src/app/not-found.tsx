@@ -2,6 +2,8 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { getWhatsAppUrl, getPhoneUrl, getEmailUrl } from "@/lib/cta";
 import { ENV } from "@/config/env";
+import { FiArrowLeft, FiPackage, FiPhone, FiMail } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 export const metadata = {
   title: "Page Not Found",
@@ -17,9 +19,10 @@ export default function NotFound() {
           <BrandLogo />
           <Link
             href="/"
-            className="text-xs sm:text-sm font-semibold text-[#5C1B13] hover:text-[#4A1510] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#5C1B13] hover:text-[#4A1510] transition-colors"
           >
-            ← Back to Home
+            <FiArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
           </Link>
         </div>
       </header>
@@ -32,8 +35,8 @@ export default function NotFound() {
             <span className="text-8xl sm:text-9xl font-extrabold text-[#5C1B13]/10 font-[family-name:var(--font-heading)] select-none">
               404
             </span>
-            <div className="absolute text-5xl sm:text-6xl animate-bounce">
-              🥛
+            <div className="absolute flex items-center justify-center w-16 h-16 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] shadow-inner animate-bounce">
+              <FiPackage className="w-8 h-8" />
             </div>
           </div>
 
@@ -69,25 +72,28 @@ export default function NotFound() {
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold">
               <a
                 href={getPhoneUrl()}
-                className="text-[#5C1B13] hover:underline flex items-center gap-1"
+                className="text-[#5C1B13] hover:underline inline-flex items-center gap-1.5"
               >
-                📞 {ENV.PHONE_DISPLAY}
+                <FiPhone className="w-3.5 h-3.5" />
+                <span>{ENV.PHONE_DISPLAY}</span>
               </a>
               <span className="text-[#3A241C]/30">•</span>
               <a
                 href={getWhatsAppUrl("Hi PuretyFarm, I reached a 404 page and need help.")}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-700 hover:underline flex items-center gap-1"
+                className="text-emerald-700 hover:underline inline-flex items-center gap-1.5"
               >
-                💬 WhatsApp Support
+                <FaWhatsapp className="w-3.5 h-3.5 text-emerald-600" />
+                <span>WhatsApp Support</span>
               </a>
               <span className="text-[#3A241C]/30">•</span>
               <a
                 href={getEmailUrl("Help with PuretyFarm Website")}
-                className="text-[#3A241C] hover:underline flex items-center gap-1"
+                className="text-[#3A241C] hover:underline inline-flex items-center gap-1.5"
               >
-                ✉️ {ENV.SUPPORT_EMAIL}
+                <FiMail className="w-3.5 h-3.5" />
+                <span>{ENV.SUPPORT_EMAIL}</span>
               </a>
             </div>
           </div>

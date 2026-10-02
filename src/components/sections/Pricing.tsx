@@ -17,6 +17,7 @@ import {
   FiShield,
   FiAward,
   FiUsers,
+  FiArrowRight,
 } from "react-icons/fi";
 
 const PLANS = [
@@ -306,9 +307,10 @@ export function Pricing() {
             href="https://wa.me/919131920708?text=Hi%20PuretyFarm%2C%20I%20am%20interested%20in%20a%20society%20bulk%20milk%20subscription."
             target="_blank"
             rel="noopener noreferrer"
-            className="font-bold text-[#5C1B13] underline hover:text-[#4A1510] ml-1"
+            className="font-bold text-[#5C1B13] underline hover:text-[#4A1510] ml-1 inline-flex items-center gap-1"
           >
-            Chat with our Raipur Institutional Team →
+            <span>Chat with our Raipur Institutional Team</span>
+            <FiArrowRight className="w-3.5 h-3.5" />
           </a>
         </p>
       </div>

@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import Image from "next/image";
 import gsap from "gsap";
+import { FiShield, FiClock, FiThermometer } from "react-icons/fi";
 
 interface HeroBottle3DProps {
   className?: string;
@@ -187,7 +188,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
         className="absolute top-6 right-0 sm:top-8 sm:-right-6 lg:-right-8 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-[#FFFBEB]/95 backdrop-blur-md border border-[#F5E729]/60 shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
-          <span className="text-sm sm:text-base">✨</span>
+          <FiShield className="w-4 h-4 text-[#5C1B13]" />
           <div>
             <p className="text-xs sm:text-sm font-bold text-[#5C1B13] leading-tight">
               Sealed Glass
@@ -205,7 +206,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
         className="absolute bottom-16 left-0 sm:bottom-20 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
-          <span className="text-sm sm:text-base">⏰</span>
+          <FiClock className="w-4 h-4 text-[#5C1B13]" />
           <div>
             <p className="text-xs sm:text-sm font-bold text-[#1A1008] leading-tight">
               Before 7:00 AM
@@ -223,7 +224,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
         className="absolute bottom-14 right-0 sm:bottom-16 sm:-right-4 lg:-right-6 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
-          <span className="text-sm sm:text-base">❄️</span>
+          <FiThermometer className="w-4 h-4 text-blue-600" />
           <div>
             <p className="text-xs sm:text-sm font-bold text-[#1A1008] leading-tight">
               Cold Chained 4°C

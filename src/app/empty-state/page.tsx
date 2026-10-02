@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Navbar } from "@/components/ui/Navbar";
 import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
 import { getWhatsAppUrl } from "@/lib/cta";
+import { FiMapPin } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 export const metadata: Metadata = {
   title: "Delivery Coverage Status",
@@ -17,8 +19,8 @@ export default function EmptyStatePage() {
       <main className="min-h-screen bg-[#FFFDF7] flex items-center justify-center px-4 py-16">
         <div className="max-w-xl w-full bg-white rounded-3xl p-8 sm:p-10 border border-[#E8DFD4] shadow-sm text-center">
           {/* Friendly Icon */}
-          <div className="w-20 h-20 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] mx-auto flex items-center justify-center text-4xl mb-6">
-            🥛
+          <div className="w-20 h-20 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] mx-auto flex items-center justify-center mb-6">
+            <FiMapPin className="w-10 h-10" />
           </div>
 
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-[#5C1B13] bg-[#5C1B13]/10 rounded-full px-3.5 py-1 mb-3">
@@ -41,6 +43,7 @@ export default function EmptyStatePage() {
               rel="noopener noreferrer"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-sm"
             >
+              <FaWhatsapp className="w-4 h-4" />
               <span>Request on WhatsApp</span>
             </a>
             <Link

@@ -27,19 +27,19 @@ export function BrandLogo({
   className = "",
   onClick,
 }: BrandLogoProps) {
-  // Larger chip dimensions for better logo visibility
-  const markSizePx = size === "sm" ? 48 : size === "lg" ? 58 : condensed ? 48 : 54;
+  // Proportional chip dimensions for floating rounded pill navbar
+  const markSizePx = size === "sm" ? 40 : size === "lg" ? 58 : condensed ? 42 : 46;
   const imageSizePx = markSizePx - 2; // Minimal border inset for maximum image area
 
   const titleSizes = {
-    sm: "text-base",
-    md: condensed ? "text-lg sm:text-xl" : "text-xl sm:text-2xl",
+    sm: "text-base font-extrabold",
+    md: condensed ? "text-base sm:text-lg" : "text-lg sm:text-xl",
     lg: "text-xl sm:text-2xl",
   }[size];
 
   const subSizes = {
-    sm: "text-[9px]",
-    md: condensed ? "text-[9px] sm:text-[10px]" : "text-[10px] sm:text-[11px]",
+    sm: "text-[8.5px] leading-none",
+    md: condensed ? "text-[8.5px] sm:text-[9.5px]" : "text-[9px] sm:text-[10px]",
     lg: "text-[10px]",
   }[size];
 

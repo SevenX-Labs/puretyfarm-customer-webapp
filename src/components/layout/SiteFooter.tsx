@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ENV } from "@/config/env";
 import { getEmailUrl, getPhoneUrl, getWhatsAppUrl } from "@/lib/cta";
 import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
+import { FiShield, FiPhone, FiMail, FiMapPin, FiArrowRight, FiArrowUp } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 import styles from "./MarketingShell.module.css";
 
 const FEATURED_AREAS = [
@@ -49,7 +51,7 @@ export function SiteFooter() {
             </p>
 
             <div className={styles.footerTrustBadge}>
-              <span>🥛</span>
+              <FiShield className="w-4 h-4 text-[#F5E729] shrink-0" />
               <span>FSSAI Certified · Zero Adulteration</span>
             </div>
           </div>
@@ -95,9 +97,10 @@ export function SiteFooter() {
             </div>
             <Link
               href="/service-area"
-              className="text-xs text-[#F5E729] hover:underline font-semibold mt-1 inline-block"
+              className="text-xs text-[#F5E729] hover:underline font-semibold mt-1 inline-flex items-center gap-1"
             >
-              View all {SERVICEABLE_AREAS.length} active delivery zones →
+              <span>View all {SERVICEABLE_AREAS.length} active delivery zones</span>
+              <FiArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
@@ -106,7 +109,7 @@ export function SiteFooter() {
             <h3 className={styles.footerColTitle}>Morning Dispatch &amp; Support</h3>
             <div className="flex flex-col gap-3">
               <a href={getPhoneUrl()} className={styles.footerContactItem}>
-                <span>📞</span>
+                <FiPhone className="w-4 h-4 text-[#F5E729] shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-white">{ENV.PHONE_DISPLAY}</p>
                   <p className="text-xs text-white/50">Daily Helpline: 5:30 AM – 7:00 PM</p>
@@ -119,7 +122,7 @@ export function SiteFooter() {
                 rel="noopener noreferrer"
                 className={styles.footerContactItem}
               >
-                <span>💬</span>
+                <FaWhatsapp className="w-4 h-4 text-[#6ee7b7] shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-[#6ee7b7]">Instant WhatsApp Assistance</p>
                   <p className="text-xs text-white/50">Vacation pause &amp; plan changes</p>
@@ -127,15 +130,16 @@ export function SiteFooter() {
               </a>
 
               <a href={getEmailUrl("Delivery Inquiry")} className={styles.footerContactItem}>
-                <span>✉️</span>
+                <FiMail className="w-4 h-4 text-[#F5E729] shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-white">{ENV.SUPPORT_EMAIL}</p>
                   <p className="text-xs text-white/50">Customer service &amp; corporate supply</p>
                 </div>
               </a>
 
-              <div className="mt-2 text-xs text-white/50 leading-relaxed">
-                📍 VIP Road Delivery Hub &amp; Cold Chaining Center, Raipur, CG 492001
+              <div className="mt-2 text-xs text-white/50 leading-relaxed flex items-start gap-1.5">
+                <FiMapPin className="w-3.5 h-3.5 text-[#F5E729] shrink-0 mt-0.5" />
+                <span>VIP Road Delivery Hub &amp; Cold Chaining Center, Raipur, CG 492001</span>
               </div>
             </div>
           </div>
@@ -156,7 +160,10 @@ export function SiteFooter() {
             className={styles.backToTopBtn}
             aria-label="Scroll back to top of page"
           >
-            <span>↑ Back to top</span>
+            <span className="flex items-center gap-1.5">
+              <FiArrowUp className="w-3.5 h-3.5" />
+              <span>Back to top</span>
+            </span>
           </button>
         </div>
       </div>

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { getWhatsAppUrl, getPhoneUrl, getEmailUrl } from "@/lib/cta";
 import { ENV } from "@/config/env";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiMail, FiPhone } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions",
@@ -108,14 +109,17 @@ export default function TermsPage() {
               For any queries regarding deliveries, schedule adjustments, or billing inquiries, reach out to our Raipur farm support:
             </p>
             <div className="flex flex-wrap gap-4 text-sm font-semibold">
-              <a href={getPhoneUrl()} className="text-[#5C1B13] hover:underline">
-                📞 {ENV.PHONE_DISPLAY}
+              <a href={getPhoneUrl()} className="text-[#5C1B13] hover:underline inline-flex items-center gap-1.5">
+                <FiPhone className="w-4 h-4" />
+                <span>{ENV.PHONE_DISPLAY}</span>
               </a>
-              <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline">
-                💬 WhatsApp: {ENV.PHONE_DISPLAY}
+              <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline inline-flex items-center gap-1.5">
+                <FaWhatsapp className="w-4 h-4" />
+                <span>WhatsApp: {ENV.PHONE_DISPLAY}</span>
               </a>
-              <a href={getEmailUrl()} className="text-[#3A241C] hover:underline">
-                ✉️ {ENV.SUPPORT_EMAIL}
+              <a href={getEmailUrl()} className="text-[#3A241C] hover:underline inline-flex items-center gap-1.5">
+                <FiMail className="w-4 h-4" />
+                <span>{ENV.SUPPORT_EMAIL}</span>
               </a>
             </div>
           </section>

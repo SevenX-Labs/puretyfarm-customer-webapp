@@ -40,20 +40,18 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# documentation
-/documentation/
-
-# graphify
-/graphify-out/
-.graphifyignore
-.agents/
-
-# gsd & agent tooling
-.gsd/
+# agent and developer tooling
 .agent/
+.agents/
 .gemini/
+.gsd/
 adapters/
+documentation/
+graphify-out/
+scripts/
+.graphifyignore
 GSD-STYLE.md
 model_capabilities.yaml
-VERSION
 PROJECT_RULES.md
+VERSION
+
