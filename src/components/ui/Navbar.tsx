@@ -12,6 +12,12 @@ import {
   getPhoneUrl,
   getEmailUrl,
 } from "@/lib/cta";
+import {
+  FiPhone,
+  FiChevronRight,
+  FiMail,
+} from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 const NAV_LINKS = [
   { label: "Why Us", href: "#why-puretyfarm", id: "nav-why" },
@@ -93,9 +99,7 @@ export function Navbar() {
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5C1B13] bg-[#5C1B13]/5 hover:bg-[#5C1B13]/10 px-3 py-1.5 rounded-full transition-colors border border-[#5C1B13]/15 h-[34px]"
               title="Call PuretyFarm Farm Support"
             >
-              <svg className="w-3.5 h-3.5 text-[#5C1B13]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
+              <FiPhone className="w-3.5 h-3.5 text-[#5C1B13]" />
               <span>{ENV.PHONE_DISPLAY}</span>
             </a>
 
@@ -178,9 +182,7 @@ export function Navbar() {
                   className="py-3.5 text-base font-semibold text-[#1A1008] hover:text-[#5C1B13] flex items-center justify-between"
                 >
                   <span>{link.label}</span>
-                  <svg className="w-4 h-4 text-[#3A241C]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <FiChevronRight className="w-4 h-4 text-[#3A241C]/40" />
                 </a>
               ))}
               <Link
@@ -189,9 +191,7 @@ export function Navbar() {
                 className="py-3.5 text-base font-semibold text-[#1A1008] hover:text-[#5C1B13] flex items-center justify-between"
               >
                 <span>Terms & Conditions</span>
-                <svg className="w-4 h-4 text-[#3A241C]/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <FiChevronRight className="w-4 h-4 text-[#3A241C]/40" />
               </Link>
             </div>
 
@@ -207,9 +207,7 @@ export function Navbar() {
                 className="flex items-center gap-3 p-3 rounded-xl bg-white border border-[#E8DFD4] hover:border-[#5C1B13]/30 transition-colors shadow-sm"
               >
                 <div className="w-8 h-8 rounded-full bg-[#5C1B13]/10 flex items-center justify-center text-[#5C1B13]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
+                  <FiPhone className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-xs text-[#3A241C]/60">Call Farm Support</p>
@@ -225,9 +223,7 @@ export function Navbar() {
                 className="flex items-center gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors shadow-sm"
               >
                 <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.54 1.761.814 2.791.814 3.18 0 5.766-2.587 5.767-5.766.001-3.182-2.585-5.768-5.767-5.768zm3.376 8.167c-.145.411-.741.776-1.026.822-.27.043-.618.067-2.001-.508-1.503-.625-2.482-2.148-2.558-2.248-.074-.1-1.006-1.336-1.006-2.548 0-1.213.633-1.808.859-2.051.226-.243.493-.304.657-.304.164 0 .328.003.473.01.152.008.358-.058.558.423.208.498.711 1.733.774 1.86.062.128.104.278.02.443-.082.164-.124.267-.248.411-.124.145-.262.324-.374.436-.124.124-.253.259-.109.507.145.248.643 1.061 1.381 1.718.951.848 1.753 1.111 2.001 1.235.248.124.394.104.539-.062.145-.164.622-.724.787-.972.164-.248.33-.207.558-.124.227.083 1.442.68 1.69.804.248.124.413.186.474.29.062.103.062.597-.083 1.008z" />
-                  </svg>
+                  <FaWhatsapp className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-xs text-emerald-800/70">Chat on WhatsApp</p>
@@ -241,9 +237,7 @@ export function Navbar() {
                 className="flex items-center gap-3 p-3 rounded-xl bg-white border border-[#E8DFD4] hover:border-[#5C1B13]/30 transition-colors shadow-sm"
               >
                 <div className="w-8 h-8 rounded-full bg-[#5C1B13]/10 flex items-center justify-center text-[#5C1B13]">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                  <FiMail className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="text-xs text-[#3A241C]/60">Email Support</p>

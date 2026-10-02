@@ -27,19 +27,19 @@ export function BrandLogo({
   className = "",
   onClick,
 }: BrandLogoProps) {
-  // Dimension mappings in exact pixels: chip is strictly >= 44px on desktop and mobile
-  const markSizePx = size === "sm" ? 44 : size === "lg" ? 52 : condensed ? 44 : 46;
-  const imageSizePx = markSizePx - 4; // 2px border on each side
+  // Larger chip dimensions for better logo visibility
+  const markSizePx = size === "sm" ? 48 : size === "lg" ? 58 : condensed ? 48 : 54;
+  const imageSizePx = markSizePx - 2; // Minimal border inset for maximum image area
 
   const titleSizes = {
     sm: "text-base",
-    md: condensed ? "text-base sm:text-lg" : "text-lg sm:text-xl",
+    md: condensed ? "text-lg sm:text-xl" : "text-xl sm:text-2xl",
     lg: "text-xl sm:text-2xl",
   }[size];
 
   const subSizes = {
-    sm: "text-[8px]",
-    md: condensed ? "text-[8px] sm:text-[9px]" : "text-[9px] sm:text-[10px]",
+    sm: "text-[9px]",
+    md: condensed ? "text-[9px] sm:text-[10px]" : "text-[10px] sm:text-[11px]",
     lg: "text-[10px]",
   }[size];
 
@@ -48,24 +48,24 @@ export function BrandLogo({
       href="/"
       onClick={onClick}
       aria-label="PuretyFarm Home"
-      className={`inline-flex items-center gap-2.5 min-h-[44px] min-w-[44px] group rounded-xl transition-opacity duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5C1B13] focus-visible:ring-offset-2 ${className}`}
+      className={`inline-flex items-center gap-3 min-h-[44px] min-w-[44px] group rounded-xl transition-opacity duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5C1B13] focus-visible:ring-offset-2 ${className}`}
     >
-      {/* High-contrast Maroon-bordered Chip container */}
+      {/* Logo mark container — high contrast with shadow for visibility */}
       <span
-        className="relative rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105"
+        className="relative rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg"
         style={{
           width: `${markSizePx}px`,
           height: `${markSizePx}px`,
           minWidth: `${markSizePx}px`,
           minHeight: `${markSizePx}px`,
           backgroundColor: "#FDEE57",
-          border: "2px solid #5C1B13",
-          boxShadow: "0 2px 6px rgba(92, 27, 19, 0.22)",
+          border: "2.5px solid #5C1B13",
+          boxShadow: "0 3px 12px rgba(92, 27, 19, 0.2), 0 1px 3px rgba(92, 27, 19, 0.1)",
           overflow: "hidden",
         }}
       >
         <span
-          className="relative block rounded-full overflow-hidden"
+          className="relative block rounded-xl overflow-hidden"
           style={{
             width: `${imageSizePx}px`,
             height: `${imageSizePx}px`,
@@ -77,7 +77,7 @@ export function BrandLogo({
             fill
             sizes={`${imageSizePx}px`}
             priority={priority}
-            className="object-contain p-0.5"
+            className="object-contain scale-110"
           />
         </span>
       </span>

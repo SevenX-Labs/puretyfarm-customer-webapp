@@ -8,6 +8,7 @@ import { TiltCard } from "@/components/ui/TiltCard";
 import { handleDownloadClick } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
+import { FaStar, FaGooglePlay } from "react-icons/fa";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -208,9 +209,7 @@ function PhoneMockup({
                       <p className="text-[10px] text-[#3A241C]/60">Delivery Partner</p>
                     </div>
                     <div className="ml-auto flex items-center gap-1">
-                      <svg className="w-3 h-3 text-[#F5E729]" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                      <FaStar className="w-3 h-3 text-[#F5E729]" />
                       <span className="text-[10px] font-bold text-[#1A1008]">
                         {(screen.content as typeof APP_SCREENS[2]["content"]).rating}
                       </span>
@@ -413,9 +412,7 @@ export function AppShowcase() {
           onClick={handleDownloadClick}
           className="inline-flex items-center gap-3 bg-[#1A1008] text-white rounded-xl px-7 py-3.5 hover:bg-[#2A2018] active:scale-95 hover:scale-105 transition-all duration-200 shadow-xl shadow-[#1A1008]/20 cursor-pointer"
         >
-          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302-2.302 2.302-2.632-2.302 2.632-2.302zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z" />
-          </svg>
+          <FaGooglePlay className="w-6 h-6 text-[#F5E729]" />
           <div className="text-left">
             <p className="text-[10px] font-medium uppercase tracking-wider opacity-70">Get it on</p>
             <p className="text-base font-bold -mt-0.5">Google Play</p>

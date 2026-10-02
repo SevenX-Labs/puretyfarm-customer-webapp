@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
 import { useHeroEntrance, useParallax } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
+import { FiStar, FiZap, FiDownload, FiCheckCircle } from "react-icons/fi";
+import { FaStar } from "react-icons/fa";
 
 const ThreeBackgroundCanvas = dynamic(
   () => import("@/components/ui/ThreeBackgroundCanvas").then((mod) => mod.ThreeBackgroundCanvas),
@@ -81,16 +83,9 @@ export function Hero() {
               {FLAGS.SHOW_500_FAMILIES_BADGE && (
                 <>
                   <span className="text-[#3A241C]/30 text-xs">•</span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
                     {[...Array(5)].map((_, i) => (
-                      <svg
-                        key={i}
-                        className="w-3.5 h-3.5 text-[#F5E729]"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
+                      <FaStar key={i} className="w-3 h-3 text-[#F5E729]" />
                     ))}
                   </div>
                   <span className="text-xs font-bold text-[#1A1008] border-l border-[#E8DFD4] pl-2.5">
@@ -131,19 +126,7 @@ export function Hero() {
                 onClick={handleTrialClick}
                 className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/20"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+                <FiZap className="w-5 h-5" />
                 Start My 7-Day Trial
               </Button>
               {FLAGS.SHOW_APP_FEATURES && (
@@ -153,19 +136,7 @@ export function Hero() {
                   onClick={handleDownloadClick}
                   className="w-full sm:w-auto"
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                    />
-                  </svg>
+                  <FiDownload className="w-5 h-5" />
                   Download Our App
                 </Button>
               )}
@@ -193,21 +164,15 @@ export function Hero() {
               className="mt-5 flex items-center gap-4 justify-center lg:justify-start text-xs sm:text-sm text-[#3A241C]/75"
             >
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+                <FiCheckCircle className="w-4 h-4 text-emerald-600" />
                 <span>Zero deposit</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+                <FiCheckCircle className="w-4 h-4 text-emerald-600" />
                 <span>Free morning delivery</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+                <FiCheckCircle className="w-4 h-4 text-emerald-600" />
                 <span>Cancel anytime</span>
               </div>
             </div>

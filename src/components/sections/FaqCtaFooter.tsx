@@ -10,6 +10,7 @@ import {
   handleDownloadClick,
 } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal, useParallax } from "@/lib/animations";
+import { FiChevronDown, FiZap, FiDownload } from "react-icons/fi";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -100,20 +101,11 @@ function FaqItem({
         <span className="text-base font-semibold text-[#1A1008] pr-4">
           {item.question}
         </span>
-        <svg
-          className={`w-5 h-5 text-[#5C1B13] flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
-            }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        <FiChevronDown
+          className={`w-5 h-5 text-[#5C1B13] flex-shrink-0 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
       </button>
       <div ref={answerRef} className="overflow-hidden" style={{ height: 0 }}>
         <p className="px-5 pb-5 text-[#3A241C] leading-relaxed">{item.answer}</p>
@@ -212,20 +204,8 @@ export function FaqCtaFooter() {
 
           <div data-cta-anim className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center">
             <Button variant="accent" size="lg" onClick={handleTrialClick}>
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-              Start 7-Day Trial
+              <FiZap className="w-5 h-5" />
+              <span>Start 7-Day Trial</span>
             </Button>
             <Button
               variant="secondary"
@@ -233,20 +213,8 @@ export function FaqCtaFooter() {
               onClick={handleDownloadClick}
               className="bg-white text-[#5C1B13] border-white hover:bg-white/95 active:bg-white/90 shadow-lg"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              Download App
+              <FiDownload className="w-5 h-5" />
+              <span>Download App</span>
             </Button>
           </div>
 

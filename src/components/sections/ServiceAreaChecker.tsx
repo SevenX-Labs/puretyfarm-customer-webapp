@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { checkServiceArea, ServiceAreaResult } from "@/lib/serviceArea";
 import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
 import { handleTrialClick, getWhatsAppUrl } from "@/lib/cta";
+import { FiMapPin, FiX, FiAlertCircle, FiCheck } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 const POPULAR_AREAS = [
   "Shankar Nagar",
@@ -92,10 +94,7 @@ export function ServiceAreaChecker() {
           >
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#3A241C]/40">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+                <FiMapPin className="w-5 h-5 text-[#5C1B13]" />
               </div>
               <input
                 type="text"
@@ -112,12 +111,10 @@ export function ServiceAreaChecker() {
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#3A241C]/40 hover:text-[#1A1008]"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#3A241C]/40 hover:text-[#1A1008] cursor-pointer"
                   aria-label="Clear input"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <FiX className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -156,9 +153,7 @@ export function ServiceAreaChecker() {
               className="mt-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3 animate-fade-in"
             >
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 mt-0.5">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <FiAlertCircle className="w-4 h-4" />
               </div>
               <div>
                 <p className="text-sm font-semibold">Input Required</p>
@@ -260,9 +255,7 @@ export function ServiceAreaChecker() {
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-sm"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.54 1.761.814 2.791.814 3.18 0 5.766-2.587 5.767-5.766.001-3.182-2.585-5.768-5.767-5.768zm3.376 8.167c-.145.411-.741.776-1.026.822-.27.043-.618.067-2.001-.508-1.503-.625-2.482-2.148-2.558-2.248-.074-.1-1.006-1.336-1.006-2.548 0-1.213.633-1.808.859-2.051.226-.243.493-.304.657-.304.164 0 .328.003.473.01.152.008.358-.058.558.423.208.498.711 1.733.774 1.86.062.128.104.278.02.443-.082.164-.124.267-.248.411-.124.145-.262.324-.374.436-.124.124-.253.259-.109.507.145.248.643 1.061 1.381 1.718.951.848 1.753 1.111 2.001 1.235.248.124.394.104.539-.062.145-.164.622-.724.787-.972.164-.248.33-.207.558-.124.227.083 1.442.68 1.69.804.248.124.413.186.474.29.062.103.062.597-.083 1.008z" />
-                  </svg>
+                  <FaWhatsapp className="w-4 h-4" />
                   <span>Request {checkedArea} on WhatsApp</span>
                 </a>
                 <button

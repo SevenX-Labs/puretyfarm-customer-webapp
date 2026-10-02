@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { getWhatsAppUrl, getPhoneUrl, getEmailUrl } from "@/lib/cta";
 import { ENV } from "@/config/env";
+import { FiArrowLeft } from "react-icons/fi";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -21,20 +22,8 @@ export default function PrivacyPage() {
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-[#5C1B13] hover:text-[#4A1510] transition-colors font-medium"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Back to Home
+            <FiArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
           </Link>
         </div>
       </header>

@@ -9,6 +9,29 @@ import { Button } from "@/components/ui/Button";
 import { handleTrialClick, getWhatsAppUrl } from "@/lib/cta";
 import { useScrollReveal } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
+import {
+  FiActivity,
+  FiPackage,
+  FiClock,
+  FiLayers,
+  FiHeart,
+  FiShield,
+  FiSun,
+  FiThermometer,
+  FiDroplet,
+  FiCoffee,
+  FiAward,
+  FiStar,
+  FiAlertTriangle,
+  FiGrid,
+  FiRepeat,
+  FiCompass,
+  FiCheckCircle,
+  FiCheck,
+  FiX,
+  FiCheckSquare,
+} from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 type TabMode = "bento" | "scanner" | "journey" | "tests";
 
@@ -16,7 +39,7 @@ type TabMode = "bento" | "scanner" | "journey" | "tests";
 const COMPARISON_CATEGORIES = [
   {
     id: "protein",
-    icon: "🥛",
+    icon: FiActivity,
     title: "Protein & Digestion",
     commercial: {
       label: "A1 Beta-Casein (Mutated)",
@@ -37,7 +60,7 @@ const COMPARISON_CATEGORIES = [
   },
   {
     id: "packaging",
-    icon: "🍶",
+    icon: FiPackage,
     title: "Packaging & Safety",
     commercial: {
       label: "Single-Use Plastic Pouches",
@@ -58,7 +81,7 @@ const COMPARISON_CATEGORIES = [
   },
   {
     id: "freshness",
-    icon: "⏱️",
+    icon: FiClock,
     title: "Freshness & Transit",
     commercial: {
       label: "Multi-Day Depot Milk",
@@ -79,7 +102,7 @@ const COMPARISON_CATEGORIES = [
   },
   {
     id: "malai",
-    icon: "🧈",
+    icon: FiLayers,
     title: "Butterfat & Malai",
     commercial: {
       label: "Standardized Toned Milk",
@@ -100,7 +123,7 @@ const COMPARISON_CATEGORIES = [
   },
   {
     id: "welfare",
-    icon: "❤️",
+    icon: FiHeart,
     title: "Ahimsa Cow Care",
     commercial: {
       label: "Factory Dairy Farming",
@@ -209,7 +232,7 @@ const JOURNEY_STEPS = [
 const KITCHEN_TESTS = [
   {
     id: "malai",
-    icon: "🧈",
+    icon: FiLayers,
     name: "The Golden Malai Boil Test",
     badge: "Fat & Processing Test",
     objective: "Verify raw whole butterfat content vs commercial stripped milk",
@@ -228,7 +251,7 @@ const KITCHEN_TESTS = [
   },
   {
     id: "glass",
-    icon: "🥛",
+    icon: FiDroplet,
     name: "The Glass Wall Sheen Test",
     badge: "Water & Chalk Test",
     objective: "Detect added water, chalk, or synthetic chemical thinning",
@@ -247,26 +270,26 @@ const KITCHEN_TESTS = [
   },
   {
     id: "stomach",
-    icon: "🌱",
-    name: "The Empty Stomach Digestion Test",
-    badge: "A2 Protein Test",
-    objective: "Test for A1 beta-casein digestive inflammation and bloating",
+    icon: FiHeart,
+    name: "The Light Stomach Absorption Test",
+    badge: "Gut Health & Digestion",
+    objective: "Feel zero bloating, acid reflux, or post-milk heaviness",
     steps: [
-      "Drink a warm glass (200ml) of PuretyFarm A2 milk first thing in the morning.",
-      "Avoid eating solid food for the next 45 minutes.",
-      "Pay attention to how your stomach and energy levels feel over the next 2 hours.",
+      "Drink one warm 250ml cup of PuretyFarm A2 milk on an empty stomach in the morning.",
+      "Observe how your digestion and energy feels over the following 2 hours.",
+      "Compare with your typical reaction to commercial pouch or packet milk.",
     ],
     puretyResult: {
-      headline: "Feels exceptionally light, comforting, and easy to digest",
+      headline: "Light, energizing, and deeply soothing on the gut",
       detail:
-        "Because Gir cow A2 protein lacks the inflammatory BCM-7 peptide, your stomach absorbs it effortlessly with zero gas, nausea, heaviness, or sluggishness.",
+        "Because pure Gir cow milk carries the 100% natural A2 proline bond, human digestive enzymes break it down effortlessly without producing inflammatory BCM-7 peptides.",
     },
     adulteratedWarning:
       "Commercial A1 packet milk frequently triggers gut spasms, bloating, heaviness, and lactose-intolerance symptoms within 30–60 minutes of drinking.",
   },
   {
     id: "chai",
-    icon: "☕",
+    icon: FiCoffee,
     name: "The Morning Chai Aroma & Color Test",
     badge: "Natural Sweetness Test",
     objective: "Experience authentic taste without artificial milk powders",
@@ -315,7 +338,7 @@ export function WhyUs() {
       {/* Background ambient decorative glows */}
       <div
         aria-hidden="true"
-        className="absolute top-12 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-[#F5E729]/15 via-[#FAF3EA]/40 to-transparent blur-3xl pointer-events-none -z-10"
+        className="absolute top-12 left-1/2 -translate-x-1/2 w-[850px] h-[450px] bg-gradient-to-b from-[#F5E729]/15 via-[#FAF3EA]/40 to-transparent blur-3xl pointer-events-none -z-10"
       />
 
       {/* ─── SECTION HEADER ─── */}
@@ -346,30 +369,30 @@ export function WhyUs() {
           We set out to restore milk to its purest form: 100% unadulterated Desi Gir cow A2 milk, chilled at 4°C, packed in sterilized glass, and delivered before 7:00 AM.
         </p>
 
-        {/* ─── LIVE PURITY ASSURANCE BAR ─── */}
-        <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 p-2 bg-white/90 backdrop-blur-md rounded-2xl border border-[#E8DFD4] shadow-xs">
-          <div className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <span className="text-amber-600">🌡️</span>
+        {/* ─── LIVE PURITY ASSURANCE BAR WITH REACT ICONS ─── */}
+        <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 p-2 bg-white/95 backdrop-blur-md rounded-2xl border border-[#E8DFD4] shadow-xs">
+          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
+            <FiThermometer className="w-3.5 h-3.5 text-amber-600" />
             <span>4°C Farm Chilled</span>
           </div>
           <span className="hidden sm:inline text-xs text-[#E8DFD4]">•</span>
-          <div className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <span className="text-emerald-600">🧬</span>
+          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
+            <FiShield className="w-3.5 h-3.5 text-emerald-600" />
             <span>100% Desi Gir A2</span>
           </div>
           <span className="hidden sm:inline text-xs text-[#E8DFD4]">•</span>
-          <div className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <span className="text-blue-600">🍶</span>
+          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
+            <FiPackage className="w-3.5 h-3.5 text-blue-600" />
             <span>Zero Plastic Touch</span>
           </div>
           <span className="hidden sm:inline text-xs text-[#E8DFD4]">•</span>
-          <div className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <span className="text-[#5C1B13]">⏱️</span>
+          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
+            <FiClock className="w-3.5 h-3.5 text-[#5C1B13]" />
             <span>&lt; 3h Dawn Milking</span>
           </div>
         </div>
 
-        {/* ─── CREATIVE EXPERIENCE MODE TABS ─── */}
+        {/* ─── CREATIVE EXPERIENCE MODE TABS (DRIBBLE/PINTEREST STYLE) ─── */}
         <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3">
           <button
             type="button"
@@ -380,7 +403,7 @@ export function WhyUs() {
                 : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
             }`}
           >
-            <span>🍱</span>
+            <FiGrid className="w-4 h-4" />
             <span>The 6 Sacred Pillars</span>
           </button>
 
@@ -393,8 +416,8 @@ export function WhyUs() {
                 : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
             }`}
           >
-            <span>⚡</span>
-            <span>The Milk Truth: Packet vs. Glass</span>
+            <FiRepeat className="w-4 h-4" />
+            <span>Packet vs. Glass</span>
           </button>
 
           <button
@@ -406,8 +429,8 @@ export function WhyUs() {
                 : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
             }`}
           >
-            <span>🌅</span>
-            <span>Dawn-to-Doorstep Journey</span>
+            <FiCompass className="w-4 h-4" />
+            <span>Dawn-to-Doorstep</span>
           </button>
 
           <button
@@ -419,7 +442,7 @@ export function WhyUs() {
                 : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
             }`}
           >
-            <span>🧪</span>
+            <FiCheckSquare className="w-4 h-4" />
             <span>At-Home Kitchen Lab</span>
           </button>
         </div>
@@ -451,7 +474,7 @@ export function WhyUs() {
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5C1B13] text-white text-xs font-bold uppercase tracking-wider shadow-2xs">
-                        <span>⭐</span>
+                        <FiAward className="w-3.5 h-3.5 text-[#F5E729]" />
                         <span>Pillar 01 · Indigenous Gir Heritage</span>
                       </span>
                       <span className="text-xs font-bold text-emerald-800 bg-emerald-100/90 border border-emerald-200 px-3 py-1 rounded-full">
@@ -542,8 +565,8 @@ export function WhyUs() {
                 <div className="h-full bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-[#F5E729]/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                        🌅
+                      <div className="w-12 h-12 rounded-2xl bg-[#F5E729]/30 text-[#5C1B13] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FiSun className="w-6 h-6" strokeWidth={2} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C1B13] bg-[#FAF3EA] px-2.5 py-1 rounded-full border border-[#E8DFD4]">
                         Dawn to Doorstep
@@ -576,8 +599,8 @@ export function WhyUs() {
                 <div className="h-full bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between group">
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-2xl bg-[#5C1B13]/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                        🧈
+                      <div className="w-12 h-12 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <FiLayers className="w-6 h-6" strokeWidth={2} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C1B13] bg-[#FAF3EA] px-2.5 py-1 rounded-full border border-[#E8DFD4]">
                         Natural 4.2%+ Fat
@@ -608,7 +631,7 @@ export function WhyUs() {
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold">
-                        <span>🔬</span>
+                        <FiCheckCircle className="w-3.5 h-3.5 text-emerald-700" />
                         <span>
                           {FLAGS.SHOW_40_TESTS_CLAIM
                             ? "40+ Daily Laboratory Checks Every Morning"
@@ -646,7 +669,7 @@ export function WhyUs() {
                               : "bg-white border-[#E8DFD4] text-[#1A1008] hover:bg-[#FAF3EA]"
                           }`}
                         >
-                          <span className={isSelected ? "text-emerald-300" : "text-emerald-600"}>✓</span>
+                          <FiCheck className={`w-3 h-3 ${isSelected ? "text-emerald-300" : "text-emerald-600"}`} />
                           <span>{chip.name}:</span>
                           <span className={isSelected ? "text-[#F5E729]" : "text-[#5C1B13]"}>{chip.result}</span>
                         </button>
@@ -694,21 +717,24 @@ export function WhyUs() {
           >
             {/* Category Switcher Tabs */}
             <div className="flex flex-wrap justify-center gap-2 mb-8">
-              {COMPARISON_CATEGORIES.map((cat, idx) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setActiveCategory(idx)}
-                  className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                    activeCategory === idx
-                      ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20 scale-105"
-                      : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
-                  }`}
-                >
-                  <span>{cat.icon}</span>
-                  <span>{cat.title}</span>
-                </button>
-              ))}
+              {COMPARISON_CATEGORIES.map((cat, idx) => {
+                const CatIcon = cat.icon;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setActiveCategory(idx)}
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                      activeCategory === idx
+                        ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20 scale-105"
+                        : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
+                    }`}
+                  >
+                    <CatIcon className="w-4 h-4" />
+                    <span>{cat.title}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Split Comparison Cards */}
@@ -720,7 +746,7 @@ export function WhyUs() {
                     <span className="text-xs font-bold uppercase tracking-wider text-red-800 bg-red-100/90 border border-red-200 px-3 py-1 rounded-full">
                       Commercial Packet Milk
                     </span>
-                    <span className="text-xl">⚠️</span>
+                    <FiAlertTriangle className="w-5 h-5 text-red-600" />
                   </div>
 
                   <h3 className="text-xl sm:text-2xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
@@ -782,7 +808,7 @@ export function WhyUs() {
                     <span className="text-xs font-bold uppercase tracking-wider text-white bg-[#5C1B13] px-3.5 py-1 rounded-full shadow-xs">
                       PuretyFarm 100% Raw A2
                     </span>
-                    <span className="text-xl">✨</span>
+                    <FiStar className="w-5 h-5 text-[#F5E729]" />
                   </div>
 
                   <h3 className="text-xl sm:text-2xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
@@ -791,7 +817,7 @@ export function WhyUs() {
 
                   <div className="mt-6 space-y-4 text-xs sm:text-sm text-[#1A1008]">
                     <div className="flex items-start gap-3">
-                      <span className="text-emerald-600 font-bold text-base leading-none mt-0.5">✓</span>
+                      <FiCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Source</p>
                         <p className="text-[#3A241C]/85 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].puretyfarm.source}</p>
@@ -799,7 +825,7 @@ export function WhyUs() {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <span className="text-emerald-600 font-bold text-base leading-none mt-0.5">✓</span>
+                      <FiCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Mechanism</p>
                         <p className="text-[#3A241C]/85 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].puretyfarm.mechanism}</p>
@@ -807,7 +833,7 @@ export function WhyUs() {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <span className="text-emerald-600 font-bold text-base leading-none mt-0.5">✓</span>
+                      <FiCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Impact On You</p>
                         <p className="text-[#3A241C]/85 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].puretyfarm.symptoms}</p>
@@ -815,7 +841,7 @@ export function WhyUs() {
                     </div>
 
                     <div className="flex items-start gap-3">
-                      <span className="text-emerald-600 font-bold text-base leading-none mt-0.5">✓</span>
+                      <FiCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" strokeWidth={2.5} />
                       <div>
                         <p className="font-bold text-[#1A1008]">Processing Method</p>
                         <p className="text-[#3A241C]/85 mt-0.5">{COMPARISON_CATEGORIES[activeCategory].puretyfarm.processing}</p>
@@ -898,7 +924,7 @@ export function WhyUs() {
 
                 <div className="text-right">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-[#E8DFD4] text-xs font-bold text-[#1A1008] shadow-2xs">
-                    <span className="text-amber-500">📍</span>
+                    <FiCompass className="w-3.5 h-3.5 text-amber-600" />
                     <span>{JOURNEY_STEPS[activeJourneyStep].location}</span>
                   </div>
                   <p className="text-xs font-bold text-emerald-800 mt-1">
@@ -959,33 +985,38 @@ export function WhyUs() {
           >
             {/* Test Selection Tabs */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-              {KITCHEN_TESTS.map((t, idx) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setActiveKitchenTest(idx)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                    activeKitchenTest === idx
-                      ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/20 scale-102"
-                      : "bg-white text-[#3A241C] border-[#E8DFD4] hover:bg-[#FAF3EA]"
-                  }`}
-                >
-                  <div>
-                    <div className="text-2xl mb-2">{t.icon}</div>
-                    <p className={`text-[10px] font-bold uppercase tracking-wider ${activeKitchenTest === idx ? "text-[#F5E729]" : "text-[#5C1B13]"}`}>
-                      Test 0{idx + 1}
-                    </p>
-                    <p className="text-xs sm:text-sm font-bold mt-0.5 leading-tight">
-                      {t.name}
-                    </p>
-                  </div>
-                  <span className={`inline-block mt-3 text-[10px] px-2 py-0.5 rounded-md ${
-                    activeKitchenTest === idx ? "bg-white/20 text-white" : "bg-[#FAF3EA] text-[#3A241C]/70"
-                  }`}>
-                    {t.badge}
-                  </span>
-                </button>
-              ))}
+              {KITCHEN_TESTS.map((t, idx) => {
+                const TestIcon = t.icon;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setActiveKitchenTest(idx)}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                      activeKitchenTest === idx
+                        ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/20 scale-102"
+                        : "bg-white text-[#3A241C] border-[#E8DFD4] hover:bg-[#FAF3EA]"
+                    }`}
+                  >
+                    <div>
+                      <div className="w-8 h-8 rounded-xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center mb-2">
+                        <TestIcon className="w-4 h-4" />
+                      </div>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${activeKitchenTest === idx ? "text-[#F5E729]" : "text-[#5C1B13]"}`}>
+                        Test 0{idx + 1}
+                      </p>
+                      <p className="text-xs sm:text-sm font-bold mt-0.5 leading-tight">
+                        {t.name}
+                      </p>
+                    </div>
+                    <span className={`inline-block mt-3 text-[10px] px-2 py-0.5 rounded-md ${
+                      activeKitchenTest === idx ? "bg-white/20 text-white" : "bg-[#FAF3EA] text-[#3A241C]/70"
+                    }`}>
+                      {t.badge}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Active Test Workbench Card */}
@@ -1081,7 +1112,8 @@ export function WhyUs() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#5C1B13] bg-white hover:bg-[#FAF3EA] border border-[#E8DFD4] px-5 py-3 rounded-xl transition-all shadow-2xs hover:shadow-xs"
           >
-            <span>💬 Chat on WhatsApp</span>
+            <FaWhatsapp className="w-4 h-4 text-emerald-600" />
+            <span>Chat on WhatsApp</span>
           </a>
         </div>
 
