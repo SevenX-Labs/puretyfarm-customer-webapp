@@ -3,9 +3,11 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
+import { MarqueeTicker } from "@/components/ui/MarqueeTicker";
 import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
 import { useHeroEntrance, useParallax } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
+import { ShinyText, Magnet } from "@/components/reactbits";
 import { FiZap, FiDownload } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 
@@ -19,7 +21,7 @@ const HeroBottle3D = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="relative w-full max-w-lg mx-auto flex items-center justify-center py-4">
+      <div className="relative w-full max-w-md lg:max-w-lg mx-auto flex items-center justify-center py-2">
         <Image
           src="/pure-milk-bottle-3d.webp"
           alt="PuretyFarm Pure A2 Gir Cow Milk - 3D Glass Bottle"
@@ -27,7 +29,7 @@ const HeroBottle3D = dynamic(
           height={608}
           priority
           loading="eager"
-          className="w-auto h-[360px] sm:h-[430px] md:h-[470px] max-w-full object-contain"
+          className="w-auto h-[270px] sm:h-[340px] md:h-[390px] lg:h-[clamp(320px,41vh,430px)] max-w-full object-contain"
         />
       </div>
     ),
@@ -43,7 +45,7 @@ export function Hero() {
     <section
       ref={heroRef}
       id="hero"
-      className="relative w-full bg-[#FFFDF7] overflow-hidden"
+      className="relative w-full bg-[#FFFDF7] overflow-hidden flex flex-col justify-between min-h-[calc(100dvh-4.5rem)] lg:h-[calc(100dvh-5.25rem)] lg:min-h-[580px] lg:max-h-[960px]"
     >
       {/* Three.js 3D droplet canvas: desktop only, strictly right side behind bottle, never overlapping text */}
       <div className="hidden md:block absolute top-0 right-0 w-1/2 h-full overflow-hidden pointer-events-none -z-10">
@@ -56,23 +58,25 @@ export function Hero() {
         <div ref={bgBlob2} className="absolute -bottom-48 -left-48 w-[520px] h-[520px] rounded-full bg-[#5C1B13]/6 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Hero content */}
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-14 py-10 md:py-16 lg:py-20">
+      {/* Centered Hero Content */}
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 w-full flex-1 flex items-center py-4 lg:py-2">
+        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 w-full">
           {/* Text content - strictly z-10 above all background layers */}
           <div className="flex-1 text-center lg:text-left relative z-10">
             {/* Trust badge with live delivery indicator */}
             <div
               data-hero-anim
-              className="inline-flex items-center gap-2.5 bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-sm rounded-full pl-3 pr-4 py-1.5 mb-6"
+              className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-xs rounded-full pl-3 pr-3.5 py-1 mb-3 lg:mb-4"
             >
               <span className="flex h-2.5 w-2.5 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
               </span>
-              <span className="text-[11px] sm:text-xs font-bold text-[#5C1B13] tracking-wide uppercase">
-                Dawn Milked Today
-              </span>
+              <ShinyText
+                text="Dawn Milked Today"
+                speed={3.5}
+                className="text-[11px] sm:text-xs font-bold text-[#5C1B13] tracking-wide uppercase"
+              />
               {FLAGS.SHOW_500_FAMILIES_BADGE && (
                 <>
                   <span className="text-[#3A241C]/30 text-xs">•</span>
@@ -81,16 +85,18 @@ export function Hero() {
                       <FaStar key={i} className="w-3 h-3 text-[#F5E729]" />
                     ))}
                   </div>
-                  <span className="text-xs font-bold text-[#1A1008] border-l border-[#E8DFD4] pl-2.5">
-                    500+ Families in Raipur
-                  </span>
+                  <ShinyText
+                    text="500+ Families in Raipur"
+                    speed={4}
+                    className="text-xs font-bold text-[#1A1008] border-l border-[#E8DFD4] pl-2.5"
+                  />
                 </>
               )}
             </div>
 
             <h1
               data-hero-anim
-              className="text-4xl sm:text-5xl lg:text-[3.85rem] font-bold text-[#1A1008] leading-[1.12] tracking-tight font-[family-name:var(--font-heading)]"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-[clamp(2.4rem,3.6vw,3.5rem)] font-bold text-[#1A1008] leading-[1.12] tracking-tight font-[family-name:var(--font-heading)]"
             >
               Pure A2 Cow Milk,{" "}
               <span className="text-[#5C1B13] relative inline-block font-serif italic">
@@ -102,45 +108,54 @@ export function Hero() {
 
             <p
               data-hero-anim
-              className="mt-6 text-lg sm:text-xl text-[#3A241C]/85 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal"
+              className="mt-3 sm:mt-4 text-base sm:text-lg lg:text-[1.05rem] text-[#3A241C]/85 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal"
             >
               Farm-fresh, 100% unadulterated Gir cow milk delivered before 7:00 AM daily
               across Shankar Nagar, VIP Road, Samta Colony, Civil Lines &amp; all Raipur localities.
             </p>
 
-            {/* CTA group */}
+            {/* CTA group with React Bits Magnet interaction */}
             <div
               data-hero-anim
-              className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start"
+              className="mt-5 sm:mt-6 lg:mt-7 flex flex-col sm:flex-row items-center gap-3.5 justify-center lg:justify-start"
             >
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleTrialClick}
-                className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/20"
-              >
-                <FiZap className="w-5 h-5" />
-                Start My 7-Day Trial
-              </Button>
-              {FLAGS.SHOW_APP_FEATURES && (
+              <Magnet magnetStrength={0.25} className="w-full sm:w-auto">
                 <Button
-                  variant="secondary"
+                  variant="primary"
                   size="lg"
-                  onClick={handleDownloadClick}
-                  className="w-full sm:w-auto"
+                  onClick={handleTrialClick}
+                  className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/20"
                 >
-                  <FiDownload className="w-5 h-5" />
-                  Download Our App
+                  <FiZap className="w-5 h-5" />
+                  Start My 7-Day Trial
                 </Button>
+              </Magnet>
+              {FLAGS.SHOW_APP_FEATURES && (
+                <Magnet magnetStrength={0.2} className="w-full sm:w-auto">
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={handleDownloadClick}
+                    className="w-full sm:w-auto"
+                  >
+                    <FiDownload className="w-5 h-5" />
+                    Download Our App
+                  </Button>
+                </Magnet>
               )}
             </div>
           </div>
 
           {/* Hero visual: 3D Floating Milk Bottle */}
-          <div className="flex-1 relative max-w-md lg:max-w-lg w-full">
+          <div className="flex-1 relative max-w-md lg:max-w-lg w-full flex items-center justify-center">
             <HeroBottle3D />
           </div>
         </div>
+      </div>
+
+      {/* MarqueeTicker anchored at the base of the Hero fold */}
+      <div className="w-full shrink-0 relative z-20">
+        <MarqueeTicker />
       </div>
     </section>
   );

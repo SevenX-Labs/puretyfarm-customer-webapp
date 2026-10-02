@@ -1,14 +1,7 @@
 "use client";
 
-import { useRef, type ReactNode, type MouseEvent } from "react";
-import {
-  m,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  useReducedMotion,
-  type HTMLMotionProps,
-} from "framer-motion";
+import { useRef, useState, type ReactNode, type MouseEvent } from "react";
+import { m, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 
 export interface TiltCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   children: ReactNode;
@@ -18,52 +11,40 @@ export interface TiltCardProps extends Omit<HTMLMotionProps<"div">, "children"> 
   className?: string;
 }
 
+/**
+ * TiltCard
+ * Provides smooth elevation and interactive cursor sheen on hover
+ * without 3D perspective or bitmap scaling so text remains 100% crisp and sharp.
+ */
 export function TiltCard({
   children,
-  tiltMaxAngle = 7,
-  scale = 1.02,
+  tiltMaxAngle: _tiltMaxAngle,
+  scale: _scale,
   glare = true,
   className = "",
+  style,
   ...props
 }: TiltCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
-
-  // Normalized mouse coordinates from -0.5 to 0.5
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const glareX = useMotionValue(50);
-  const glareY = useMotionValue(50);
-  const glareOpacity = useMotionValue(0);
-
-  const springConfig = { damping: 26, stiffness: 260 };
-  const smoothMouseX = useSpring(mouseX, springConfig);
-  const smoothMouseY = useSpring(mouseY, springConfig);
-
-  // Tilt transforms
-  const rotateX = useTransform(smoothMouseY, [-0.5, 0.5], [tiltMaxAngle, -tiltMaxAngle]);
-  const rotateY = useTransform(smoothMouseX, [-0.5, 0.5], [-tiltMaxAngle, tiltMaxAngle]);
-  const smoothGlareOpacity = useSpring(glareOpacity, { damping: 20, stiffness: 200 });
+  const [glarePos, setGlarePos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     if (reduceMotion || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setGlarePos({ x, y });
+    if (!isHovered) setIsHovered(true);
+  };
 
-    mouseX.set(x - 0.5);
-    mouseY.set(y - 0.5);
-
-    glareX.set(x * 100);
-    glareY.set(y * 100);
-    glareOpacity.set(0.18);
+  const handleMouseEnter = () => {
+    if (!reduceMotion) setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
-    if (reduceMotion) return;
-    mouseX.set(0);
-    mouseY.set(0);
-    glareOpacity.set(0);
+    setIsHovered(false);
   };
 
   if (reduceMotion) {
@@ -78,28 +59,31 @@ export function TiltCard({
     <m.div
       ref={cardRef}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      whileHover={{ scale }}
-      transition={{ type: "spring", stiffness: 300, damping: 22 }}
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       style={{
-        rotateX,
-        rotateY,
-        transformStyle: "preserve-3d",
+        ...style,
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+        WebkitFontSmoothing: "antialiased",
+        transform: "translateZ(0)",
       }}
-      className={`relative perspective-1000 ${className}`.trim()}
+      className={`relative ${className}`.trim()}
       {...props}
     >
       {children}
 
-      {/* Interactive radial sheen glare following mouse */}
+      {/* Interactive subtle radial sheen glare following mouse without blur */}
       {glare && (
-        <m.div
+        <div
           aria-hidden="true"
           style={{
-            opacity: smoothGlareOpacity,
-            background: `radial-gradient(circle 240px at ${glareX.get()}% ${glareY.get()}%, rgba(245, 231, 41, 0.35), transparent 70%)`,
+            opacity: isHovered ? 1 : 0,
+            background: `radial-gradient(circle 280px at ${glarePos.x}% ${glarePos.y}%, rgba(245, 231, 41, 0.12), transparent 75%)`,
           }}
-          className="pointer-events-none absolute inset-0 z-20 rounded-2xl overflow-hidden transition-opacity duration-300"
+          className="pointer-events-none absolute inset-0 z-20 rounded-3xl overflow-hidden transition-opacity duration-300"
         />
       )}
     </m.div>

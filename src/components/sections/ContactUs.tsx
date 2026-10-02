@@ -2,6 +2,7 @@
 
 import { Section } from "@/components/ui/Section";
 import { TiltCard } from "@/components/ui/TiltCard";
+import { ShinyText, Magnet } from "@/components/reactbits";
 import { useScrollReveal, useStaggerReveal, useParallax } from "@/lib/animations";
 import { ENV } from "@/config/env";
 import { getWhatsAppUrl, getPhoneUrl, getEmailUrl } from "@/lib/cta";
@@ -49,7 +50,7 @@ export function ContactUs() {
           <div ref={badgeRef}>
             <span className="inline-flex items-center gap-2 bg-[#5C1B13]/10 border border-[#5C1B13]/20 text-[#5C1B13] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider mb-4 shadow-2xs hover:scale-105 transition-transform duration-200">
               <FiPhoneCall className="w-3.5 h-3.5 text-[#5C1B13]" />
-              <span>Contact Us</span>
+              <ShinyText text="Direct Contact & Support" speed={3.5} />
             </span>
           </div>
 
@@ -105,17 +106,19 @@ export function ContactUs() {
                   <span className="block text-base font-bold text-emerald-950 tracking-tight">
                     {ENV.PHONE_DISPLAY}
                   </span>
-                  <a
-                    id="contact-whatsapp-btn"
-                    href={getWhatsAppUrl("Hi PuretyFarm, I would like to inquire about fresh A2 milk delivery in Raipur.")}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group/btn w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <FaWhatsapp className="w-4 h-4" />
-                    <span>Open WhatsApp Chat</span>
-                    <FiArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                  </a>
+                  <Magnet magnetStrength={0.16} className="w-full">
+                    <a
+                      id="contact-whatsapp-btn"
+                      href={getWhatsAppUrl("Hi PuretyFarm, I would like to inquire about fresh A2 milk delivery in Raipur.")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/btn w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <FaWhatsapp className="w-4 h-4" />
+                      <span>Open WhatsApp Chat</span>
+                      <FiArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                    </a>
+                  </Magnet>
                 </div>
               </div>
             </TiltCard>
@@ -158,15 +161,17 @@ export function ContactUs() {
                       <span>7:00 AM – 8:00 PM</span>
                     </div>
                   </div>
-                  <a
-                    id="contact-call-btn"
-                    href={getPhoneUrl()}
-                    className="group/btn w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[#5C1B13] hover:bg-[#4A1510] text-white font-bold text-sm shadow-md shadow-[#5C1B13]/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <FiPhone className="w-4 h-4" />
-                    <span>Call Helpline</span>
-                    <FiArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                  </a>
+                  <Magnet magnetStrength={0.16} className="w-full">
+                    <a
+                      id="contact-call-btn"
+                      href={getPhoneUrl()}
+                      className="group/btn w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[#5C1B13] hover:bg-[#4A1510] text-white font-bold text-sm shadow-md shadow-[#5C1B13]/20 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <FiPhone className="w-4 h-4" />
+                      <span>Call Helpline</span>
+                      <FiArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                    </a>
+                  </Magnet>
                 </div>
               </div>
             </TiltCard>
@@ -203,15 +208,17 @@ export function ContactUs() {
                   <span className="block text-base font-bold text-[#1A1008] tracking-tight">
                     {ENV.SUPPORT_EMAIL}
                   </span>
-                  <a
-                    id="contact-email-btn"
-                    href={getEmailUrl()}
-                    className="group/btn w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[#FFFDF7] border border-[#DFCFC2] hover:bg-[#FAF3EA] text-[#5C1B13] font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <FiMail className="w-4 h-4" />
-                    <span>Send Email</span>
-                    <FiArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                  </a>
+                  <Magnet magnetStrength={0.16} className="w-full">
+                    <a
+                      id="contact-email-btn"
+                      href={getEmailUrl()}
+                      className="group/btn w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-[#FFFDF7] border border-[#DFCFC2] hover:bg-[#FAF3EA] text-[#5C1B13] font-bold text-sm transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      <FiMail className="w-4 h-4" />
+                      <span>Send Email</span>
+                      <FiArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                    </a>
+                  </Magnet>
                 </div>
               </div>
             </TiltCard>

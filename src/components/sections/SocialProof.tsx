@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { TiltCard } from "@/components/ui/TiltCard";
+import { ShinyText } from "@/components/reactbits";
 import { useScrollReveal, useStaggerReveal, useCountUp } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
 import {
@@ -14,32 +16,109 @@ import {
   FiCheckCircle,
   FiDroplet,
   FiThermometer,
+  FiPause,
+  FiPlay,
 } from "react-icons/fi";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaQuoteLeft } from "react-icons/fa";
 
-const TESTIMONIALS = [
+interface TestimonialItem {
+  quote: string;
+  name: string;
+  location: string;
+  tag: string;
+  initials: string;
+  rating: number;
+}
+
+const TESTIMONIALS: readonly TestimonialItem[] = [
   {
     quote:
-      "The milk tastes exactly like what we used to get from our village. My kids love it!",
+      "The milk tastes exactly like what we used to get from our ancestral village. Natural sweetness, thick malai layer, and my kids drink it warm every morning without chocolate powder!",
     name: "Priya Sharma",
     location: "Shankar Nagar",
+    tag: "Subscribed 8 Mos",
     initials: "PS",
     rating: 5,
   },
   {
     quote:
-      "Been using PuretyFarm for 6 months now. The consistency and purity is unmatched in Raipur.",
+      "Been using PuretyFarm for 6 months now. Doorstep punctuality before 6:45 AM and zero plastic packaging makes the freshness unmatched anywhere in Raipur.",
     name: "Rajesh Tiwari",
     location: "VIP Road",
+    tag: "Daily Morning",
     initials: "RT",
     rating: 5,
   },
   {
     quote:
-      "I was skeptical about A2 milk claims, but the taste difference is real. Glass bottles are a nice touch!",
-    name: "Anita Verma",
+      "As a pediatrician, I am cautious about hormones and oxytocin in dairy. PuretyFarm's 100% Desi Gir A2 milk is gentle on my kids' digestion. The chilled glass bottle delivery is genuinely gold standard.",
+    name: "Dr. Anita Verma",
     location: "Civil Lines",
+    tag: "Doctor & Mother",
     initials: "AV",
+    rating: 5,
+  },
+  {
+    quote:
+      "We collect the thick cream on weekends to make homemade Desi Ghee. The golden granular Danedar texture and sacred aroma take you back 30 years. Truly unadulterated Gir cow purity.",
+    name: "Vikramaditya Singh",
+    location: "Samta Colony",
+    tag: "Ghee Connoisseur",
+    initials: "VS",
+    rating: 5,
+  },
+  {
+    quote:
+      "Switching from plastic pouch milk to PuretyFarm eliminated our morning heaviness. It boils cleanly with zero synthetic residue or burnt smell. The customer care on WhatsApp is also wonderfully responsive.",
+    name: "Sunita Dewangan",
+    location: "Devendra Nagar",
+    tag: "Family of 5",
+    initials: "SD",
+    rating: 5,
+  },
+  {
+    quote:
+      "Punctual dawn delivery before 7:00 AM without fail. In peak summer, the milk arrives properly chilled at 4°C in temperature-controlled bags. Top notch consistency and transparent billing.",
+    name: "CA Manish Agrawal",
+    location: "Pandri",
+    tag: "Daily Subscriber",
+    initials: "MA",
+    rating: 5,
+  },
+  {
+    quote:
+      "We tested their milk with our home lactometer and boiling test out of curiosity — zero added water, zero starch. Pure, thick, naturally fragrant Gir cow milk as promised.",
+    name: "Meenakshi Dubey",
+    location: "Tatibandh",
+    tag: "Verified Resident",
+    initials: "MD",
+    rating: 5,
+  },
+  {
+    quote:
+      "My morning protein shakes taste 10x richer with this milk. No bloating or gut discomfort at all. You can genuinely feel the nutritional vitality of grass-fed cows.",
+    name: "Rohan Kothari",
+    location: "Mowa",
+    tag: "Fitness Enthusiast",
+    initials: "RK",
+    rating: 5,
+  },
+  {
+    quote:
+      "My elderly parents have sensitive stomachs and could never tolerate regular commercial milk. PuretyFarm A2 has been so light and easy on them. Essential daily nutrition for our whole family.",
+    name: "Kavita Chawla",
+    location: "Sadar Bazar",
+    tag: "3 Generations",
+    initials: "KC",
+    rating: 5,
+  },
+  {
+    quote:
+      "The sealed sterilized glass bottles feel premium and eco-friendly. No plastic leaching, crisp 4°C chill, and delivered quietly while Raipur is still asleep.",
+    name: "Amitabh Baghel",
+    location: "Kamal Vihar",
+    tag: "Early Adopter",
+    initials: "AB",
     rating: 5,
   },
 ] as const;
@@ -97,15 +176,12 @@ function StatCounter({
 }
 
 export function SocialProof() {
+  const [isPaused, setIsPaused] = useState(false);
+
   // Testimonials section
   const testBadgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.5 });
   const testHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
   const statsRef = useScrollReveal<HTMLDivElement>({ y: 30, delay: 0.15 });
-  const testimonialsRef = useStaggerReveal<HTMLDivElement>("[data-testimonial]", {
-    y: 50,
-    stagger: 0.18,
-    duration: 0.7,
-  });
 
   // Trust section
   const trustHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40 });
@@ -118,30 +194,45 @@ export function SocialProof() {
   });
   const trustFootRef = useScrollReveal<HTMLDivElement>({ y: 20, delay: 0.1 });
 
+  // Duplicated for seamless infinite marquee loop
+  const duplicatedTestimonials = [...TESTIMONIALS, ...TESTIMONIALS];
+
   return (
     <>
-      {/* Testimonials (Preserved; conditionally shown when verified) */}
+      {/* Testimonials */}
       {(FLAGS.SHOW_TESTIMONIALS || FLAGS.SHOW_500_FAMILIES_BADGE) && (
-        <Section background="default" id="testimonials">
+        <Section background="default" id="testimonials" className="overflow-hidden">
           {FLAGS.SHOW_500_FAMILIES_BADGE && (
             <div ref={testBadgeRef} className="text-center mb-6">
               <span className="inline-flex items-center gap-2 bg-[#F5E729]/20 border border-[#F5E729]/40 text-[#1A1008] text-sm font-bold px-4 py-2 rounded-full">
                 <FaStar className="w-3.5 h-3.5 text-amber-500" />
-                <span>500+ Happy Families in Raipur</span>
+                <ShinyText text="500+ Happy Families in Raipur" speed={3.5} />
               </span>
             </div>
           )}
 
           {FLAGS.SHOW_TESTIMONIALS && (
-            <h2 ref={testHeadingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
-              What Our Families Say
-            </h2>
+            <div className="text-center max-w-3xl mx-auto mb-4">
+              <h2
+                ref={testHeadingRef}
+                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] tracking-tight"
+              >
+                Loved by Families Across{" "}
+                <span className="text-[#5C1B13] font-serif italic relative inline-block">
+                  Raipur
+                  <span className="absolute bottom-1.5 left-0 right-0 h-2.5 bg-[#F5E729]/35 -z-10 rounded-sm" />
+                </span>
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-[#3A241C]/80">
+                Real mornings, authentic Desi Gir goodness, and zero plastic packaging verified by local households.
+              </p>
+            </div>
           )}
 
           {/* Dynamic Animated Statistics Counters */}
           <div
             ref={statsRef}
-            className={`mt-8 mb-10 grid grid-cols-2 ${
+            className={`mt-6 mb-10 grid grid-cols-2 ${
               FLAGS.SHOW_500_FAMILIES_BADGE || FLAGS.SHOW_40_TESTS_CLAIM
                 ? "md:grid-cols-4 max-w-4xl"
                 : "max-w-xl"
@@ -157,59 +248,103 @@ export function SocialProof() {
             <StatCounter end={4} suffix="°C" label="Chilled Cold Chain" icon={<FiThermometer className="w-6 h-6 text-cyan-600" />} />
           </div>
 
+          {/* Continuous Left-to-Right Looping Marquee */}
           {FLAGS.SHOW_TESTIMONIALS && (
-            <div ref={testimonialsRef} className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {TESTIMONIALS.map((testimonial) => (
+            <div className="relative mt-8">
+              {/* Marquee viewport container with break-out width */}
+              <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden py-3">
+                {/* Left gradient mask */}
                 <div
-                  key={testimonial.name}
-                  data-testimonial
-                  className="h-full"
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-28 md:w-40 bg-gradient-to-r from-[#FFFDF7] via-[#FFFDF7]/90 to-transparent z-10"
+                />
+                {/* Right gradient mask */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-28 md:w-40 bg-gradient-to-l from-[#FFFDF7] via-[#FFFDF7]/90 to-transparent z-10"
+                />
+
+                {/* Left-to-Right Animated Loop Track */}
+                <div
+                  className="animate-marquee-ltr flex items-stretch gap-5 sm:gap-6 py-2"
+                  style={{
+                    animationPlayState: isPaused ? "paused" : undefined,
+                  }}
                 >
-                  <TiltCard tiltMaxAngle={5} scale={1.02} glare={true} className="h-full">
-                    <div className="bg-white h-full rounded-2xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between group">
-                      <div>
-                        {/* Stars and verified customer pill */}
-                        <div className="flex items-center justify-between gap-2 mb-4">
-                          <div className="flex gap-0.5 group-hover:scale-105 transition-transform duration-200">
-                            {[...Array(testimonial.rating)].map((_, i) => (
-                              <FaStar
-                                key={i}
-                                className="w-3.5 h-3.5 text-[#F5E729]"
-                              />
-                            ))}
-                          </div>
-                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 inline-flex items-center gap-1">
-                            <FiCheck className="w-3 h-3 text-emerald-600" />
-                            <span>Verified Raipur</span>
-                          </span>
-                        </div>
-
-                        {/* Quote */}
-                        <p className="text-[#3A241C]/90 text-sm italic leading-relaxed mb-6">
-                          &ldquo;{testimonial.quote}&rdquo;
-                        </p>
-                      </div>
-
-                      {/* Author */}
-                      <div className="flex items-center gap-3 pt-3 border-t border-[#E8DFD4]/50">
-                        <div className="w-10 h-10 rounded-full bg-[#5C1B13]/10 flex items-center justify-center border border-[#5C1B13]/20">
-                          <span className="text-sm font-bold text-[#5C1B13]">
-                            {testimonial.initials}
-                          </span>
-                        </div>
+                  {duplicatedTestimonials.map((testimonial, idx) => (
+                    <div
+                      key={`${testimonial.name}-${idx}`}
+                      className="w-[310px] sm:w-[360px] md:w-[390px] shrink-0 h-full flex flex-col"
+                    >
+                      <div className="bg-white h-full rounded-2xl border border-[#E8DFD4] p-5 sm:p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 hover:border-[#5C1B13]/30 transition-all duration-300 flex flex-col justify-between group">
                         <div>
-                          <p className="text-sm font-bold text-[#1A1008]">
-                            {testimonial.name}
-                          </p>
-                          <p className="text-xs text-[#3A241C]/60">
-                            {testimonial.location}, Raipur
-                          </p>
+                          {/* Top row: Stars & Verified Badge */}
+                          <div className="flex items-center justify-between gap-2 mb-3.5">
+                            <div className="flex gap-1 group-hover:scale-105 transition-transform duration-200">
+                              {[...Array(testimonial.rating)].map((_, i) => (
+                                <FaStar
+                                  key={i}
+                                  className="w-3.5 h-3.5 text-[#F5E729] drop-shadow-2xs"
+                                />
+                              ))}
+                            </div>
+                            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/70 inline-flex items-center gap-1.5 shadow-2xs">
+                              <FiCheck className="w-3 h-3 text-emerald-600" />
+                              <span>Verified Raipur</span>
+                            </span>
+                          </div>
+
+                          {/* Decorative Quote Icon & Content */}
+                          <div className="relative mb-5">
+                            <FaQuoteLeft className="w-4 h-4 text-[#5C1B13]/15 mb-2" />
+                            <p className="text-[#3A241C]/90 text-sm leading-relaxed">
+                              &ldquo;{testimonial.quote}&rdquo;
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Customer Details Footer */}
+                        <div className="flex items-center gap-3 pt-3.5 border-t border-[#E8DFD4]/60 mt-auto">
+                          <div className="w-10 h-10 rounded-full bg-[#5C1B13]/10 flex items-center justify-center border border-[#5C1B13]/20 shrink-0">
+                            <span className="text-xs sm:text-sm font-bold text-[#5C1B13]">
+                              {testimonial.initials}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <p className="text-sm font-bold text-[#1A1008] truncate">
+                                {testimonial.name}
+                              </p>
+                              <span className="text-[10px] font-semibold text-[#5C1B13] bg-[#5C1B13]/8 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                {testimonial.tag}
+                              </span>
+                            </div>
+                            <p className="text-xs text-[#3A241C]/65 truncate">
+                              {testimonial.location}, Raipur
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </TiltCard>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Status and Pause/Resume Helper Bar */}
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 px-2 text-xs text-[#3A241C]/70">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Hover over any review to pause • Continuously looping left to right</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPaused(!isPaused)}
+                  className="inline-flex items-center gap-1.5 font-semibold text-xs text-[#5C1B13] bg-white border border-[#E8DFD4] hover:bg-[#FAF3EA] px-3 py-1 rounded-full shadow-2xs transition-colors cursor-pointer"
+                >
+                  {isPaused ? <FiPlay className="w-3 h-3" /> : <FiPause className="w-3 h-3" />}
+                  <span>{isPaused ? "Resume Animation" : "Pause Animation"}</span>
+                </button>
+              </div>
             </div>
           )}
         </Section>

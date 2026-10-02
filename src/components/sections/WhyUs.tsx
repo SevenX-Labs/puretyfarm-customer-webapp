@@ -6,6 +6,7 @@ import { m, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { TiltCard } from "@/components/ui/TiltCard";
 import { Button } from "@/components/ui/Button";
+import { ShinyText } from "@/components/reactbits";
 import { handleTrialClick, getWhatsAppUrl } from "@/lib/cta";
 import { useScrollReveal } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
@@ -333,7 +334,6 @@ export function WhyUs() {
 
   const badgeRef = useScrollReveal<HTMLSpanElement>({ y: 20, duration: 0.5 });
   const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 35, delay: 0.1 });
-  const subtitleRef = useScrollReveal<HTMLParagraphElement>({ y: 25, delay: 0.2 });
 
   return (
     <Section background="cream" id="why-puretyfarm" className="relative overflow-hidden">
@@ -350,7 +350,7 @@ export function WhyUs() {
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-[#5C1B13] bg-[#5C1B13]/10 border border-[#5C1B13]/20 rounded-full px-4 py-1.5 mb-4 shadow-2xs"
         >
           <span className="w-2 h-2 rounded-full bg-[#5C1B13] animate-pulse" />
-          The PuretyFarm Gold Standard
+          <ShinyText text="The PuretyFarm Gold Standard" speed={3.5} />
         </span>
 
         <h2
@@ -363,36 +363,6 @@ export function WhyUs() {
             <span className="absolute bottom-1.5 left-0 right-0 h-2.5 bg-[#F5E729]/35 -z-10 rounded-sm" />
           </span>
         </h2>
-
-        <p
-          ref={subtitleRef}
-          className="mt-3.5 text-base sm:text-lg text-[#3A241C]/85 max-w-2xl mx-auto leading-relaxed"
-        >
-          We set out to restore milk to its purest form: 100% unadulterated Desi Gir cow A2 milk, chilled at 4°C, packed in sterilized glass, and delivered before 7:00 AM.
-        </p>
-
-        {/* ─── LIVE PURITY ASSURANCE BAR WITH REACT ICONS ─── */}
-        <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 p-2 bg-white/95 backdrop-blur-md rounded-2xl border border-[#E8DFD4] shadow-xs">
-          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <FiThermometer className="w-3.5 h-3.5 text-amber-600" />
-            <span>4°C Farm Chilled</span>
-          </div>
-          <span className="hidden sm:inline text-xs text-[#E8DFD4]">•</span>
-          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <FiShield className="w-3.5 h-3.5 text-emerald-600" />
-            <span>100% Desi Gir A2</span>
-          </div>
-          <span className="hidden sm:inline text-xs text-[#E8DFD4]">•</span>
-          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <FiPackage className="w-3.5 h-3.5 text-blue-600" />
-            <span>Zero Plastic Touch</span>
-          </div>
-          <span className="hidden sm:inline text-xs text-[#E8DFD4]">•</span>
-          <div className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-[#1A1008]">
-            <FiClock className="w-3.5 h-3.5 text-[#5C1B13]" />
-            <span>&lt; 3h Dawn Milking</span>
-          </div>
-        </div>
 
         {/* ─── CREATIVE EXPERIENCE MODE TABS (DRIBBLE/PINTEREST STYLE) ─── */}
         <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3">

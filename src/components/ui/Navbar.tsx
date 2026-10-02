@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, m } from "framer-motion";
 import { Button } from "./Button";
 import { BrandLogo } from "./BrandLogo";
+import { Magnet } from "@/components/reactbits";
 import {
   handleTrialClick,
   handleDownloadClick,
@@ -89,15 +90,17 @@ export function Navbar() {
 
           {/* Right: Quick Action Controls */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Primary Action Button: Start Trial */}
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleTrialClick}
-              className="rounded-full px-4 sm:px-5 py-1.5 text-xs font-bold h-[34px] shadow-md shadow-[#5C1B13]/20 hover:scale-105 active:scale-95 transition-all"
-            >
-              Start Trial
-            </Button>
+            {/* Primary Action Button: Start Trial with Magnet effect */}
+            <Magnet magnetStrength={0.2}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleTrialClick}
+                className="rounded-full px-4 sm:px-5 py-1.5 text-xs font-bold h-[34px] shadow-md shadow-[#5C1B13]/20 hover:scale-105 active:scale-95 transition-all"
+              >
+                Start Trial
+              </Button>
+            </Magnet>
 
             {/* Mobile Hamburger Toggle Button */}
             <button

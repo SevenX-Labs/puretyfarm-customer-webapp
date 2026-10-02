@@ -150,7 +150,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
   return (
     <div
       ref={containerRef}
-      className={`relative w-full max-w-lg mx-auto select-none [perspective:1200px] flex flex-col items-center justify-center py-4 ${className}`}
+      className={`relative w-full max-w-md lg:max-w-lg mx-auto select-none [perspective:1200px] flex flex-col items-center justify-center py-1 sm:py-2 ${className}`}
     >
       {/* Soft warm ambient lighting behind the bottle (strictly -z-10) */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10">
@@ -164,7 +164,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
       {/* Badge 1: Top-Left - 100% Raw A2 */}
       <div
         ref={badge1Ref}
-        className="absolute top-2 left-0 sm:top-4 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
+        className="absolute top-1 left-0 sm:top-3 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
           <span className="relative flex h-2.5 w-2.5">
@@ -185,7 +185,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
       {/* Badge 2: Top-Right - Sealed Glass Bottle */}
       <div
         ref={badge2Ref}
-        className="absolute top-6 right-0 sm:top-8 sm:-right-6 lg:-right-8 z-10 pointer-events-auto"
+        className="absolute top-4 right-0 sm:top-6 sm:-right-6 lg:-right-8 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-[#FFFBEB]/95 backdrop-blur-md border border-[#F5E729]/60 shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
           <FiShield className="w-4 h-4 text-[#5C1B13]" />
@@ -203,7 +203,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
       {/* Badge 3: Mid/Bottom-Left - 7 AM Morning Delivery */}
       <div
         ref={badge3Ref}
-        className="absolute bottom-16 left-0 sm:bottom-20 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
+        className="absolute bottom-12 left-0 sm:bottom-16 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
           <FiClock className="w-4 h-4 text-[#5C1B13]" />
@@ -221,7 +221,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
       {/* Badge 4: Bottom-Right - Cold-Chained at 4°C */}
       <div
         ref={badge4Ref}
-        className="absolute bottom-14 right-0 sm:bottom-16 sm:-right-4 lg:-right-6 z-10 pointer-events-auto"
+        className="absolute bottom-10 right-0 sm:bottom-12 sm:-right-4 lg:-right-6 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
           <FiThermometer className="w-4 h-4 text-blue-600" />
@@ -255,7 +255,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
           priority
           loading="eager"
           unoptimized
-          className="w-auto h-[360px] sm:h-[430px] md:h-[470px] max-w-full object-contain drop-shadow-[0_30px_45px_rgba(92,27,19,0.22)] select-none pointer-events-none transition-filter duration-300"
+          className="w-auto h-[270px] sm:h-[340px] md:h-[390px] lg:h-[clamp(320px,41vh,430px)] max-w-full object-contain drop-shadow-[0_24px_38px_rgba(92,27,19,0.20)] select-none pointer-events-none transition-filter duration-300"
         />
 
         {/* Ambient freshness aura behind bottle */}
@@ -276,7 +276,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
       </div>
 
       {/* Bottom Tagline Pill - Safely below */}
-      <div className="mt-5 inline-flex items-center gap-3 bg-[#FBF6EE]/90 backdrop-blur-sm border border-[#E8DFD4] rounded-full px-5 py-1.5 shadow-sm text-xs text-[#3A241C]/80 z-20">
+      <div className="mt-3 sm:mt-4 inline-flex items-center gap-2.5 sm:gap-3 bg-[#FBF6EE]/90 backdrop-blur-sm border border-[#E8DFD4] rounded-full px-4 sm:px-5 py-1 sm:py-1.5 shadow-sm text-[11px] sm:text-xs text-[#3A241C]/80 z-20">
         <span className="font-semibold text-[#5C1B13]">Desi Gir Cows</span>
         <span className="inline-block w-1 h-1 rounded-full bg-[#F5E729]" />
         <span>Cruelty-Free</span>

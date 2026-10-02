@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { TiltCard } from "@/components/ui/TiltCard";
+import { ShinyText, Magnet } from "@/components/reactbits";
 import { handleTrialClick } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 import {
@@ -193,8 +194,8 @@ export function Pricing() {
                   {plan.highlighted && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
                       <span className="inline-flex items-center gap-1.5 bg-[#5C1B13] text-white text-[11px] font-bold px-3.5 py-1 rounded-full whitespace-nowrap shadow-md shadow-[#5C1B13]/25 border border-[#5C1B13]">
-                        <FiStar className="w-3 h-3" />
-                        RECOMMENDED
+                        <FiStar className="w-3 h-3 text-[#F5E729]" />
+                        <ShinyText text="RECOMMENDED" speed={3} className="text-white" />
                       </span>
                     </div>
                   )}
@@ -256,16 +257,18 @@ export function Pricing() {
                     })}
                   </ul>
 
-                  {/* CTA */}
-                  <Button
-                    variant={plan.highlighted ? "primary" : "secondary"}
-                    size="sm"
-                    fullWidth
-                    onClick={handleTrialClick}
-                    className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl ${plan.highlighted ? "shadow-md shadow-[#5C1B13]/20" : ""}`}
-                  >
-                    Start 7-Day Trial
-                  </Button>
+                  {/* CTA with React Bits Magnet */}
+                  <Magnet magnetStrength={0.16} className="w-full">
+                    <Button
+                      variant={plan.highlighted ? "primary" : "secondary"}
+                      size="sm"
+                      fullWidth
+                      onClick={handleTrialClick}
+                      className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl ${plan.highlighted ? "shadow-md shadow-[#5C1B13]/20" : ""}`}
+                    >
+                      Start 7-Day Trial
+                    </Button>
+                  </Magnet>
                 </div>
               </TiltCard>
             </div>
