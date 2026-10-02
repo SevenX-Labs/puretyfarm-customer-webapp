@@ -87,11 +87,10 @@ function FaqItem({
   return (
     <div
       data-faq-item
-      className={`rounded-xl border transition-colors ${
-        isOpen
+      className={`rounded-xl border transition-colors ${isOpen
           ? "bg-[#FBF6EE] border-[#E8DFD4]"
           : "bg-white border-[#E8DFD4] hover:border-[#5C1B13]/20"
-      }`}
+        }`}
     >
       <button
         onClick={onToggle}
@@ -102,9 +101,8 @@ function FaqItem({
           {item.question}
         </span>
         <svg
-          className={`w-5 h-5 text-[#5C1B13] flex-shrink-0 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`w-5 h-5 text-[#5C1B13] flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+            }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -229,9 +227,11 @@ export function FaqCtaFooter() {
               </svg>
               Start 7-Day Trial
             </Button>
-            <button
+            <Button
+              variant="secondary"
+              size="lg"
               onClick={handleDownloadClick}
-              className="inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 px-9 py-4 text-lg bg-white text-[#5C1B13] hover:bg-white/90 active:bg-white/80 cursor-pointer"
+              className="bg-white text-[#5C1B13] border-white hover:bg-white/95 active:bg-white/90 shadow-lg"
             >
               <svg
                 className="w-5 h-5"
@@ -247,7 +247,7 @@ export function FaqCtaFooter() {
                 />
               </svg>
               Download App
-            </button>
+            </Button>
           </div>
 
           <p data-cta-anim className="mt-6 text-sm text-white/50">

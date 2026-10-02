@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { getWhatsAppUrl, getPhoneUrl, getEmailUrl } from "@/lib/cta";
 import { ENV } from "@/config/env";
 
@@ -16,20 +16,7 @@ export default function PrivacyPage() {
       {/* Header */}
       <header className="w-full border-b border-[#E8DFD4] bg-[#FFFDF7]/90 backdrop-blur-sm sticky top-0 z-40">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="relative w-9 h-9 rounded-full overflow-hidden border border-[#E8DFD4] shadow-sm bg-[#FDEE57] shrink-0 transition-transform group-hover:scale-105">
-              <Image
-                src="/logo-mark.webp"
-                alt="PuretyFarm Logo"
-                fill
-                sizes="36px"
-                className="object-cover"
-              />
-            </div>
-            <span className="font-[family-name:var(--font-heading)] font-bold text-xl text-[#1A1008] tracking-tight">
-              PuretyFarm
-            </span>
-          </Link>
+          <BrandLogo />
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-sm text-[#5C1B13] hover:text-[#4A1510] transition-colors font-medium"

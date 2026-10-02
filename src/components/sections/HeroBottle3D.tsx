@@ -23,6 +23,14 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
     const shadow = shadowRef.current;
     if (!container || !bottle || !shadow) return;
 
+    // Disable floating GSAP animations on small screens (< 768px) and under prefers-reduced-motion
+    if (
+      window.innerWidth < 768 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
     const ctx = gsap.context(() => {
       // 1. Continuous Floating & Levitation for the 3D Bottle
       gsap.to(bottle, {
@@ -227,27 +235,44 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
         </div>
       </div>
 
+      {/* ─── Ambient Subtle Droplets (Constrained strictly behind the bottle, hidden on mobile) ─── */}
+      <div className="hidden md:block absolute inset-0 pointer-events-none -z-5 overflow-hidden">
+        <div className="absolute top-12 right-12 w-5 h-5 rounded-full bg-white/60 backdrop-blur-xs border border-[#E8DFD4]/60 shadow-xs" />
+        <div className="absolute bottom-24 right-10 w-4 h-4 rounded-full bg-white/60 border border-[#E8DFD4]/60 shadow-xs" />
+      </div>
+
       {/* ─── The Floating 3D Milk Bottle (Higher z-30 stack, ALWAYS above everything) ─── */}
       <div
         ref={bottleRef}
-        className="relative z-30 [transform-style:preserve-3d] flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="relative z-30 [transform-style:preserve-3d] flex items-center justify-center cursor-grab active:cursor-grabbing group"
       >
         <Image
           src="/pure-milk-bottle-3d.webp"
           alt="PuretyFarm Pure A2 Gir Cow Milk - 3D Glass Bottle"
           width={450}
           height={608}
-          loading="lazy"
+          priority
+          loading="eager"
           unoptimized
-          className="w-auto h-[360px] sm:h-[430px] md:h-[470px] max-w-full object-contain drop-shadow-[0_30px_45px_rgba(92,27,19,0.22)] select-none pointer-events-none"
+          className="w-auto h-[360px] sm:h-[430px] md:h-[470px] max-w-full object-contain drop-shadow-[0_30px_45px_rgba(92,27,19,0.22)] select-none pointer-events-none transition-filter duration-300"
+        />
+
+        {/* Ambient freshness aura behind bottle */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-radial from-[#F5E729]/20 via-white/10 to-transparent blur-xl scale-90 opacity-70 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
         />
       </div>
 
-      {/* Dynamic Floor Shadow beneath the bottle */}
-      <div
-        ref={shadowRef}
-        className="w-56 sm:w-68 h-8 rounded-[100%] bg-gradient-to-r from-transparent via-[#5C1B13]/35 to-transparent blur-md -mt-4 -z-10 pointer-events-none transition-transform"
-      />
+      {/* Synchronized Floor Shadow & Fresh Ripple Rings beneath the bottle */}
+      <div className="relative flex items-center justify-center -mt-4 -z-10 pointer-events-none">
+        <div
+          ref={shadowRef}
+          className="w-56 sm:w-68 h-8 rounded-[100%] bg-gradient-to-r from-transparent via-[#5C1B13]/35 to-transparent blur-md transition-transform"
+        />
+        {/* Subtle chilled ring pulse */}
+        <div className="absolute w-44 sm:w-56 h-6 rounded-[100%] border border-[#5C1B13]/15 animate-ping opacity-25" />
+      </div>
 
       {/* Bottom Tagline Pill - Safely below */}
       <div className="mt-5 inline-flex items-center gap-3 bg-[#FBF6EE]/90 backdrop-blur-sm border border-[#E8DFD4] rounded-full px-5 py-1.5 shadow-sm text-xs text-[#3A241C]/80 z-20">

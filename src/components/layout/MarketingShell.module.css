@@ -16,29 +16,33 @@
   z-index: 50;
   width: 100%;
   border-bottom: 1px solid transparent;
-  background: rgb(255 253 247 / 92%);
-  backdrop-filter: blur(14px);
-  transition: box-shadow 180ms ease, border-color 180ms ease;
+  background: rgb(255 253 247 / 88%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
 }
 
 .headerCondensed {
   border-color: var(--marketing-border);
-  box-shadow: 0 5px 18px rgb(26 16 8 / 7%);
+  background: rgb(255 253 247 / 96%);
+  box-shadow: 0 2px 14px rgb(92 27 19 / 6%);
 }
 
 .headerInner {
   display: flex;
-  width: min(100% - 32px, 1180px);
-  min-height: 76px;
+  width: min(100% - 32px, 1220px);
+  height: 62px;
+  min-height: 62px;
   margin-inline: auto;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  transition: min-height 180ms ease;
+  gap: 14px;
+  transition: height 180ms ease, min-height 180ms ease;
 }
 
 .headerCondensed .headerInner {
-  min-height: 62px;
+  height: 54px;
+  min-height: 54px;
 }
 
 .brand {
@@ -48,6 +52,11 @@
   gap: 10px;
   color: var(--marketing-foreground);
   text-decoration: none;
+  transition: opacity 160ms ease;
+}
+
+.brand:hover {
+  opacity: 0.9;
 }
 
 .brand:focus-visible,
@@ -66,59 +75,82 @@
 .logoFrame {
   position: relative;
   display: block;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   overflow: hidden;
   flex: 0 0 auto;
-  border: 1px solid var(--marketing-border);
+  border: 1px solid #e8dfd4;
   border-radius: 50%;
   background: #fdee57;
+  box-shadow: 0 1px 4px rgb(92 27 19 / 8%);
+}
+
+.brandTextGroup {
+  display: flex;
+  flex-direction: column;
 }
 
 .brandName {
   font-family: var(--font-heading), Georgia, serif;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #1a1008;
+}
+
+.brandSub {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5c1b13;
+  opacity: 0.85;
 }
 
 .desktopNav {
   display: none;
   align-items: center;
-  gap: clamp(14px, 2vw, 28px);
+  gap: clamp(4px, 1.1vw, 16px);
 }
 
 .navLink {
   position: relative;
-  padding-block: 7px;
+  padding: 5px 8px;
   color: var(--marketing-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: none;
+  transition: color 150ms ease, background-color 150ms ease;
+  border-radius: 6px;
+}
+
+.navLink:hover {
+  color: var(--marketing-primary);
+  background-color: rgb(92 27 19 / 4%);
 }
 
 .navLink::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: var(--marketing-primary);
-  content: "";
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 180ms ease;
+  display: none;
 }
 
-.navLink:hover::after,
-.navLink:focus-visible::after {
-  transform: scaleX(1);
+.dispatchChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #fbf6ee;
+  border: 1px solid #e8dfd4;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #3a241c;
 }
 
 .contactActions {
   display: none;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
 }
 
 .phoneLink,
@@ -126,12 +158,13 @@
 .mobilePhoneLink,
 .mobileWhatsAppLink {
   display: inline-flex;
-  min-height: 40px;
+  height: 34px;
+  min-height: 34px;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 9px 14px;
-  font-size: 0.8125rem;
+  padding: 6px 12px;
+  font-size: 0.78rem;
   font-weight: 700;
   text-decoration: none;
   transition: background-color 160ms ease, color 160ms ease;
@@ -161,22 +194,27 @@
 
 .menuToggle {
   display: flex;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   border: 1px solid var(--marketing-border);
-  border-radius: 12px;
-  background: transparent;
+  border-radius: 10px;
+  background: #fff;
   cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.menuToggle:hover {
+  background: #faf3ea;
 }
 
 .menuBar {
   display: block;
-  width: 19px;
+  width: 16px;
   height: 2px;
   border-radius: 2px;
   background: var(--marketing-foreground);
@@ -184,7 +222,7 @@
 }
 
 .menuBarTopOpen {
-  transform: translateY(7px) rotate(45deg);
+  transform: translateY(6px) rotate(45deg);
 }
 
 .menuBarMiddleOpen {
@@ -192,7 +230,7 @@
 }
 
 .menuBarBottomOpen {
-  transform: translateY(-7px) rotate(-45deg);
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 .mobileNav {
@@ -206,18 +244,24 @@
   overflow: hidden;
   border-bottom: 1px solid var(--marketing-border);
   background: var(--marketing-background);
-  padding: 8px 20px 20px;
-  box-shadow: 0 15px 24px rgb(26 16 8 / 10%);
+  padding: 10px 18px 18px;
+  box-shadow: 0 14px 24px rgb(26 16 8 / 10%);
 }
 
 .mobileNavLink {
-  display: block;
-  border-bottom: 1px solid var(--marketing-border);
-  padding: 14px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f2ece2;
+  padding: 11px 4px;
   color: var(--marketing-foreground);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 650;
   text-decoration: none;
+}
+
+.mobileNavLink:hover {
+  color: var(--marketing-primary);
 }
 
 .mobilePhoneLink,
@@ -225,67 +269,194 @@
   margin-top: 8px;
 }
 
+/* ─── Premium 4-Column Footer ─── */
 .footer {
-  background: #1a1008;
-  color: rgb(255 255 255 / 78%);
-  padding: 42px 20px 22px;
+  background: #140d07;
+  color: rgb(255 255 255 / 80%);
+  padding: 64px 20px 28px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
 }
 
 .footerInner {
   display: flex;
-  width: min(100%, 1180px);
-  margin-inline: auto;
   flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  text-align: center;
+  width: min(100%, 1220px);
+  margin-inline: auto;
+  gap: 48px;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 36px;
+}
+
+@media (min-width: 640px) {
+  .footerGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .footerGrid {
+    grid-template-columns: 1.5fr 1fr 1.2fr 1.3fr;
+    gap: 44px;
+  }
+}
+
+.footerCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footerColTitle {
+  font-family: var(--font-heading), Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+  margin: 0;
 }
 
 .footerBrandName {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   color: #fff;
   font-family: var(--font-heading), Georgia, serif;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 700;
   text-decoration: none;
 }
 
-.footerTagline {
-  margin: 4px 0 0;
-  color: rgb(255 255 255 / 55%);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.footerBrandDesc {
+  color: rgb(255 255 255 / 70%);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin: 0;
 }
 
-.footerLinks,
-.footerContact {
+.footerTrustBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #f5e729;
+  width: fit-content;
+}
+
+.footerNavList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footerNavList a {
+  color: rgb(255 255 255 / 75%);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 150ms ease, transform 150ms ease;
+  display: inline-block;
+}
+
+.footerNavList a:hover {
+  color: #f5e729;
+  transform: translateX(3px);
+}
+
+.footerSectorGrid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px 22px;
-  font-size: 0.875rem;
+  gap: 6px;
 }
 
-.footerLinks a,
-.footerContact a {
+.footerSectorChip {
+  font-size: 0.75rem;
+  padding: 4px 9px;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 6px;
+  color: rgb(255 255 255 / 80%);
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.footerSectorChip:hover {
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
+  border-color: #f5e729;
+}
+
+.footerContactItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: rgb(255 255 255 / 80%);
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.footerContactItem:hover {
+  color: #fff;
+}
+
+.footerBottomBar {
+  display: flex;
+  flex-direction: column;
+  sm-flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  padding-top: 24px;
+  font-size: 0.78rem;
+  color: rgb(255 255 255 / 50%);
+}
+
+.footerLegalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footerLegalLinks a {
   color: inherit;
   text-decoration: none;
 }
 
-.footerLinks a:hover,
-.footerContact a:hover {
+.footerLegalLinks a:hover {
   color: #fff;
   text-decoration: underline;
-  text-underline-offset: 4px;
 }
 
-.footerCopyright {
-  width: 100%;
-  margin: 0;
-  border-top: 1px solid rgb(255 255 255 / 12%);
-  padding-top: 18px;
-  color: rgb(255 255 255 / 45%);
+.backToTopBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 20%);
+  color: rgb(255 255 255 / 75%);
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.backToTopBtn:hover {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+  border-color: #fff;
 }
 
 @media (min-width: 1024px) {
@@ -297,6 +468,12 @@
   .menuToggle,
   .mobileNav {
     display: none;
+  }
+}
+
+@media (min-width: 640px) {
+  .footerBottomBar {
+    flex-direction: row;
   }
 }
 
@@ -313,8 +490,8 @@
 
 @media (max-width: 360px) {
   .headerInner {
-    width: calc(100% - 24px);
-    gap: 10px;
+    width: calc(100% - 20px);
+    gap: 8px;
   }
 
   .brandName {

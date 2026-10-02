@@ -1,10 +1,10 @@
 "use client";
 
-import type { HTMLAttributes, ReactNode } from "react";
-import { m, useReducedMotion } from "framer-motion";
+import type { ReactNode } from "react";
+import { m, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { belowFoldRevealVariants } from "@/lib/marketingAnimations";
 
-type RevealProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
+type RevealProps = HTMLMotionProps<"div"> & {
   children: ReactNode;
   delay?: number;
 };

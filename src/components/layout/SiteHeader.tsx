@@ -1,18 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { ENV } from "@/config/env";
-import { getPhoneUrl, getWhatsAppUrl } from "@/lib/cta";
+import { getPhoneUrl, getWhatsAppUrl, handleTrialClick } from "@/lib/cta";
+import { Button } from "@/components/ui/Button";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import styles from "./MarketingShell.module.css";
 
 const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: "Why Us", href: "/#why-puretyfarm" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "7-Day Trial", href: "/#trial-offer" },
+  { label: "Pricing", href: "/#pricing" },
   { label: "Delivery Areas", href: "/service-area" },
+  { label: "FAQs", href: "/#faq" },
 ] as const;
 
 export function SiteHeader() {
@@ -45,24 +48,13 @@ export function SiteHeader() {
       className={`${styles.header} ${condensed ? styles.headerCondensed : ""}`}
     >
       <div className={styles.headerInner}>
-        <Link
-          href="/"
-          className={styles.brand}
-          aria-label="PuretyFarm home"
+        <BrandLogo
+          condensed={condensed}
           onClick={closeMenu}
-        >
-          <span className={styles.logoFrame}>
-            <Image
-              src="/logo-mark.webp"
-              alt=""
-              fill
-              sizes="44px"
-              priority
-            />
-          </span>
-          <span className={styles.brandName}>PuretyFarm</span>
-        </Link>
+          priority
+        />
 
+        {/* Desktop Navigation Links */}
         <nav className={styles.desktopNav} aria-label="Main navigation">
           {NAV_LINKS.map((link) => (
             <Link className={styles.navLink} href={link.href} key={link.href}>
@@ -71,32 +63,40 @@ export function SiteHeader() {
           ))}
         </nav>
 
+        {/* Right CTA / Contact group */}
         <div className={styles.contactActions}>
-          <a className={styles.phoneLink} href={getPhoneUrl()}>
-            {ENV.PHONE_DISPLAY}
-          </a>
           <a
             className={styles.whatsAppLink}
-            href={getWhatsAppUrl()}
+            href={getWhatsAppUrl("Hi PuretyFarm, I would like to inquire about fresh A2 milk delivery in Raipur.")}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Chat with PuretyFarm on WhatsApp"
           >
-            WhatsApp
+            <span>💬 WhatsApp</span>
           </a>
+          <Button variant="primary" size="sm" onClick={handleTrialClick} className="px-3.5 py-1.5 text-xs font-bold h-[34px]">
+            Start Trial
+          </Button>
         </div>
 
-        <button
-          className={styles.menuToggle}
-          type="button"
-          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-controls="marketing-mobile-navigation"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <span className={`${styles.menuBar} ${menuOpen ? styles.menuBarTopOpen : ""}`} />
-          <span className={`${styles.menuBar} ${menuOpen ? styles.menuBarMiddleOpen : ""}`} />
-          <span className={`${styles.menuBar} ${menuOpen ? styles.menuBarBottomOpen : ""}`} />
-        </button>
+        {/* Mobile controls */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <Button variant="primary" size="sm" onClick={handleTrialClick} className="px-3 py-1 text-xs font-bold h-8">
+            Start Trial
+          </Button>
+          <button
+            className={styles.menuToggle}
+            type="button"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-controls="marketing-mobile-navigation"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className={`${styles.menuBar} ${menuOpen ? styles.menuBarTopOpen : ""}`} />
+            <span className={`${styles.menuBar} ${menuOpen ? styles.menuBarMiddleOpen : ""}`} />
+            <span className={`${styles.menuBar} ${menuOpen ? styles.menuBarBottomOpen : ""}`} />
+          </button>
+        </div>
       </div>
 
       <AnimatePresence initial={false}>
@@ -117,21 +117,24 @@ export function SiteHeader() {
                 key={link.href}
                 onClick={closeMenu}
               >
-                {link.label}
+                <span>{link.label}</span>
+                <span className="text-[#5C1B13] text-xs font-bold">→</span>
               </Link>
             ))}
-            <a className={styles.mobilePhoneLink} href={getPhoneUrl()}>
-              Call {ENV.PHONE_DISPLAY}
-            </a>
-            <a
-              className={styles.mobileWhatsAppLink}
-              href={getWhatsAppUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={closeMenu}
-            >
-              Contact on WhatsApp
-            </a>
+            <div className="pt-2 flex flex-col gap-2">
+              <a className={styles.mobilePhoneLink} href={getPhoneUrl()}>
+                📞 Call {ENV.PHONE_DISPLAY}
+              </a>
+              <a
+                className={styles.mobileWhatsAppLink}
+                href={getWhatsAppUrl("Hi PuretyFarm, I would like to inquire about fresh A2 milk delivery in Raipur.")}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+              >
+                💬 Chat on WhatsApp
+              </a>
+            </div>
           </m.nav>
         )}
       </AnimatePresence>

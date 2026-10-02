@@ -1,5 +1,7 @@
 import dynamic from "next/dynamic";
 import { Hero } from "@/components/sections/Hero";
+import { MarqueeTicker } from "@/components/ui/MarqueeTicker";
+import { FLAGS } from "@/config/flags";
 
 function SectionSkeleton({
   minHeight = "400px",
@@ -85,10 +87,11 @@ export default function Home() {
     <>
       <main>
         <Hero />
+        <MarqueeTicker />
         <TrialOffer />
         <WhyUs />
         <HowItWorks />
-        <AppShowcase />
+        {FLAGS.SHOW_APP_FEATURES && <AppShowcase />}
         <Pricing />
         <ServiceAreaChecker />
         <SocialProof />

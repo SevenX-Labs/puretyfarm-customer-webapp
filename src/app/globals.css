@@ -47,18 +47,23 @@ main {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 /* Touch manipulation optimization */
-button, a, input, select, textarea {
+button,
+a,
+input,
+select,
+textarea {
   touch-action: manipulation;
 }
 
 /* Ensure sticky CTA bar doesn't overlap FAQ accordion toggles */
-main + div[data-testid="sticky-cta-bar"] {
+main+div[data-testid="sticky-cta-bar"] {
   z-index: 50;
 }
 
@@ -66,5 +71,32 @@ main + div[data-testid="sticky-cta-bar"] {
 @media (max-width: 767px) {
   body {
     padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Continuous Infinite Marquee Ticker */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 32s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+    transform: none;
   }
 }

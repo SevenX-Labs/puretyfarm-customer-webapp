@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "./Button";
+import { BrandLogo } from "./BrandLogo";
 import { ENV } from "@/config/env";
 import {
   handleTrialClick,
@@ -58,42 +58,22 @@ export function Navbar() {
   return (
     <nav
       aria-label="Main Navigation"
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        isScrolled
+      className={`sticky top-0 z-40 w-full transition-all duration-300 ${isScrolled
           ? "bg-[#FFFDF7]/95 backdrop-blur-md shadow-sm border-b border-[#E8DFD4]"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between py-3.5 md:py-4">
+        <div className="flex items-center justify-between h-15 sm:h-16">
           {/* Logo & Brand */}
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 sm:gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5C1B13] rounded-lg"
+          <BrandLogo
+            condensed={isScrolled}
             onClick={() => setMobileMenuOpen(false)}
-          >
-            <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden border border-[#E8DFD4] shadow-sm bg-[#FDEE57] shrink-0 transition-transform group-hover:scale-105">
-              <Image
-                src="/logo-mark.webp"
-                alt="PuretyFarm Logo"
-                fill
-                sizes="44px"
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-bold text-[#1A1008] tracking-tight font-[family-name:var(--font-heading)] leading-none">
-                PuretyFarm
-              </span>
-              <span className="text-[9px] sm:text-[10px] text-[#3A241C]/75 font-semibold tracking-wider uppercase mt-1">
-                Pure A2 Gir Cow Milk · Raipur
-              </span>
-            </div>
-          </Link>
+            priority
+          />
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#3A241C]">
+          <div className="hidden lg:flex items-center gap-4 xl:gap-6 text-xs sm:text-sm font-semibold text-[#3A241C]">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.label}
@@ -106,11 +86,11 @@ export function Navbar() {
           </div>
 
           {/* Desktop Actions: Clickable Phone, WhatsApp, and Trial Button */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2.5">
             {/* Clickable Phone Number */}
             <a
               href={getPhoneUrl()}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5C1B13] bg-[#5C1B13]/5 hover:bg-[#5C1B13]/10 px-3 py-2 rounded-full transition-colors border border-[#5C1B13]/15"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5C1B13] bg-[#5C1B13]/5 hover:bg-[#5C1B13]/10 px-3 py-1.5 rounded-full transition-colors border border-[#5C1B13]/15 h-[34px]"
               title="Call PuretyFarm Farm Support"
             >
               <svg className="w-3.5 h-3.5 text-[#5C1B13]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +104,7 @@ export function Navbar() {
               href={getWhatsAppUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-full transition-colors border border-emerald-200"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors border border-emerald-200 h-[34px]"
               title="Chat with us on WhatsApp"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -132,39 +112,36 @@ export function Navbar() {
             </a>
 
             {/* Start Trial Button */}
-            <Button variant="primary" size="sm" onClick={handleTrialClick}>
+            <Button variant="primary" size="sm" onClick={handleTrialClick} className="px-3.5 py-1.5 text-xs font-bold h-[34px]">
               Start Trial
             </Button>
           </div>
 
           {/* Mobile Right Controls: Trial Button + Hamburger Toggle */}
           <div className="flex md:hidden items-center gap-2">
-            <Button variant="primary" size="sm" onClick={handleTrialClick}>
+            <Button variant="primary" size="sm" onClick={handleTrialClick} className="px-3 py-1 text-xs font-bold h-8">
               Start Trial
             </Button>
 
             {/* Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-[#1A1008] hover:bg-[#1A1008]/5 focus:outline-none focus:ring-2 focus:ring-[#5C1B13] transition-colors"
+              className="p-1.5 rounded-lg text-[#1A1008] hover:bg-[#1A1008]/5 focus:outline-none focus:ring-2 focus:ring-[#5C1B13] transition-colors w-9 h-9 flex items-center justify-center border border-[#E8DFD4]"
               aria-label={mobileMenuOpen ? "Close menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
             >
               <div className="w-6 h-5 relative flex flex-col justify-between">
                 <span
-                  className={`w-full h-0.5 bg-[#1A1008] rounded-full transition-all duration-300 origin-left ${
-                    mobileMenuOpen ? "rotate-45 translate-x-0.5 -translate-y-0.5" : ""
-                  }`}
+                  className={`w-full h-0.5 bg-[#1A1008] rounded-full transition-all duration-300 origin-left ${mobileMenuOpen ? "rotate-45 translate-x-0.5 -translate-y-0.5" : ""
+                    }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-[#1A1008] rounded-full transition-opacity duration-200 ${
-                    mobileMenuOpen ? "opacity-0" : "opacity-100"
-                  }`}
+                  className={`w-full h-0.5 bg-[#1A1008] rounded-full transition-opacity duration-200 ${mobileMenuOpen ? "opacity-0" : "opacity-100"
+                    }`}
                 />
                 <span
-                  className={`w-full h-0.5 bg-[#1A1008] rounded-full transition-all duration-300 origin-left ${
-                    mobileMenuOpen ? "-rotate-45 translate-x-0.5 translate-y-0.5" : ""
-                  }`}
+                  className={`w-full h-0.5 bg-[#1A1008] rounded-full transition-all duration-300 origin-left ${mobileMenuOpen ? "-rotate-45 translate-x-0.5 translate-y-0.5" : ""
+                    }`}
                 />
               </div>
             </button>
