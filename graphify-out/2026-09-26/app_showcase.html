@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PuretyFarm - Fresh A2 Gir Cow Milk Delivery App Showcase</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#6b6400",
+            "on-primary-fixed": "#3e0502",
+            "primary-container": "#5c1b13",
+            "tertiary-fixed": "#99f89e",
+            "on-secondary": "#ffffff",
+            "on-primary-fixed-variant": "#783026",
+            "on-secondary-fixed": "#1f1c00",
+            "on-surface": "#241911",
+            "error-container": "#ffdad6",
+            "secondary-fixed": "#f4e628",
+            "on-secondary-fixed-variant": "#4d4800",
+            "surface-dim": "#ebd6c8",
+            "on-tertiary-fixed": "#002106",
+            "secondary-container": "#f1e424",
+            "surface-container-lowest": "#ffffff",
+            "inverse-primary": "#ffb4a8",
+            "tertiary-container": "#003a10",
+            "surface-bright": "#fff8f5",
+            "secondary-fixed-dim": "#d7ca00",
+            "surface-container-low": "#fff1e9",
+            "outline": "#87726f",
+            "on-error": "#ffffff",
+            "surface-variant": "#f4ded0",
+            "outline-variant": "#dac1bd",
+            "tertiary": "#002207",
+            "surface": "#fff8f5",
+            "primary-fixed": "#ffdad4",
+            "on-primary-container": "#de7f71",
+            "on-primary": "#ffffff",
+            "on-tertiary-container": "#50ab5b",
+            "primary-fixed-dim": "#ffb4a8",
+            "surface-container-highest": "#f4ded0",
+            "tertiary-fixed-dim": "#7edb85",
+            "surface-tint": "#96473b",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#00531b",
+            "inverse-on-surface": "#ffede2",
+            "on-background": "#241911",
+            "background": "#fff8f5",
+            "inverse-surface": "#3b2e24",
+            "surface-container": "#ffeadc",
+            "on-error-container": "#93000a",
+            "surface-container-high": "#fae4d6",
+            "secondary": "#676000",
+            "on-surface-variant": "#544340",
+            "primary": "#3f0603",
+            "error": "#ba1a1a"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin": "1rem",
+            "space-xl": "2.25rem",
+            "gutter-desktop": "1.5rem",
+            "margin-desktop": "3rem",
+            "gutter": "1rem",
+            "margin-tablet": "2rem",
+            "space-md": "1rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"],
+            "label-lg": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "headline-xl-mobile": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-xl-mobile": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.015em", "fontWeight": "800" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" }]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen pb-24 selection:bg-secondary-container selection:text-on-secondary-fixed">
+<!-- Top App Bar (Shared Component Execution) -->
+<header class="bg-surface dark:bg-surface docked full-width top-0 sticky z-40 shadow-sm border-b border-outline-variant/40">
+<div class="flex justify-between items-center w-full px-4 h-16 max-w-7xl mx-auto">
+<button aria-label="Menu" class="p-2 rounded-xl text-primary hover:bg-surface-container transition-colors duration-200 active:scale-95" type="button">
+<span class="material-symbols-outlined text-[24px]">menu</span>
+</button>
+<div class="text-center">
+<span class="text-headline-md font-headline-md font-extrabold text-primary tracking-tight">PuretyFarm</span>
+<div class="flex items-center justify-center gap-1 -mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed-dim"></span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">Raipur Sanctuary • A2 Gir Milk</span>
+</div>
+</div>
+<button aria-label="Notifications" class="p-2 rounded-xl text-primary hover:bg-surface-container transition-colors duration-200 active:scale-95 relative" type="button">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-secondary-container ring-2 ring-surface"></span>
+</button>
+</div>
+</header>
+<!-- Showcase Canvas / App Feature Section -->
+<main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+<!-- Header Hero Group -->
+<div class="text-center max-w-2xl mx-auto mb-10">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container border border-primary-container/20 mb-3 shadow-xs">
+<span class="material-symbols-outlined text-[16px] text-primary-container" style="font-variation-settings: 'FILL' 1;">eco</span>
+<span class="text-label-md font-label-md text-primary font-bold tracking-wider">FARM-TO-DOORSTEP CONVENIENCE</span>
+</div>
+<h1 class="text-headline-xl-mobile md:text-headline-xl font-headline-xl-mobile md:font-headline-xl text-primary tracking-tight mb-3">
+        Manage Everything From Our App
+      </h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-xl mx-auto leading-relaxed">
+        Pure, chilled A2 Gir cow milk delivered before 6:30 AM every morning. Customize orders, pause vacations, and track delivery in real time across Raipur.
+      </p>
+<!-- Screen Switcher Pills for Mobile Viewports -->
+<div class="flex justify-center items-center gap-2 mt-6 overflow-x-auto pb-1 hide-scrollbar">
+<button class="tab-btn active px-3.5 py-1.5 rounded-full text-label-md font-label-md bg-primary text-on-primary transition-all shadow-xs" data-index="0" onclick="scrollToSlide(0)">
+          1. Daily Delivery
+        </button>
+<button class="tab-btn px-3.5 py-1.5 rounded-full text-label-md font-label-md bg-surface-container-high text-on-surface hover:bg-surface-container transition-all" data-index="1" onclick="scrollToSlide(1)">
+          2. Calendar &amp; Vacation
+        </button>
+<button class="tab-btn px-3.5 py-1.5 rounded-full text-label-md font-label-md bg-surface-container-high text-on-surface hover:bg-surface-container transition-all" data-index="2" onclick="scrollToSlide(2)">
+          3. Live Milkman GPS
+        </button>
+</div>
+</div>
+<!-- Phone Mockups Showcase Grid / Responsive Reel -->
+<div class="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto snap-x snap-mandatory py-4 px-2 -mx-4 md:mx-0 hide-scrollbar justify-start md:justify-center items-stretch" id="mockupContainer">
+<!-- ================= SCREEN 1: Home & Daily Subscription ================= -->
+<div class="snap-center shrink-0 w-[320px] sm:w-[340px] md:w-full max-w-[360px] mx-auto flex flex-col">
+<div class="text-center mb-2 md:block hidden">
+<span class="text-label-sm font-label-sm text-primary uppercase font-bold tracking-wide">Screen 1</span>
+<h2 class="text-headline-sm font-headline-sm text-primary">Daily Morning Ritual</h2>
+</div>
+<!-- Phone Bezel Enclosure -->
+<div class="relative bg-on-background rounded-[36px] p-2.5 shadow-2xl ring-1 ring-outline-variant/50 transition-transform duration-300 hover:-translate-y-1">
+<!-- Dynamic Island Notch -->
+<div class="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-on-background rounded-full z-30 flex items-center justify-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-surface/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface/40"></span>
+</div>
+<!-- Screen Content Area -->
+<div class="bg-surface rounded-[28px] overflow-hidden border border-outline-variant/30 flex flex-col h-[610px] text-left relative pt-7 select-none">
+<!-- Mobile Status Bar -->
+<div class="flex justify-between items-center px-4 py-1 text-on-surface-variant text-[11px] font-bold">
+<span>9:41</span>
+<div class="flex items-center gap-1 text-[13px]">
+<span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="material-symbols-outlined text-[14px]">battery_full</span>
+</div>
+</div>
+<!-- In-App Header -->
+<div class="px-4 py-2.5 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between">
+<div>
+<p class="text-label-sm font-label-sm text-primary-container font-bold flex items-center gap-1">
+                  Good Morning, Raipur! 🌅
+                </p>
+<h3 class="text-headline-sm font-headline-sm text-primary leading-tight">PuretyFarm Pure A2</h3>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary border border-outline-variant/40">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+</div>
+<!-- Screen Body Scroll -->
+<div class="p-3.5 space-y-3 overflow-y-auto hide-scrollbar flex-1 bg-surface">
+<!-- Tomorrow's Delivery Card -->
+<div class="p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant/50 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 bottom-0 w-1.5 bg-secondary-fixed-dim"></div>
+<div class="flex justify-between items-start mb-2 pl-1">
+<div>
+<span class="text-label-sm font-label-sm text-on-surface-variant">Scheduled Slot</span>
+<p class="text-headline-sm font-headline-sm text-primary">Tomorrow, 6:00 - 6:30 AM</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-label-sm font-label-sm font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    Confirmed
+                  </span>
+</div>
+<div class="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/30 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface flex items-center justify-center text-primary-container shadow-xs">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-label-lg font-label-lg text-primary truncate">100% Raw Chilled A2 Milk</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Pure Desi Gir Cow • Glass Bottle</p>
+</div>
+</div>
+<!-- Quantity Selector -->
+<div class="mt-3 pt-2.5 border-t border-outline-variant/30">
+<div class="flex justify-between items-center mb-2">
+<span class="text-label-sm font-label-sm text-on-surface font-semibold">Select Tomorrow Quantity:</span>
+<span class="text-label-sm font-label-sm text-primary-container font-bold">1 Litre Active</span>
+</div>
+<div class="grid grid-cols-3 gap-1.5">
+<button class="py-1.5 rounded-lg border border-outline-variant/50 text-label-md font-label-md text-on-surface-variant bg-surface hover:bg-surface-container-low transition-colors">
+                      0.5 L
+                    </button>
+<button class="py-1.5 rounded-lg bg-primary-container text-on-primary text-label-md font-label-md font-bold shadow-xs">
+                      1 L (Default)
+                    </button>
+<button class="py-1.5 rounded-lg border border-outline-variant/50 text-label-md font-label-md text-on-surface-variant bg-surface hover:bg-surface-container-low transition-colors">
+                      2 L
+                    </button>
+</div>
+</div>
+</div>
+<!-- Quick Increment / Bottle Stepper -->
+<div class="p-3 rounded-xl bg-surface-container border border-outline-variant/40 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">local_drink</span>
+<div>
+<span class="text-label-sm font-label-sm font-bold text-primary block leading-none">Instant Milk Stepper</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Adjust for morning tea/guests</span>
+</div>
+</div>
+<div class="flex items-center bg-surface-container-lowest rounded-lg border border-outline-variant/50 p-0.5">
+<button class="w-6 h-6 rounded flex items-center justify-center text-primary hover:bg-surface-container font-bold">-</button>
+<span class="w-7 text-center text-label-md font-label-md font-bold text-primary">1 L</span>
+<button class="w-6 h-6 rounded flex items-center justify-center text-primary hover:bg-surface-container font-bold">+</button>
+</div>
+</div>
+<!-- Farm Harvest Banner -->
+<div class="p-2.5 rounded-xl bg-secondary-fixed/30 border border-secondary-fixed-dim/40 flex items-center gap-2.5">
+<span class="material-symbols-outlined text-secondary-fixed-variant text-[20px]">wb_twilight</span>
+<p class="text-body-sm font-body-sm text-on-secondary-fixed-variant leading-tight">
+<strong>3:45 AM Milking:</strong> Chilled within 15 minutes to retain live enzymes and probiotic integrity.
+                </p>
+</div>
+</div>
+<!-- In-App Docked Mini Action Bar -->
+<div class="p-2.5 bg-surface-container-lowest border-t border-outline-variant/40 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-fixed-dim animate-pulse"></span>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold">Doorstep drop ring off</span>
+</div>
+<button class="px-3 py-1 rounded-lg bg-surface-container-high text-label-sm font-label-sm text-primary font-bold">
+                Modify Slot
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= SCREEN 2: Subscription & Calendar ================= -->
+<div class="snap-center shrink-0 w-[320px] sm:w-[340px] md:w-full max-w-[360px] mx-auto flex flex-col">
+<div class="text-center mb-2 md:block hidden">
+<span class="text-label-sm font-label-sm text-primary uppercase font-bold tracking-wide">Screen 2</span>
+<h2 class="text-headline-sm font-headline-sm text-primary">Vacation &amp; Calendar</h2>
+</div>
+<div class="relative bg-on-background rounded-[36px] p-2.5 shadow-2xl ring-1 ring-outline-variant/50 transition-transform duration-300 hover:-translate-y-1">
+<!-- Dynamic Island Notch -->
+<div class="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-on-background rounded-full z-30 flex items-center justify-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-surface/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface/40"></span>
+</div>
+<!-- Screen Content Area -->
+<div class="bg-surface rounded-[28px] overflow-hidden border border-outline-variant/30 flex flex-col h-[610px] text-left relative pt-7 select-none">
+<!-- Mobile Status Bar -->
+<div class="flex justify-between items-center px-4 py-1 text-on-surface-variant text-[11px] font-bold">
+<span>9:41</span>
+<div class="flex items-center gap-1 text-[13px]">
+<span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="material-symbols-outlined text-[14px]">battery_full</span>
+</div>
+</div>
+<!-- In-App Header -->
+<div class="px-4 py-2.5 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Subscription Plan</span>
+<h3 class="text-headline-sm font-headline-sm text-primary leading-tight">Daily Morning Ritual</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-primary font-bold text-label-sm font-label-sm border border-outline-variant/50">
+                30L Plan
+              </span>
+</div>
+<!-- Screen Body -->
+<div class="p-3.5 space-y-3 overflow-y-auto hide-scrollbar flex-1 bg-surface">
+<!-- Pause Vacation Toggle Card -->
+<div class="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant/50 shadow-sm flex items-center justify-between">
+<div class="pr-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary-container text-[18px]">beach_access</span>
+<h4 class="text-label-md font-label-md font-bold text-primary">Vacation / Pause Anytime</h4>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Pause before 8:00 PM for next morning</p>
+</div>
+<!-- Custom Stylized Switch -->
+<div class="w-12 h-6 rounded-full bg-primary-container p-0.5 flex items-center justify-end cursor-pointer shadow-inner">
+<div class="w-5 h-5 rounded-full bg-secondary-container shadow-sm flex items-center justify-center">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+</div>
+</div>
+</div>
+<!-- Mini Monthly Calendar View -->
+<div class="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant/50 shadow-sm">
+<div class="flex justify-between items-center mb-2.5">
+<span class="text-label-md font-label-md text-primary font-bold">October 2024</span>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>Delivered</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary-fixed"></span>Scheduled</span>
+</div>
+</div>
+<!-- Calendar Weekday Headers -->
+<div class="grid grid-cols-7 gap-1 text-center text-label-sm font-label-sm text-on-surface-variant mb-1">
+<span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+</div>
+<!-- Calendar Days Mock -->
+<div class="grid grid-cols-7 gap-1 text-center text-label-sm font-label-sm">
+<div class="p-1 rounded bg-surface-container-low text-outline">28</div>
+<div class="p-1 rounded bg-surface-container-low text-outline">29</div>
+<div class="p-1 rounded bg-surface-container-low text-outline">30</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">1 ✓</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">2 ✓</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">3 ✓</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">4 ✓</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">5 ✓</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">6 ✓</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">7 ✓</div>
+<div class="p-1 rounded bg-tertiary-fixed/40 font-bold text-on-tertiary-fixed">8 ✓</div>
+<div class="p-1 rounded bg-secondary-fixed font-bold text-on-secondary-fixed ring-1 ring-secondary-fixed-dim">9 ★</div>
+<div class="p-1 rounded bg-surface-container font-semibold text-primary">10</div>
+<div class="p-1 rounded bg-surface-container font-semibold text-primary">11</div>
+<div class="p-1 rounded bg-surface-container-high text-error font-medium line-through">12</div>
+<div class="p-1 rounded bg-surface-container-high text-error font-medium line-through">13</div>
+<div class="p-1 rounded bg-surface-container font-semibold text-primary">14</div>
+<div class="p-1 rounded bg-surface-container font-semibold text-primary">15</div>
+<div class="p-1 rounded bg-surface-container font-semibold text-primary">16</div>
+<div class="p-1 rounded bg-surface-container font-semibold text-primary">17</div>
+<div class="p-1 rounded bg-surface-container font-semibold text-primary">18</div>
+</div>
+<div class="mt-2 text-right">
+<span class="text-body-sm font-body-sm text-error font-medium">12-13 Oct Paused (Diwali Trip)</span>
+</div>
+</div>
+<!-- Quick Action Box -->
+<div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-on-surface font-bold">Unforeseen plans tomorrow?</span>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Zero billing deduction on single skips</p>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-lowest border border-primary-container text-primary-container text-label-sm font-label-sm font-bold shadow-xs hover:bg-surface-container transition-colors">
+                  Skip Tomorrow
+                </button>
+</div>
+</div>
+<!-- In-App Docked Summary -->
+<div class="p-2.5 bg-surface-container-lowest border-t border-outline-variant/40 flex items-center justify-between text-label-sm font-label-sm">
+<span class="text-on-surface-variant">Consumed: <strong>8 / 30 Litres</strong></span>
+<span class="text-primary font-bold">Recharge Balance: ₹1,980</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= SCREEN 3: Live Delivery & Milkman Tracking ================= -->
+<div class="snap-center shrink-0 w-[320px] sm:w-[340px] md:w-full max-w-[360px] mx-auto flex flex-col">
+<div class="text-center mb-2 md:block hidden">
+<span class="text-label-sm font-label-sm text-primary uppercase font-bold tracking-wide">Screen 3</span>
+<h2 class="text-headline-sm font-headline-sm text-primary">Live Milkman GPS</h2>
+</div>
+<div class="relative bg-on-background rounded-[36px] p-2.5 shadow-2xl ring-1 ring-outline-variant/50 transition-transform duration-300 hover:-translate-y-1">
+<!-- Dynamic Island Notch -->
+<div class="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-on-background rounded-full z-30 flex items-center justify-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-surface/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface/40"></span>
+</div>
+<!-- Screen Content Area -->
+<div class="bg-surface rounded-[28px] overflow-hidden border border-outline-variant/30 flex flex-col h-[610px] text-left relative pt-7 select-none">
+<!-- Mobile Status Bar -->
+<div class="flex justify-between items-center px-4 py-1 text-on-surface-variant text-[11px] font-bold">
+<span>9:41</span>
+<div class="flex items-center gap-1 text-[13px]">
+<span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="material-symbols-outlined text-[14px]">battery_full</span>
+</div>
+</div>
+<!-- In-App Header -->
+<div class="px-4 py-2.5 bg-surface-container-low border-b border-outline-variant/30 flex items-center justify-between">
+<div>
+<span class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Morning Run #04</span>
+<h3 class="text-headline-sm font-headline-sm text-primary leading-tight">Shankar Nagar Route</h3>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold text-label-sm font-label-sm border border-secondary-fixed-dim/50 shadow-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">delivery_dining</span>
+                Out for Delivery
+              </span>
+</div>
+<!-- Screen Body -->
+<div class="p-3.5 space-y-3 overflow-y-auto hide-scrollbar flex-1 bg-surface">
+<!-- Live ETA Card -->
+<div class="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant/50 shadow-sm">
+<div class="flex justify-between items-center mb-1">
+<span class="text-label-sm font-label-sm text-on-surface-variant font-medium">Estimated Arrival</span>
+<span class="text-label-sm font-label-sm text-tertiary font-bold bg-tertiary-fixed px-2 py-0.5 rounded-full">On Schedule</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-headline-lg-mobile font-headline-lg-mobile text-primary font-extrabold tracking-tight">14 mins</span>
+<span class="text-body-md font-body-md text-on-surface-variant">by 6:18 AM</span>
+</div>
+<!-- Progress Line -->
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden mt-2">
+<div class="bg-secondary-fixed h-full rounded-full w-4/5"></div>
+</div>
+</div>
+<!-- Stylized Raipur Route Map Widget -->
+<div class="rounded-xl border border-outline-variant/50 overflow-hidden bg-surface-container-low relative h-36">
+<!-- Illustrated SVG Route Vector Canvas -->
+<div class="absolute inset-0 bg-[#f7efe4] p-3 flex flex-col justify-between">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant">
+<span class="px-2 py-0.5 rounded bg-surface border border-outline-variant/40 shadow-xs">PuretyFarm Chilling Hub (VIP Rd)</span>
+<span class="px-2 py-0.5 rounded bg-secondary-fixed font-bold text-on-secondary-fixed">Your Villa</span>
+</div>
+<!-- Stylized Map Route Graphic -->
+<div class="relative w-full h-12 my-auto">
+<svg class="w-full h-full" fill="none" viewbox="0 0 260 48">
+<path d="M 10 24 C 60 10, 100 40, 170 20 S 230 32, 250 24" stroke="#dac1bd" stroke-dasharray="3 3" stroke-linecap="round" stroke-width="4"></path>
+<path d="M 10 24 C 60 10, 100 40, 170 20" stroke="#5c1b13" stroke-linecap="round" stroke-width="4"></path>
+<circle cx="10" cy="24" fill="#5c1b13" r="5"></circle>
+<circle cx="170" cy="20" fill="#f1e424" r="8" stroke="#5c1b13" stroke-width="3"></circle>
+<circle cx="250" cy="24" fill="#002207" r="6"></circle>
+</svg>
+<!-- Scooter Label Indicator -->
+<div class="absolute left-[62%] top-[-8px] -translate-x-1/2 bg-primary-container text-on-primary text-[10px] font-bold px-1.5 py-0.2 rounded shadow-xs flex items-center gap-0.5">
+<span>Ramesh</span> 🛵
+                    </div>
+</div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<span>Sector 3, Shankar Nagar</span>
+<span class="text-label-sm font-label-sm font-bold text-primary">GPS Accuracy: ±2m</span>
+</div>
+</div>
+</div>
+<!-- Milkman Partner Profile Card -->
+<div class="p-3 rounded-xl bg-surface-container-lowest border border-outline-variant/50 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/60 flex items-center justify-center font-bold text-primary">
+                    RS
+                  </div>
+<div>
+<div class="flex items-center gap-1.5">
+<h4 class="text-label-md font-label-md text-primary font-bold">Ramesh Sahu</h4>
+<span class="text-label-sm font-label-sm text-on-surface-variant flex items-center">
+<span class="material-symbols-outlined text-[13px] text-amber-500" style="font-variation-settings: 'FILL' 1;">star</span> 4.9
+                      </span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Certified Raipur Delivery Partner</p>
+</div>
+</div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary-container border border-outline-variant/40 hover:bg-surface-container-high">
+<span class="material-symbols-outlined text-[16px]">call</span>
+</button>
+</div>
+</div>
+<!-- Cold Chain Seal of Purity -->
+<div class="p-2.5 rounded-lg bg-surface-container border border-outline-variant/40 flex items-center justify-between text-label-sm font-label-sm">
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-[18px]">ac_unit</span>
+<span>Insulated Transit Temp</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest font-bold text-tertiary border border-tertiary-fixed">
+                  Chilled at 4°C
+                </span>
+</div>
+</div>
+<!-- In-App Docked Instruction -->
+<div class="p-2.5 bg-surface-container-lowest border-t border-outline-variant/40 flex items-center justify-between text-label-sm font-label-sm">
+<span class="text-on-surface-variant">Leave bottles in thermal bag</span>
+<button class="text-primary font-bold underline">Edit Note</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Feature Grid / Key App Capabilities Pills -->
+<div class="mt-12 max-w-4xl mx-auto">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<div class="p-3.5 rounded-xl bg-surface-container-lowest/90 border border-outline-variant/60 shadow-xs hover:border-primary-container/40 transition-all flex flex-col gap-1">
+<div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+</div>
+<h4 class="text-label-md font-label-md font-bold text-primary mt-1">Schedule Deliveries</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Custom days, alternative intervals, &amp; quantities.</p>
+</div>
+<div class="p-3.5 rounded-xl bg-surface-container-lowest/90 border border-outline-variant/60 shadow-xs hover:border-primary-container/40 transition-all flex flex-col gap-1">
+<div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">pause_circle</span>
+</div>
+<h4 class="text-label-md font-label-md font-bold text-primary mt-1">Pause Anytime</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Zero cancellation fees. Instant vacation toggles.</p>
+</div>
+<div class="p-3.5 rounded-xl bg-surface-container-lowest/90 border border-outline-variant/60 shadow-xs hover:border-primary-container/40 transition-all flex flex-col gap-1">
+<div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">near_me</span>
+</div>
+<h4 class="text-label-md font-label-md font-bold text-primary mt-1">Track Milkman</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Live morning GPS &amp; minute-by-minute arrival ETA.</p>
+</div>
+<div class="p-3.5 rounded-xl bg-surface-container-lowest/90 border border-outline-variant/60 shadow-xs hover:border-primary-container/40 transition-all flex flex-col gap-1">
+<div class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+</div>
+<h4 class="text-label-md font-label-md font-bold text-primary mt-1">Payment History</h4>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Transparent prepaid wallets &amp; itemized billing.</p>
+</div>
+</div>
+</div>
+<!-- Call to Action & Trust Credential -->
+<div class="mt-10 max-w-xl mx-auto text-center space-y-4">
+<div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+<!-- Google Play Button -->
+<a class="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-on-background text-surface hover:opacity-95 transition-all shadow-md active:scale-95" href="#download">
+<svg class="w-6 h-6 fill-current" viewbox="0 0 24 24">
+<path d="M3.609 1.814L13.792 12 3.61 22.186c-.352-.363-.56-.867-.56-1.442V3.256c0-.575.208-1.079.56-1.442zm11.305 11.308l2.36 2.36-12.046 6.942 9.686-9.302zm0-2.244L5.228 1.576l12.046 6.942-2.36 2.36zm1.122 1.122l3.493 2.01c.983.565.983 1.488 0 2.054l-3.493 2.01-2.146-2.146 2.146-1.928z"></path>
+</svg>
+<div class="text-left">
+<span class="block text-[10px] uppercase font-bold tracking-wider leading-none text-surface-variant">GET IT ON</span>
+<span class="text-label-lg font-label-lg font-bold leading-tight">Google Play</span>
+</div>
+</a>
+<!-- iOS App Store Alternative -->
+<a class="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-primary-container text-on-primary hover:opacity-95 transition-all shadow-md active:scale-95" href="#download">
+<svg class="w-6 h-6 fill-current" viewbox="0 0 24 24">
+<path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.61-.75 1.04-1.8 0.92-2.87-.93.04-2.02.63-2.66 1.38-.56.65-1.06 1.7-0.92 2.74 1.04.08 2.05-.5 2.66-1.25z"></path>
+</svg>
+<div class="text-left">
+<span class="block text-[10px] uppercase font-bold tracking-wider leading-none text-surface-variant">DOWNLOAD ON THE</span>
+<span class="text-label-lg font-label-lg font-bold leading-tight">App Store</span>
+</div>
+</a>
+</div>
+<!-- Trust Badging -->
+<div class="pt-2">
+<p class="text-body-sm font-body-sm text-on-surface-variant flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-amber-500 text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-bold text-on-surface">Rated 4.8/5</span> by 3,500+ families across Shankar Nagar, Telibandha &amp; VIP Road, Raipur
+        </p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shared Component Execution) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-2 pb-safe bg-surface dark:bg-surface shadow-lg border-t border-outline-variant/30">
+<!-- Tab 1: Today (Semantic Match for App Feature Focus) -->
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-xl px-3 py-1 transition-transform duration-150 active:scale-95" href="#today">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+<span class="text-label-sm font-label-sm">Today</span>
+</a>
+<!-- Tab 2: Calendar -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-container-low transition-colors duration-200 active:scale-95" href="#calendar">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+<span class="text-label-sm font-label-sm">Calendar</span>
+</a>
+<!-- Tab 3: Tracking -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-container-low transition-colors duration-200 active:scale-95" href="#tracking">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+<span class="text-label-sm font-label-sm">Tracking</span>
+</a>
+<!-- Tab 4: Account -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-container-low transition-colors duration-200 active:scale-95" href="#account">
+<span class="material-symbols-outlined text-[20px]">person</span>
+<span class="text-label-sm font-label-sm">Account</span>
+</a>
+</nav>
+<!-- Micro Interaction Script for Tab Jumping -->
+<script>
+    function scrollToSlide(index) {
+      const container = document.getElementById('mockupContainer');
+      const children = container.children;
+      if (children[index]) {
+        children[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx === index) {
+          btn.classList.add('bg-primary', 'text-on-primary');
+          btn.classList.remove('bg-surface-container-high', 'text-on-surface');
+        } else {
+          btn.classList.remove('bg-primary', 'text-on-primary');
+          btn.classList.add('bg-surface-container-high', 'text-on-surface');
+        }
+      });
+    }
+  </script>
+</body></html>
