@@ -140,8 +140,13 @@ export function TrialOffer() {
                 ))}
               </div>
 
-              <div ref={ctaRef} className="mt-8 flex flex-col sm:flex-row items-center gap-4">
-                <Button variant="primary" size="lg" onClick={handleTrialClick} className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/20">
+              <div ref={ctaRef} className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-wrap">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={handleTrialClick}
+                  className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/20 whitespace-nowrap shrink-0"
+                >
                   Start 7-Day Trial ({selectedVolume.label})
                 </Button>
                 <span className="text-xs text-[#3A241C]/70 font-medium">
