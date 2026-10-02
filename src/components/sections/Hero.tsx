@@ -117,7 +117,7 @@ export function Hero() {
             {/* CTA group with React Bits Magnet interaction */}
             <div
               data-hero-anim
-              className="mt-5 sm:mt-6 lg:mt-7 flex flex-col sm:flex-row items-center gap-3.5 justify-center lg:justify-start"
+              className="mt-5 sm:mt-6 lg:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3.5 justify-center lg:justify-start"
             >
               <Magnet magnetStrength={0.25} className="w-full sm:w-auto">
                 <Button

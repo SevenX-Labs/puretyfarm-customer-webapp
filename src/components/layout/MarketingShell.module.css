@@ -273,8 +273,14 @@
 .footer {
   background: #140d07;
   color: rgb(255 255 255 / 80%);
-  padding: 64px 20px 28px;
+  padding: 56px 20px calc(88px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+@media (min-width: 768px) {
+  .footer {
+    padding: 64px 20px 28px;
+  }
 }
 
 .footerInner {

@@ -164,18 +164,18 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
       {/* Badge 1: Top-Left - 100% Raw A2 */}
       <div
         ref={badge1Ref}
-        className="absolute top-1 left-0 sm:top-3 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
+        className="absolute top-1 -left-1 sm:top-3 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
       >
-        <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
-          <span className="relative flex h-2.5 w-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
+          <span className="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-emerald-500" />
           </span>
           <div>
-            <p className="text-xs sm:text-sm font-bold text-[#1A1008] leading-tight">
+            <p className="text-[11px] sm:text-sm font-bold text-[#1A1008] leading-tight">
               100% Pure A2
             </p>
-            <p className="text-[10px] sm:text-xs text-[#3A241C]/70">
+            <p className="text-[9px] sm:text-xs text-[#3A241C]/70">
               Raw & Unprocessed
             </p>
           </div>
@@ -185,25 +185,25 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
       {/* Badge 2: Top-Right - Sealed Glass Bottle */}
       <div
         ref={badge2Ref}
-        className="absolute top-4 right-0 sm:top-6 sm:-right-6 lg:-right-8 z-10 pointer-events-auto"
+        className="absolute top-2 -right-1 sm:top-6 sm:-right-6 lg:-right-8 z-10 pointer-events-auto"
       >
-        <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-[#FFFBEB]/95 backdrop-blur-md border border-[#F5E729]/60 shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
-          <FiShield className="w-4 h-4 text-[#5C1B13]" />
+        <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-2xl bg-[#FFFBEB]/95 backdrop-blur-md border border-[#F5E729]/60 shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
+          <FiShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#5C1B13]" />
           <div>
-            <p className="text-xs sm:text-sm font-bold text-[#5C1B13] leading-tight">
+            <p className="text-[11px] sm:text-sm font-bold text-[#5C1B13] leading-tight">
               Sealed Glass
             </p>
-            <p className="text-[10px] sm:text-xs text-[#3A241C]/70">
+            <p className="text-[9px] sm:text-xs text-[#3A241C]/70">
               Zero plastic touch
             </p>
           </div>
         </div>
       </div>
 
-      {/* Badge 3: Mid/Bottom-Left - 7 AM Morning Delivery */}
+      {/* Badge 3: Mid/Bottom-Left - 7 AM Morning Delivery (Desktop/Tablet) */}
       <div
         ref={badge3Ref}
-        className="absolute bottom-12 left-0 sm:bottom-16 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
+        className="hidden sm:block absolute bottom-12 left-0 sm:bottom-16 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
           <FiClock className="w-4 h-4 text-[#5C1B13]" />
@@ -218,10 +218,10 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
         </div>
       </div>
 
-      {/* Badge 4: Bottom-Right - Cold-Chained at 4°C */}
+      {/* Badge 4: Bottom-Right - Cold-Chained at 4°C (Desktop/Tablet) */}
       <div
         ref={badge4Ref}
-        className="absolute bottom-10 right-0 sm:bottom-12 sm:-right-4 lg:-right-6 z-10 pointer-events-auto"
+        className="hidden sm:block absolute bottom-10 right-0 sm:bottom-12 sm:-right-4 lg:-right-6 z-10 pointer-events-auto"
       >
         <div className="flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-md shadow-[#5C1B13]/8 text-left transition-transform hover:scale-105">
           <FiThermometer className="w-4 h-4 text-blue-600" />

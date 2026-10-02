@@ -146,7 +146,7 @@ export function Pricing() {
       </div>
 
       {/* Plan cards - Compact sleek design */}
-      <div ref={plansRef} className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 max-w-5xl mx-auto items-stretch">
+      <div ref={plansRef} className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-5 lg:gap-6 max-w-5xl mx-auto items-stretch">
         {PLANS.map((plan) => {
           const displayPrice = isMonthly ? plan.price * 30 : plan.price;
           const displayOriginalPrice = plan.originalPrice
@@ -163,7 +163,7 @@ export function Pricing() {
             <div
               key={plan.name}
               data-plan-card
-              className={`h-full ${plan.highlighted ? "md:-mt-2 md:mb-2" : ""}`}
+              className={`h-full ${plan.highlighted ? "mt-4 md:-mt-2 md:mb-2" : ""}`}
             >
               <TiltCard
                 tiltMaxAngle={plan.highlighted ? 5 : 3}

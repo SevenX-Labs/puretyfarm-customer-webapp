@@ -232,11 +232,10 @@ export function SocialProof() {
           {/* Dynamic Animated Statistics Counters */}
           <div
             ref={statsRef}
-            className={`mt-6 mb-10 grid grid-cols-2 ${
-              FLAGS.SHOW_500_FAMILIES_BADGE || FLAGS.SHOW_40_TESTS_CLAIM
-                ? "md:grid-cols-4 max-w-4xl"
-                : "max-w-xl"
-            } gap-4 mx-auto`}
+            className={`mt-6 mb-10 grid grid-cols-2 ${FLAGS.SHOW_500_FAMILIES_BADGE || FLAGS.SHOW_40_TESTS_CLAIM
+              ? "md:grid-cols-4 max-w-4xl"
+              : "max-w-xl"
+              } gap-4 mx-auto`}
           >
             {FLAGS.SHOW_500_FAMILIES_BADGE && (
               <StatCounter end={500} suffix="+" label="Happy Families" icon={<FiUsers className="w-6 h-6 text-[#5C1B13]" />} />
@@ -349,54 +348,6 @@ export function SocialProof() {
           )}
         </Section>
       )}
-
-      {/* Trust / Transparency */}
-      <Section background="cream" id="trust">
-        <h2 ref={trustHeadingRef} className="text-3xl sm:text-4xl font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
-          Pure from Farm to{" "}
-          <span className="text-[#5C1B13]">Your Doorstep</span>
-        </h2>
-
-        <p ref={trustSubRef} className="mt-4 text-lg text-[#3A241C] text-center max-w-xl mx-auto">
-          We believe in complete transparency about our milk.
-        </p>
-
-        <div ref={trustGridRef} className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {TRUST_ITEMS.map((item) => (
-            <div
-              key={item.title}
-              data-trust-item
-              className="h-full"
-            >
-              <TiltCard tiltMaxAngle={6} scale={1.02} glare={true} className="h-full">
-                <div className="bg-white h-full rounded-xl border border-[#E8DFD4] p-6 shadow-sm hover:shadow-lg transition-all duration-300 group">
-                  <div className="w-12 h-12 rounded-full bg-[#5C1B13] flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-lg font-bold text-[#1A1008] mb-2 font-[family-name:var(--font-heading)] group-hover:text-[#5C1B13] transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-[#3A241C] leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </TiltCard>
-            </div>
-          ))}
-        </div>
-
-        <div ref={trustFootRef} className="mt-10 text-center space-y-2">
-          <a
-            href="/terms"
-            className="text-sm font-medium text-[#5C1B13] underline underline-offset-4 hover:text-[#4A1510] transition-colors"
-          >
-            Read our Terms & Conditions
-          </a>
-          <p className="text-xs text-[#3A241C]/50">
-            {FLAGS.SHOW_FSSAI_CLAIM ? "FSSAI Licensed • Raipur, Chhattisgarh" : "Raipur, Chhattisgarh"}
-          </p>
-        </div>
-      </Section>
     </>
   );
 }

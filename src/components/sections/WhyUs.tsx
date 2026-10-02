@@ -365,15 +365,14 @@ export function WhyUs() {
         </h2>
 
         {/* ─── CREATIVE EXPERIENCE MODE TABS (DRIBBLE/PINTEREST STYLE) ─── */}
-        <div className="mt-8 flex flex-wrap justify-center gap-2 sm:gap-3">
+        <div className="mt-8 flex items-center overflow-x-auto no-scrollbar sm:flex-wrap sm:justify-center gap-2 sm:gap-3 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
           <button
             type="button"
             onClick={() => setActiveTab("bento")}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-              activeTab === "bento"
-                ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
-                : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
-            }`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap ${activeTab === "bento"
+              ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
+              : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
+              }`}
           >
             <FiGrid className="w-4 h-4" />
             <span>The 6 Sacred Pillars</span>
@@ -382,11 +381,10 @@ export function WhyUs() {
           <button
             type="button"
             onClick={() => setActiveTab("scanner")}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-              activeTab === "scanner"
-                ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
-                : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
-            }`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap ${activeTab === "scanner"
+              ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
+              : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
+              }`}
           >
             <FiRepeat className="w-4 h-4" />
             <span>Packet vs. Glass</span>
@@ -395,11 +393,10 @@ export function WhyUs() {
           <button
             type="button"
             onClick={() => setActiveTab("journey")}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-              activeTab === "journey"
-                ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
-                : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
-            }`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap ${activeTab === "journey"
+              ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
+              : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
+              }`}
           >
             <FiCompass className="w-4 h-4" />
             <span>Dawn-to-Doorstep</span>
@@ -408,11 +405,10 @@ export function WhyUs() {
           <button
             type="button"
             onClick={() => setActiveTab("tests")}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-              activeTab === "tests"
-                ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
-                : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
-            }`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap ${activeTab === "tests"
+              ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/25 scale-105"
+              : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
+              }`}
           >
             <FiCheckSquare className="w-4 h-4" />
             <span>At-Home Kitchen Lab</span>
@@ -439,7 +435,7 @@ export function WhyUs() {
             {/* Bento Card 1: The Gir Cow Genetics & Ahimsa Pastures (Spans 2 columns) */}
             <div className="col-span-1 md:col-span-2 lg:col-span-2 flex flex-col">
               <TiltCard tiltMaxAngle={3} scale={1.01} glare={true} className="h-full">
-                <div className="relative h-full bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] rounded-3xl border border-[#E8DFD4] p-6 sm:p-8 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group">
+                <div className="relative h-full bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] rounded-3xl border border-[#E8DFD4] p-5 sm:p-8 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group">
                   <div
                     aria-hidden="true"
                     className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#F5E729]/20 blur-3xl pointer-events-none"
@@ -466,7 +462,7 @@ export function WhyUs() {
                   </div>
 
                   {/* 4 Aligned proof metric tiles */}
-                  <div className="mt-6 pt-6 border-t border-[#E8DFD4] grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                  <div className="mt-6 pt-6 border-t border-[#E8DFD4] grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-center">
                     <div className="p-3 rounded-2xl bg-white/90 border border-[#E8DFD4] shadow-2xs transition-transform hover:-translate-y-0.5">
                       <p className="text-lg sm:text-xl font-black text-[#5C1B13]">0%</p>
                       <p className="text-[11px] font-semibold text-[#3A241C]/75">Oxytocin / Hormones</p>
@@ -632,85 +628,6 @@ export function WhyUs() {
               </TiltCard>
             </div>
 
-            {/* ─── ROW 3: CARD 6 (Command Station Spans Full 3 Columns) ─── */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-col">
-              <TiltCard tiltMaxAngle={2} scale={1.008} glare={true} className="h-full">
-                <div className="h-full bg-gradient-to-r from-white via-[#FAF3EA]/80 to-white rounded-3xl border border-[#E8DFD4] p-6 sm:p-8 shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden">
-                  <div>
-                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5C1B13] text-white text-xs font-bold uppercase tracking-wider shadow-2xs">
-                        <FiShield className="w-3.5 h-3.5 text-[#F5E729]" />
-                        <span>Pillar 06 · Digital On-Farm Lab Station</span>
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-emerald-900 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full">
-                          Zero Adulteration Tolerance
-                        </span>
-                        <span className="hidden sm:inline-block text-xs font-bold text-[#5C1B13] bg-[#FAF3EA] border border-[#E8DFD4] px-3 py-1 rounded-full">
-                          {FLAGS.SHOW_FSSAI_CLAIM
-                            ? "FSSAI Compliant · Click Test to Inspect"
-                            : "Daily Quality Screening · Click Test to Inspect"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
-                      {FLAGS.SHOW_40_TESTS_CLAIM
-                        ? "40+ Daily Laboratory Checks Every Morning Before Dispatch"
-                        : "Rigorous Daily Laboratory Checks Every Morning Before Dispatch"}
-                    </h3>
-
-                    <p className="mt-2 text-xs sm:text-sm text-[#3A241C]/80 leading-relaxed max-w-3xl">
-                      Every single morning batch is digitally tested on-farm before dispatch to Raipur. Click any test chip below to inspect our testing methodology and tolerance score.
-                    </p>
-                  </div>
-
-                  {/* Interactive Test Tag Badges Grid */}
-                  <div className="mt-5 pt-4 border-t border-[#E8DFD4] flex flex-wrap gap-2">
-                    {LAB_TEST_CHIPS.map((chip, index) => {
-                      const isSelected = inspectedLabChip === index;
-                      return (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => setInspectedLabChip(isSelected ? null : index)}
-                          className={`text-[11px] font-bold px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
-                            isSelected
-                              ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-xs scale-105"
-                              : "bg-white border-[#E8DFD4] text-[#1A1008] hover:bg-[#FAF3EA] hover:border-[#5C1B13]/30"
-                          }`}
-                        >
-                          <FiCheck className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-300" : "text-emerald-600"}`} />
-                          <span>{chip.name}:</span>
-                          <span className={isSelected ? "text-[#F5E729]" : "text-[#5C1B13]"}>{chip.result}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Inspected test detail overlay */}
-                  {inspectedLabChip !== null && (
-                    <m.div
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-4 p-4 bg-white rounded-2xl border border-[#5C1B13]/30 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
-                    >
-                      <div>
-                        <span className="font-bold text-[#5C1B13]">
-                          {LAB_TEST_CHIPS[inspectedLabChip].name}:{" "}
-                        </span>
-                        <span className="text-[#3A241C]/85">
-                          {LAB_TEST_CHIPS[inspectedLabChip].info}
-                        </span>
-                      </div>
-                      <span className="font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 shrink-0 self-start sm:self-auto">
-                        Status: {LAB_TEST_CHIPS[inspectedLabChip].status}
-                      </span>
-                    </m.div>
-                  )}
-                </div>
-              </TiltCard>
-            </div>
           </m.div>
         )}
 
@@ -727,7 +644,7 @@ export function WhyUs() {
             className="max-w-5xl mx-auto"
           >
             {/* Category Switcher Tabs */}
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <div className="flex overflow-x-auto no-scrollbar sm:flex-wrap sm:justify-center gap-2 mb-6 sm:mb-8 -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
               {COMPARISON_CATEGORIES.map((cat, idx) => {
                 const CatIcon = cat.icon;
                 return (
@@ -735,11 +652,10 @@ export function WhyUs() {
                     key={cat.id}
                     type="button"
                     onClick={() => setActiveCategory(idx)}
-                    className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                      activeCategory === idx
-                        ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20 scale-105"
-                        : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
-                    }`}
+                    className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 shrink-0 whitespace-nowrap ${activeCategory === idx
+                      ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20 scale-105"
+                      : "bg-white text-[#3A241C] border border-[#E8DFD4] hover:bg-[#FAF3EA]"
+                      }`}
                   >
                     <CatIcon className="w-4 h-4" />
                     <span>{cat.title}</span>
@@ -749,9 +665,9 @@ export function WhyUs() {
             </div>
 
             {/* Split Comparison Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-stretch">
               {/* Ordinary Commercial Packet Milk */}
-              <div className="rounded-3xl bg-[#FAF6F0] border-2 border-red-300/80 p-6 sm:p-8 flex flex-col justify-between shadow-xs relative overflow-hidden">
+              <div className="rounded-3xl bg-[#FAF6F0] border-2 border-red-300/80 p-5 sm:p-8 flex flex-col justify-between shadow-xs relative overflow-hidden">
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold uppercase tracking-wider text-red-800 bg-red-100/90 border border-red-200 px-3 py-1 rounded-full">
@@ -808,7 +724,7 @@ export function WhyUs() {
               </div>
 
               {/* PuretyFarm 100% Pure A2 Gir Cow Milk */}
-              <div className="rounded-3xl bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] border-2 border-[#5C1B13] p-6 sm:p-8 flex flex-col justify-between shadow-lg shadow-[#5C1B13]/10 relative overflow-hidden">
+              <div className="rounded-3xl bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] border-2 border-[#5C1B13] p-5 sm:p-8 flex flex-col justify-between shadow-lg shadow-[#5C1B13]/10 relative overflow-hidden">
                 <div
                   aria-hidden="true"
                   className="absolute -top-20 -right-20 w-52 h-52 rounded-full bg-[#F5E729]/25 blur-2xl pointer-events-none"
@@ -887,10 +803,10 @@ export function WhyUs() {
             className="max-w-5xl mx-auto"
           >
             {/* Interactive Timeline Stepper Buttons */}
-            <div className="relative mb-10">
+            <div className="relative mb-8 sm:mb-10">
               <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-[#E8DFD4] -translate-y-1/2 -z-10" />
 
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
+              <div className="flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-5 gap-2.5 sm:gap-4 -mx-4 px-4 sm:mx-0 sm:px-0 pb-2">
                 {JOURNEY_STEPS.map((step, idx) => {
                   const isActive = activeJourneyStep === idx;
                   return (
@@ -898,11 +814,10 @@ export function WhyUs() {
                       key={idx}
                       type="button"
                       onClick={() => setActiveJourneyStep(idx)}
-                      className={`p-3 rounded-2xl border text-left sm:text-center transition-all cursor-pointer ${
-                        isActive
-                          ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/25 scale-105"
-                          : "bg-white text-[#3A241C] border-[#E8DFD4] hover:bg-[#FAF3EA]"
-                      }`}
+                      className={`w-[145px] shrink-0 sm:w-auto p-3 rounded-2xl border text-left sm:text-center transition-all cursor-pointer ${isActive
+                        ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/25 scale-102 sm:scale-105"
+                        : "bg-white text-[#3A241C] border-[#E8DFD4] hover:bg-[#FAF3EA]"
+                        }`}
                     >
                       <p className={`text-xs font-black uppercase ${isActive ? "text-[#F5E729]" : "text-[#5C1B13]"}`}>
                         {step.time}
@@ -910,9 +825,8 @@ export function WhyUs() {
                       <p className="text-xs font-bold mt-1 truncate">
                         {step.phase}
                       </p>
-                      <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full ${
-                        isActive ? "bg-white/20 text-white" : "bg-[#FAF3EA] text-[#3A241C]/70"
-                      }`}>
+                      <span className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full ${isActive ? "bg-white/20 text-white" : "bg-[#FAF3EA] text-[#3A241C]/70"
+                        }`}>
                         {step.statusPill}
                       </span>
                     </button>
@@ -1005,11 +919,10 @@ export function WhyUs() {
                     key={t.id}
                     type="button"
                     onClick={() => setActiveKitchenTest(idx)}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                      activeKitchenTest === idx
-                        ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/20 scale-102"
-                        : "bg-white text-[#3A241C] border-[#E8DFD4] hover:bg-[#FAF3EA]"
-                    }`}
+                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${activeKitchenTest === idx
+                      ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/20 scale-102"
+                      : "bg-white text-[#3A241C] border-[#E8DFD4] hover:bg-[#FAF3EA]"
+                      }`}
                   >
                     <div>
                       <div className="w-8 h-8 rounded-xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center mb-2">
@@ -1022,9 +935,8 @@ export function WhyUs() {
                         {t.name}
                       </p>
                     </div>
-                    <span className={`inline-block mt-3 text-[10px] px-2 py-0.5 rounded-md ${
-                      activeKitchenTest === idx ? "bg-white/20 text-white" : "bg-[#FAF3EA] text-[#3A241C]/70"
-                    }`}>
+                    <span className={`inline-block mt-3 text-[10px] px-2 py-0.5 rounded-md ${activeKitchenTest === idx ? "bg-white/20 text-white" : "bg-[#FAF3EA] text-[#3A241C]/70"
+                      }`}>
                       {t.badge}
                     </span>
                   </button>
@@ -1103,7 +1015,7 @@ export function WhyUs() {
       </AnimatePresence>
 
       {/* ─── DIRECT TRIAL GUARANTEE FOOTER ─── */}
-      <div className="mt-12 text-center bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] rounded-3xl border-2 border-[#5C1B13]/15 p-6 sm:p-8 max-w-4xl mx-auto shadow-sm relative overflow-hidden">
+      <div className="mt-12 text-center bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] rounded-3xl border-2 border-[#5C1B13]/15 p-5 sm:p-8 max-w-4xl mx-auto shadow-sm relative overflow-hidden">
         <div
           aria-hidden="true"
           className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-[#F5E729]/20 blur-2xl pointer-events-none"
@@ -1121,15 +1033,15 @@ export function WhyUs() {
           Zero plastic. Zero deposit required for eco-glass bottles. Milked at dawn and on your doorstep before 7:00 AM.
         </p>
 
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10">
-          <Button variant="primary" size="md" onClick={handleTrialClick} className="shadow-md shadow-[#5C1B13]/20">
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 relative z-10">
+          <Button variant="primary" size="md" onClick={handleTrialClick} className="w-full sm:w-auto shadow-md shadow-[#5C1B13]/20">
             Start My 7-Day Trial
           </Button>
           <a
             href={getWhatsAppUrl("Hi PuretyFarm, I would like to learn more about the 7-day trial and farm purity tests.")}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#5C1B13] bg-white hover:bg-[#FAF3EA] border border-[#E8DFD4] px-5 py-3 rounded-xl transition-all shadow-2xs hover:shadow-xs"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold text-[#5C1B13] bg-white hover:bg-[#FAF3EA] border border-[#E8DFD4] px-5 py-3 rounded-xl transition-all shadow-2xs hover:shadow-xs"
           >
             <FaWhatsapp className="w-4 h-4 text-emerald-600" />
             <span>Chat on WhatsApp</span>

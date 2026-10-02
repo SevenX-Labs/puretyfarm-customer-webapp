@@ -159,9 +159,9 @@ function ConnectingThread({
       </div>
 
       {/* Mobile Vertical Flow Line */}
-      <div className="md:hidden flex justify-center py-1 pointer-events-none" aria-hidden="true">
-        <div className="w-0.5 h-6 bg-gradient-to-b from-[#5C1B13] via-[#F5E729] to-[#5C1B13] relative">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#F5E729] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-ping" />
+      <div className="md:hidden flex justify-center py-3.5 pointer-events-none" aria-hidden="true">
+        <div className="w-0.5 h-8 bg-gradient-to-b from-[#5C1B13] via-[#F5E729] to-[#5C1B13] relative">
+          <span className="w-2 h-2 rounded-full bg-[#F5E729] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-ping" />
         </div>
       </div>
     </>
@@ -195,7 +195,7 @@ export function HowItWorks() {
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-[#5C1B13] bg-[#5C1B13]/10 border border-[#5C1B13]/20 rounded-full px-4 py-1.5 mb-3 shadow-2xs"
         >
           <span className="w-2 h-2 rounded-full bg-[#5C1B13] animate-pulse" />
-          <ShinyText text="The Raipur Morning Flow" speed={3.5} />
+          <ShinyText text="How It Works" speed={3.5} />
         </span>
 
         <h2
@@ -264,16 +264,16 @@ export function HowItWorks() {
                 </p>
 
                 {/* Compact Widget */}
-                <div className="mt-3.5 flex items-center justify-between gap-2 p-2 bg-blue-50/70 rounded-xl border border-blue-200/70">
+                <div className="mt-4 flex flex-col xs:flex-row xs:items-center justify-between gap-2.5 p-2.5 sm:p-3 bg-blue-50/70 rounded-xl border border-blue-200/70">
                   <div className="flex items-center gap-1.5 truncate">
                     <FaGooglePlay className="w-3.5 h-3.5 text-[#1A1008] shrink-0" />
-                    <span className="font-semibold text-[#1A1008] text-[11px] truncate">Google Play (4.8 ★)</span>
+                    <span className="font-semibold text-[#1A1008] text-xs truncate">Google Play (4.8 ★)</span>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
                       onClick={handleDownloadClick}
-                      className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer"
                     >
                       Get App
                     </button>
@@ -281,9 +281,9 @@ export function HowItWorks() {
                       href={getWhatsAppUrl("Hi PuretyFarm, I want to start my A2 milk subscription.")}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
                     >
-                      <FaWhatsapp className="w-3 h-3" />
+                      <FaWhatsapp className="w-3.5 h-3.5" />
                       <span>Chat</span>
                     </a>
                   </div>
@@ -323,20 +323,19 @@ export function HowItWorks() {
                 </p>
 
                 {/* Compact Widget */}
-                <div className="mt-3.5 flex items-center justify-between gap-1 p-1.5 bg-amber-50/70 rounded-xl border border-amber-200/70">
+                <div className="mt-4 flex items-center justify-between gap-1.5 p-1.5 bg-amber-50/70 rounded-xl border border-amber-200/70">
                   {(["0.5L", "1L", "2L"] as const).map((qty) => (
                     <button
                       key={qty}
                       type="button"
                       onClick={() => setSelectedPlanPreview(qty)}
-                      className={`flex-1 py-1 px-1.5 rounded-lg text-center transition-all cursor-pointer ${
-                        selectedPlanPreview === qty
-                          ? "bg-[#5C1B13] text-white shadow-2xs font-bold"
-                          : "text-[#3A241C] hover:bg-white text-[11px] font-medium"
-                      }`}
+                      className={`flex-1 py-2 px-1.5 rounded-lg text-center transition-all cursor-pointer ${selectedPlanPreview === qty
+                        ? "bg-[#5C1B13] text-white shadow-2xs font-bold"
+                        : "text-[#3A241C] hover:bg-white text-xs font-medium"
+                        }`}
                     >
                       <span className="text-xs font-bold">{qty}</span>
-                      <span className="text-[10px] opacity-80 ml-1">
+                      <span className="text-[11px] opacity-80 ml-1">
                         {qty === "0.5L" ? "· ₹45" : qty === "1L" ? "· ₹80" : "· ₹150"}
                       </span>
                     </button>
@@ -377,18 +376,18 @@ export function HowItWorks() {
                 </p>
 
                 {/* Compact Widget */}
-                <div className="mt-3.5 flex items-center justify-between gap-2 p-2 bg-emerald-50/80 rounded-xl border border-emerald-200">
+                <div className="mt-4 flex items-center justify-between gap-2.5 p-2.5 sm:p-3 bg-emerald-50/80 rounded-xl border border-emerald-200">
                   <div className="flex items-center gap-1.5">
-                    <FiShield className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="font-bold text-emerald-950 text-[11px]">₹0 Bottle Deposit</span>
+                    <FiShield className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-bold text-emerald-950 text-xs">₹0 Bottle Deposit</span>
                   </div>
                   <Button
                     variant="primary"
                     size="sm"
                     onClick={handleTrialClick}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3 py-1 text-[11px] font-bold h-7 shadow-xs"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3.5 py-1.5 text-xs font-bold h-8 shadow-xs"
                   >
-                    <FiZap className="w-3 h-3" />
+                    <FiZap className="w-3.5 h-3.5" />
                     <span>Claim Trial</span>
                   </Button>
                 </div>
@@ -427,14 +426,14 @@ export function HowItWorks() {
                 </p>
 
                 {/* Compact Widget */}
-                <div className="mt-3.5 flex items-center justify-between p-2 bg-purple-50/70 rounded-xl border border-purple-200/70 text-xs">
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#3A241C]/80">
+                <div className="mt-4 flex items-center justify-between p-2.5 sm:p-3 bg-purple-50/70 rounded-xl border border-purple-200/70 text-xs">
+                  <div className="flex items-center gap-1.5 text-xs text-[#3A241C]/80">
                     <FiMapPin className="w-3.5 h-3.5 text-[#5C1B13]" />
                     <span>Farm 04:45 AM</span>
                   </div>
-                  <FiArrowRight className="w-3 h-3 text-purple-400" />
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  <FiArrowRight className="w-3.5 h-3.5 text-purple-400" />
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                     <span>Doorstep by 07:00 AM</span>
                   </div>
                 </div>
@@ -473,13 +472,13 @@ export function HowItWorks() {
                 </p>
 
                 {/* Compact Widget */}
-                <div className="mt-3.5 flex items-center justify-between gap-2 p-2 bg-[#FAF3EA] rounded-xl border border-[#E8DFD4] text-xs">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#5C1B13]">
-                    <FiSun className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                <div className="mt-4 flex items-center justify-between gap-2 p-2.5 sm:p-3 bg-[#FAF3EA] rounded-xl border border-[#E8DFD4] text-xs">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#5C1B13]">
+                    <FiSun className="w-4 h-4 text-amber-500 shrink-0" />
                     <span>4.2%+ Thick Malai</span>
                   </div>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-800">
-                    <FiRefreshCw className="w-3 h-3 text-emerald-600" />
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+                    <FiRefreshCw className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Daily Bottle Swap</span>
                   </div>
                 </div>
@@ -498,19 +497,19 @@ export function HowItWorks() {
           Join 500+ families across Shankar Nagar, Telibandha & VIP Road who wake up to PuretyFarm.
         </p>
 
-        <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Magnet magnetStrength={0.2}>
-            <Button variant="primary" size="md" onClick={handleTrialClick} className="shadow-md shadow-[#5C1B13]/20">
+        <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+          <Magnet magnetStrength={0.2} className="w-full sm:w-auto">
+            <Button variant="primary" size="md" onClick={handleTrialClick} className="w-full sm:w-auto shadow-md shadow-[#5C1B13]/20">
               <span>Start My 7-Day Trial</span>
               <FiArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </Magnet>
-          <Magnet magnetStrength={0.16}>
+          <Magnet magnetStrength={0.16} className="w-full sm:w-auto">
             <a
               href={getWhatsAppUrl("Hi PuretyFarm, I would like to start my 7-day milk trial.")}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-4 py-2.5 rounded-xl transition-colors shadow-2xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-4 py-2.5 rounded-xl transition-colors shadow-2xs"
             >
               <FaWhatsapp className="w-4 h-4 text-emerald-600" />
               <span>Chat on WhatsApp</span>

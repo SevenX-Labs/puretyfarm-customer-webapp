@@ -15,6 +15,7 @@ import {
   FiSun,
   FiMenu,
   FiX,
+  FiDownload,
 } from "react-icons/fi";
 
 const NAV_LINKS = [
@@ -90,15 +91,16 @@ export function Navbar() {
 
           {/* Right: Quick Action Controls */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Primary Action Button: Start Trial with Magnet effect */}
+            {/* Primary Action Button: Download App with Magnet effect */}
             <Magnet magnetStrength={0.2}>
               <Button
                 variant="primary"
                 size="sm"
-                onClick={handleTrialClick}
-                className="rounded-full px-4 sm:px-5 py-1.5 text-xs font-bold h-[34px] shadow-md shadow-[#5C1B13]/20 hover:scale-105 active:scale-95 transition-all"
+                onClick={handleDownloadClick}
+                className="rounded-full px-3.5 sm:px-4.5 py-1.5 text-xs font-bold h-[34px] shadow-md shadow-[#5C1B13]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5"
               >
-                Start Trial
+                <FiDownload className="w-3.5 h-3.5 text-[#F5E729]" />
+                <span>Download App</span>
               </Button>
             </Magnet>
 
@@ -168,11 +170,12 @@ export function Navbar() {
                 fullWidth
                 onClick={() => {
                   closeMenu();
-                  handleTrialClick();
+                  handleDownloadClick();
                 }}
-                className="rounded-xl py-3 text-xs font-bold shadow-lg shadow-[#5C1B13]/20"
+                className="rounded-xl py-3 text-xs font-bold shadow-lg shadow-[#5C1B13]/20 flex items-center justify-center gap-2"
               >
-                Start My 7-Day Starter Trial
+                <FiDownload className="w-4 h-4 text-[#F5E729]" />
+                <span>Download Customer App</span>
               </Button>
               <Button
                 variant="secondary"
@@ -180,11 +183,11 @@ export function Navbar() {
                 fullWidth
                 onClick={() => {
                   closeMenu();
-                  handleDownloadClick();
+                  handleTrialClick();
                 }}
                 className="rounded-xl py-2.5 text-xs font-semibold"
               >
-                Download Customer App
+                Start My 7-Day Starter Trial
               </Button>
             </div>
           </m.div>

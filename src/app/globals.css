@@ -65,11 +65,15 @@ main {
 }
 
 /* Custom scrollbar utility */
-.scrollbar-hide::-webkit-scrollbar {
+.scrollbar-hide::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
 }
 
-.scrollbar-hide {
+.scrollbar-hide,
+.no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
@@ -197,4 +201,23 @@ html.lenis {
 
 .animate-thread-flow {
   animation: thread-flow 4s linear infinite;
+}
+
+/* Print Optimization for Legal Documents */
+@media print {
+  header, footer, [data-testid="sticky-cta-bar"], aside {
+    display: none !important;
+  }
+  body, main {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
+  }
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #e0e0e0 !important;
+  }
 }

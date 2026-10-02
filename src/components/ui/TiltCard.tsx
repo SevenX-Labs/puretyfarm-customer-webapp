@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode, type MouseEvent } from "react";
+import { useRef, useState, useEffect, type ReactNode, type MouseEvent } from "react";
 import { m, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 
 export interface TiltCardProps extends Omit<HTMLMotionProps<"div">, "children"> {
@@ -29,9 +29,14 @@ export function TiltCard({
   const reduceMotion = useReducedMotion();
   const [glarePos, setGlarePos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [isHovered, setIsHovered] = useState(false);
+  const [canHover, setCanHover] = useState(false);
+
+  useEffect(() => {
+    setCanHover(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+  }, []);
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (reduceMotion || !cardRef.current) return;
+    if (reduceMotion || !canHover || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -40,7 +45,7 @@ export function TiltCard({
   };
 
   const handleMouseEnter = () => {
-    if (!reduceMotion) setIsHovered(true);
+    if (!reduceMotion && canHover) setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
@@ -61,7 +66,7 @@ export function TiltCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      whileHover={{ y: -4 }}
+      whileHover={canHover ? { y: -4 } : undefined}
       transition={{ duration: 0.2, ease: "easeOut" }}
       style={{
         ...style,

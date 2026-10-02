@@ -41,19 +41,18 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     // Mark HTML for Lenis-controlled scrolling
     document.documentElement.classList.add("lenis", "lenis-smooth");
 
-    // Initialize Lenis with optimized settings for both Desktop and Mobile views
+    // Initialize Lenis with optimized settings
+    // syncTouch: false keeps native 60-120Hz hardware-accelerated momentum scrolling on touchscreens
+    // while smoothWheel: true provides buttery smooth inertia for mousewheel on desktop.
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
       wheelMultiplier: 1.0,
-      syncTouch: true, // Enables smooth touch inertia and momentum on mobile & tablets
-      syncTouchLerp: 0.08, // Buttery smooth deceleration when lifting finger on touch
-      touchInertiaExponent: 1.6, // Natural exponential momentum decay
-      touchMultiplier: 1.2, // Snappy 1:1 tactile responsiveness during active touch dragging
-      autoRaf: false, // Driven by GSAP central ticker to eliminate frame contention
+      syncTouch: false, // Native touch scrolling on mobile eliminates input lag and sluggishness
+      autoRaf: false, // Driven by GSAP central ticker
       overscroll: true,
       autoResize: true,
     });

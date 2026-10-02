@@ -25,7 +25,8 @@ export function StickyCtaBar() {
       className={`
         fixed bottom-0 left-0 right-0 z-50
         bg-white/95 backdrop-blur-md border-t border-[#E8DFD4]
-        px-4 py-3
+        px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]
+        shadow-[0_-4px_20px_rgba(92,27,19,0.08)]
         transition-transform duration-300 ease-out
         md:hidden
         ${isVisible ? "translate-y-0" : "translate-y-full"}
@@ -34,17 +35,19 @@ export function StickyCtaBar() {
       <div className="flex items-center gap-3 max-w-lg mx-auto">
         <Button
           variant="primary"
-          size="sm"
+          size="md"
           fullWidth
           onClick={handleTrialClick}
+          className="h-11 text-xs font-bold shadow-md shadow-[#5C1B13]/20"
         >
           Start My 7-Day Trial
         </Button>
         <Button
           variant="secondary"
-          size="sm"
+          size="md"
           fullWidth
           onClick={handleDownloadClick}
+          className="h-11 text-xs font-bold"
         >
           Download App
         </Button>

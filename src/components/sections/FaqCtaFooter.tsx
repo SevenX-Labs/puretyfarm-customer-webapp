@@ -89,8 +89,8 @@ function FaqItem({
     <div
       data-faq-item
       className={`rounded-xl border transition-colors ${isOpen
-          ? "bg-[#FBF6EE] border-[#E8DFD4]"
-          : "bg-white border-[#E8DFD4] hover:border-[#5C1B13]/20"
+        ? "bg-[#FBF6EE] border-[#E8DFD4]"
+        : "bg-white border-[#E8DFD4] hover:border-[#5C1B13]/20"
         }`}
     >
       <button
@@ -102,9 +102,8 @@ function FaqItem({
           {item.question}
         </span>
         <FiChevronDown
-          className={`w-5 h-5 text-[#5C1B13] flex-shrink-0 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`w-5 h-5 text-[#5C1B13] flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+            }`}
         />
       </button>
       <div ref={answerRef} className="overflow-hidden" style={{ height: 0 }}>
@@ -180,50 +179,6 @@ export function FaqCtaFooter() {
           ))}
         </div>
       </Section>
-
-      {/* Final CTA */}
-      <section
-        ref={ctaSectionRef}
-        id="final-cta"
-        className="w-full py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-[#5C1B13] relative overflow-hidden"
-      >
-        {/* Decorative blurs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div ref={ctaBlob1} className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#F5E729]/10 blur-3xl" />
-          <div ref={ctaBlob2} className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl" />
-        </div>
-
-        <div className="mx-auto max-w-3xl text-center relative">
-          <h2 data-cta-anim className="text-3xl sm:text-4xl font-bold text-white font-[family-name:var(--font-heading)] tracking-tight">
-            Ready to Taste the Difference?
-          </h2>
-
-          <p data-cta-anim className="mt-4 text-lg text-white/80 max-w-xl mx-auto">
-            Join 500+ Raipur families already enjoying pure A2 Gir cow milk.
-          </p>
-
-          <div data-cta-anim className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center">
-            <Button variant="accent" size="lg" onClick={handleTrialClick}>
-              <FiZap className="w-5 h-5" />
-              <span>Start 7-Day Trial</span>
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={handleDownloadClick}
-              className="bg-white text-[#5C1B13] border-white hover:bg-white/95 active:bg-white/90 shadow-lg"
-            >
-              <FiDownload className="w-5 h-5" />
-              <span>Download App</span>
-            </Button>
-          </div>
-
-          <p data-cta-anim className="mt-6 text-sm text-white/50">
-            No commitment • Free delivery • Cancel anytime
-          </p>
-        </div>
-      </section>
-
     </>
   );
 }
