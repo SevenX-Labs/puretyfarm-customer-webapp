@@ -1,0 +1,323 @@
+.shell {
+  --marketing-background: #fffdf7;
+  --marketing-foreground: #1a1008;
+  --marketing-primary: #5c1b13;
+  --marketing-secondary: #3a241c;
+  --marketing-border: #e8dfd4;
+  --marketing-cream: #fbf6ee;
+  min-height: 100vh;
+  background: var(--marketing-background);
+  color: var(--marketing-foreground);
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid transparent;
+  background: rgb(255 253 247 / 92%);
+  backdrop-filter: blur(14px);
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.headerCondensed {
+  border-color: var(--marketing-border);
+  box-shadow: 0 5px 18px rgb(26 16 8 / 7%);
+}
+
+.headerInner {
+  display: flex;
+  width: min(100% - 32px, 1180px);
+  min-height: 76px;
+  margin-inline: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  transition: min-height 180ms ease;
+}
+
+.headerCondensed .headerInner {
+  min-height: 62px;
+}
+
+.brand {
+  display: inline-flex;
+  min-width: max-content;
+  align-items: center;
+  gap: 10px;
+  color: var(--marketing-foreground);
+  text-decoration: none;
+}
+
+.brand:focus-visible,
+.navLink:focus-visible,
+.phoneLink:focus-visible,
+.whatsAppLink:focus-visible,
+.menuToggle:focus-visible,
+.mobileNavLink:focus-visible,
+.mobilePhoneLink:focus-visible,
+.mobileWhatsAppLink:focus-visible,
+.footer a:focus-visible {
+  outline: 3px solid #b77331;
+  outline-offset: 4px;
+}
+
+.logoFrame {
+  position: relative;
+  display: block;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  border: 1px solid var(--marketing-border);
+  border-radius: 50%;
+  background: #fdee57;
+}
+
+.brandName {
+  font-family: var(--font-heading), Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.desktopNav {
+  display: none;
+  align-items: center;
+  gap: clamp(14px, 2vw, 28px);
+}
+
+.navLink {
+  position: relative;
+  padding-block: 7px;
+  color: var(--marketing-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.navLink::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--marketing-primary);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms ease;
+}
+
+.navLink:hover::after,
+.navLink:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.contactActions {
+  display: none;
+  align-items: center;
+  gap: 9px;
+}
+
+.phoneLink,
+.whatsAppLink,
+.mobilePhoneLink,
+.mobileWhatsAppLink {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.phoneLink {
+  border: 1px solid rgb(92 27 19 / 18%);
+  background: rgb(92 27 19 / 5%);
+  color: var(--marketing-primary);
+}
+
+.phoneLink:hover {
+  background: rgb(92 27 19 / 10%);
+}
+
+.whatsAppLink,
+.mobileWhatsAppLink {
+  border: 1px solid #b7dfc0;
+  background: #edf8ef;
+  color: #185c2d;
+}
+
+.whatsAppLink:hover,
+.mobileWhatsAppLink:hover {
+  background: #dff2e3;
+}
+
+.menuToggle {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--marketing-border);
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.menuBar {
+  display: block;
+  width: 19px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--marketing-foreground);
+  transition: transform 180ms ease, opacity 120ms ease;
+}
+
+.menuBarTopOpen {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.menuBarMiddleOpen {
+  opacity: 0;
+}
+
+.menuBarBottomOpen {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.mobileNav {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--marketing-border);
+  background: var(--marketing-background);
+  padding: 8px 20px 20px;
+  box-shadow: 0 15px 24px rgb(26 16 8 / 10%);
+}
+
+.mobileNavLink {
+  display: block;
+  border-bottom: 1px solid var(--marketing-border);
+  padding: 14px 4px;
+  color: var(--marketing-foreground);
+  font-size: 1rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.mobilePhoneLink,
+.mobileWhatsAppLink {
+  margin-top: 8px;
+}
+
+.footer {
+  background: #1a1008;
+  color: rgb(255 255 255 / 78%);
+  padding: 42px 20px 22px;
+}
+
+.footerInner {
+  display: flex;
+  width: min(100%, 1180px);
+  margin-inline: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  text-align: center;
+}
+
+.footerBrandName {
+  color: #fff;
+  font-family: var(--font-heading), Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footerTagline {
+  margin: 4px 0 0;
+  color: rgb(255 255 255 / 55%);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footerLinks,
+.footerContact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 22px;
+  font-size: 0.875rem;
+}
+
+.footerLinks a,
+.footerContact a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footerLinks a:hover,
+.footerContact a:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.footerCopyright {
+  width: 100%;
+  margin: 0;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+  padding-top: 18px;
+  color: rgb(255 255 255 / 45%);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  .desktopNav,
+  .contactActions {
+    display: flex;
+  }
+
+  .menuToggle,
+  .mobileNav {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .headerInner,
+  .navLink::after,
+  .phoneLink,
+  .whatsAppLink,
+  .menuBar {
+    transition-duration: 0.01ms;
+  }
+}
+
+@media (max-width: 360px) {
+  .headerInner {
+    width: calc(100% - 24px);
+    gap: 10px;
+  }
+
+  .brandName {
+    font-size: 1.1rem;
+  }
+}

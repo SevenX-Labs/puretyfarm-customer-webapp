@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { Navbar } from "@/components/ui/Navbar";
 import { Hero } from "@/components/sections/Hero";
 
 function SectionSkeleton({
@@ -84,7 +83,6 @@ const StickyCtaBar = dynamic(
 export default function Home() {
   return (
     <>
-      <Navbar />
       <main>
         <Hero />
         <TrialOffer />
