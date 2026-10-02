@@ -122,7 +122,7 @@ export function SocialProof() {
     <>
       {/* Testimonials (Preserved; conditionally shown when verified) */}
       {(FLAGS.SHOW_TESTIMONIALS || FLAGS.SHOW_500_FAMILIES_BADGE) && (
-        <Section background="default" id="social-proof">
+        <Section background="default" id="testimonials">
           {FLAGS.SHOW_500_FAMILIES_BADGE && (
             <div ref={testBadgeRef} className="text-center mb-6">
               <span className="inline-flex items-center gap-2 bg-[#F5E729]/20 border border-[#F5E729]/40 text-[#1A1008] text-sm font-bold px-4 py-2 rounded-full">
@@ -139,7 +139,14 @@ export function SocialProof() {
           )}
 
           {/* Dynamic Animated Statistics Counters */}
-          <div ref={statsRef} className="mt-8 mb-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          <div
+            ref={statsRef}
+            className={`mt-8 mb-10 grid grid-cols-2 ${
+              FLAGS.SHOW_500_FAMILIES_BADGE || FLAGS.SHOW_40_TESTS_CLAIM
+                ? "md:grid-cols-4 max-w-4xl"
+                : "max-w-xl"
+            } gap-4 mx-auto`}
+          >
             {FLAGS.SHOW_500_FAMILIES_BADGE && (
               <StatCounter end={500} suffix="+" label="Happy Families" icon={<FiUsers className="w-6 h-6 text-[#5C1B13]" />} />
             )}

@@ -51,9 +51,7 @@ const PLANS = [
       { text: "Free morning delivery", icon: FiTruck },
       { text: "Glass bottle packaging", icon: FiShield },
       { text: "WhatsApp updates", icon: FiMessageCircle },
-      { text: "Cancel anytime", icon: FiX },
       { text: "Priority morning slot", icon: FiClock },
-      { text: "Weekend quantity change", icon: FiCalendar },
     ],
     highlighted: true,
   },
@@ -69,10 +67,8 @@ const PLANS = [
     features: [
       { text: "Free morning delivery", icon: FiTruck },
       { text: "Glass bottle packaging", icon: FiShield },
-      { text: "WhatsApp updates", icon: FiMessageCircle },
-      { text: "Cancel anytime", icon: FiX },
       { text: "Dedicated delivery partner", icon: FiUsers },
-      { text: "Bulk pricing savings", icon: FiAward },
+      { text: "Bulk savings (₹75/litre)", icon: FiAward },
     ],
     highlighted: false,
   },
@@ -148,8 +144,8 @@ export function Pricing() {
         </div>
       </div>
 
-      {/* Plan cards - Premium glassmorphism design */}
-      <div ref={plansRef} className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto items-stretch">
+      {/* Plan cards - Compact sleek design */}
+      <div ref={plansRef} className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6 max-w-5xl mx-auto items-stretch">
         {PLANS.map((plan) => {
           const displayPrice = isMonthly ? plan.price * 30 : plan.price;
           const displayOriginalPrice = plan.originalPrice
@@ -166,11 +162,11 @@ export function Pricing() {
             <div
               key={plan.name}
               data-plan-card
-              className={`h-full ${plan.highlighted ? "md:-mt-4 md:mb-4" : ""}`}
+              className={`h-full ${plan.highlighted ? "md:-mt-2 md:mb-2" : ""}`}
             >
               <TiltCard
-                tiltMaxAngle={plan.highlighted ? 6 : 4}
-                scale={plan.highlighted ? 1.02 : 1.01}
+                tiltMaxAngle={plan.highlighted ? 5 : 3}
+                scale={plan.highlighted ? 1.015 : 1.01}
                 glare={true}
                 className="h-full group"
               >
@@ -178,25 +174,25 @@ export function Pricing() {
                 {plan.highlighted && (
                   <div
                     aria-hidden="true"
-                    className="absolute -inset-1 rounded-3xl bg-gradient-to-b from-[#F5E729]/35 via-[#5C1B13]/20 to-[#F5E729]/35 blur-lg opacity-60 group-hover:opacity-100 transition-opacity -z-10"
+                    className="absolute -inset-1 rounded-3xl bg-gradient-to-b from-[#F5E729]/30 via-[#5C1B13]/15 to-[#F5E729]/30 blur-md opacity-60 group-hover:opacity-100 transition-opacity -z-10"
                   />
                 )}
 
                 <div
                   className={`
-                    relative flex flex-col h-full bg-gradient-to-br ${plan.gradient} rounded-3xl p-7 sm:p-8
+                    relative flex flex-col h-full bg-gradient-to-br ${plan.gradient} rounded-2xl sm:rounded-3xl p-5 sm:p-6
                     transition-all duration-300
                     ${
                       plan.highlighted
-                        ? "border-2 border-[#5C1B13] shadow-2xl shadow-[#5C1B13]/15 ring-1 ring-[#5C1B13]/10"
-                        : "border border-[#E8DFD4] shadow-sm hover:shadow-xl hover:border-[#5C1B13]/30"
+                        ? "border-2 border-[#5C1B13] shadow-xl shadow-[#5C1B13]/12 ring-1 ring-[#5C1B13]/10"
+                        : "border border-[#E8DFD4] shadow-xs hover:shadow-lg hover:border-[#5C1B13]/30"
                     }
                   `}
                 >
                   {/* Most popular badge */}
                   {plan.highlighted && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30">
-                      <span className="inline-flex items-center gap-1.5 bg-[#5C1B13] text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap shadow-lg shadow-[#5C1B13]/25 border border-[#5C1B13]">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
+                      <span className="inline-flex items-center gap-1.5 bg-[#5C1B13] text-white text-[11px] font-bold px-3.5 py-1 rounded-full whitespace-nowrap shadow-md shadow-[#5C1B13]/25 border border-[#5C1B13]">
                         <FiStar className="w-3 h-3" />
                         RECOMMENDED
                       </span>
@@ -204,57 +200,57 @@ export function Pricing() {
                   )}
 
                   {/* Plan header with icon */}
-                  <div className="mb-6">
-                    <div className={`inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 ${plan.highlighted ? "bg-[#5C1B13] text-white" : "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4]"} transition-transform duration-300 group-hover:scale-110`}>
-                      <PlanIcon className="w-5 h-5" strokeWidth={2} />
+                  <div className="mb-3">
+                    <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2.5 ${plan.highlighted ? "bg-[#5C1B13] text-white" : "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4]"} transition-transform duration-300 group-hover:scale-105`}>
+                      <PlanIcon className="w-4 h-4" strokeWidth={2} />
                     </div>
-                    <h3 className="text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] group-hover:text-[#5C1B13] transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] group-hover:text-[#5C1B13] transition-colors">
                       {plan.name}
                     </h3>
-                    <p className="text-sm text-[#3A241C]/60 mt-1 font-medium">{plan.quantity}</p>
+                    <p className="text-xs text-[#3A241C]/60 mt-0.5 font-medium">{plan.quantity}</p>
                   </div>
 
                   {/* Price block */}
-                  <div className="mb-2">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-4xl sm:text-5xl font-black text-[#5C1B13] tracking-tight leading-none">
+                  <div className="mb-1.5">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl sm:text-4xl font-black text-[#5C1B13] tracking-tight leading-none">
                         ₹{displayPrice}
                       </span>
-                      <span className="text-sm text-[#3A241C]/50 font-medium">
+                      <span className="text-xs text-[#3A241C]/50 font-medium">
                         /{isMonthly ? "month" : "day"}
                       </span>
                     </div>
                     {displayOriginalPrice && (
-                      <span className="text-sm text-[#3A241C]/40 line-through ml-0.5">
+                      <span className="text-xs text-[#3A241C]/40 line-through ml-0.5">
                         ₹{displayOriginalPrice}
                       </span>
                     )}
                   </div>
 
                   {isMonthly && monthlySavings && (
-                    <div className="mb-3">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-                        <FiCheck className="w-3 h-3" />
+                    <div className="mb-2">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                        <FiCheck className="w-2.5 h-2.5" />
                         Save ₹{monthlySavings}/month
                       </span>
                     </div>
                   )}
 
-                  <p className="text-sm text-[#3A241C]/65 mb-6">{plan.description}</p>
+                  <p className="text-xs text-[#3A241C]/65 mb-3">{plan.description}</p>
 
                   {/* Divider */}
-                  <div className="h-px bg-gradient-to-r from-transparent via-[#E8DFD4] to-transparent mb-6" />
+                  <div className="h-px bg-gradient-to-r from-transparent via-[#E8DFD4] to-transparent mb-3.5" />
 
                   {/* Features with icons */}
-                  <ul className="space-y-3.5 mb-8 flex-1">
+                  <ul className="space-y-2.5 mb-5 flex-1">
                     {plan.features.map((feature) => {
                       const FeatureIcon = feature.icon;
                       return (
-                        <li key={feature.text} className="flex items-center gap-3">
-                          <span className={`flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 ${plan.highlighted ? "bg-[#5C1B13]/10 text-[#5C1B13]" : "bg-[#FAF3EA] text-[#5C1B13]/70"}`}>
-                            <FeatureIcon className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        <li key={feature.text} className="flex items-center gap-2.5">
+                          <span className={`flex items-center justify-center w-5 h-5 rounded-md flex-shrink-0 ${plan.highlighted ? "bg-[#5C1B13]/10 text-[#5C1B13]" : "bg-[#FAF3EA] text-[#5C1B13]/70"}`}>
+                            <FeatureIcon className="w-3 h-3" strokeWidth={2.5} />
                           </span>
-                          <span className="text-sm text-[#1A1008] font-medium">{feature.text}</span>
+                          <span className="text-xs text-[#1A1008] font-medium">{feature.text}</span>
                         </li>
                       );
                     })}
@@ -263,9 +259,10 @@ export function Pricing() {
                   {/* CTA */}
                   <Button
                     variant={plan.highlighted ? "primary" : "secondary"}
+                    size="sm"
                     fullWidth
                     onClick={handleTrialClick}
-                    className={plan.highlighted ? "shadow-lg shadow-[#5C1B13]/20" : ""}
+                    className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl ${plan.highlighted ? "shadow-md shadow-[#5C1B13]/20" : ""}`}
                   >
                     Start 7-Day Trial
                   </Button>

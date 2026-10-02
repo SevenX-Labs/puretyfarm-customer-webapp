@@ -5,31 +5,23 @@ import Link from "next/link";
 import { AnimatePresence, m } from "framer-motion";
 import { Button } from "./Button";
 import { BrandLogo } from "./BrandLogo";
-import { ENV } from "@/config/env";
 import {
   handleTrialClick,
   handleDownloadClick,
-  getWhatsAppUrl,
-  getPhoneUrl,
-  getEmailUrl,
 } from "@/lib/cta";
 import {
-  FiPhone,
   FiChevronRight,
-  FiMail,
   FiSun,
   FiMenu,
   FiX,
-  FiShield,
 } from "react-icons/fi";
-import { FaWhatsapp } from "react-icons/fa";
 
 const NAV_LINKS = [
   { label: "Why Us", href: "/#why-puretyfarm", id: "nav-why" },
   { label: "How It Works", href: "/#how-it-works", id: "nav-how" },
-  { label: "7-Day Trial", href: "/#trial-offer", id: "nav-trial" },
   { label: "Pricing", href: "/#pricing", id: "nav-pricing" },
-  { label: "Delivery Areas", href: "/service-area", id: "nav-area" },
+  { label: "Testimonials", href: "/#testimonials", id: "nav-testimonials" },
+  { label: "Contact", href: "/#contact", id: "nav-contact" },
   { label: "FAQs", href: "/#faq", id: "nav-faq" },
 ] as const;
 
@@ -97,32 +89,6 @@ export function Navbar() {
 
           {/* Right: Quick Action Controls */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Clickable Phone (xl screens) */}
-            <a
-              href={getPhoneUrl()}
-              className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-[#5C1B13] bg-[#5C1B13]/5 hover:bg-[#5C1B13]/10 px-3 py-1.5 rounded-full transition-colors border border-[#5C1B13]/15 h-[34px]"
-              title="Call PuretyFarm Farm Support"
-            >
-              <FiPhone className="w-3.5 h-3.5 text-[#5C1B13]" />
-              <span>{ENV.PHONE_DISPLAY}</span>
-            </a>
-
-            {/* Live WhatsApp Pill with Pulsing Status Beacon */}
-            <a
-              href={getWhatsAppUrl("Hi PuretyFarm, I would like to inquire about fresh A2 milk delivery in Raipur.")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 sm:px-3.5 py-1.5 rounded-full transition-all border border-emerald-200 h-[34px] hover:scale-105 active:scale-95 shadow-2xs"
-              title="Chat with us on WhatsApp"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-              </span>
-              <FaWhatsapp className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">WhatsApp</span>
-            </a>
-
             {/* Primary Action Button: Start Trial */}
             <Button
               variant="primary"
@@ -189,27 +155,6 @@ export function Navbar() {
                   <FiChevronRight className="w-3.5 h-3.5 text-[#5C1B13]/60" />
                 </Link>
               ))}
-            </div>
-
-            {/* Direct Contact Actions */}
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#E8DFD4]">
-              <a
-                href={getPhoneUrl()}
-                className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white border border-[#E8DFD4] hover:bg-[#FAF3EA] text-xs font-bold text-[#5C1B13] shadow-2xs transition-colors"
-              >
-                <FiPhone className="w-3.5 h-3.5 text-[#5C1B13]" />
-                <span>Call Helpline</span>
-              </a>
-
-              <a
-                href={getWhatsAppUrl("Hi PuretyFarm, I would like to inquire about fresh A2 milk delivery in Raipur.")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 text-xs font-bold text-emerald-800 shadow-2xs transition-colors"
-              >
-                <FaWhatsapp className="w-3.5 h-3.5 text-emerald-600" />
-                <span>WhatsApp</span>
-              </a>
             </div>
 
             {/* CTAs */}

@@ -5,7 +5,7 @@
  */
 export const FLAGS = {
   /** Testimonial cards in SocialProof section */
-  SHOW_TESTIMONIALS: false,
+  SHOW_TESTIMONIALS: true,
 
   /** 5-star rating stars and "500+ Happy Families" badge in Hero and SocialProof */
   SHOW_500_FAMILIES_BADGE: false,

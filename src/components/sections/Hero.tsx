@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
 import { useHeroEntrance, useParallax } from "@/lib/animations";
 import { FLAGS } from "@/config/flags";
-import { FiStar, FiZap, FiDownload, FiCheckCircle, FiShield, FiPackage, FiThermometer, FiSun } from "react-icons/fi";
+import { FiZap, FiDownload } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 
 const ThreeBackgroundCanvas = dynamic(
@@ -33,13 +33,6 @@ const HeroBottle3D = dynamic(
     ),
   }
 );
-
-const TRUST_METRICS = [
-  { label: "100% Desi Gir Cows", icon: FiShield },
-  { label: "Sanitized Glass", icon: FiPackage },
-  { label: "Chilled to 4°C", icon: FiThermometer },
-  { label: "Dawn Milked Daily", icon: FiSun },
-] as const;
 
 export function Hero() {
   const heroRef = useHeroEntrance<HTMLElement>();
@@ -140,41 +133,6 @@ export function Hero() {
                   Download Our App
                 </Button>
               )}
-            </div>
-
-            {/* Micro Trust Feature Chips Strip */}
-            <div
-              data-hero-anim
-              className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-2.5"
-            >
-              {TRUST_METRICS.map((metric) => (
-                <div
-                  key={metric.label}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 border border-[#E8DFD4] shadow-xs text-xs font-semibold text-[#1A1008]"
-                >
-                  <metric.icon className="w-3.5 h-3.5 text-[#5C1B13]" />
-                  <span>{metric.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Social proof micro guarantees */}
-            <div
-              data-hero-anim
-              className="mt-5 flex items-center gap-4 justify-center lg:justify-start text-xs sm:text-sm text-[#3A241C]/75"
-            >
-              <div className="flex items-center gap-1.5">
-                <FiCheckCircle className="w-4 h-4 text-emerald-600" />
-                <span>Zero deposit</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <FiCheckCircle className="w-4 h-4 text-emerald-600" />
-                <span>Free morning delivery</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <FiCheckCircle className="w-4 h-4 text-emerald-600" />
-                <span>Cancel anytime</span>
-              </div>
             </div>
           </div>
 

@@ -54,20 +54,17 @@ const Pricing = dynamic(
   }
 );
 
-const ServiceAreaChecker = dynamic(
-  () =>
-    import("@/components/sections/ServiceAreaChecker").then(
-      (mod) => mod.ServiceAreaChecker
-    ),
-  {
-    loading: () => <SectionSkeleton minHeight="480px" bg="bg-[#FAF3EA]" />,
-  }
-);
-
 const SocialProof = dynamic(
   () => import("@/components/sections/SocialProof").then((mod) => mod.SocialProof),
   {
     loading: () => <SectionSkeleton minHeight="480px" bg="bg-[#FFFDF7]" />,
+  }
+);
+
+const ContactUs = dynamic(
+  () => import("@/components/sections/ContactUs").then((mod) => mod.ContactUs),
+  {
+    loading: () => <SectionSkeleton minHeight="500px" bg="bg-[#FFFDF7]" />,
   }
 );
 
@@ -93,8 +90,8 @@ export default function Home() {
         <HowItWorks />
         {FLAGS.SHOW_APP_FEATURES && <AppShowcase />}
         <Pricing />
-        <ServiceAreaChecker />
         <SocialProof />
+        <ContactUs />
         <FaqCtaFooter />
       </main>
       <StickyCtaBar />
