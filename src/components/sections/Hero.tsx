@@ -1,162 +1,165 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { useState } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/Button";
-import { MarqueeTicker } from "@/components/ui/MarqueeTicker";
-import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
-import { useHeroEntrance, useParallax } from "@/lib/animations";
-import { FLAGS } from "@/config/flags";
-import { ShinyText, Magnet } from "@/components/reactbits";
-import { FiZap, FiDownload } from "react-icons/fi";
-import { FaStar } from "react-icons/fa";
-
-const ThreeBackgroundCanvas = dynamic(
-  () => import("@/components/ui/ThreeBackgroundCanvas").then((mod) => mod.ThreeBackgroundCanvas),
-  { ssr: false }
-);
-
-const HeroBottle3D = dynamic(
-  () => import("@/components/sections/HeroBottle3D").then((mod) => mod.HeroBottle3D),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="relative w-full max-w-md lg:max-w-lg mx-auto flex items-center justify-center py-2">
-        <Image
-          src="/pure-milk-bottle-3d.webp"
-          alt="PuretyFarm Pure A2 Gir Cow Milk - 3D Glass Bottle"
-          width={450}
-          height={608}
-          priority
-          loading="eager"
-          className="w-auto h-[270px] sm:h-[340px] md:h-[390px] lg:h-[clamp(320px,41vh,430px)] max-w-full object-contain"
-        />
-      </div>
-    ),
-  }
-);
+import { FiZap, FiArrowRight, FiPlay } from "react-icons/fi";
+import { handleTrialClick } from "@/lib/cta";
+import { HeroProductVisual } from "./HeroProductVisual";
+import { HeroBenefitBar } from "./HeroBenefitBar";
+import { HeroVideoModal } from "./HeroVideoModal";
 
 export function Hero() {
-  const heroRef = useHeroEntrance<HTMLElement>();
-  const bgBlob1 = useParallax<HTMLDivElement>(-0.2);
-  const bgBlob2 = useParallax<HTMLDivElement>(0.15);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   return (
-    <section
-      ref={heroRef}
-      id="hero"
-      className="relative w-full bg-[#FFFDF7] overflow-hidden flex flex-col justify-between min-h-[calc(100dvh-4.5rem)] lg:h-[calc(100dvh-5.25rem)] lg:min-h-[580px] lg:max-h-[960px]"
-    >
-      {/* Three.js 3D droplet canvas: desktop only, strictly right side behind bottle, never overlapping text */}
-      <div className="hidden md:block absolute top-0 right-0 w-1/2 h-full overflow-hidden pointer-events-none -z-10">
-        <ThreeBackgroundCanvas particleCount={24} />
-      </div>
+    <>
+      <section
+        id="hero"
+        aria-label="PuretyFarm A2 Cow Milk Hero"
+        className="relative w-full bg-[#FFFDF7] overflow-hidden flex flex-col justify-between min-h-[100dvh] lg:h-[100dvh] lg:max-h-[100dvh] pt-18 sm:pt-20 lg:pt-16 pb-0"
+      >
+        {/* ─── FULL-SCREEN CINEMATIC FARM BACKGROUND (SCALES TO ENTIRE SCREEN, NO BOX) ─── */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Full-bleed cinematic photo from documentation/images/herobg.png */}
+          <Image
+            src="/herobg.webp"
+            alt="PuretyFarm Pure A2 Gir Cow Milk on Scenic Raipur Farmland"
+            fill
+            priority
+            quality={95}
+            className="object-cover object-[68%_46%] lg:object-[68%_46%] select-none pointer-events-none"
+          />
 
-      {/* Decorative ambient color blur blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-20">
-        <div ref={bgBlob1} className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#F5E729]/12 blur-3xl" />
-        <div ref={bgBlob2} className="absolute -bottom-48 -left-48 w-[520px] h-[520px] rounded-full bg-[#5C1B13]/6 blur-3xl" />
-      </div>
+          {/* Desktop Left-to-Right Luminous Sunrise Mist — preserves green hills while ensuring 100% text contrast */}
+          <div className="hidden lg:block absolute inset-0 bg-gradient-to-r from-[#FFFDF7]/85 via-[#FFFDF7]/50 via-40% to-transparent pointer-events-none z-[1]" />
 
-      {/* Centered Hero Content */}
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 w-full flex-1 flex items-center py-4 lg:py-2">
-        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 w-full">
-          {/* Text content - strictly z-10 above all background layers */}
-          <div className="flex-1 text-center lg:text-left relative z-10">
-            {/* Trust badge with live delivery indicator */}
-            <div
-              data-hero-anim
-              className="inline-flex items-center gap-2 bg-white/95 backdrop-blur-md border border-[#E8DFD4] shadow-xs rounded-full pl-3 pr-3.5 py-1 mb-3 lg:mb-4"
-            >
-              <span className="flex h-2.5 w-2.5 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-              </span>
-              <ShinyText
-                text="Dawn Milked Today"
-                speed={3.5}
-                className="text-[11px] sm:text-xs font-bold text-[#5C1B13] tracking-wide uppercase"
-              />
-              {FLAGS.SHOW_500_FAMILIES_BADGE && (
-                <>
-                  <span className="text-[#3A241C]/30 text-xs">•</span>
-                  <div className="flex items-center gap-0.5">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar key={i} className="w-3 h-3 text-[#F5E729]" />
-                    ))}
-                  </div>
-                  <ShinyText
-                    text="500+ Families in Raipur"
-                    speed={4}
-                    className="text-xs font-bold text-[#1A1008] border-l border-[#E8DFD4] pl-2.5"
+          {/* Mobile Luminous Morning Light — keeps the full pasture image visible while maintaining contrast */}
+          <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-[#FFFDF7]/75 via-[#FFFDF7]/50 via-50% to-[#FFFDF7]/25 pointer-events-none z-[1]" />
+        </div>
+
+        {/* ─── DESKTOP PRODUCT VISUAL OVERLAY (Anchored at 68% X, 46% Y) ─── */}
+        <div className="hidden lg:block">
+          <HeroProductVisual />
+        </div>
+
+        {/* ─── MAIN CONTENT COMPOSITION ─── */}
+        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex-1 flex items-center py-2 sm:py-3 lg:py-1 min-w-0 min-h-0">
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center min-w-0">
+            
+            {/* ─── LEFT COLUMN: EDITORIAL TYPOGRAPHY & CTAs ─── */}
+            <div className="lg:col-span-6 xl:col-span-5 text-center lg:text-left flex flex-col items-center lg:items-start max-w-2xl mx-auto lg:mx-0 w-full min-w-0">
+              
+              {/* 1. Status Badge: DAWN MILKED TODAY */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EAF7EE] border border-[#BCE5C8] shadow-2xs backdrop-blur-md mb-2.5 sm:mb-3">
+                <span className="flex h-3.5 w-3.5 rounded-full border-[1.5px] border-emerald-600 items-center justify-center shrink-0">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                </span>
+                <span className="text-[11px] sm:text-xs font-bold text-[#166534] tracking-[0.16em] uppercase">
+                  Dawn Milked Today
+                </span>
+              </div>
+
+              {/* 2. Main Headline: Editorial Serif */}
+              <h1 className="text-[1.75rem] sm:text-4xl md:text-[2.85rem] lg:text-[clamp(2.3rem,3.1vw,3.65rem)] font-bold text-[#1A1008] leading-[1.14] tracking-tight font-[family-name:var(--font-heading)] max-w-full">
+                <span className="block">Pure A2 Cow Milk,</span>
+                <span className="text-[#541711] relative inline-block font-serif italic my-0.5">
+                  Delivered Fresh
+                  {/* Subtle warm golden brush underline */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute bottom-1 sm:bottom-1.5 left-0 right-0 h-3 sm:h-3.5 bg-[#F6E575]/85 -z-10 rounded-xs"
                   />
-                </>
-              )}
-            </div>
+                </span>
+                <span className="block">to Your Doorstep</span>
+              </h1>
 
-            <h1
-              data-hero-anim
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-[clamp(2.4rem,3.6vw,3.5rem)] font-bold text-[#1A1008] leading-[1.12] tracking-tight font-[family-name:var(--font-heading)]"
-            >
-              Pure A2 Cow Milk,{" "}
-              <span className="text-[#5C1B13] relative inline-block font-serif italic">
-                Delivered Fresh
-                <span className="absolute bottom-1.5 left-0 right-0 h-2 bg-[#F5E729]/30 -z-10 rounded-sm" />
-              </span>{" "}
-              to Your Doorstep
-            </h1>
+              {/* 3. Supporting Text */}
+              <p className="mt-2.5 sm:mt-3 text-xs sm:text-sm md:text-base text-[#3E2D24] leading-relaxed max-w-xl font-normal px-2">
+                Farm-fresh, 100% unadulterated Gir cow milk delivered before 7:00 AM daily across
+                Shankar Nagar, VIP Road, Samta Colony, Civil Lines &amp; all Raipur localities.
+              </p>
 
-            <p
-              data-hero-anim
-              className="mt-3 sm:mt-4 text-base sm:text-lg lg:text-[1.05rem] text-[#3A241C]/85 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal"
-            >
-              Farm-fresh, 100% unadulterated Gir cow milk delivered before 7:00 AM daily
-              across Shankar Nagar, VIP Road, Samta Colony, Civil Lines &amp; all Raipur localities.
-            </p>
-
-            {/* CTA group with React Bits Magnet interaction */}
-            <div
-              data-hero-anim
-              className="mt-5 sm:mt-6 lg:mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3.5 justify-center lg:justify-start"
-            >
-              <Magnet magnetStrength={0.25} className="w-full sm:w-auto">
-                <Button
-                  variant="primary"
-                  size="lg"
+              {/* 4. Desktop Action CTAs (Pill-shaped matching reference design) */}
+              <div className="hidden lg:flex mt-4 sm:mt-5 flex-row items-center gap-4">
+                {/* Primary Dominant CTA: Start My 7-Day Trial */}
+                <button
+                  type="button"
                   onClick={handleTrialClick}
-                  className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/20"
+                  className="group relative inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-full bg-[#541711] hover:bg-[#40110D] text-white font-bold text-sm sm:text-base shadow-xl shadow-[#541711]/25 hover:shadow-2xl hover:shadow-[#541711]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer min-h-[46px]"
                 >
-                  <FiZap className="w-5 h-5" />
-                  Start My 7-Day Trial
-                </Button>
-              </Magnet>
-              {FLAGS.SHOW_APP_FEATURES && (
-                <Magnet magnetStrength={0.2} className="w-full sm:w-auto">
-                  <Button
-                    variant="secondary"
-                    size="lg"
-                    onClick={handleDownloadClick}
-                    className="w-full sm:w-auto"
-                  >
-                    <FiDownload className="w-5 h-5" />
-                    Download Our App
-                  </Button>
-                </Magnet>
-              )}
-            </div>
-          </div>
+                  <FiZap className="w-4 h-4 sm:w-5 sm:h-5 text-[#F5E729] shrink-0" />
+                  <span>Start My 7-Day Trial</span>
+                  <FiArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </button>
 
-          {/* Hero visual: 3D Floating Milk Bottle */}
-          <div className="flex-1 relative max-w-md lg:max-w-lg w-full flex items-center justify-center">
-            <HeroBottle3D />
+                {/* Secondary CTA: Watch How It Works (1 min video) */}
+                <button
+                  type="button"
+                  onClick={() => setIsVideoModalOpen(true)}
+                  className="group inline-flex items-center gap-3 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all duration-200 cursor-pointer text-left min-h-[46px]"
+                  aria-label="Watch how PuretyFarm works, 1 minute video"
+                >
+                  <span className="w-10 h-10 rounded-full bg-[#F2ECE1] border border-[#E3D7C9] flex items-center justify-center text-[#541711] shadow-xs group-hover:scale-105 group-hover:bg-[#EFE4D6] transition-transform duration-200 shrink-0">
+                    <FiPlay className="w-4 h-4 ml-0.5 fill-current" />
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-[#1A1008] group-hover:text-[#541711] transition-colors leading-tight">
+                      Watch How It Works
+                    </span>
+                    <span className="text-[11px] text-[#6B584C] font-medium mt-0.5">
+                      1 min video
+                    </span>
+                  </div>
+                </button>
+              </div>
+
+              {/* ─── MOBILE ONLY ACTION CTAs ─── */}
+              <div className="lg:hidden w-full max-w-md flex flex-col items-stretch gap-2.5 mt-3.5 px-2">
+                <button
+                  type="button"
+                  onClick={handleTrialClick}
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#541711] active:bg-[#40110D] text-white font-bold text-sm shadow-xl shadow-[#541711]/25 min-h-[46px] cursor-pointer"
+                >
+                  <FiZap className="w-4 h-4 text-[#F5E729] shrink-0" />
+                  <span>Start My 7-Day Trial</span>
+                  <FiArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsVideoModalOpen(true)}
+                  className="w-full inline-flex items-center justify-center gap-2.5 px-4 py-2 rounded-full bg-white/95 border border-[#ECE5DC] text-[#1A1008] font-bold text-xs shadow-xs min-h-[40px] cursor-pointer hover:bg-white active:scale-98 transition-all"
+                >
+                  <span className="w-5 h-5 rounded-full bg-[#F2ECE1] border border-[#E3D7C9] text-[#541711] flex items-center justify-center shrink-0">
+                    <FiPlay className="w-2.5 h-2.5 ml-0.5 fill-current" />
+                  </span>
+                  <span>Watch How It Works</span>
+                  <span className="text-[10px] text-[#6B584C] font-medium">• 1 min video</span>
+                </button>
+              </div>
+
+              {/* ─── MOBILE ONLY TRUST CARDS & PILL (Rendered below CTAs) ─── */}
+              <div className="lg:hidden w-full mt-3.5">
+                <HeroProductVisual mobileOnly />
+              </div>
+
+            </div>
+
+            {/* Spacer for desktop layout (the right side bottle visual is rendered as full-stage overlay) */}
+            <div className="hidden lg:block lg:col-span-6 xl:col-span-7" aria-hidden="true" />
+
           </div>
         </div>
-      </div>
 
-      {/* MarqueeTicker anchored at the base of the Hero fold */}
-      <div className="w-full shrink-0 relative z-20">
-        <MarqueeTicker />
-      </div>
-    </section>
+        {/* ─── BOTTOM HERO BENEFIT BAR ─── */}
+        <HeroBenefitBar />
+      </section>
+
+      {/* ─── INTERACTIVE 1-MINUTE STORY VIDEO MODAL ─── */}
+      <HeroVideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+      />
+    </>
   );
 }

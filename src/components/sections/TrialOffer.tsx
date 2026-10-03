@@ -102,11 +102,10 @@ export function TrialOffer() {
                       key={vol.id}
                       type="button"
                       onClick={() => setSelectedVolume(vol)}
-                      className={`relative px-3 py-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        selectedVolume.id === vol.id
+                      className={`relative px-3 py-2.5 rounded-xl border text-center transition-all cursor-pointer ${selectedVolume.id === vol.id
                           ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/20 scale-102"
                           : "bg-[#FAF3EA] text-[#3A241C] border-[#E8DFD4] hover:bg-white"
-                      }`}
+                        }`}
                     >
                       {vol.popular && selectedVolume.id !== vol.id && (
                         <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase bg-[#F5E729] text-[#1A1008] px-1.5 py-0.2 rounded-full">

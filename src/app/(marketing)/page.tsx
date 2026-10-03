@@ -81,7 +81,7 @@ const StickyCtaBar = dynamic(
 export default function Home() {
   return (
     <>
-      <main>
+      <main className="w-full max-w-full overflow-x-hidden">
         <Hero />
         <TrialOffer />
         <WhyUs />

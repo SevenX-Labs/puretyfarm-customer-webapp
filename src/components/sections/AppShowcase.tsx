@@ -93,11 +93,10 @@ function PhoneMockup({
 
       {/* Phone frame */}
       <div
-        className={`rounded-[32px] bg-[#1A1008] p-2 transition-shadow duration-300 ${
-          isActive
+        className={`rounded-[32px] bg-[#1A1008] p-2 transition-shadow duration-300 ${isActive
             ? "shadow-[0_25px_60px_-12px_rgba(92,27,19,0.3)] ring-2 ring-[#5C1B13]/30"
             : "shadow-[0_20px_40px_-12px_rgba(92,27,19,0.12)]"
-        }`}
+          }`}
       >
         {/* Notch */}
         <div className="relative rounded-[26px] bg-white overflow-hidden">
@@ -139,11 +138,10 @@ function PhoneMockup({
                     {(screen.content as typeof APP_SCREENS[0]["content"]).card.quantities.map((q, i) => (
                       <button
                         key={q}
-                        className={`flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-colors ${
-                          i === (screen.content as typeof APP_SCREENS[0]["content"]).card.selected
+                        className={`flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-colors ${i === (screen.content as typeof APP_SCREENS[0]["content"]).card.selected
                             ? "bg-[#5C1B13] text-white"
                             : "bg-white border border-[#E8DFD4] text-[#3A241C]"
-                        }`}
+                          }`}
                       >
                         {q}
                       </button>
@@ -152,8 +150,8 @@ function PhoneMockup({
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-[#3A241C]/60">
                   <div className="w-8 h-8 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center shrink-0">
-                  <FiDroplet className="w-4 h-4" />
-                </div>
+                    <FiDroplet className="w-4 h-4" />
+                  </div>
                   <span>Next delivery scheduled</span>
                 </div>
               </>
@@ -180,19 +178,18 @@ function PhoneMockup({
                 <div className="bg-white rounded-xl border border-[#E8DFD4] p-3">
                   <p className="text-[11px] font-semibold text-[#1A1008] mb-2">September 2025</p>
                   <div className="grid grid-cols-7 gap-1 text-center">
-                    {["M","T","W","T","F","S","S"].map((d, i) => (
+                    {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
                       <span key={i} className="text-[9px] font-semibold text-[#3A241C]/50">{d}</span>
                     ))}
                     {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
                       <div
                         key={d}
-                        className={`w-5 h-5 flex items-center justify-center text-[9px] rounded-full mx-auto ${
-                          d <= 14
+                        className={`w-5 h-5 flex items-center justify-center text-[9px] rounded-full mx-auto ${d <= 14
                             ? "bg-green-100 text-green-700"
                             : d <= 18
                               ? "bg-[#F5E729]/30 text-[#1A1008]"
                               : "text-[#3A241C]/40"
-                        }`}
+                          }`}
                       >
                         {d}
                       </div>
@@ -356,11 +353,10 @@ export function AppShowcase() {
             key={screen.title}
             type="button"
             onClick={() => setActiveScreenIndex(i)}
-            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer select-none ${
-              activeScreenIndex === i
+            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer select-none ${activeScreenIndex === i
                 ? "bg-[#5C1B13] text-white shadow-lg shadow-[#5C1B13]/25 scale-105"
                 : "bg-white text-[#3A241C]/75 hover:bg-[#FAF3EA] border border-[#E8DFD4]"
-            }`}
+              }`}
           >
             {screen.title}
           </button>

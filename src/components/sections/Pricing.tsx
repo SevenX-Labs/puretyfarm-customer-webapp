@@ -120,22 +120,20 @@ export function Pricing() {
           <button
             type="button"
             onClick={() => setIsMonthly(false)}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer ${
-              !isMonthly
+            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer ${!isMonthly
                 ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20"
                 : "text-[#3A241C]/75 hover:text-[#1A1008] hover:bg-[#FAF3EA]"
-            }`}
+              }`}
           >
             Daily Rate
           </button>
           <button
             type="button"
             onClick={() => setIsMonthly(true)}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${
-              isMonthly
+            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${isMonthly
                 ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20"
                 : "text-[#3A241C]/75 hover:text-[#1A1008] hover:bg-[#FAF3EA]"
-            }`}
+              }`}
           >
             <span>Monthly Subscription</span>
             <span className="bg-[#F5E729] text-[#1A1008] text-[10px] px-2 py-0.5 rounded-full font-black">
@@ -183,10 +181,9 @@ export function Pricing() {
                   className={`
                     relative flex flex-col h-full bg-gradient-to-br ${plan.gradient} rounded-2xl sm:rounded-3xl p-5 sm:p-6
                     transition-all duration-300
-                    ${
-                      plan.highlighted
-                        ? "border-2 border-[#5C1B13] shadow-xl shadow-[#5C1B13]/12 ring-1 ring-[#5C1B13]/10"
-                        : "border border-[#E8DFD4] shadow-xs hover:shadow-lg hover:border-[#5C1B13]/30"
+                    ${plan.highlighted
+                      ? "border-2 border-[#5C1B13] shadow-xl shadow-[#5C1B13]/12 ring-1 ring-[#5C1B13]/10"
+                      : "border border-[#E8DFD4] shadow-xs hover:shadow-lg hover:border-[#5C1B13]/30"
                     }
                   `}
                 >

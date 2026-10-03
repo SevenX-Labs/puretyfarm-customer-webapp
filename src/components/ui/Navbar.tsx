@@ -55,18 +55,18 @@ export function Navbar() {
   return (
     <nav
       aria-label="Main Navigation"
-      className="sticky top-2 sm:top-4 z-50 w-full px-3 sm:px-6 pointer-events-none transition-all duration-300"
+      className="fixed top-2 sm:top-4 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300"
     >
-      {/* ─── FLOATING ROUNDED-OVAL PILL CONTAINER ─── */}
+      {/* ─── FLOATING ROUNDED PILL CONTAINER ─── */}
       <div
         className={`pointer-events-auto mx-auto max-w-6xl rounded-full transition-all duration-300 ${
           isScrolled
-            ? "bg-[#FFFDF7]/95 shadow-[0_14px_40px_rgba(92,27,19,0.12)] border border-[#DFCFC2] py-1.5 sm:py-2 px-3 sm:px-4 scale-[0.99]"
-            : "bg-[#FFFDF7]/90 shadow-[0_8px_30px_rgba(92,27,19,0.07)] border border-[#E8DFD4] py-2 sm:py-2.5 px-3.5 sm:px-5"
-        } backdrop-blur-xl ring-1 ring-white/80`}
+            ? "bg-white/95 shadow-[0_12px_36px_rgba(26,16,8,0.08)] border border-[#E5DACD] py-1.5 sm:py-2 px-3 sm:px-5 scale-[0.99]"
+            : "bg-white shadow-[0_8px_28px_rgba(26,16,8,0.06)] border border-[#ECE2D8] py-2 sm:py-2.5 px-3.5 sm:px-6"
+        } backdrop-blur-xl`}
       >
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
-          {/* Left: Brand Logo in Compact Chip */}
+        <div className="flex items-center justify-between gap-3 sm:gap-6">
+          {/* Left: Brand Logo */}
           <div className="shrink-0">
             <BrandLogo
               size="sm"
@@ -76,13 +76,13 @@ export function Navbar() {
             />
           </div>
 
-          {/* Center: Floating Oval Pill Menu Links (Desktop) */}
-          <div className="hidden lg:flex items-center gap-1 bg-[#FBF6EE]/80 border border-[#E8DFD4]/70 rounded-full px-2 py-1 shadow-inner">
+          {/* Center: Editorial Navigation Links (Desktop) */}
+          <div className="hidden lg:flex items-center gap-1 sm:gap-2">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#3A241C] hover:text-[#5C1B13] hover:bg-white hover:shadow-xs transition-all duration-200"
+                className="px-3.5 py-1.5 rounded-full text-[13.5px] font-medium text-[#2A1E17] hover:text-[#541711] hover:bg-[#541711]/5 transition-all duration-180"
               >
                 {link.label}
               </Link>
@@ -90,19 +90,21 @@ export function Navbar() {
           </div>
 
           {/* Right: Quick Action Controls */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            {/* Primary Action Button: Download App with Magnet effect */}
-            <Magnet magnetStrength={0.2}>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleDownloadClick}
-                className="rounded-full px-3.5 sm:px-4.5 py-1.5 text-xs font-bold h-[34px] shadow-md shadow-[#5C1B13]/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5"
-              >
-                <FiDownload className="w-3.5 h-3.5 text-[#F5E729]" />
-                <span>Download App</span>
-              </Button>
-            </Magnet>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Primary Action Button: Download App (Desktop only, mobile/tablet uses hamburger drawer) */}
+            <div className="hidden lg:block">
+              <Magnet magnetStrength={0.15}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleDownloadClick}
+                  className="rounded-full px-5 py-2.5 text-xs font-bold h-[38px] bg-[#541711] hover:bg-[#40110D] text-white shadow-md shadow-[#541711]/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <FiDownload className="w-3.5 h-3.5 text-white/95" />
+                  <span>Download App</span>
+                </Button>
+              </Magnet>
+            </div>
 
             {/* Mobile Hamburger Toggle Button */}
             <button

@@ -50,17 +50,17 @@ export function BrandLogo({
       aria-label="PuretyFarm Home"
       className={`inline-flex items-center gap-3 min-h-[44px] min-w-[44px] group rounded-xl transition-opacity duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5C1B13] focus-visible:ring-offset-2 ${className}`}
     >
-      {/* Logo mark container — high contrast with shadow for visibility */}
+      {/* Logo mark container — warm sand/tan artisan tile matching reference design */}
       <span
-        className="relative rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg"
+        className="relative rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:shadow-md"
         style={{
           width: `${markSizePx}px`,
           height: `${markSizePx}px`,
           minWidth: `${markSizePx}px`,
           minHeight: `${markSizePx}px`,
-          backgroundColor: "#FDEE57",
-          border: "2.5px solid #5C1B13",
-          boxShadow: "0 3px 12px rgba(92, 27, 19, 0.2), 0 1px 3px rgba(92, 27, 19, 0.1)",
+          background: "#F5E6D3",
+          border: "1.5px solid #E8D3BD",
+          boxShadow: "0 2px 8px rgba(92, 27, 19, 0.08)",
           overflow: "hidden",
         }}
       >
@@ -86,15 +86,15 @@ export function BrandLogo({
       {showWordmark && (
         <span className="flex flex-col select-none text-left">
           <span
-            className={`${titleSizes} font-bold text-[#1A1008] tracking-tight leading-none group-hover:text-[#5C1B13] transition-colors`}
+            className={`${titleSizes} font-bold text-[#1A1008] tracking-tight leading-none group-hover:text-[#541711] transition-colors`}
             style={{ fontFamily: "var(--font-heading), Georgia, serif" }}
           >
             PuretyFarm
           </span>
           {showSubtitle && (
             <span
-              className={`${subSizes} font-bold text-[#5C1B13] uppercase leading-none mt-1`}
-              style={{ letterSpacing: "0.08em" }}
+              className={`${subSizes} font-bold text-[#541711] uppercase leading-none mt-1`}
+              style={{ letterSpacing: "0.14em" }}
             >
               Raipur A2 Dairy
             </span>

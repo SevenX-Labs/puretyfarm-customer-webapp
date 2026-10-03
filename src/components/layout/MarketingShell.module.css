@@ -6,6 +6,9 @@
   --marketing-border: #e8dfd4;
   --marketing-cream: #fbf6ee;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   background: var(--marketing-background);
   color: var(--marketing-foreground);
 }
@@ -466,6 +469,7 @@
 }
 
 @media (min-width: 1024px) {
+
   .desktopNav,
   .contactActions {
     display: flex;
@@ -484,6 +488,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .header,
   .headerInner,
   .navLink::after,
