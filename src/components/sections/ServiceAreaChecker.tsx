@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { m, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { checkServiceArea, ServiceAreaResult } from "@/lib/serviceArea";
@@ -81,7 +82,12 @@ export function ServiceAreaChecker() {
     <Section background="cream" id="service-area">
       <div className="max-w-3xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-8">
+        <m.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center mb-8"
+        >
           <span className="inline-flex items-center gap-1.5 bg-[#5C1B13]/10 border border-[#5C1B13]/20 text-[#5C1B13] text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider mb-4">
             <FiMapPin className="w-3.5 h-3.5" />
             <span>Delivery Coverage</span>
@@ -92,10 +98,15 @@ export function ServiceAreaChecker() {
           <p className="mt-3 text-base sm:text-lg text-[#3A241C]/80 max-w-xl mx-auto">
             We deliver chilled raw A2 Gir cow milk before 7:00 AM daily across Raipur localities.
           </p>
-        </div>
+        </m.div>
 
         {/* Search Box */}
-        <div className="bg-white rounded-2xl p-5 sm:p-7 border border-[#E8DFD4] shadow-sm">
+        <m.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-white rounded-2xl p-5 sm:p-7 border border-[#E8DFD4] shadow-sm"
+        >
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -140,9 +151,11 @@ export function ServiceAreaChecker() {
             <p className="text-xs text-[#3A241C]/60 mb-2 font-medium">Popular delivery hubs:</p>
             <div className="flex flex-wrap gap-2">
               {POPULAR_AREAS.map((area) => (
-                <button
+                <m.button
                   key={area}
                   type="button"
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleChipClick(area)}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
                     query.toLowerCase() === area.toLowerCase()
@@ -151,150 +164,176 @@ export function ServiceAreaChecker() {
                   }`}
                 >
                   {area}
-                </button>
+                </m.button>
               ))}
             </div>
           </div>
 
-          {/* ─── ERROR STATE (Item 15) ─── */}
-          {errorMessage && (
-            <div
-              role="alert"
-              aria-live="assertive"
-              className="mt-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3 animate-fade-in"
-            >
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 mt-0.5">
-                <FiAlertCircle className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">Input Required</p>
-                <p className="text-xs text-red-700 mt-0.5">{errorMessage}</p>
-              </div>
-            </div>
-          )}
-
-          {/* ─── SUCCESS STATE (Item 16) ─── */}
-          {result && result.serviceable && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="mt-6 p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/50 border-2 border-emerald-500/30 text-emerald-950 shadow-lg shadow-emerald-900/5 animate-fade-in"
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/30">
-                  <FiCheck className="w-6 h-6" strokeWidth={3} />
+          <AnimatePresence mode="wait">
+            {/* ─── ERROR STATE (Item 15) ─── */}
+            {errorMessage && (
+              <m.div
+                key="error-alert"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.25 }}
+                role="alert"
+                aria-live="assertive"
+                className="mt-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3"
+              >
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 mt-0.5">
+                  <FiAlertCircle className="w-4 h-4" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full border border-emerald-300">
-                      <FiZap className="w-3.5 h-3.5" />
-                      <span>Active Delivery Zone</span>
-                    </span>
-                    <span className="text-xs font-semibold text-emerald-800">
-                      Morning Slot: 5:30 AM – 7:00 AM
-                    </span>
+                <div>
+                  <p className="text-sm font-semibold">Input Required</p>
+                  <p className="text-xs text-red-700 mt-0.5">{errorMessage}</p>
+                </div>
+              </m.div>
+            )}
+
+            {/* ─── SUCCESS STATE (Item 16) ─── */}
+            {result && result.serviceable && (
+              <m.div
+                key={`success-${checkedArea}`}
+                initial={{ opacity: 0, y: 20, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 350, damping: 26 }}
+                role="status"
+                aria-live="polite"
+                className="mt-6 p-6 sm:p-7 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/50 border-2 border-emerald-500/30 text-emerald-950 shadow-lg shadow-emerald-900/5"
+              >
+                <div className="flex items-start gap-4">
+                  <m.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.1 }}
+                    className="flex-shrink-0 w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/30"
+                  >
+                    <FiCheck className="w-6 h-6" strokeWidth={3} />
+                  </m.div>
+                  <div className="flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full border border-emerald-300">
+                        <FiZap className="w-3.5 h-3.5" />
+                        <span>Active Delivery Zone</span>
+                      </span>
+                      <span className="text-xs font-semibold text-emerald-800">
+                        Morning Slot: 5:30 AM – 7:00 AM
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl sm:text-2xl font-bold text-emerald-950 font-[family-name:var(--font-heading)] mt-2">
+                      Confirmed! We deliver to {checkedArea}
+                    </h3>
+
+                    <p className="text-sm text-emerald-900/80 mt-1.5 leading-relaxed">
+                      Fresh, chilled A2 Gir cow milk in sanitized glass bottles is ready for morning dispatch to your doorstep.
+                    </p>
+
+                    {/* Morning Delivery Breadcrumb Route */}
+                    <div className="mt-4 p-3 rounded-xl bg-white/90 border border-emerald-200 text-xs flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-semibold text-emerald-900 inline-flex items-center gap-1.5">
+                        <FiMapPin className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>VIP Road Chilling Hub</span>
+                      </span>
+                      <FiArrowRight className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="font-semibold text-emerald-900 inline-flex items-center gap-1.5">
+                        <FiTruck className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>4°C Cold Van</span>
+                      </span>
+                      <FiArrowRight className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="font-bold text-[#5C1B13] inline-flex items-center gap-1.5">
+                        <FiHome className="w-3.5 h-3.5 text-[#5C1B13]" />
+                        <span>{checkedArea} Doorstep</span>
+                      </span>
+                    </div>
+
+                    <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                      <Button variant="primary" size="md" onClick={handleTrialClick} className="shadow-md shadow-[#5C1B13]/20">
+                        Start 7-Day Trial in {checkedArea}
+                      </Button>
+                      <a
+                        href={getWhatsAppUrl(`Hi PuretyFarm, I verified delivery for ${checkedArea} and would like to start my trial.`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-emerald-900 bg-white border border-emerald-300 px-4 py-2.5 rounded-xl hover:bg-emerald-100/50 transition-colors shadow-xs"
+                      >
+                        <FaWhatsapp className="w-4 h-4 text-emerald-600" />
+                        <span>Confirm on WhatsApp</span>
+                      </a>
+                    </div>
                   </div>
+                </div>
+              </m.div>
+            )}
 
-                  <h3 className="text-xl sm:text-2xl font-bold text-emerald-950 font-[family-name:var(--font-heading)] mt-2">
-                    Confirmed! We deliver to {checkedArea}
-                  </h3>
+            {/* ─── EMPTY STATE (Item 12) ─── */}
+            {result && !result.serviceable && (
+              <m.div
+                key={`empty-${checkedArea}`}
+                initial={{ opacity: 0, y: 20, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 350, damping: 26 }}
+                role="status"
+                aria-live="polite"
+                className="mt-6 p-6 sm:p-7 rounded-2xl bg-[#FFFDF7] border-2 border-dashed border-[#E8DFD4] text-center"
+              >
+                {/* Empty state illustration */}
+                <m.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-16 h-16 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] mx-auto flex items-center justify-center mb-4"
+                >
+                  <FiPackage className="w-8 h-8" />
+                </m.div>
 
-                  <p className="text-sm text-emerald-900/80 mt-1.5 leading-relaxed">
-                    Fresh, chilled A2 Gir cow milk in sanitized glass bottles is ready for morning dispatch to your doorstep.
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F5E729]/30 text-[#1A1008] text-xs font-semibold mb-2">
+                  <span>Expanding Soon</span>
+                </div>
+
+                <h3 className="text-lg sm:text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
+                  We don&apos;t deliver to &ldquo;{checkedArea}&rdquo; yet
+                </h3>
+
+                <p className="text-sm text-[#3A241C]/75 max-w-md mx-auto mt-2 leading-relaxed">
+                  Our farm cold-chain vehicles currently service 23+ prime Raipur sectors. We expand to new localities based on family demand!
+                </p>
+
+                <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <a
+                    href={getWhatsAppUrl(`Hi PuretyFarm team, please start A2 cow milk delivery in ${checkedArea}, Raipur!`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <FaWhatsapp className="w-4 h-4" />
+                    <span>Request {checkedArea} on WhatsApp</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="w-full sm:w-auto px-4 py-3 rounded-xl border border-[#E8DFD4] text-sm font-semibold text-[#3A241C] hover:bg-white transition-colors cursor-pointer"
+                  >
+                    Try Another Locality
+                  </button>
+                </div>
+
+                {/* Active areas list preview */}
+                <div className="mt-5 pt-4 border-t border-[#E8DFD4]/60 text-left">
+                  <p className="text-xs font-semibold text-[#1A1008] mb-2">
+                    Currently active delivery sectors in Raipur ({SERVICEABLE_AREAS.length} areas):
                   </p>
-
-                  {/* Morning Delivery Breadcrumb Route */}
-                  <div className="mt-4 p-3 rounded-xl bg-white/90 border border-emerald-200 text-xs flex flex-wrap items-center justify-between gap-2">
-                    <span className="font-semibold text-emerald-900 inline-flex items-center gap-1.5">
-                      <FiMapPin className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>VIP Road Chilling Hub</span>
-                    </span>
-                    <FiArrowRight className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="font-semibold text-emerald-900 inline-flex items-center gap-1.5">
-                      <FiTruck className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>4°C Cold Van</span>
-                    </span>
-                    <FiArrowRight className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="font-bold text-[#5C1B13] inline-flex items-center gap-1.5">
-                      <FiHome className="w-3.5 h-3.5 text-[#5C1B13]" />
-                      <span>{checkedArea} Doorstep</span>
-                    </span>
-                  </div>
-
-                  <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <Button variant="primary" size="md" onClick={handleTrialClick} className="shadow-md shadow-[#5C1B13]/20">
-                      Start 7-Day Trial in {checkedArea}
-                    </Button>
-                    <a
-                      href={getWhatsAppUrl(`Hi PuretyFarm, I verified delivery for ${checkedArea} and would like to start my trial.`)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-emerald-900 bg-white border border-emerald-300 px-4 py-2.5 rounded-xl hover:bg-emerald-100/50 transition-colors shadow-xs"
-                    >
-                      <FaWhatsapp className="w-4 h-4 text-emerald-600" />
-                      <span>Confirm on WhatsApp</span>
-                    </a>
-                  </div>
+                  <p className="text-xs text-[#3A241C]/70 leading-relaxed">
+                    {SERVICEABLE_AREAS.join(" • ")}
+                  </p>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* ─── EMPTY STATE (Item 12) ─── */}
-          {result && !result.serviceable && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="mt-6 p-6 sm:p-7 rounded-2xl bg-[#FFFDF7] border-2 border-dashed border-[#E8DFD4] text-center animate-fade-in"
-            >
-              {/* Empty state illustration */}
-              <div className="w-16 h-16 rounded-full bg-[#5C1B13]/10 text-[#5C1B13] mx-auto flex items-center justify-center mb-4">
-                <FiPackage className="w-8 h-8" />
-              </div>
-
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F5E729]/30 text-[#1A1008] text-xs font-semibold mb-2">
-                <span>Expanding Soon</span>
-              </div>
-
-              <h3 className="text-lg sm:text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
-                We don&apos;t deliver to &ldquo;{checkedArea}&rdquo; yet
-              </h3>
-
-              <p className="text-sm text-[#3A241C]/75 max-w-md mx-auto mt-2 leading-relaxed">
-                Our farm cold-chain vehicles currently service 23+ prime Raipur sectors. We expand to new localities based on family demand!
-              </p>
-
-              <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href={getWhatsAppUrl(`Hi PuretyFarm team, please start A2 cow milk delivery in ${checkedArea}, Raipur!`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors shadow-sm"
-                >
-                  <FaWhatsapp className="w-4 h-4" />
-                  <span>Request {checkedArea} on WhatsApp</span>
-                </a>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="w-full sm:w-auto px-4 py-3 rounded-xl border border-[#E8DFD4] text-sm font-semibold text-[#3A241C] hover:bg-white transition-colors"
-                >
-                  Try Another Locality
-                </button>
-              </div>
-
-              {/* Active areas list preview */}
-              <div className="mt-5 pt-4 border-t border-[#E8DFD4]/60 text-left">
-                <p className="text-xs font-semibold text-[#1A1008] mb-2">
-                  Currently active delivery sectors in Raipur ({SERVICEABLE_AREAS.length} areas):
-                </p>
-                <p className="text-xs text-[#3A241C]/70 leading-relaxed">
-                  {SERVICEABLE_AREAS.join(" • ")}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+              </m.div>
+            )}
+          </AnimatePresence>
+        </m.div>
       </div>
     </Section>
   );

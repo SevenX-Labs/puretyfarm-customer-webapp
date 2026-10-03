@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { ENV } from "@/config/env";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
+import { MarketingMotion } from "@/components/layout/MarketingMotion";
 import "./globals.css";
 
 const headingFont = Playfair_Display({
@@ -190,7 +191,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <SmoothScrollProvider>
+          <MarketingMotion>{children}</MarketingMotion>
+        </SmoothScrollProvider>
       </body>
     </html>
   );

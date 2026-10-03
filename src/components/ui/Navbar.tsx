@@ -79,13 +79,14 @@ export function Navbar() {
           {/* Center: Editorial Navigation Links (Desktop) */}
           <div className="hidden lg:flex items-center gap-1 sm:gap-2">
             {NAV_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="px-3.5 py-1.5 rounded-full text-[13.5px] font-medium text-[#2A1E17] hover:text-[#541711] hover:bg-[#541711]/5 transition-all duration-180"
-              >
-                {link.label}
-              </Link>
+              <m.div key={link.label} whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}>
+                <Link
+                  href={link.href}
+                  className="px-3.5 py-1.5 rounded-full text-[13.5px] font-medium text-[#2A1E17] hover:text-[#541711] hover:bg-[#541711]/5 transition-all duration-180 block"
+                >
+                  {link.label}
+                </Link>
+              </m.div>
             ))}
           </div>
 
@@ -151,16 +152,23 @@ export function Navbar() {
 
             {/* Navigation Links Grid */}
             <div className="grid grid-cols-2 gap-1.5 py-1">
-              {NAV_LINKS.map((link) => (
-                <Link
+              {NAV_LINKS.map((link, i) => (
+                <m.div
                   key={link.label}
-                  href={link.href}
-                  onClick={closeMenu}
-                  className="px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD4]/70 hover:border-[#5C1B13]/30 text-xs font-semibold text-[#1A1008] hover:text-[#5C1B13] flex items-center justify-between transition-colors shadow-2xs"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.04 + i * 0.025, duration: 0.18 }}
+                  whileTap={{ scale: 0.97 }}
                 >
-                  <span>{link.label}</span>
-                  <FiChevronRight className="w-3.5 h-3.5 text-[#5C1B13]/60" />
-                </Link>
+                  <Link
+                    href={link.href}
+                    onClick={closeMenu}
+                    className="px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD4]/70 hover:border-[#5C1B13]/30 text-xs font-semibold text-[#1A1008] hover:text-[#5C1B13] flex items-center justify-between transition-colors shadow-2xs w-full"
+                  >
+                    <span>{link.label}</span>
+                    <FiChevronRight className="w-3.5 h-3.5 text-[#5C1B13]/60" />
+                  </Link>
+                </m.div>
               ))}
             </div>
 

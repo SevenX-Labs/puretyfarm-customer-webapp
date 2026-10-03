@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { m } from "framer-motion";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import { getWhatsAppUrl, getEmailUrl } from "@/lib/cta";
@@ -354,7 +355,12 @@ export function LegalPageShell({
         />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
+          <m.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl"
+          >
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#5C1B13] text-white text-xs font-bold uppercase tracking-wider shadow-2xs">
                 <FiFileText className="w-3.5 h-3.5 text-[#F5E729]" />
@@ -396,16 +402,24 @@ export function LegalPageShell({
                 <span>Jurisdiction: {document.jurisdiction}</span>
               </div>
             </div>
-          </div>
+          </m.div>
 
           {/* ─── KEY HIGHLIGHTS CARDS ─── */}
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {highlights.map((item, idx) => {
               const Icon = HIGHLIGHT_ICONS[item.icon] || FiShield;
               return (
-                <div
+                <m.div
                   key={idx}
-                  className="p-5 rounded-2xl bg-white border border-[#DDD0C2] shadow-xs hover:shadow-md hover:border-[#5C1B13]/40 transition-all flex flex-col justify-between"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.45,
+                    delay: 0.12 + idx * 0.08,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="p-5 rounded-2xl bg-white border border-[#DDD0C2] shadow-xs hover:shadow-md hover:border-[#5C1B13]/40 transition-shadow flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2.5">
@@ -425,7 +439,7 @@ export function LegalPageShell({
                       {item.description}
                     </p>
                   </div>
-                </div>
+                </m.div>
               );
             })}
           </div>

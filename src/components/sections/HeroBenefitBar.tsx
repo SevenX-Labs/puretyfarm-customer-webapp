@@ -48,55 +48,60 @@ const BENEFITS = [
   },
 ] as const;
 
+// 4 copies create a 2-half set (2 copies in the first 50%, 2 copies in the second 50%)
+// ensuring a seamless infinite right-to-left loop on every screen width (including ultra-wide displays)
+const LOOPED_BENEFITS = [...BENEFITS, ...BENEFITS, ...BENEFITS, ...BENEFITS];
+
 export function HeroBenefitBar() {
   return (
-    <div className="w-full bg-white border-t border-[#ECE4DA] relative z-20 py-3.5 sm:py-4 px-3 sm:px-6 shadow-[0_-2px_12px_rgba(26,16,8,0.02)]">
-      <div className="max-w-7xl mx-auto">
-        {/* Desktop 6-column row matching reference layout */}
-        <div className="hidden lg:grid lg:grid-cols-6 divide-x divide-[#ECE4DA] items-center">
-          {BENEFITS.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={idx}
-                className="flex items-center gap-3 px-3 xl:px-4 py-1 group hover:bg-[#FDFBF7] rounded-xl transition-colors duration-150"
-              >
-                <Icon className="w-5 h-5 xl:w-[22px] xl:h-[22px] text-[#3E2D24] shrink-0 transition-transform duration-200 group-hover:scale-105" />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[12.5px] xl:text-[13px] font-bold text-[#1A1008] leading-tight tracking-tight whitespace-nowrap">
-                    {item.title}
-                  </span>
-                  <span className="text-[11px] text-[#6B584C] leading-tight whitespace-nowrap mt-0.5">
-                    {item.subtitle}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    <div
+      role="region"
+      aria-label="PuretyFarm Key Benefits"
+      className="w-full bg-white border-t border-[#ECE4DA] relative z-20 py-3 sm:py-3.5 overflow-hidden shadow-[0_-2px_12px_rgba(26,16,8,0.02)] select-none"
+    >
+      {/* Edge gradient masks for seamless fade on left and right */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-24 md:w-32 bg-gradient-to-r from-white via-white/80 to-transparent z-10"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-24 md:w-32 bg-gradient-to-l from-white via-white/80 to-transparent z-10"
+      />
 
-        {/* Tablet / Mobile Grid (3 cols on tablet, 2 cols on mobile) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:hidden gap-2 sm:gap-3 min-w-0">
-          {BENEFITS.map((item, idx) => {
-            const Icon = item.icon;
-            return (
+      {/* Infinite right-to-left marquee track */}
+      <div
+        className="animate-marquee flex items-center will-change-transform hover:[animation-play-state:paused]"
+        style={{ animationDuration: "35s" }}
+      >
+        {LOOPED_BENEFITS.map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={idx}
+              className="flex items-center gap-3 sm:gap-3.5 px-3 sm:px-4 py-1 rounded-xl hover:bg-[#FDFBF7] transition-colors duration-150 group shrink-0 cursor-default"
+            >
               <div
-                key={idx}
-                className="flex items-center gap-2 p-2 rounded-xl bg-white border border-[#ECE4DA] shadow-2xs min-w-0 overflow-hidden"
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg ${item.iconBg} flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110 shadow-2xs`}
               >
-                <Icon className="w-4 h-4 text-[#3E2D24] shrink-0" />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] sm:text-xs font-bold text-[#1A1008] leading-tight">
-                    {item.title}
-                  </span>
-                  <span className="text-[8.5px] sm:text-[10px] text-[#6B584C] leading-tight mt-0.5">
-                    {item.subtitle}
-                  </span>
-                </div>
+                <Icon className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${item.iconColor}`} />
               </div>
-            );
-          })}
-        </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[12px] sm:text-[13px] font-bold text-[#1A1008] leading-tight tracking-tight whitespace-nowrap">
+                  {item.title}
+                </span>
+                <span className="text-[10.5px] sm:text-[11px] text-[#6B584C] font-medium leading-tight whitespace-nowrap mt-0.5">
+                  {item.subtitle}
+                </span>
+              </div>
+              {/* Vertical hair-line separator after each item */}
+              <div
+                className="h-5 sm:h-6 w-px bg-[#ECE4DA] ml-3 sm:ml-4 shrink-0"
+                aria-hidden="true"
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

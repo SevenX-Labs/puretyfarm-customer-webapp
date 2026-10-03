@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { m, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { TiltCard } from "@/components/ui/TiltCard";
@@ -211,9 +212,18 @@ export function Pricing() {
                   {/* Price block */}
                   <div className="mb-1.5">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-3xl sm:text-4xl font-black text-[#5C1B13] tracking-tight leading-none">
-                        ₹{displayPrice}
-                      </span>
+                      <AnimatePresence mode="wait">
+                        <m.span
+                          key={isMonthly ? `monthly-${displayPrice}` : `daily-${displayPrice}`}
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 6 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-3xl sm:text-4xl font-black text-[#5C1B13] tracking-tight leading-none"
+                        >
+                          ₹{displayPrice}
+                        </m.span>
+                      </AnimatePresence>
                       <span className="text-xs text-[#3A241C]/50 font-medium">
                         /{isMonthly ? "month" : "day"}
                       </span>

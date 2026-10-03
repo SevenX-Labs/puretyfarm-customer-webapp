@@ -1013,49 +1013,6 @@ export function WhyUs() {
           </m.div>
         )}
       </AnimatePresence>
-
-      {/* ─── DIRECT TRIAL GUARANTEE FOOTER ─── */}
-      <div className="mt-12 text-center bg-gradient-to-br from-white via-[#FFFDF7] to-[#FAF3EA] rounded-3xl border-2 border-[#5C1B13]/15 p-5 sm:p-8 max-w-4xl mx-auto shadow-sm relative overflow-hidden">
-        <div
-          aria-hidden="true"
-          className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-[#F5E729]/20 blur-2xl pointer-events-none"
-        />
-
-        <span className="inline-block text-xs font-bold uppercase tracking-wider text-[#5C1B13] bg-[#FAF3EA] px-3.5 py-1 rounded-full border border-[#E8DFD4] mb-3">
-          Raipur Direct 7-Day Guarantee
-        </span>
-
-        <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
-          Taste the Authentic Difference for 7 Days
-        </h3>
-
-        <p className="mt-2 text-xs sm:text-sm text-[#3A241C]/80 max-w-lg mx-auto leading-relaxed">
-          Zero plastic. Zero deposit required for eco-glass bottles. Milked at dawn and on your doorstep before 7:00 AM.
-        </p>
-
-        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 relative z-10">
-          <Button variant="primary" size="md" onClick={handleTrialClick} className="w-full sm:w-auto shadow-md shadow-[#5C1B13]/20">
-            Start My 7-Day Trial
-          </Button>
-          <a
-            href={getWhatsAppUrl("Hi PuretyFarm, I would like to learn more about the 7-day trial and farm purity tests.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold text-[#5C1B13] bg-white hover:bg-[#FAF3EA] border border-[#E8DFD4] px-5 py-3 rounded-xl transition-all shadow-2xs hover:shadow-xs"
-          >
-            <FaWhatsapp className="w-4 h-4 text-emerald-600" />
-            <span>Chat on WhatsApp</span>
-          </a>
-        </div>
-
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-[11px] text-[#3A241C]/70 font-semibold">
-          <span className="inline-flex items-center gap-1"><FiCheck className="w-3.5 h-3.5 text-emerald-600" /> Pause / Resume Anytime</span>
-          <span className="text-[#E8DFD4]">•</span>
-          <span className="inline-flex items-center gap-1"><FiCheck className="w-3.5 h-3.5 text-emerald-600" /> Free Bottle Exchange</span>
-          <span className="text-[#E8DFD4]">•</span>
-          <span className="inline-flex items-center gap-1"><FiCheck className="w-3.5 h-3.5 text-emerald-600" /> Shankar Nagar, Civil Lines, VIP Rd & All Raipur</span>
-        </div>
-      </div>
     </Section>
   );
 }
