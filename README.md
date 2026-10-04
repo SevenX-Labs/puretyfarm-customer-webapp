@@ -180,7 +180,7 @@ Interactive accordion providing complete operational clarity:
   - 💬 **WhatsApp Desk**: [`+91 75873 47266`](https://wa.me/917587347266)
   - ✉️ **Email**: [`care@puretyfarm.in`](mailto:care@puretyfarm.in)
   - 📸 **Instagram**: [`@puretyfarm`](https://instagram.com/puretyfarm)
-- **Quick Links**: Navigation to internal sections, [Delivery Areas](/service-area), [Terms & Conditions](/terms-and-conditions), and [Privacy Policy](/privacy-policy).
+- **Quick Links**: Navigation to internal sections, [Terms & Conditions](/terms-and-conditions), and [Privacy Policy](/privacy-policy).
 - **Geo-Badge**: *"Made with ❤️ in Raipur, Chhattisgarh"*.
 
 ---
@@ -196,11 +196,10 @@ Interactive accordion providing complete operational clarity:
 | Route | Type | Description |
 | :--- | :--- | :--- |
 | **`/`** | Dynamic / SSG | Main customer landing page composing all 11 homepage sections. |
-| **`/service-area`** | Dynamic / SSG | Dedicated Raipur service area lookup tool with coverage search and popular locality selector. |
 | **`/terms-and-conditions`** | Static Route | Complete Customer Agreement & Terms of Service (Trial terms, bottle return & care policy, ₹50 replacement fee policy, vacation mode cut-off at 10:00 PM, and FSSAI standards). Redirects from `/terms`. |
 | **`/privacy-policy`** | Static Route | Customer Privacy Policy outlining delivery address protection, zero selling of customer data, and communication consent. Redirects from `/privacy`. |
 | **`/empty-state`** | Static Route | Locality not yet covered inquiry page with WhatsApp demand trigger. |
-| **`404 (Not Found)`** | Custom Error | Friendly branded 404 page with animated bottle visual, quick navigation back home, delivery area checker, and support phone/WhatsApp links. |
+| **`404 (Not Found)`** | Custom Error | Friendly branded 404 page with animated bottle visual, quick navigation back home, and support phone/WhatsApp links. |
 
 ---
 

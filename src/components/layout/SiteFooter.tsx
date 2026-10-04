@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ENV } from "@/config/env";
 import { getEmailUrl, getPhoneUrl, getWhatsAppUrl } from "@/lib/cta";
 import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
-import { FiShield, FiPhone, FiMail, FiMapPin, FiArrowRight, FiArrowUp } from "react-icons/fi";
+import { FiShield, FiPhone, FiMail, FiMapPin, FiArrowUp } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import styles from "./MarketingShell.module.css";
@@ -93,22 +93,17 @@ export function SiteFooter() {
             <h3 className={styles.footerColTitle}>Raipur Delivery Sectors</h3>
             <div className={styles.footerSectorGrid}>
               {FEATURED_AREAS.map((area) => (
-                <Link
+                <span
                   key={area}
-                  href={`/service-area`}
                   className={styles.footerSectorChip}
                 >
                   {area}
-                </Link>
+                </span>
               ))}
             </div>
-            <Link
-              href="/service-area"
-              className="text-xs text-[#F5E729] hover:underline font-semibold mt-1 inline-flex items-center gap-1"
-            >
-              <span>View all {SERVICEABLE_AREAS.length} active delivery zones</span>
-              <FiArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <p className="text-xs text-white/60 font-semibold mt-2">
+              Serving {SERVICEABLE_AREAS.length}+ localities across Raipur daily before 10:00 AM
+            </p>
           </div>
 
           {/* Column 4: Contact & Morning Dispatch Support */}
@@ -158,7 +153,6 @@ export function SiteFooter() {
             <span>© {new Date().getFullYear()} PuretyFarm Raipur. All rights reserved.</span>
             <Link href="/privacy-policy">Privacy Policy</Link>
             <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
-            <Link href="/service-area">Delivery Coverage</Link>
           </div>
 
           <button

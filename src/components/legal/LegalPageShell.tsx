@@ -735,10 +735,6 @@ export function LegalPageShell({
               </Link>
             )}
             <span className="text-[#DDD0C2]">·</span>
-            <Link href="/service-area" className="hover:underline">
-              Delivery Coverage
-            </Link>
-            <span className="text-[#DDD0C2]">·</span>
             <Link href="/" className="hover:underline">
               Home
             </Link>

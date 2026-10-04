@@ -76,10 +76,10 @@ export function NotFoundContent() {
             </m.div>
             <m.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="w-full sm:w-auto">
               <Link
-                href="/#service-area"
+                href="/#contact"
                 className="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl border border-[#E8DFD4] bg-white text-sm font-semibold text-[#3A241C] hover:bg-[#FBF6EE] transition-colors shadow-sm"
               >
-                Check Delivery Areas
+                Contact Support
               </Link>
             </m.div>
           </div>

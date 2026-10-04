@@ -59,10 +59,10 @@ export function EmptyStateContent() {
             </m.a>
             <m.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="w-full sm:w-auto">
               <Link
-                href="/#service-area"
+                href="/#contact"
                 className="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl border border-[#E8DFD4] text-sm font-semibold text-[#3A241C] hover:bg-[#FBF6EE] transition-colors"
               >
-                Check Active Areas
+                Contact Support
               </Link>
             </m.div>
           </div>
