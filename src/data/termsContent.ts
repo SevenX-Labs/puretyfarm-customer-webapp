@@ -45,10 +45,10 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
   "title": "Terms & Conditions",
   "documentType": "Customer Service Agreement & Terms of Use",
   "entityName": "Puretyfarms (Incorporated under the Companies Act, 2013)",
-  "registeredOffice": "Kumhari Chowk, Durg – Chhattisgarh - 490042, India",
+  "registeredOffice": "Raipur, Chhattisgarh, India",
   "officialEmail": "care@puretyfarm.in",
   "effectiveDate": "Last Updated: January 2025",
-  "jurisdiction": "Courts of Durg, Chhattisgarh, India",
+  "jurisdiction": "Courts of Raipur, Chhattisgarh, India",
   "preamble": "Overview: This document is an electronic record in terms of Information Technology Act, 2000 and rules there under as applicable and the amended provisions pertaining to electronic records in various statutes as amended by the Information Technology Act, 2000.",
   "sections": [
     {
@@ -56,7 +56,7 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
       "number": 1,
       "title": "GENERAL",
       "paragraphs": [
-        "These terms of use (the “Terms of Use”) govern your use of our website www.Puretyfarm (the “Website”) and our “Puretyfarm” application for mobile and handheld devices (the “App”). The Website along with sub domains and the App are jointly referred to as the “Platform”. Please read these Terms of Use carefully before you use the services. If you do not agree to these Terms of Use, you may not use the services on the Platform, and we request you to uninstall the App. By installing, downloading or even merely using the Platform, you shall be contracting with Puretyfarm and you signify your acceptance to the Terms of Use and other Puretyfarm policies (including but not limited to the Cancellation & Refund Policy, Privacy Policy, Cookies Policy) as posted on the Platform from time to time, which takes effect on the date on which you download, install or use the Services, and create a legally binding arrangement to abide by the same.The Platform is operated and owned by Puretyfarms, a company incorporated under the Companies Act, 2013 and having its registered office at Kumhari Chowk,Durg – Chhattisgarh - 490042, India. For the purpose of these Terms of Use, wherever the context so requires, “you” shall mean any natural or legal person who has agreed to become a buyer or customer on the Platform by providing Registration Data while registering on the Platform as a registered user using any computer systems. The terms “Puretyfarm”, “we”, “us” or “our” shall mean Puretyfarm.Puretyfarm is engaged in the business of food product retail trading and is in the supply of everyday food requirements on a subscription model and on non subscription basis (i.e. ad hoc requirements) and allow buyers (“Buyer/s”) to browse various goods or services (\"Products\") offered for sale (“Services”). The Buyers can choose and place orders (“Orders”) from variety of Products listed and offered for sale on the Platform and Puretyfarm enables delivery of such Orders at select localities of India (“Delivery Services”)."
+        "These terms of use (the “Terms of Use”) govern your use of our website www.puretyfarm.in (the “Website”) and our “Puretyfarm” application for mobile and handheld devices (the “App”). The Website along with sub domains and the App are jointly referred to as the “Platform”. Please read these Terms of Use carefully before you use the services. If you do not agree to these Terms of Use, you may not use the services on the Platform, and we request you to uninstall the App. By installing, downloading or even merely using the Platform, you shall be contracting with Puretyfarm and you signify your acceptance to the Terms of Use and other Puretyfarm policies (including but not limited to the Cancellation & Refund Policy, Privacy Policy, Cookies Policy) as posted on the Platform from time to time, which takes effect on the date on which you download, install or use the Services, and create a legally binding arrangement to abide by the same. The Platform is operated and owned by Puretyfarms, a company incorporated under the Companies Act, 2013 and having its registered office at Raipur, Chhattisgarh, India. For the purpose of these Terms of Use, wherever the context so requires, “you” shall mean any natural or legal person who has agreed to become a buyer or customer on the Platform by providing Registration Data while registering on the Platform as a registered user using any computer systems. The terms “Puretyfarm”, “we”, “us” or “our” shall mean Puretyfarm. Puretyfarm is engaged in the business of food product retail trading and is in the supply of everyday food requirements on a subscription model and on non subscription basis (i.e. ad hoc requirements) and allow buyers (“Buyer/s”) to browse various goods or services (\"Products\") offered for sale (“Services”). The Buyers can choose and place orders (“Orders”) from variety of Products listed and offered for sale on the Platform and Puretyfarm enables delivery of such Orders at select localities of India (“Delivery Services”)."
       ],
       "subsections": [],
       "badge": "General & Service Model"
@@ -722,7 +722,7 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
       "number": 18,
       "title": "GOVERNING LAW AND DISPUTE RESOLUTION",
       "paragraphs": [
-        "These Terms of Use are governed by the laws of India. Any action, suit, or other legal proceeding, which is commenced to resolve any matter arising under or relating to this Platform, shall be subject to the jurisdiction of the courts at Durg, India."
+        "These Terms of Use are governed by the laws of India. Any action, suit, or other legal proceeding, which is commenced to resolve any matter arising under or relating to this Platform, shall be subject to the jurisdiction of the courts at Raipur, Chhattisgarh, India."
       ],
       "subsections": [],
       "badge": "Jurisdiction & Credit Scheme",
@@ -737,14 +737,14 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
       "number": 19,
       "title": "CONTACT US",
       "paragraphs": [
-        "Please contact us for any questions or comments regarding this Platform.Mr. Nirmal Singh (Owner) , Harman Aulakh (Founder)PuretyfarmOffice: Kumhari Chowk,Durg – Chattisgarh - 490042Email: care@puretyfarm.in\n\nTime: All Days (10:00 am- 6:30 pm)"
+        "Please contact us for any questions or comments regarding this Platform.\nMr. Nirmal Singh (Owner), Harman Aulakh (Founder)\nPuretyfarm Office: Raipur, Chhattisgarh\nEmail: care@puretyfarm.in\n\nTime: All Days (10:00 AM – 6:30 PM)"
       ],
       "subsections": [],
       "badge": "Contact Details",
       "callout": {
         "type": "contact",
         "title": "Official Grievance & Executive Contacts",
-        "text": "Mr. Nirmal Singh (Owner) | Harman Aulakh (Founder) | Office: Kumhari Chowk, Durg – Chhattisgarh - 490042 | Email: care@puretyfarm.in | Working Hours: All Days 10:00 AM – 6:30 PM"
+        "text": "Mr. Nirmal Singh (Owner) | Harman Aulakh (Founder) | Office: Raipur, Chhattisgarh | Email: care@puretyfarm.in | Working Hours: All Days 10:00 AM – 6:30 PM"
       }
     }
   ]

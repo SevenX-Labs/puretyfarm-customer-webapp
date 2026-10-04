@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { m } from "framer-motion";
 import { FiZap, FiArrowRight, FiPlay } from "react-icons/fi";
@@ -10,6 +10,41 @@ import { HeroVideoModal } from "./HeroVideoModal";
 
 export function Hero() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const ctaContainerRef = useRef<HTMLDivElement>(null);
+  const ctaRowRef = useRef<HTMLDivElement>(null);
+  const [ctaScale, setCtaScale] = useState(1);
+
+  // Dynamic logic: ensures "Start My 7-Day Trial" and "Watch How It Works" ALWAYS stay on a single line across any screen width
+  useEffect(() => {
+    const updateCtaScale = () => {
+      if (!ctaContainerRef.current || !ctaRowRef.current) return;
+      const containerWidth = ctaContainerRef.current.clientWidth;
+      const rowWidth = ctaRowRef.current.scrollWidth;
+
+      if (containerWidth > 0 && rowWidth > 0) {
+        if (rowWidth > containerWidth) {
+          // Downscale smoothly so both CTAs fit within the exact container width
+          setCtaScale(Math.min(1, Math.max(0.55, (containerWidth - 2) / rowWidth)));
+        } else {
+          setCtaScale(1);
+        }
+      }
+    };
+
+    updateCtaScale();
+    window.addEventListener("resize", updateCtaScale);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && ctaContainerRef.current) {
+      resizeObserver = new ResizeObserver(updateCtaScale);
+      resizeObserver.observe(ctaContainerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateCtaScale);
+      resizeObserver?.disconnect();
+    };
+  }, []);
 
   return (
     <>
@@ -89,76 +124,59 @@ export function Hero() {
                 Shankar Nagar, VIP Road, Samta Colony, Civil Lines &amp; all Raipur localities.
               </m.p>
 
-              {/* 4. Desktop Action CTAs (Pill-shaped matching reference design) */}
+              {/* 4. Action CTAs: Guaranteed to ALWAYS remain on one single line on all screen sizes */}
               <m.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.45 }}
-                className="hidden lg:flex mt-4 sm:mt-5 flex-row items-center gap-4"
+                ref={ctaContainerRef}
+                className="mt-3.5 sm:mt-5 w-full max-w-full overflow-visible flex items-center justify-center lg:justify-start"
               >
-                {/* Primary Dominant CTA: Start My 7-Day Trial */}
-                <m.button
-                  type="button"
-                  whileHover={{ scale: 1.03, y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleTrialClick}
-                  className="group relative inline-flex items-center justify-center gap-2.5 px-7 py-3 rounded-full bg-[#541711] hover:bg-[#40110D] text-white font-bold text-sm sm:text-base shadow-xl shadow-[#541711]/25 hover:shadow-2xl hover:shadow-[#541711]/35 transition-all duration-200 cursor-pointer min-h-[46px]"
+                <div
+                  style={{
+                    transform: ctaScale < 1 ? `scale(${ctaScale})` : undefined,
+                    transformOrigin: "center center",
+                  }}
+                  className="lg:!origin-left transition-transform duration-100 ease-out shrink-0"
                 >
-                  <FiZap className="w-4 h-4 sm:w-5 sm:h-5 text-[#F5E729] shrink-0" />
-                  <span>Start My 7-Day Trial</span>
-                  <FiArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </m.button>
+                  <div
+                    ref={ctaRowRef}
+                    className="inline-flex flex-row items-center gap-2 sm:gap-3.5 md:gap-4 flex-nowrap whitespace-nowrap"
+                  >
+                    {/* Primary Dominant CTA: Start My 7-Day Trial */}
+                    <m.button
+                      type="button"
+                      whileHover={{ scale: 1.03, y: -1 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={handleTrialClick}
+                      className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-3.5 py-2 sm:px-5 sm:py-2.5 md:px-7 md:py-3.5 rounded-full bg-[#541711] hover:bg-[#40110D] active:bg-[#40110D] text-white font-bold text-xs sm:text-sm md:text-base shadow-xl shadow-[#541711]/25 hover:shadow-2xl hover:shadow-[#541711]/35 transition-all duration-200 cursor-pointer shrink-0 whitespace-nowrap min-h-[40px] sm:min-h-[46px]"
+                    >
+                      <FiZap className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-[#F5E729] shrink-0" />
+                      <span className="whitespace-nowrap">Start My 7-Day Trial</span>
+                      <FiArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:translate-x-1 shrink-0" />
+                    </m.button>
 
-                {/* Secondary CTA: Watch How It Works (1 min video) */}
-                <button
-                  type="button"
-                  onClick={() => setIsVideoModalOpen(true)}
-                  className="group inline-flex items-center gap-3 px-3 py-1.5 rounded-full hover:bg-white/80 transition-all duration-200 cursor-pointer text-left min-h-[46px]"
-                  aria-label="Watch how PuretyFarm works, 1 minute video"
-                >
-                  <span className="w-10 h-10 rounded-full bg-[#F2ECE1] border border-[#E3D7C9] flex items-center justify-center text-[#541711] shadow-xs group-hover:scale-105 group-hover:bg-[#EFE4D6] transition-transform duration-200 shrink-0">
-                    <FiPlay className="w-4 h-4 ml-0.5 fill-current" />
-                  </span>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#1A1008] group-hover:text-[#541711] transition-colors leading-tight">
-                      Watch How It Works
-                    </span>
-                    <span className="text-[11px] text-[#6B584C] font-medium mt-0.5">
-                      1 min video
-                    </span>
+                    {/* Secondary CTA: Watch How It Works (1 min video) */}
+                    <button
+                      type="button"
+                      onClick={() => setIsVideoModalOpen(true)}
+                      className="group inline-flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full hover:bg-white/80 active:bg-white/90 transition-all duration-200 cursor-pointer text-left shrink-0 whitespace-nowrap min-h-[40px] sm:min-h-[46px]"
+                      aria-label="Watch how PuretyFarm works, 1 minute video"
+                    >
+                      <span className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-[#F2ECE1] border border-[#E3D7C9] flex items-center justify-center text-[#541711] shadow-xs group-hover:scale-105 group-hover:bg-[#EFE4D6] transition-transform duration-200 shrink-0">
+                        <FiPlay className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ml-0.5 fill-current" />
+                      </span>
+                      <div className="flex flex-col whitespace-nowrap">
+                        <span className="text-xs sm:text-sm font-bold text-[#1A1008] group-hover:text-[#541711] transition-colors leading-tight whitespace-nowrap">
+                          Watch How It Works
+                        </span>
+                        <span className="text-[10px] sm:text-[11px] text-[#6B584C] font-medium mt-0.5 whitespace-nowrap">
+                          1 min video
+                        </span>
+                      </div>
+                    </button>
                   </div>
-                </button>
-              </m.div>
-
-              {/* ─── MOBILE ONLY ACTION CTAs ─── */}
-              <m.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.45 }}
-                className="lg:hidden w-full max-w-md flex flex-col items-stretch gap-2.5 mt-3.5 px-2"
-              >
-                <m.button
-                  type="button"
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleTrialClick}
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#541711] active:bg-[#40110D] text-white font-bold text-sm shadow-xl shadow-[#541711]/25 min-h-[46px] cursor-pointer"
-                >
-                  <FiZap className="w-4 h-4 text-[#F5E729] shrink-0" />
-                  <span>Start My 7-Day Trial</span>
-                  <FiArrowRight className="w-4 h-4" />
-                </m.button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsVideoModalOpen(true)}
-                  className="w-full inline-flex items-center justify-center gap-2.5 px-4 py-2 rounded-full bg-white/95 border border-[#ECE5DC] text-[#1A1008] font-bold text-xs shadow-xs min-h-[40px] cursor-pointer hover:bg-white active:scale-98 transition-all"
-                >
-                  <span className="w-5 h-5 rounded-full bg-[#F2ECE1] border border-[#E3D7C9] text-[#541711] flex items-center justify-center shrink-0">
-                    <FiPlay className="w-2.5 h-2.5 ml-0.5 fill-current" />
-                  </span>
-                  <span>Watch How It Works</span>
-                  <span className="text-[10px] text-[#6B584C] font-medium">• 1 min video</span>
-                </button>
+                </div>
               </m.div>
 
             </div>

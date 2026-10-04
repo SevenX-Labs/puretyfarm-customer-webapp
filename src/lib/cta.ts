@@ -16,7 +16,10 @@ export function handleDownloadClick(): void {
 export function getWhatsAppUrl(
   message = "Hi PuretyFarm, I would like to know more about the A2 milk 7-day trial in Raipur."
 ): string {
-  const cleanNumber = ENV.WHATSAPP_NUMBER.replace(/\D/g, "");
+  let cleanNumber = ENV.WHATSAPP_NUMBER.replace(/\D/g, "");
+  if (cleanNumber.length === 10) {
+    cleanNumber = `91${cleanNumber}`;
+  }
   const encodedText = encodeURIComponent(message);
   return `https://wa.me/${cleanNumber}?text=${encodedText}`;
 }
@@ -28,7 +31,12 @@ export function handleWhatsAppClick(message?: string): void {
 }
 
 export function getPhoneUrl(): string {
-  return `tel:${ENV.PHONE_NUMBER}`;
+  let cleanNumber = ENV.PHONE_NUMBER.replace(/[^\d+]/g, "");
+  if (!cleanNumber.startsWith("+")) {
+    const digits = cleanNumber.replace(/\D/g, "");
+    cleanNumber = digits.length === 10 ? `+91${digits}` : `+${digits}`;
+  }
+  return `tel:${cleanNumber}`;
 }
 
 export function handlePhoneClick(): void {

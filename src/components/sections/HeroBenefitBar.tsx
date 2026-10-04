@@ -82,21 +82,24 @@ export function HeroBenefitBar() {
               className="flex items-center gap-3 sm:gap-3.5 px-3 sm:px-4 py-1 rounded-xl hover:bg-[#FDFBF7] transition-colors duration-150 group shrink-0 cursor-default"
             >
               <div
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg ${item.iconBg} flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110 shadow-2xs`}
+                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${item.iconBg} flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110 shadow-2xs`}
               >
-                <Icon className={`w-4 h-4 sm:w-[18px] sm:h-[18px] ${item.iconColor}`} />
+                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${item.iconColor}`} />
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[12px] sm:text-[13px] font-bold text-[#1A1008] leading-tight tracking-tight whitespace-nowrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+                <span className="text-xs sm:text-[13px] font-bold text-[#1A1008] tracking-tight">
                   {item.title}
                 </span>
-                <span className="text-[10.5px] sm:text-[11px] text-[#6B584C] font-medium leading-tight whitespace-nowrap mt-0.5">
+                <span className="text-[#C4B5A5] text-[10px] sm:text-xs select-none" aria-hidden="true">
+                  •
+                </span>
+                <span className="text-[11px] sm:text-xs text-[#6B584C] font-medium">
                   {item.subtitle}
                 </span>
               </div>
               {/* Vertical hair-line separator after each item */}
               <div
-                className="h-5 sm:h-6 w-px bg-[#ECE4DA] ml-3 sm:ml-4 shrink-0"
+                className="h-4 sm:h-5 w-px bg-[#ECE4DA] ml-3 sm:ml-4 shrink-0"
                 aria-hidden="true"
               />
             </div>

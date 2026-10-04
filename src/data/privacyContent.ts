@@ -45,11 +45,11 @@ export const PRIVACY_POLICY_DATA: LegalDocument = {
   "title": "Privacy Policy",
   "documentType": "Official Privacy & Data Protection Policy",
   "entityName": "PURETYFARM",
-  "registeredOffice": "Kumhari Chowk, Dhamdha Road, Durg, Chhattisgarh – 490042",
+  "registeredOffice": "Raipur, Chhattisgarh",
   "officialEmail": "care@puretyfarm.in",
   "effectiveDate": "Last Updated: January 2025",
-  "jurisdiction": "Durg, Chhattisgarh, India",
-  "preamble": "This Privacy Policy (“Policy”) describes the policies and procedures on the collection, use, disclosure and protection of your information when you use our website located at Puretyfarm, or the Puretyfarm mobile application (collectively, “Platform”) made available by PURETYFARM (“Puretyfarm”, “Company”, “we”, “us” and “our”), a company established under the laws of India having its registered office at Kumhari Chowk – Durg,Chhattisgarh – 490042.The terms “you” and “your” refer to the user of the Platform. The term “Services” refers to any services offered by Puretyfarm whether on the Platform or otherwise.Please read this Policy before using the Platform or submitting any personal information to Puretyfarm. This Policy is part of and incorporated within, and is to be read along with, the Terms of Use.",
+  "jurisdiction": "Raipur, Chhattisgarh, India",
+  "preamble": "This Privacy Policy (“Policy”) describes the policies and procedures on the collection, use, disclosure, and protection of your information when you use our website located at puretyfarm.in, or the Puretyfarm mobile application (collectively, “Platform”) made available by PURETYFARM (“Puretyfarm”, “Company”, “we”, “us”, and “our”), a company established under the laws of India having its registered office at Raipur, Chhattisgarh. The terms “you” and “your” refer to the user of the Platform. The term “Services” refers to any services offered by Puretyfarm whether on the Platform or otherwise. Please read this Policy before using the Platform or submitting any personal information to Puretyfarm. This Policy is part of and incorporated within, and is to be read along with, the Terms of Use.",
   "sections": [
     {
       "id": "section-1",
@@ -372,8 +372,8 @@ export const PRIVACY_POLICY_DATA: LegalDocument = {
       "number": 10,
       "title": "GRIEVANCE OFFICER AND PLATFORM SECURITY",
       "paragraphs": [
-        "If you have any queries relating to the processing or usage of information provided by you in connection with this Policy, please email us at care@puretyfarm.in or write to our Grievance Officer at the following address:Puretyfarm OfficePURETYFARM",
-        "Kumhari Chowk, Dhamdha Road, Chhattisgarh – 490042",
+        "If you have any queries relating to the processing or usage of information provided by you in connection with this Policy, please email us at care@puretyfarm.in or write to our Grievance Officer at the following address: Puretyfarm Office, Raipur, Chhattisgarh.",
+        "Raipur, Chhattisgarh",
         "If you come across any abuse or violation of the Policy, please report to care@puretyfarm.in"
       ],
       "subsections": [],
@@ -381,7 +381,7 @@ export const PRIVACY_POLICY_DATA: LegalDocument = {
       "callout": {
         "type": "contact",
         "title": "Grievance Officer Contact Details",
-        "text": "PURETYFARM Office: Kumhari Chowk, Dhamdha Road, Durg, Chhattisgarh – 490042 | Email: care@puretyfarm.in | Response Timeline: 5 Business Days"
+        "text": "PURETYFARM Office: Raipur, Chhattisgarh | Email: care@puretyfarm.in | Response Timeline: 5 Business Days"
       }
     }
   ]

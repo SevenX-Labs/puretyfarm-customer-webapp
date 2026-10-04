@@ -15,8 +15,6 @@ import {
   FiShield,
   FiLock,
   FiCreditCard,
-  FiPrinter,
-  FiShare2,
   FiCheck,
   FiClock,
   FiAlertTriangle,
@@ -42,7 +40,7 @@ const HIGHLIGHT_ICONS: Record<HighlightIconType, typeof FiShield> = {
 
 interface LegalPageShellProps {
   document: LegalDocument;
-  activeSlug: "privacy" | "terms";
+  activeSlug: "privacy" | "terms" | "terms-and-conditions" | "privacy-policy";
   highlights: {
     icon: HighlightIconType;
     title: string;
@@ -63,9 +61,11 @@ export function LegalPageShell({
     document.sections[0]?.id || ""
   );
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [textScale, setTextScale] = useState<"normal" | "large" | "xlarge">("normal");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const isPrivacyPage = activeSlug === "privacy" || activeSlug === "privacy-policy";
 
   const isProgrammaticScroll = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -97,6 +97,7 @@ export function LegalPageShell({
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 20);
       const windowHeight = window.innerHeight;
       const docHeight = window.document.documentElement.scrollHeight;
       const totalScrollable = docHeight - windowHeight;
@@ -186,25 +187,14 @@ export function LegalPageShell({
     const target = window.document.getElementById(id);
     if (!target) return;
 
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+    const targetOffset = isMobile ? -130 : -95;
+
     if (scrollTo) {
-      scrollTo(target, { offset: -90, duration: 1.1 });
+      scrollTo(target, { offset: targetOffset, duration: 1.1 });
     } else {
       const elementPosition = target.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: elementPosition - 90, behavior: "smooth" });
-    }
-  };
-
-  const handleShareLink = () => {
-    if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2200);
-    }
-  };
-
-  const handlePrint = () => {
-    if (typeof window !== "undefined") {
-      window.print();
+      window.scrollTo({ top: elementPosition + targetOffset, behavior: "smooth" });
     }
   };
 
@@ -218,12 +208,21 @@ export function LegalPageShell({
         />
       </div>
 
-      {/* ─── TOP STICKY NAVBAR ─── */}
-      <header className="sticky top-0 z-40 w-full bg-[#FFFDF7]/95 backdrop-blur-xl border-b border-[#DDD0C2] transition-all print:hidden shadow-2xs">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-3">
+      {/* ─── FLOATING TOP NAVBAR (Rounded Pill Design) ─── */}
+      <nav
+        aria-label="Legal Navigation"
+        className="fixed top-2 sm:top-4 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300 print:hidden"
+      >
+        <div
+          className={`pointer-events-auto mx-auto max-w-6xl rounded-full transition-all duration-300 ${
+            isScrolled
+              ? "bg-white/95 shadow-[0_12px_36px_rgba(26,16,8,0.08)] border border-[#E5DACD] py-1.5 sm:py-2 px-3 sm:px-5 scale-[0.99]"
+              : "bg-white shadow-[0_8px_28px_rgba(26,16,8,0.06)] border border-[#ECE2D8] py-2 sm:py-2.5 px-3.5 sm:px-6"
+          } backdrop-blur-xl flex items-center justify-between gap-3 sm:gap-6`}
+        >
           {/* Left: Brand Logo & Breadcrumb */}
           <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-            <BrandLogo size="sm" />
+            <BrandLogo size="sm" condensed={isScrolled} />
             <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#2C1810] font-medium">
               <Link href="/" className="hover:text-[#5C1B13] transition-colors">
                 Home
@@ -235,32 +234,31 @@ export function LegalPageShell({
             </div>
           </div>
 
-          {/* Center: Quick Switcher Tabs (Terms vs Privacy) */}
-          <div className="flex items-center bg-[#FAF3EA] p-1 rounded-full border border-[#DDD0C2] shadow-inner text-xs font-bold">
-            <Link
-              href="/terms"
-              className={`px-3 sm:px-4 py-1.5 rounded-full transition-all duration-200 ${
-                activeSlug === "terms"
-                  ? "bg-[#5C1B13] text-white shadow-xs"
-                  : "text-[#2C1810] hover:text-[#5C1B13]"
-              }`}
-            >
-              Terms of Use
-            </Link>
-            <Link
-              href="/privacy"
-              className={`px-3 sm:px-4 py-1.5 rounded-full transition-all duration-200 ${
-                activeSlug === "privacy"
-                  ? "bg-[#5C1B13] text-white shadow-xs"
-                  : "text-[#2C1810] hover:text-[#5C1B13]"
-              }`}
-            >
-              Privacy Policy
-            </Link>
+          {/* Center: Contextual Link to other legal document */}
+          <div className="flex items-center">
+            {isPrivacyPage ? (
+              <Link
+                href="/terms-and-conditions"
+                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-[#FAF3EA] hover:bg-[#5C1B13] text-[#2C1810] hover:text-white border border-[#DDD0C2] hover:border-[#5C1B13] text-xs font-bold transition-all shadow-2xs group"
+                title="View Terms & Conditions"
+              >
+                <span>Terms &amp; Conditions</span>
+                <FiChevronRight className="w-3.5 h-3.5 text-[#5C1B13] group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            ) : (
+              <Link
+                href="/privacy-policy"
+                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-[#FAF3EA] hover:bg-[#5C1B13] text-[#2C1810] hover:text-white border border-[#DDD0C2] hover:border-[#5C1B13] text-xs font-bold transition-all shadow-2xs group"
+                title="View Privacy Policy"
+              >
+                <span>Privacy Policy</span>
+                <FiChevronRight className="w-3.5 h-3.5 text-[#5C1B13] group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            )}
           </div>
 
-          {/* Right: Text Size Adjuster & Quick Action Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Right: Text Size Adjuster & Return Home */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Font Size Toggle Pill */}
             <div className="hidden md:flex items-center gap-1 bg-[#FAF3EA] border border-[#DDD0C2] rounded-full p-0.5">
               <span className="text-[11px] font-bold text-[#5C1B13] px-2 flex items-center gap-1">
@@ -305,37 +303,6 @@ export function LegalPageShell({
               </button>
             </div>
 
-            <button
-              type="button"
-              onClick={handlePrint}
-              aria-label="Print Document"
-              title="Print or Save PDF"
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#DDD0C2] hover:bg-[#FAF3EA] text-xs font-bold text-[#2C1810] transition-all cursor-pointer shadow-2xs"
-            >
-              <FiPrinter className="w-3.5 h-3.5 text-[#5C1B13]" />
-              <span>Print</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleShareLink}
-              aria-label="Copy Document Link"
-              title="Copy Link to Clipboard"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#DDD0C2] hover:bg-[#FAF3EA] text-xs font-bold text-[#2C1810] transition-all cursor-pointer shadow-2xs"
-            >
-              {copiedLink ? (
-                <>
-                  <FiCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <FiShare2 className="w-3.5 h-3.5 text-[#5C1B13]" />
-                  <span className="hidden sm:inline">Share</span>
-                </>
-              )}
-            </button>
-
             <Link
               href="/"
               className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-[#5C1B13] hover:bg-[#7B241C] text-white text-xs font-bold transition-all shadow-xs"
@@ -345,10 +312,76 @@ export function LegalPageShell({
             </Link>
           </div>
         </div>
-      </header>
+      </nav>
+
+      {/* ─── STICKY MOBILE TABLE OF CONTENTS BAR (Screens < lg) ─── */}
+      <div className="lg:hidden sticky top-[62px] sm:top-[70px] z-30 w-full bg-[#FFFDF7]/95 backdrop-blur-xl border-b border-[#DDD0C2] px-4 py-2.5 shadow-2xs transition-all print:hidden">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setMobileTocOpen(!mobileTocOpen)}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#5C1B13] text-white text-xs font-bold shadow-xs hover:bg-[#7B241C] active:scale-95 transition-all cursor-pointer"
+            aria-expanded={mobileTocOpen}
+            aria-label="Toggle Table of Contents"
+          >
+            <FiFileText className="w-3.5 h-3.5 text-[#F5E729]" />
+            <span>Table of Contents ({document.sections.length})</span>
+            <FiChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${mobileTocOpen ? "rotate-90" : ""}`} />
+          </button>
+
+          {/* Current Active Clause Indicator */}
+          <div className="text-[11px] text-[#5C1B13] font-semibold truncate max-w-[170px] sm:max-w-xs flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
+            <span className="truncate">
+              {activeSectionId
+                ? document.sections.find((s) => s.id === activeSectionId)?.title
+                : "Overview"}
+            </span>
+          </div>
+        </div>
+
+        {/* Collapsible Mobile Table of Contents Drawer */}
+        {mobileTocOpen && (
+          <div className="mt-2.5 max-w-7xl mx-auto p-3.5 rounded-2xl bg-[#FAF3EA] border border-[#DDD0C2] shadow-xl max-h-[60vh] overflow-y-auto space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center justify-between pb-2 border-b border-[#DDD0C2]/80 mb-2 px-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#5C1B13]">
+                Jump to Clause
+              </span>
+              <button
+                type="button"
+                onClick={() => setMobileTocOpen(false)}
+                className="text-[#5C1B13] p-1 hover:bg-[#5C1B13]/10 rounded-lg text-xs cursor-pointer"
+                aria-label="Close Table of Contents"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            </div>
+            {document.sections.map((sec) => (
+              <button
+                key={sec.id}
+                type="button"
+                onClick={() => {
+                  handleSmoothScrollTo(sec.id);
+                  setMobileTocOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 rounded-xl transition-all flex items-center justify-between text-xs cursor-pointer ${activeSectionId === sec.id
+                    ? "bg-[#5C1B13] text-white font-bold shadow-xs"
+                    : "text-[#140C07] bg-white hover:bg-[#FAF3EA] font-medium"
+                  }`}
+              >
+                <span className="truncate pr-2">
+                  <span className="font-mono opacity-70 mr-1.5">{sec.number}.</span>
+                  {sec.title}
+                </span>
+                <FiChevronRight className="w-3.5 h-3.5 shrink-0 opacity-60" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* ─── HERO HEADER BANNER ─── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#FAF3EA] via-[#FAF3EA]/60 to-[#FFFDF7] border-b border-[#DDD0C2] pt-8 sm:pt-12 pb-8 sm:pb-12">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#FAF3EA] via-[#FAF3EA]/60 to-[#FFFDF7] border-b border-[#DDD0C2] pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-12">
         <div
           aria-hidden="true"
           className="absolute -top-24 right-1/4 w-96 h-96 rounded-full bg-[#F5E729]/20 blur-3xl pointer-events-none -z-10"
@@ -359,47 +392,89 @@ export function LegalPageShell({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-3xl"
+            className="w-full"
           >
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#5C1B13] text-white text-xs font-bold uppercase tracking-wider shadow-2xs">
-                <FiFileText className="w-3.5 h-3.5 text-[#F5E729]" />
-                <span>{document.documentType}</span>
-              </span>
-              <span className="text-xs font-bold text-emerald-950 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full">
-                Active &amp; Enforceable
-              </span>
-              <span className="text-xs font-bold text-[#5C1B13] bg-white border border-[#DDD0C2] px-3 py-1 rounded-full shadow-2xs">
-                {document.effectiveDate}
-              </span>
+            {/* Header Top Row: Badges, Title & Entity Info */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#DDD0C2]/70">
+              <div>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5C1B13] text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs">
+                    <FiFileText className="w-3.5 h-3.5 text-[#F5E729]" />
+                    <span>{document.documentType}</span>
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-emerald-950 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full">
+                    Active &amp; Enforceable
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-[#5C1B13] bg-white border border-[#DDD0C2] px-3 py-1 rounded-full shadow-2xs">
+                    {document.effectiveDate}
+                  </span>
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#140C07] font-[family-name:var(--font-heading)] tracking-tight leading-tight">
+                  {document.title}
+                </h1>
+              </div>
+
+              {/* Corporate & Entity Quick Details */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold text-[#2C1810]">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DDD0C2] shadow-2xs">
+                  <FiMapPin className="w-3.5 h-3.5 text-[#5C1B13] shrink-0" />
+                  <span>Raipur, Chhattisgarh</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DDD0C2] shadow-2xs">
+                  <FiShield className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                  <span>Courts of Raipur</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DDD0C2] shadow-2xs">
+                  <FiMail className="w-3.5 h-3.5 text-sky-700 shrink-0" />
+                  <a href={`mailto:${document.officialEmail}`} className="text-[#5C1B13] hover:underline">
+                    {document.officialEmail}
+                  </a>
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#140C07] font-[family-name:var(--font-heading)] tracking-tight leading-tight">
-              {document.title}
-            </h1>
+            {/* ─── FULL-WIDTH OFFICIAL DOCUMENT PREAMBLE BOX (Covers Entire Right Screen) ─── */}
+            <div className="mt-6 w-full p-6 sm:p-8 rounded-2xl bg-white border border-[#DDD0C2] shadow-xs">
+              <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#DDD0C2]/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#5C1B13]/10 flex items-center justify-center shrink-0">
+                    <FiShield className="w-4 h-4 text-[#5C1B13]" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-black uppercase tracking-wider text-[#5C1B13] block">
+                      Official Document Preamble
+                    </span>
+                    <span className="text-[11px] text-[#7A685D] block">
+                      Statutory Statement of Purpose &amp; Governance
+                    </span>
+                  </div>
+                </div>
 
-            {/* High Contrast Preamble Box */}
-            <div className="mt-5 p-5 sm:p-6 rounded-2xl bg-white border border-[#DDD0C2] shadow-xs">
-              <div className="flex items-center gap-2 mb-2 pb-2 border-b border-[#DDD0C2]/60">
-                <FiShield className="w-4 h-4 text-[#5C1B13]" />
-                <span className="text-xs font-black uppercase tracking-wider text-[#5C1B13]">
-                  Official Document Preamble
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+                    ● Legally Binding Record
+                  </span>
+                  <span className="text-[11px] font-bold text-[#5C1B13] bg-[#FAF3EA] border border-[#DDD0C2] px-3 py-1 rounded-full">
+                    IT Act, 2000
+                  </span>
+                </div>
               </div>
-              <p className="text-[15px] sm:text-base text-[#140C07] leading-relaxed sm:leading-7 font-normal">
+
+              <p className="text-[15px] sm:text-base text-[#140C07] leading-relaxed sm:leading-8 font-normal">
                 {document.preamble}
               </p>
-            </div>
 
-            {/* Corporate & Jurisdiction Meta Tag Line */}
-            <div className="mt-4 pt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm font-semibold text-[#2C1810]">
-              <div className="flex items-center gap-1.5">
-                <FiMapPin className="w-4 h-4 text-[#5C1B13] shrink-0" />
-                <span>Registered: {document.registeredOffice}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <FiShield className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>Jurisdiction: {document.jurisdiction}</span>
+              <div className="mt-5 pt-4 border-t border-[#F2EAE0] flex flex-wrap items-center justify-between gap-3 text-xs text-[#7A685D]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
+                  <span className="font-medium text-[#2C1810]">
+                    Registered Office: {document.registeredOffice}
+                  </span>
+                </div>
+                <div className="text-[#5C1B13] font-semibold">
+                  Valid across India • Governed by the Laws of India
+                </div>
               </div>
             </div>
           </m.div>
@@ -496,57 +571,13 @@ export function LegalPageShell({
                 A++
               </button>
             </div>
-
-            {/* Mobile Table of Contents Dropdown Button */}
-            <button
-              type="button"
-              onClick={() => setMobileTocOpen(!mobileTocOpen)}
-              className="lg:hidden inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-[#5C1B13] text-white text-xs font-bold hover:bg-[#7B241C] transition-all cursor-pointer shadow-xs"
-            >
-              {mobileTocOpen ? <FiX className="w-4 h-4" /> : <FiMenu className="w-4 h-4" />}
-              <span>Index ({document.sections.length})</span>
-            </button>
           </div>
         </div>
-
-        {/* Mobile Collapsible Table of Contents Drawer */}
-        {mobileTocOpen && (
-          <div className="lg:hidden mb-6 p-5 rounded-3xl bg-[#FAF3EA] border border-[#DDD0C2] shadow-md animate-in fade-in duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-[#DDD0C2] mb-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#5C1B13]">
-                Jump to Section
-              </span>
-              <span className="text-xs font-bold text-[#2C1810]">
-                {document.sections.length} Clauses
-              </span>
-            </div>
-            <div className="max-h-80 overflow-y-auto pr-1 space-y-1.5 text-xs sm:text-sm">
-              {document.sections.map((sec) => (
-                <button
-                  key={sec.id}
-                  type="button"
-                  onClick={() => handleSmoothScrollTo(sec.id)}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
-                    activeSectionId === sec.id
-                      ? "bg-[#5C1B13] text-white font-bold shadow-xs"
-                      : "text-[#140C07] bg-white hover:bg-[#FAF3EA] font-semibold"
-                  }`}
-                >
-                  <span className="truncate">
-                    <span className="font-mono opacity-80 mr-1.5">{sec.number}.</span>
-                    {sec.title}
-                  </span>
-                  <FiChevronRight className="w-3.5 h-3.5 shrink-0 opacity-60" />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* ─── TWO COLUMN LAYOUT: SIDEBAR (DESKTOP) + CLAUSE CONTENT ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left: Sticky Table of Contents (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-4 sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-3 scrollbar-hide">
+          <aside className="hidden lg:block lg:col-span-4 self-start sticky top-24 lg:top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-3 scrollbar-hide z-20">
             <div className="p-5 rounded-3xl bg-white border border-[#DDD0C2] shadow-xs">
               <div className="flex items-center justify-between pb-3 border-b border-[#DDD0C2] mb-3">
                 <div className="flex items-center gap-2">
@@ -568,11 +599,10 @@ export function LegalPageShell({
                       key={sec.id}
                       type="button"
                       onClick={() => handleSmoothScrollTo(sec.id)}
-                      className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-between text-[13px] sm:text-sm ${
-                        isActive
+                      className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-between text-[13px] sm:text-sm ${isActive
                           ? "bg-[#5C1B13] text-white font-bold shadow-xs scale-[1.01]"
                           : "text-[#2C1810] hover:bg-[#FAF3EA] hover:text-[#5C1B13] font-medium"
-                      }`}
+                        }`}
                     >
                       <span className="truncate pr-2">
                         <span className="font-mono text-xs font-bold opacity-75 mr-1.5">
@@ -581,9 +611,8 @@ export function LegalPageShell({
                         {sec.title}
                       </span>
                       <FiChevronRight
-                        className={`w-3.5 h-3.5 shrink-0 transition-transform ${
-                          isActive ? "opacity-100 translate-x-0.5" : "opacity-40"
-                        }`}
+                        className={`w-3.5 h-3.5 shrink-0 transition-transform ${isActive ? "opacity-100 translate-x-0.5" : "opacity-40"
+                          }`}
                       />
                     </button>
                   );
@@ -716,15 +745,14 @@ export function LegalPageShell({
                   {/* Highlight Callout Alert Box */}
                   {sec.callout && (
                     <div
-                      className={`mt-5 p-5 sm:p-6 rounded-2xl border flex items-start gap-3.5 ${
-                        sec.callout.type === "security"
+                      className={`mt-5 p-5 sm:p-6 rounded-2xl border flex items-start gap-3.5 ${sec.callout.type === "security"
                           ? "bg-emerald-50/90 border-emerald-300 text-emerald-950"
                           : sec.callout.type === "warning"
-                          ? "bg-amber-50/90 border-amber-300 text-amber-950"
-                          : sec.callout.type === "contact"
-                          ? "bg-[#FAF3EA] border-[#5C1B13]/40 text-[#140C07]"
-                          : "bg-[#FFF9EA] border-[#E2BF36] text-[#140C07] shadow-2xs"
-                      }`}
+                            ? "bg-amber-50/90 border-amber-300 text-amber-950"
+                            : sec.callout.type === "contact"
+                              ? "bg-[#FAF3EA] border-[#5C1B13]/40 text-[#140C07]"
+                              : "bg-[#FFF9EA] border-[#E2BF36] text-[#140C07] shadow-2xs"
+                        }`}
                     >
                       <div className="w-9 h-9 rounded-xl bg-white border border-black/10 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
                         {sec.callout.type === "security" ? (
@@ -803,13 +831,15 @@ export function LegalPageShell({
           </div>
 
           <div className="flex flex-wrap items-center gap-4 font-bold text-[#5C1B13]">
-            <Link href="/terms" className="hover:underline">
-              Terms &amp; Conditions
-            </Link>
-            <span className="text-[#DDD0C2]">·</span>
-            <Link href="/privacy" className="hover:underline">
-              Privacy Policy
-            </Link>
+            {isPrivacyPage ? (
+              <Link href="/terms-and-conditions" className="hover:underline">
+                Terms &amp; Conditions
+              </Link>
+            ) : (
+              <Link href="/privacy-policy" className="hover:underline">
+                Privacy Policy
+              </Link>
+            )}
             <span className="text-[#DDD0C2]">·</span>
             <Link href="/service-area" className="hover:underline">
               Delivery Coverage

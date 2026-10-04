@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { m, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { TiltCard } from "@/components/ui/TiltCard";
 import { ShinyText, Magnet } from "@/components/reactbits";
-import { handleTrialClick } from "@/lib/cta";
+import { handleTrialClick, getWhatsAppUrl } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 import {
   FiTruck,
@@ -18,61 +16,82 @@ import {
   FiCheck,
   FiShield,
   FiAward,
-  FiUsers,
   FiArrowRight,
+  FiPackage,
 } from "react-icons/fi";
 
 const PLANS = [
   {
-    name: "Starter",
-    quantity: "0.5 Litre Daily",
-    price: 45,
-    originalPrice: null,
-    description: "Perfect for couples & small families",
-    icon: FiStar,
-    gradient: "from-slate-50 to-white",
+    id: "trial",
+    name: "7-Day Trial Plan",
+    badge: "ONE-TIME OFFER",
+    quantity: "7 consecutive mornings of fresh farm milk delivery",
+    price: 525,
+    originalPrice: 595,
+    savingsText: "Save ₹70",
+    rateText: "₹75 / litre",
+    periodLabel: "one-time offer",
+    description: "7 consecutive mornings of farm-fresh pure A2 Gir cow milk delivered right to your doorstep.",
+    icon: FiCalendar,
+    gradient: "from-[#FAF6F0] via-white to-[#FFFDF7]",
     borderColor: "border-[#E8DFD4]",
     features: [
-      { text: "Free morning delivery", icon: FiTruck },
-      { text: "Glass bottle packaging", icon: FiShield },
-      { text: "WhatsApp updates", icon: FiMessageCircle },
-      { text: "Cancel anytime", icon: FiX },
+      { text: "7 consecutive morning deliveries", icon: FiTruck },
+      { text: "Delivered fresh before 10 AM", icon: FiClock },
+      { text: "Sealed reusable glass bottles", icon: FiShield },
+      { text: "Daily morning WhatsApp updates", icon: FiMessageCircle },
+      { text: "Zero commitment • Cancel anytime", icon: FiX },
     ],
     highlighted: false,
+    ctaText: "Start 7-Day Trial",
   },
   {
-    name: "Family",
-    quantity: "1 Litre Daily",
-    price: 90,
+    id: "monthly",
+    name: "Monthly Subscription",
+    badge: "MOST POPULAR",
+    quantity: "1L Daily (30L / mo)",
+    price: 2250,
     originalPrice: null,
-    description: "Most popular for families of 3-4",
+    savingsText: null,
+    rateText: "₹75 / delivery",
+    periodLabel: "/ month",
+    description: "Our flagship family plan with automatic morning delivery, zero hassle, and total flexibility.",
     icon: FiAward,
     gradient: "from-[#FAF3EA] via-white to-[#FFFDF7]",
     borderColor: "border-[#5C1B13]",
     features: [
-      { text: "Free morning delivery", icon: FiTruck },
-      { text: "Glass bottle packaging", icon: FiShield },
-      { text: "WhatsApp updates", icon: FiMessageCircle },
-      { text: "Priority morning slot", icon: FiClock },
+      { text: "1L delivered fresh daily before 10 AM", icon: FiTruck },
+      { text: "Flexible pause / vacation mode", icon: FiCalendar },
+      { text: "Sealed reusable glass bottles", icon: FiShield },
+      { text: "WhatsApp updates & instant pause/skip", icon: FiMessageCircle },
+      { text: "Priority morning delivery slot", icon: FiClock },
     ],
     highlighted: true,
+    ctaText: "Subscribe Monthly",
   },
   {
-    name: "Joint Family",
-    quantity: "2 Litres Daily",
-    price: 180,
+    id: "single",
+    name: "Buy Once (1 Litre)",
+    badge: "SAMPLE BOTTLE",
+    quantity: "Order single bottles (0 of 7 used)",
+    price: 85,
     originalPrice: null,
-    description: "Best value for large families",
-    icon: FiUsers,
-    gradient: "from-slate-50 to-white",
+    savingsText: null,
+    rateText: "₹85 / bottle",
+    periodLabel: "one-time order",
+    description: "Taste test our rich farm milk with a single bottle before starting a daily subscription.",
+    icon: FiPackage,
+    gradient: "from-slate-50 via-white to-[#FFFDF7]",
     borderColor: "border-[#E8DFD4]",
     features: [
-      { text: "Free morning delivery", icon: FiTruck },
-      { text: "Glass bottle packaging", icon: FiShield },
-      { text: "Dedicated delivery partner", icon: FiUsers },
-      { text: "Twin 1000ml bottles daily", icon: FiAward },
+      { text: "1 Litre pure farm A2 Gir cow milk", icon: FiCheck },
+      { text: "Morning doorstep delivery before 10 AM", icon: FiClock },
+      { text: "Sealed sanitized glass bottle", icon: FiShield },
+      { text: "Instant WhatsApp confirmation", icon: FiMessageCircle },
+      { text: "Single order • Zero commitment", icon: FiX },
     ],
     highlighted: false,
+    ctaText: "Order Single Bottle",
   },
 ] as const;
 
@@ -84,7 +103,6 @@ const INCLUDED_PERKS = [
 ];
 
 export function Pricing() {
-  const [isMonthly, setIsMonthly] = useState(false);
   const badgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.5 });
   const headingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
   const subtitleRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.2 });
@@ -107,7 +125,7 @@ export function Pricing() {
       </div>
 
       <h2 ref={headingRef} className="text-3xl sm:text-4xl lg:text-[2.75rem] font-bold text-[#1A1008] text-center font-[family-name:var(--font-heading)] tracking-tight">
-        Choose Your Daily Milk Plan
+        Choose Your Milk Plan
       </h2>
 
       <p ref={subtitleRef} className="mt-4 text-base sm:text-lg text-[#3A241C]/80 text-center max-w-xl mx-auto leading-relaxed">
@@ -115,47 +133,9 @@ export function Pricing() {
         and 100% pure A2 Gir cow milk.
       </p>
 
-      {/* Daily vs Monthly Billing Switcher */}
-      <div className="mt-8 flex justify-center">
-        <div className="inline-flex items-center bg-white p-1.5 rounded-2xl border border-[#E8DFD4] shadow-xs">
-          <button
-            type="button"
-            onClick={() => setIsMonthly(false)}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer ${!isMonthly
-                ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20"
-                : "text-[#3A241C]/75 hover:text-[#1A1008] hover:bg-[#FAF3EA]"
-              }`}
-          >
-            Daily Rate
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsMonthly(true)}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${isMonthly
-                ? "bg-[#5C1B13] text-white shadow-md shadow-[#5C1B13]/20"
-                : "text-[#3A241C]/75 hover:text-[#1A1008] hover:bg-[#FAF3EA]"
-              }`}
-          >
-            <span>Monthly Subscription</span>
-            <span className="bg-[#F5E729] text-[#1A1008] text-[10px] px-2 py-0.5 rounded-full font-black">
-              SAVE
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* Plan cards - Compact sleek design */}
-      <div ref={plansRef} className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-5 lg:gap-6 max-w-5xl mx-auto items-stretch">
+      {/* Plan cards - 3 distinct options */}
+      <div ref={plansRef} className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-5 lg:gap-6 max-w-5xl mx-auto items-stretch">
         {PLANS.map((plan) => {
-          const displayPrice = isMonthly ? plan.price * 30 : plan.price;
-          const displayOriginalPrice = plan.originalPrice
-            ? isMonthly
-              ? plan.originalPrice * 30
-              : plan.originalPrice
-            : null;
-          const monthlySavings = plan.originalPrice
-            ? (plan.originalPrice - plan.price) * 30
-            : null;
           const PlanIcon = plan.icon;
 
           return (
@@ -188,12 +168,24 @@ export function Pricing() {
                     }
                   `}
                 >
-                  {/* Most popular badge */}
-                  {plan.highlighted && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
+                  {/* Card top badge */}
+                  {plan.highlighted ? (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30">
                       <span className="inline-flex items-center gap-1.5 bg-[#5C1B13] text-white text-[11px] font-bold px-3.5 py-1 rounded-full whitespace-nowrap shadow-md shadow-[#5C1B13]/25 border border-[#5C1B13]">
                         <FiStar className="w-3 h-3 text-[#F5E729]" />
-                        <ShinyText text="RECOMMENDED" speed={3} className="text-white" />
+                        <ShinyText text="MOST POPULAR" speed={3} className="text-white" />
+                      </span>
+                    </div>
+                  ) : plan.id === "trial" ? (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
+                      <span className="inline-flex items-center gap-1 bg-[#F5E729] text-[#1A1008] text-[10.5px] font-black tracking-wider px-3 py-0.5 rounded-full whitespace-nowrap shadow-xs border border-[#E5D720]">
+                        ⚡ ONE-TIME OFFER
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
+                      <span className="inline-flex items-center gap-1 bg-[#FAF3EA] text-[#5C1B13] text-[10.5px] font-bold tracking-wider uppercase px-3 py-0.5 rounded-full whitespace-nowrap border border-[#E8DFD4] shadow-2xs">
+                        BUY ONCE
                       </span>
                     </div>
                   )}
@@ -206,43 +198,40 @@ export function Pricing() {
                     <h3 className="text-lg sm:text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] group-hover:text-[#5C1B13] transition-colors">
                       {plan.name}
                     </h3>
-                    <p className="text-xs text-[#3A241C]/60 mt-0.5 font-medium">{plan.quantity}</p>
+                    <p className="text-xs text-[#3A241C]/75 mt-0.5 font-medium leading-snug">
+                      {plan.quantity}
+                    </p>
                   </div>
 
                   {/* Price block */}
-                  <div className="mb-1.5">
-                    <div className="flex items-baseline gap-1">
-                      <AnimatePresence mode="wait">
-                        <m.span
-                          key={isMonthly ? `monthly-${displayPrice}` : `daily-${displayPrice}`}
-                          initial={{ opacity: 0, y: -6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 6 }}
-                          transition={{ duration: 0.2 }}
-                          className="text-3xl sm:text-4xl font-black text-[#5C1B13] tracking-tight leading-none"
-                        >
-                          ₹{displayPrice}
-                        </m.span>
-                      </AnimatePresence>
-                      <span className="text-xs text-[#3A241C]/50 font-medium">
-                        /{isMonthly ? "month" : "day"}
+                  <div className="mb-2">
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
+                      <span className="text-3xl sm:text-4xl font-black text-[#5C1B13] tracking-tight leading-none">
+                        ₹{plan.price.toLocaleString("en-IN")}
                       </span>
+                      <span className="text-xs text-[#3A241C]/60 font-semibold">
+                        {plan.periodLabel}
+                      </span>
+                      {plan.originalPrice && (
+                        <span className="text-sm text-[#3A241C]/40 line-through font-medium ml-1">
+                          ₹{plan.originalPrice}
+                        </span>
+                      )}
                     </div>
-                    {displayOriginalPrice && (
-                      <span className="text-xs text-[#3A241C]/40 line-through ml-0.5">
-                        ₹{displayOriginalPrice}
-                      </span>
-                    )}
-                  </div>
 
-                  {isMonthly && monthlySavings && (
-                    <div className="mb-2">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                        <FiCheck className="w-2.5 h-2.5" />
-                        Save ₹{monthlySavings}/month
+                    {/* Rate & Savings badges */}
+                    <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center text-[11px] font-bold text-[#5C1B13] bg-[#FAF3EA] border border-[#E8DFD4] px-2.5 py-0.5 rounded-full">
+                        {plan.rateText}
                       </span>
+                      {plan.savingsText && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                          <FiCheck className="w-3 h-3 text-emerald-600" />
+                          {plan.savingsText}
+                        </span>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   <p className="text-xs text-[#3A241C]/65 mb-3">{plan.description}</p>
 
@@ -271,9 +260,9 @@ export function Pricing() {
                       size="sm"
                       fullWidth
                       onClick={handleTrialClick}
-                      className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl ${plan.highlighted ? "shadow-md shadow-[#5C1B13]/20" : ""}`}
+                      className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl cursor-pointer ${plan.highlighted ? "shadow-md shadow-[#5C1B13]/20" : ""}`}
                     >
-                      Start 7-Day Trial
+                      {plan.ctaText}
                     </Button>
                   </Magnet>
                 </div>
@@ -311,7 +300,7 @@ export function Pricing() {
         <p className="text-sm text-[#3A241C]/80">
           Need bulk supply for your residential society, apartment complex, or event in Raipur?{" "}
           <a
-            href="https://wa.me/919131920708?text=Hi%20PuretyFarm%2C%20I%20am%20interested%20in%20a%20society%20bulk%20milk%20subscription."
+            href={getWhatsAppUrl("Hi PuretyFarm, I am interested in a society bulk milk subscription.")}
             target="_blank"
             rel="noopener noreferrer"
             className="font-bold text-[#5C1B13] underline hover:text-[#4A1510] ml-1 inline-flex items-center gap-1"

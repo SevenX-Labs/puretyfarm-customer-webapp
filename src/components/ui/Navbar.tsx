@@ -59,11 +59,10 @@ export function Navbar() {
     >
       {/* ─── FLOATING ROUNDED PILL CONTAINER ─── */}
       <div
-        className={`pointer-events-auto mx-auto max-w-6xl rounded-full transition-all duration-300 ${
-          isScrolled
+        className={`pointer-events-auto mx-auto max-w-6xl rounded-full transition-all duration-300 ${isScrolled
             ? "bg-white/95 shadow-[0_12px_36px_rgba(26,16,8,0.08)] border border-[#E5DACD] py-1.5 sm:py-2 px-3 sm:px-5 scale-[0.99]"
             : "bg-white shadow-[0_8px_28px_rgba(26,16,8,0.06)] border border-[#ECE2D8] py-2 sm:py-2.5 px-3.5 sm:px-6"
-        } backdrop-blur-xl`}
+          } backdrop-blur-xl`}
       >
         <div className="flex items-center justify-between gap-3 sm:gap-6">
           {/* Left: Brand Logo */}

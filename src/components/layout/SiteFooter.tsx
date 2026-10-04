@@ -146,7 +146,7 @@ export function SiteFooter() {
 
               <div className="mt-2 text-xs text-white/50 leading-relaxed flex items-start gap-1.5">
                 <FiMapPin className="w-3.5 h-3.5 text-[#F5E729] shrink-0 mt-0.5" />
-                <span>VIP Road Delivery Hub &amp; Cold Chaining Center, Raipur, CG 492001</span>
+                <span>VIP Road Delivery Hub &amp; Cold Chaining Center, Raipur, Chhattisgarh</span>
               </div>
             </div>
           </div>
@@ -156,8 +156,8 @@ export function SiteFooter() {
         <div className={styles.footerBottomBar}>
           <div className={styles.footerLegalLinks}>
             <span>© {new Date().getFullYear()} PuretyFarm Raipur. All rights reserved.</span>
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/terms">Terms &amp; Conditions</Link>
+            <Link href="/privacy-policy">Privacy Policy</Link>
+            <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
             <Link href="/service-area">Delivery Coverage</Link>
           </div>
 

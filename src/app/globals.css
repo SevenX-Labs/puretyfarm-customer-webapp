@@ -17,9 +17,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Prevent horizontal scroll / overflow across the entire page */
+/* Prevent horizontal scroll / overflow across the entire page without breaking position: sticky */
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
 }
@@ -40,7 +40,7 @@ body {
   font-family: var(--font-body), 'Plus Jakarta Sans', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
   position: relative;
@@ -132,10 +132,11 @@ main+div[data-testid="sticky-cta-bar"] {
   display: flex;
   width: max-content;
   animation: marquee-scroll-ltr 50s linear infinite;
+  will-change: transform;
 }
 
 .animate-marquee-ltr:hover {
-  animation-play-state: paused;
+  animation-play-state: running;
 }
 
 @media (prefers-reduced-motion: reduce) {

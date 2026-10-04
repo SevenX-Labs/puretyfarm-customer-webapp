@@ -13,6 +13,7 @@ import {
   FiThermometer,
   FiTruck,
   FiCheck,
+  FiDroplet,
 } from "react-icons/fi";
 import { FaStar, FaWhatsapp } from "react-icons/fa";
 import { FaCow, FaLeaf, FaPlay, FaUsers, FaPeopleRoof } from "react-icons/fa6";
@@ -72,35 +73,55 @@ const TRIAL_VOLUMES = [
 const BOTTOM_BENEFITS = [
   {
     icon: FiShield,
+    iconColor: "text-[#5C1B13]",
+    iconBg: "bg-[#5C1B13]/10",
     title: "Risk-Free 7-Day Trial",
     subtitle: "Money-Back Guarantee",
   },
   {
     icon: FaCow,
+    iconColor: "text-[#8C3A24]",
+    iconBg: "bg-[#8C3A24]/10",
     title: "100% Desi Gir Cows",
     subtitle: "A2 Rich Milk",
   },
   {
     icon: FaLeaf,
+    iconColor: "text-emerald-700",
+    iconBg: "bg-emerald-700/10",
     title: "Sanitized Eco Glass Bottles",
     subtitle: "Hygienic & Safe",
   },
   {
     icon: FiThermometer,
+    iconColor: "text-sky-700",
+    iconBg: "bg-sky-700/10",
     title: "Chilled to 4°C",
     subtitle: "Farm-to-Doorstep",
   },
   {
     icon: FiClock,
+    iconColor: "text-[#5C1B13]",
+    iconBg: "bg-[#5C1B13]/10",
     title: "Delivered Before 10:00 AM",
     subtitle: "Daily",
   },
   {
-    icon: FaLeaf,
+    icon: FiDroplet,
+    iconColor: "text-emerald-700",
+    iconBg: "bg-emerald-700/10",
     title: "Zero Added Water",
     subtitle: "Pure & Natural",
   },
 ] as const;
+
+// 4 copies create a 2-half set ensuring a seamless infinite loop on any screen width
+const LOOPED_BOTTOM_BENEFITS = [
+  ...BOTTOM_BENEFITS,
+  ...BOTTOM_BENEFITS,
+  ...BOTTOM_BENEFITS,
+  ...BOTTOM_BENEFITS,
+];
 
 export function TrialOffer() {
   const [selectedVolume, setSelectedVolume] = useState<typeof TRIAL_VOLUMES[number]>(
@@ -377,25 +398,53 @@ export function TrialOffer() {
               </div>
             </div>
 
-            {/* ─── BOTTOM BENEFIT BAR (6 Items with Dividers) ─── */}
-            <div className="border-t border-[#ECE4DA] pt-6 sm:pt-7 mt-10">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-y sm:divide-y-0 lg:divide-x divide-[#ECE4DA] gap-y-4 sm:gap-y-6 lg:gap-y-0 items-center">
-                {BOTTOM_BENEFITS.map((item, idx) => {
+            {/* ─── BOTTOM BENEFIT BAR (Always One Line Infinite Marquee) ─── */}
+            <div className="border-t border-[#ECE4DA] pt-5 sm:pt-6 mt-8 sm:mt-10 -mx-6 sm:-mx-10 lg:-mx-12 px-6 sm:px-10 lg:px-12 relative overflow-hidden select-none">
+              {/* Subtle edge fade gradient masks */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-white via-white/80 to-transparent z-10"
+              />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-white via-white/80 to-transparent z-10"
+              />
+
+              {/* Infinite right-to-left marquee track - always stays strictly in one line */}
+              <div
+                className="animate-marquee flex items-center py-1 will-change-transform"
+                style={{ animationDuration: "35s" }}
+              >
+                {LOOPED_BOTTOM_BENEFITS.map((item, idx) => {
                   const Icon = item.icon;
                   return (
                     <div
                       key={idx}
-                      className="flex items-center gap-3 px-2 sm:px-3 lg:px-4 py-1 first:pl-0 last:pr-0"
+                      className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-1 shrink-0 whitespace-nowrap"
                     >
-                      <Icon className="w-5 h-5 text-[#3E2D24] shrink-0" />
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs sm:text-[12.5px] font-bold text-[#1A1008] leading-tight tracking-tight">
+                      <div
+                        className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg ${item.iconBg} flex items-center justify-center shrink-0 shadow-2xs`}
+                      >
+                        <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${item.iconColor}`} />
+                      </div>
+                      <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <span className="text-xs sm:text-[12.5px] font-bold text-[#1A1008] tracking-tight">
                           {item.title}
                         </span>
-                        <span className="text-[10px] sm:text-[11px] text-[#6B584C] leading-tight mt-0.5">
+                        <span
+                          className="text-[#C4B5A5] text-[10px] sm:text-xs select-none"
+                          aria-hidden="true"
+                        >
+                          •
+                        </span>
+                        <span className="text-[11px] sm:text-xs text-[#6B584C] font-medium">
                           {item.subtitle}
                         </span>
                       </div>
+                      <div
+                        className="h-3.5 sm:h-4 w-px bg-[#ECE4DA] ml-3 sm:ml-4 select-none shrink-0"
+                        aria-hidden="true"
+                      />
                     </div>
                   );
                 })}

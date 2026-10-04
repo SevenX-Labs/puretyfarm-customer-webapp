@@ -12,11 +12,11 @@ export default function Template({ children }: { children: ReactNode }) {
 
   return (
     <m.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{
-        duration: 0.4,
-        ease: [0.22, 1, 0.36, 1],
+        duration: 0.25,
+        ease: "easeOut",
       }}
       className="flex flex-col flex-1 w-full"
     >

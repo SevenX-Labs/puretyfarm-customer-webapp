@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Section } from "@/components/ui/Section";
 import { TiltCard } from "@/components/ui/TiltCard";
 import { ShinyText } from "@/components/reactbits";
@@ -16,8 +15,6 @@ import {
   FiCheckCircle,
   FiDroplet,
   FiThermometer,
-  FiPause,
-  FiPlay,
 } from "react-icons/fi";
 import { FaStar, FaQuoteLeft } from "react-icons/fa";
 
@@ -176,8 +173,6 @@ function StatCounter({
 }
 
 export function SocialProof() {
-  const [isPaused, setIsPaused] = useState(false);
-
   // Testimonials section
   const testBadgeRef = useScrollReveal<HTMLDivElement>({ y: 30, duration: 0.5 });
   const testHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
@@ -263,17 +258,12 @@ export function SocialProof() {
                   className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-28 md:w-40 bg-gradient-to-l from-[#FFFDF7] via-[#FFFDF7]/90 to-transparent z-10"
                 />
 
-                {/* Left-to-Right Animated Loop Track */}
-                <div
-                  className="animate-marquee-ltr flex items-stretch gap-5 sm:gap-6 py-2"
-                  style={{
-                    animationPlayState: isPaused ? "paused" : undefined,
-                  }}
-                >
+                {/* Left-to-Right Non-Stop Infinite Animated Loop Track */}
+                <div className="animate-marquee-ltr flex items-stretch py-2">
                   {duplicatedTestimonials.map((testimonial, idx) => (
                     <div
                       key={`${testimonial.name}-${idx}`}
-                      className="w-[310px] sm:w-[360px] md:w-[390px] shrink-0 h-full flex flex-col"
+                      className="w-[310px] sm:w-[360px] md:w-[390px] shrink-0 h-full flex flex-col px-2.5 sm:px-3"
                     >
                       <div className="bg-white h-full rounded-2xl border border-[#E8DFD4] p-5 sm:p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 hover:border-[#5C1B13]/30 transition-all duration-300 flex flex-col justify-between group">
                         <div>
@@ -327,22 +317,6 @@ export function SocialProof() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Status and Pause/Resume Helper Bar */}
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 px-2 text-xs text-[#3A241C]/70">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Hover over any review to pause • Continuously looping left to right</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsPaused(!isPaused)}
-                  className="inline-flex items-center gap-1.5 font-semibold text-xs text-[#5C1B13] bg-white border border-[#E8DFD4] hover:bg-[#FAF3EA] px-3 py-1 rounded-full shadow-2xs transition-colors cursor-pointer"
-                >
-                  {isPaused ? <FiPlay className="w-3 h-3" /> : <FiPause className="w-3 h-3" />}
-                  <span>{isPaused ? "Resume Animation" : "Pause Animation"}</span>
-                </button>
               </div>
             </div>
           )}

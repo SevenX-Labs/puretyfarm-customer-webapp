@@ -124,7 +124,7 @@ export function ContactUs() {
                           </span>
                         </div>
                         <p className="text-xs sm:text-[13px] text-emerald-900/80 font-semibold mt-0.5">
-                          {ENV.PHONE_DISPLAY}
+                          {ENV.WHATSAPP_DISPLAY}
                         </p>
                       </div>
                     </div>
@@ -208,7 +208,7 @@ export function ContactUs() {
                           </span>
                         </div>
                         <p className="text-xs text-[#3A241C]/80 mt-1 leading-relaxed">
-                          Kumhari Farm Gaushala &amp; VIP Road Delivery Corridor, Raipur 492001.
+                          VIP Road Delivery Hub &amp; Farm Corridor, Raipur, Chhattisgarh.
                         </p>
                         <div className="mt-2.5 pt-2.5 border-t border-[#E8DFD4]/80 flex items-center gap-2 text-xs font-bold text-[#5C1B13]">
                           <FiClock className="w-3.5 h-3.5 text-[#5C1B13] shrink-0" />

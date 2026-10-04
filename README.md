@@ -53,7 +53,7 @@ The primary customer landing page (`/`) is structured into high-conversion, inte
 - **Sticky Glassmorphism**: Smoothly blurs and adds a bottom border as the user scrolls (`bg-[#FFFDF7]/95 backdrop-blur-md`).
 - **Quick Links**: Smooth scroll anchor navigation to `#why-puretyfarm`, `#how-it-works`, `#pricing`, `#service-area`, and `#faq`.
 - **Direct Contact Shortcuts**:
-  - **Phone Call**: Direct dial to `+91 90828 73561`.
+  - **Phone Call**: Direct dial to `+91 62603 10919`.
   - **WhatsApp**: Instant link with pre-filled customer support message.
 - **Primary CTA**: Fast-access *"Start Trial"* button.
 - **Mobile Drawer Navigation**: Slide-out menu with live morning delivery status notification (*Delivered before 10:00 AM active dispatch*), navigation links, legal links, and one-tap contact buttons.
@@ -123,9 +123,9 @@ Transparent, unbundled pricing tiers tailored for different family sizes:
 
 | Plan | Quantity | Price | Original Price | Best For | Features Included |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Starter** | 0.5 Litre Daily | **₹45 / day** | — | Couples & small families | Free morning delivery, glass bottle packaging, WhatsApp dispatch updates, cancel anytime. |
-| **Family** *(Most Popular)* | 1 Litre Daily | **₹90 / day** | — | Families of 3–4 members | All Starter features + priority morning slot & weekend quantity adjustments. |
-| **Joint Family** | 2 Litres Daily | **₹180 / day** | — | Large & joint families | All Family features + dedicated delivery partner & twin 1000ml bottles. |
+| **7-Day Trial Plan** *(One-Time Offer)* | 7 consecutive mornings (1L daily) | **₹525** *(₹75 / litre)* | ₹595 (Save ₹70) | First-time trial | 7 consecutive morning deliveries before 10 AM, sealed glass bottles, WhatsApp alerts, 100% money-back guarantee. |
+| **Monthly Subscription** *(Most Popular)* | 1L Daily (30L / mo) | **₹2,250 / mo** *(₹75 / delivery)* | — | Families of 3–4 members | Free morning delivery before 10 AM, priority morning slot, flexible pause / vacation mode, WhatsApp skip. |
+| **Buy Once (1 Litre)** | Single bottle sample (0 of 7 used) | **₹85** *(one-time order)* | — | Sample test & flexibility | 1L pure farm A2 Gir cow milk delivered before 10 AM, sealed glass bottle, zero subscription commitment. |
 
 *All plans include free home delivery before 10:00 AM, sealed glass bottles, and a 100% money-back guarantee.*
 
@@ -176,11 +176,11 @@ Interactive accordion providing complete operational clarity:
 ### 11. Final Call-to-Action & Contact Footer
 - **Final Banner**: *"Ready to Taste the Difference? Join 500+ Raipur families"* with dual CTA buttons (`Start 7-Day Trial` and `Download App`).
 - **Direct Multi-Channel Contact Bar**:
-  - 📞 **Phone Support**: [`+91 90828 73561`](tel:+919082873561)
-  - 💬 **WhatsApp Desk**: Instant chat with Raipur farm dispatch support.
+  - 📞 **Phone Support**: [`+91 62603 10919`](tel:+916260310919)
+  - 💬 **WhatsApp Desk**: [`+91 75873 47266`](https://wa.me/917587347266)
   - ✉️ **Email**: [`care@puretyfarm.in`](mailto:care@puretyfarm.in)
   - 📸 **Instagram**: [`@puretyfarm`](https://instagram.com/puretyfarm)
-- **Quick Links**: Navigation to internal sections, [Delivery Areas](/service-area), [Terms & Conditions](/terms), and [Privacy Policy](/privacy).
+- **Quick Links**: Navigation to internal sections, [Delivery Areas](/service-area), [Terms & Conditions](/terms-and-conditions), and [Privacy Policy](/privacy-policy).
 - **Geo-Badge**: *"Made with ❤️ in Raipur, Chhattisgarh"*.
 
 ---
@@ -197,8 +197,8 @@ Interactive accordion providing complete operational clarity:
 | :--- | :--- | :--- |
 | **`/`** | Dynamic / SSG | Main customer landing page composing all 11 homepage sections. |
 | **`/service-area`** | Dynamic / SSG | Dedicated Raipur service area lookup tool with coverage search and popular locality selector. |
-| **`/terms`** | Static Route | Complete Customer Agreement & Terms of Service (Trial terms, bottle return & care policy, ₹50 replacement fee policy, vacation mode cut-off at 8:00 PM, and FSSAI standards). |
-| **`/privacy`** | Static Route | Customer Privacy Policy outlining delivery address protection, zero selling of customer data, and communication consent. |
+| **`/terms-and-conditions`** | Static Route | Complete Customer Agreement & Terms of Service (Trial terms, bottle return & care policy, ₹50 replacement fee policy, vacation mode cut-off at 10:00 PM, and FSSAI standards). Redirects from `/terms`. |
+| **`/privacy-policy`** | Static Route | Customer Privacy Policy outlining delivery address protection, zero selling of customer data, and communication consent. Redirects from `/privacy`. |
 | **`/empty-state`** | Static Route | Locality not yet covered inquiry page with WhatsApp demand trigger. |
 | **`404 (Not Found)`** | Custom Error | Friendly branded 404 page with animated bottle visual, quick navigation back home, delivery area checker, and support phone/WhatsApp links. |
 
@@ -294,9 +294,10 @@ Environment variables can be defined in `.env.local` (referenced from `.env.exam
 NEXT_PUBLIC_PLAY_STORE_URL="https://play.google.com/store/apps/details?id=com.puretyfarm.customer"
 
 # Customer Support Contacts (Raipur, Chhattisgarh)
-NEXT_PUBLIC_WHATSAPP_NUMBER="919082873561"
-NEXT_PUBLIC_PHONE_NUMBER="+919082873561"
-NEXT_PUBLIC_PHONE_DISPLAY="+91 90828 73561"
+NEXT_PUBLIC_WHATSAPP_NUMBER="917587347266"
+NEXT_PUBLIC_WHATSAPP_DISPLAY="+91 75873 47266"
+NEXT_PUBLIC_PHONE_NUMBER="+916260310919"
+NEXT_PUBLIC_PHONE_DISPLAY="+91 62603 10919"
 NEXT_PUBLIC_SUPPORT_EMAIL="care@puretyfarm.in"
 
 # Canonical Production URL
