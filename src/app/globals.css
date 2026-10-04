@@ -100,50 +100,91 @@ main+div[data-testid="sticky-cta-bar"] {
 }
 
 /* Continuous Infinite Marquee Ticker (Right to Left & Left to Right) */
-@keyframes marquee-scroll {
+@-webkit-keyframes marquee-scroll {
   from {
-    transform: translateX(0);
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: translateX(-50%);
+    -webkit-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-scroll {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    -webkit-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@-webkit-keyframes marquee-scroll-ltr {
+  from {
+    -webkit-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes marquee-scroll-ltr {
   from {
-    transform: translateX(-50%);
+    -webkit-transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-50%, 0, 0);
   }
   to {
-    transform: translateX(0);
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 .animate-marquee {
   display: flex;
   width: max-content;
+  -webkit-animation: marquee-scroll 32s linear infinite;
   animation: marquee-scroll 32s linear infinite;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .animate-marquee:hover {
+  -webkit-animation-play-state: paused;
   animation-play-state: paused;
 }
 
 .animate-marquee-ltr {
   display: flex;
   width: max-content;
+  -webkit-animation: marquee-scroll-ltr 50s linear infinite;
   animation: marquee-scroll-ltr 50s linear infinite;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
   will-change: transform;
 }
 
 .animate-marquee-ltr:hover {
-  animation-play-state: running;
+  -webkit-animation-play-state: paused;
+  animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee,
   .animate-marquee-ltr {
     animation: none;
+    -webkit-animation: none;
     transform: none;
+    -webkit-transform: none;
   }
 }
 

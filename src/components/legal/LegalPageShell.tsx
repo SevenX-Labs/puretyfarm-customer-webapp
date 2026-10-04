@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { m } from "framer-motion";
-import { BrandLogo } from "@/components/ui/BrandLogo";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import { getWhatsAppUrl, getEmailUrl } from "@/lib/cta";
 import type { LegalDocument } from "@/data/privacyContent";
@@ -21,7 +19,6 @@ import {
   FiMail,
   FiMapPin,
   FiChevronRight,
-  FiMenu,
   FiX,
   FiType,
 } from "react-icons/fi";
@@ -54,7 +51,6 @@ export function LegalPageShell({
   activeSlug,
   highlights,
 }: LegalPageShellProps) {
-  const pathname = usePathname();
   const { scrollTo } = useLenis();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSectionId, setActiveSectionId] = useState<string>(
@@ -63,7 +59,6 @@ export function LegalPageShell({
   const [mobileTocOpen, setMobileTocOpen] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [textScale, setTextScale] = useState<"normal" | "large" | "xlarge">("normal");
-  const [isScrolled, setIsScrolled] = useState(false);
 
   const isPrivacyPage = activeSlug === "privacy" || activeSlug === "privacy-policy";
 
@@ -97,7 +92,6 @@ export function LegalPageShell({
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 20);
       const windowHeight = window.innerHeight;
       const docHeight = window.document.documentElement.scrollHeight;
       const totalScrollable = docHeight - windowHeight;
@@ -122,7 +116,7 @@ export function LegalPageShell({
       }
 
       // 2. Viewport-based detection: find the active section that is crossing or past the top trigger zone
-      const triggerOffset = 180;
+      const triggerOffset = 100;
       let current = sections[0].id;
 
       for (let i = 0; i < sections.length; i++) {
@@ -188,7 +182,7 @@ export function LegalPageShell({
     if (!target) return;
 
     const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
-    const targetOffset = isMobile ? -130 : -95;
+    const targetOffset = isMobile ? -60 : -28;
 
     if (scrollTo) {
       scrollTo(target, { offset: targetOffset, duration: 1.1 });
@@ -208,114 +202,8 @@ export function LegalPageShell({
         />
       </div>
 
-      {/* ─── FLOATING TOP NAVBAR (Rounded Pill Design) ─── */}
-      <nav
-        aria-label="Legal Navigation"
-        className="fixed top-2 sm:top-4 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300 print:hidden"
-      >
-        <div
-          className={`pointer-events-auto mx-auto max-w-6xl rounded-full transition-all duration-300 ${
-            isScrolled
-              ? "bg-white/95 shadow-[0_12px_36px_rgba(26,16,8,0.08)] border border-[#E5DACD] py-1.5 sm:py-2 px-3 sm:px-5 scale-[0.99]"
-              : "bg-white shadow-[0_8px_28px_rgba(26,16,8,0.06)] border border-[#ECE2D8] py-2 sm:py-2.5 px-3.5 sm:px-6"
-          } backdrop-blur-xl flex items-center justify-between gap-3 sm:gap-6`}
-        >
-          {/* Left: Brand Logo & Breadcrumb */}
-          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-            <BrandLogo size="sm" condensed={isScrolled} />
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#2C1810] font-medium">
-              <Link href="/" className="hover:text-[#5C1B13] transition-colors">
-                Home
-              </Link>
-              <FiChevronRight className="w-3 h-3 text-[#5C1B13]/60" />
-              <span className="font-bold text-[#5C1B13]">
-                {document.title}
-              </span>
-            </div>
-          </div>
-
-          {/* Center: Contextual Link to other legal document */}
-          <div className="flex items-center">
-            {isPrivacyPage ? (
-              <Link
-                href="/terms-and-conditions"
-                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-[#FAF3EA] hover:bg-[#5C1B13] text-[#2C1810] hover:text-white border border-[#DDD0C2] hover:border-[#5C1B13] text-xs font-bold transition-all shadow-2xs group"
-                title="View Terms & Conditions"
-              >
-                <span>Terms &amp; Conditions</span>
-                <FiChevronRight className="w-3.5 h-3.5 text-[#5C1B13] group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            ) : (
-              <Link
-                href="/privacy-policy"
-                className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full bg-[#FAF3EA] hover:bg-[#5C1B13] text-[#2C1810] hover:text-white border border-[#DDD0C2] hover:border-[#5C1B13] text-xs font-bold transition-all shadow-2xs group"
-                title="View Privacy Policy"
-              >
-                <span>Privacy Policy</span>
-                <FiChevronRight className="w-3.5 h-3.5 text-[#5C1B13] group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            )}
-          </div>
-
-          {/* Right: Text Size Adjuster & Return Home */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Font Size Toggle Pill */}
-            <div className="hidden md:flex items-center gap-1 bg-[#FAF3EA] border border-[#DDD0C2] rounded-full p-0.5">
-              <span className="text-[11px] font-bold text-[#5C1B13] px-2 flex items-center gap-1">
-                <FiType className="w-3 h-3" />
-                <span>Text</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setTextScale("normal")}
-                className={`px-2 py-0.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  textScale === "normal"
-                    ? "bg-[#5C1B13] text-white shadow-2xs"
-                    : "text-[#2C1810] hover:text-[#5C1B13]"
-                }`}
-                title="Default font size"
-              >
-                Normal
-              </button>
-              <button
-                type="button"
-                onClick={() => setTextScale("large")}
-                className={`px-2 py-0.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  textScale === "large"
-                    ? "bg-[#5C1B13] text-white shadow-2xs"
-                    : "text-[#2C1810] hover:text-[#5C1B13]"
-                }`}
-                title="Large font size"
-              >
-                Large
-              </button>
-              <button
-                type="button"
-                onClick={() => setTextScale("xlarge")}
-                className={`px-2 py-0.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  textScale === "xlarge"
-                    ? "bg-[#5C1B13] text-white shadow-2xs"
-                    : "text-[#2C1810] hover:text-[#5C1B13]"
-                }`}
-                title="Extra large font size"
-              >
-                X-Large
-              </button>
-            </div>
-
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full bg-[#5C1B13] hover:bg-[#7B241C] text-white text-xs font-bold transition-all shadow-xs"
-            >
-              <FiArrowLeft className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Home</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* ─── STICKY MOBILE TABLE OF CONTENTS BAR (Screens < lg) ─── */}
-      <div className="lg:hidden sticky top-[62px] sm:top-[70px] z-30 w-full bg-[#FFFDF7]/95 backdrop-blur-xl border-b border-[#DDD0C2] px-4 py-2.5 shadow-2xs transition-all print:hidden">
+      <div className="lg:hidden sticky top-0 z-30 w-full bg-[#FFFDF7]/95 backdrop-blur-xl border-b border-[#DDD0C2] px-4 py-2.5 shadow-2xs transition-all print:hidden">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <button
             type="button"
@@ -381,7 +269,7 @@ export function LegalPageShell({
       </div>
 
       {/* ─── HERO HEADER BANNER ─── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#FAF3EA] via-[#FAF3EA]/60 to-[#FFFDF7] border-b border-[#DDD0C2] pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-12">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#FAF3EA] via-[#FAF3EA]/60 to-[#FFFDF7] border-b border-[#DDD0C2] pt-8 sm:pt-12 lg:pt-14 pb-8 sm:pb-12">
         <div
           aria-hidden="true"
           className="absolute -top-24 right-1/4 w-96 h-96 rounded-full bg-[#F5E729]/20 blur-3xl pointer-events-none -z-10"
@@ -394,43 +282,31 @@ export function LegalPageShell({
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="w-full"
           >
-            {/* Header Top Row: Badges, Title & Entity Info */}
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-[#2C1810] mb-6">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 hover:text-[#5C1B13] transition-colors"
+              >
+                <FiArrowLeft className="w-3.5 h-3.5" />
+                <span>Home</span>
+              </Link>
+              <FiChevronRight className="w-3 h-3 text-[#5C1B13]/60" />
+              <span className="font-bold text-[#5C1B13]">{document.title}</span>
+            </div>
+
+            {/* Header Top Row: Title & Official Contact */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#DDD0C2]/70">
-              <div>
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#5C1B13] text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs">
-                    <FiFileText className="w-3.5 h-3.5 text-[#F5E729]" />
-                    <span>{document.documentType}</span>
-                  </span>
-                  <span className="text-[11px] sm:text-xs font-bold text-emerald-950 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full">
-                    Active &amp; Enforceable
-                  </span>
-                  <span className="text-[11px] sm:text-xs font-bold text-[#5C1B13] bg-white border border-[#DDD0C2] px-3 py-1 rounded-full shadow-2xs">
-                    {document.effectiveDate}
-                  </span>
-                </div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#140C07] font-[family-name:var(--font-heading)] tracking-tight leading-tight">
+                {document.title}
+              </h1>
 
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#140C07] font-[family-name:var(--font-heading)] tracking-tight leading-tight">
-                  {document.title}
-                </h1>
-              </div>
-
-              {/* Corporate & Entity Quick Details */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold text-[#2C1810]">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DDD0C2] shadow-2xs">
-                  <FiMapPin className="w-3.5 h-3.5 text-[#5C1B13] shrink-0" />
-                  <span>Raipur, Chhattisgarh</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DDD0C2] shadow-2xs">
-                  <FiShield className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                  <span>Courts of Raipur</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DDD0C2] shadow-2xs">
-                  <FiMail className="w-3.5 h-3.5 text-sky-700 shrink-0" />
-                  <a href={`mailto:${document.officialEmail}`} className="text-[#5C1B13] hover:underline">
-                    {document.officialEmail}
-                  </a>
-                </div>
+              {/* Official Contact Email */}
+              <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#DDD0C2] shadow-2xs text-xs sm:text-sm font-semibold text-[#2C1810]">
+                <FiMail className="w-3.5 h-3.5 text-[#5C1B13] shrink-0" />
+                <a href={`mailto:${document.officialEmail}`} className="text-[#5C1B13] hover:underline">
+                  {document.officialEmail}
+                </a>
               </div>
             </div>
 
@@ -545,30 +421,48 @@ export function LegalPageShell({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Mobile Text Scale Adjuster */}
-            <div className="md:hidden flex items-center bg-[#FAF3EA] border border-[#DDD0C2] rounded-full p-1 text-xs font-bold">
-              <span className="px-2 text-[#5C1B13]">Text:</span>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Text Scale Adjuster */}
+            <div className="flex items-center bg-[#FAF3EA] border border-[#DDD0C2] rounded-full p-1 text-xs font-bold">
+              <span className="px-2 text-[#5C1B13] flex items-center gap-1">
+                <FiType className="w-3 h-3" />
+                <span className="hidden sm:inline">Text:</span>
+              </span>
               <button
                 type="button"
                 onClick={() => setTextScale("normal")}
-                className={`px-2 py-1 rounded-full ${textScale === "normal" ? "bg-[#5C1B13] text-white" : "text-[#2C1810]"}`}
+                className={`px-2.5 py-1 rounded-full cursor-pointer transition-all ${
+                  textScale === "normal"
+                    ? "bg-[#5C1B13] text-white shadow-2xs"
+                    : "text-[#2C1810] hover:text-[#5C1B13]"
+                }`}
+                title="Default text size"
               >
-                A
+                Normal
               </button>
               <button
                 type="button"
                 onClick={() => setTextScale("large")}
-                className={`px-2 py-1 rounded-full ${textScale === "large" ? "bg-[#5C1B13] text-white" : "text-[#2C1810]"}`}
+                className={`px-2.5 py-1 rounded-full cursor-pointer transition-all ${
+                  textScale === "large"
+                    ? "bg-[#5C1B13] text-white shadow-2xs"
+                    : "text-[#2C1810] hover:text-[#5C1B13]"
+                }`}
+                title="Large text size"
               >
-                A+
+                Large
               </button>
               <button
                 type="button"
                 onClick={() => setTextScale("xlarge")}
-                className={`px-2 py-1 rounded-full ${textScale === "xlarge" ? "bg-[#5C1B13] text-white" : "text-[#2C1810]"}`}
+                className={`px-2.5 py-1 rounded-full cursor-pointer transition-all ${
+                  textScale === "xlarge"
+                    ? "bg-[#5C1B13] text-white shadow-2xs"
+                    : "text-[#2C1810] hover:text-[#5C1B13]"
+                }`}
+                title="Extra large text size"
               >
-                A++
+                X-Large
               </button>
             </div>
           </div>
@@ -577,7 +471,7 @@ export function LegalPageShell({
         {/* ─── TWO COLUMN LAYOUT: SIDEBAR (DESKTOP) + CLAUSE CONTENT ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left: Sticky Table of Contents (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-4 self-start sticky top-24 lg:top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-3 scrollbar-hide z-20">
+          <aside className="hidden lg:block lg:col-span-4 self-start sticky top-6 lg:top-8 max-h-[calc(100vh-3rem)] overflow-y-auto pr-3 scrollbar-hide z-20">
             <div className="p-5 rounded-3xl bg-white border border-[#DDD0C2] shadow-xs">
               <div className="flex items-center justify-between pb-3 border-b border-[#DDD0C2] mb-3">
                 <div className="flex items-center gap-2">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Section } from "@/components/ui/Section";
 import { TiltCard } from "@/components/ui/TiltCard";
 import { ShinyText } from "@/components/reactbits";
@@ -15,6 +16,8 @@ import {
   FiCheckCircle,
   FiDroplet,
   FiThermometer,
+  FiChevronLeft,
+  FiChevronRight,
 } from "react-icons/fi";
 import { FaStar, FaQuoteLeft } from "react-icons/fa";
 
@@ -178,19 +181,134 @@ export function SocialProof() {
   const testHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40, delay: 0.1 });
   const statsRef = useScrollReveal<HTMLDivElement>({ y: 30, delay: 0.15 });
 
-  // Trust section
-  const trustHeadingRef = useScrollReveal<HTMLHeadingElement>({ y: 40 });
-  const trustSubRef = useScrollReveal<HTMLParagraphElement>({ y: 30, delay: 0.1 });
-  const trustGridRef = useStaggerReveal<HTMLDivElement>("[data-trust-item]", {
-    y: 50,
-    x: -20,
-    stagger: 0.15,
-    duration: 0.7,
-  });
-  const trustFootRef = useScrollReveal<HTMLDivElement>({ y: 20, delay: 0.1 });
+  // Scroller refs & interactive state
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isInteractingRef = useRef(false);
+  const isPointerDownRef = useRef(false);
+  const pointerStartXRef = useRef(0);
+  const pointerStartScrollRef = useRef(0);
+  const resumeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
-  // Duplicated for seamless infinite marquee loop
-  const duplicatedTestimonials = [...TESTIMONIALS, ...TESTIMONIALS];
+  // Tripled testimonials array for seamless bi-directional wrap
+  const tripledTestimonials = useMemo(
+    () => [...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS],
+    []
+  );
+
+  // Initialize scroll position in the center set on mount for smooth wrap
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const timer = setTimeout(() => {
+      if (container) {
+        const singleSetWidth = container.scrollWidth / 3;
+        if (singleSetWidth > 0) {
+          container.scrollLeft = singleSetWidth;
+        }
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Continuous frame ticker for universal smooth movement across all screen refresh rates
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let animationFrameId: number;
+    let lastTime = performance.now();
+    // 38 px/sec: smooth, legible, and relaxing drift
+    const speed = 38;
+
+    const tick = (currentTime: number) => {
+      const delta = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+
+      if (
+        !prefersReducedMotion &&
+        !isInteractingRef.current &&
+        !isPointerDownRef.current &&
+        !isHovered &&
+        container
+      ) {
+        container.scrollLeft += speed * delta;
+
+        const singleSetWidth = container.scrollWidth / 3;
+        if (singleSetWidth > 0) {
+          if (container.scrollLeft >= singleSetWidth * 2) {
+            container.scrollLeft -= singleSetWidth;
+          } else if (container.scrollLeft <= 0) {
+            container.scrollLeft += singleSetWidth;
+          }
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(tick);
+    };
+
+    animationFrameId = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    };
+  }, [isHovered]);
+
+  const scheduleResume = useCallback(() => {
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => {
+      isInteractingRef.current = false;
+    }, 2500);
+  }, []);
+
+  const handleTouchStart = useCallback(() => {
+    isInteractingRef.current = true;
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    scheduleResume();
+  }, [scheduleResume]);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    isPointerDownRef.current = true;
+    isInteractingRef.current = true;
+    pointerStartXRef.current = e.clientX;
+    pointerStartScrollRef.current = scrollRef.current?.scrollLeft || 0;
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current || !scrollRef.current) return;
+    const deltaX = e.clientX - pointerStartXRef.current;
+    scrollRef.current.scrollLeft = pointerStartScrollRef.current - deltaX;
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+    scheduleResume();
+  }, [scheduleResume]);
+
+  const scrollByDirection = useCallback((direction: "left" | "right") => {
+    const container = scrollRef.current;
+    if (!container) return;
+    isInteractingRef.current = true;
+    const cardWidth = container.clientWidth < 640 ? 320 : 380;
+    container.scrollBy({
+      left: direction === "left" ? -cardWidth : cardWidth,
+      behavior: "smooth",
+    });
+    scheduleResume();
+  }, [scheduleResume]);
 
   return (
     <>
@@ -242,25 +360,71 @@ export function SocialProof() {
             <StatCounter end={4} suffix="°C" label="Chilled Cold Chain" icon={<FiThermometer className="w-6 h-6 text-cyan-600" />} />
           </div>
 
-          {/* Continuous Left-to-Right Looping Marquee */}
+          {/* Continuous Interactive Testimonials Scroller */}
           {FLAGS.SHOW_TESTIMONIALS && (
             <div className="relative mt-8">
+              {/* Header Controls: Live status + Prev/Next Buttons */}
+              <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 mb-3.5">
+                <span className="text-xs font-semibold text-[#3A241C]/65 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Real Raipur Residents • Swipe or drag to browse</span>
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => scrollByDirection("left")}
+                    aria-label="Previous testimonials"
+                    className="w-8 h-8 rounded-full bg-white border border-[#E8DFD4] text-[#5C1B13] hover:bg-[#5C1B13] hover:text-white flex items-center justify-center transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <FiChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollByDirection("right")}
+                    aria-label="Next testimonials"
+                    className="w-8 h-8 rounded-full bg-white border border-[#E8DFD4] text-[#5C1B13] hover:bg-[#5C1B13] hover:text-white flex items-center justify-center transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <FiChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
               {/* Marquee viewport container with break-out width */}
-              <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden py-3">
+              <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden py-2">
                 {/* Left gradient mask */}
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-28 md:w-40 bg-gradient-to-r from-[#FFFDF7] via-[#FFFDF7]/90 to-transparent z-10"
+                  className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 sm:w-24 md:w-36 bg-gradient-to-r from-[#FFFDF7] via-[#FFFDF7]/90 to-transparent z-10"
                 />
                 {/* Right gradient mask */}
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-28 md:w-40 bg-gradient-to-l from-[#FFFDF7] via-[#FFFDF7]/90 to-transparent z-10"
+                  className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 sm:w-24 md:w-36 bg-gradient-to-l from-[#FFFDF7] via-[#FFFDF7]/90 to-transparent z-10"
                 />
 
-                {/* Left-to-Right Non-Stop Infinite Animated Loop Track */}
-                <div className="animate-marquee-ltr flex items-stretch py-2">
-                  {duplicatedTestimonials.map((testimonial, idx) => (
+                {/* Multi-Device Interactive Smooth Scroller */}
+                <div
+                  ref={scrollRef}
+                  data-lenis-prevent="true"
+                  data-lenis-prevent-touch="true"
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => {
+                    setIsHovered(false);
+                    isPointerDownRef.current = false;
+                  }}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  className="flex items-stretch overflow-x-auto scrollbar-hide py-2 cursor-grab active:cursor-grabbing select-none"
+                  style={{
+                    scrollBehavior: "auto",
+                    WebkitOverflowScrolling: "touch",
+                  }}
+                >
+                  {tripledTestimonials.map((testimonial, idx) => (
                     <div
                       key={`${testimonial.name}-${idx}`}
                       className="w-[310px] sm:w-[360px] md:w-[390px] shrink-0 h-full flex flex-col px-2.5 sm:px-3"
