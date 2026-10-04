@@ -9,7 +9,7 @@ const BENEFITS = [
     iconColor: "text-[#5C1B13]",
     iconBg: "bg-[#5C1B13]/10",
     title: "Risk-Free 7-Day Trial",
-    subtitle: "No Deposit",
+    subtitle: "Money-Back Guarantee",
   },
   {
     icon: FaCow,
@@ -36,7 +36,7 @@ const BENEFITS = [
     icon: FiClock,
     iconColor: "text-[#5C1B13]",
     iconBg: "bg-[#5C1B13]/10",
-    title: "Delivered Before 7:00 AM",
+    title: "Delivered Before 10:00 AM",
     subtitle: "Daily",
   },
   {

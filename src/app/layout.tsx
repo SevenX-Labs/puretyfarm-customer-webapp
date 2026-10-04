@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: "%s | PuretyFarm",
   },
   description:
-    "Farm-fresh, unadulterated A2 Gir cow milk delivered daily before 7:00 AM across Raipur. FSSAI certified, chilled at 4°C, eco-friendly sanitized glass bottles. Start your risk-free 7-day trial today.",
+    "Farm-fresh, unadulterated A2 Gir cow milk delivered daily before 10:00 AM across Raipur. FSSAI certified, chilled at 4°C, eco-friendly sanitized glass bottles. Start your risk-free 7-day trial today.",
   keywords: [
     "A2 milk Raipur",
     "pure cow milk Raipur",
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PuretyFarm — Pure A2 Desi Cow Milk Delivered Fresh in Raipur",
     description:
-      "Farm-fresh A2 Gir cow milk delivered before 7:00 AM daily in glass bottles across Raipur. Start your risk-free 7-day trial with zero deposit.",
+      "Farm-fresh A2 Gir cow milk delivered before 10:00 AM daily in glass bottles across Raipur. Start your risk-free 7-day trial today.",
     url: ENV.SITE_URL,
     siteName: "PuretyFarm",
     locale: "en_IN",
@@ -95,7 +95,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PuretyFarm — Pure A2 Cow Milk Delivered Fresh in Raipur",
     description:
-      "Farm-fresh A2 Gir cow milk delivered before 7:00 AM daily in glass bottles. Start your risk-free 7-day trial.",
+      "Farm-fresh A2 Gir cow milk delivered before 10:00 AM daily in glass bottles. Start your risk-free 7-day trial.",
     images: ["/logo.webp"],
   },
   robots: {
@@ -108,6 +108,9 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
+  },
+  verification: {
+    google: "RTKzL81qaD6KGdS-jXIte2LpZjQC4brBvfA3wMcDcgg",
   },
 };
 
@@ -127,7 +130,7 @@ export default function RootLayout({
         telephone: ENV.PHONE_NUMBER,
         email: ENV.SUPPORT_EMAIL,
         url: ENV.SITE_URL,
-        priceRange: "₹45 - ₹150",
+        priceRange: "₹45 - ₹180",
         address: {
           "@type": "PostalAddress",
           addressLocality: "Raipur",
@@ -163,7 +166,7 @@ export default function RootLayout({
         "@id": `${ENV.SITE_URL}/#product`,
         name: "Pure A2 Desi Gir Cow Milk",
         description:
-          "Raw, unadulterated chilled A2 beta-casein cow milk delivered daily in eco-friendly glass bottles before 7:00 AM in Raipur.",
+          "Raw, unadulterated chilled A2 beta-casein cow milk delivered daily in eco-friendly glass bottles before 10:00 AM in Raipur.",
         brand: {
           "@type": "Brand",
           name: "PuretyFarm",
@@ -171,7 +174,7 @@ export default function RootLayout({
         offers: {
           "@type": "AggregateOffer",
           lowPrice: "45",
-          highPrice: "150",
+          highPrice: "180",
           priceCurrency: "INR",
           availability: "https://schema.org/InStock",
         },

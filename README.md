@@ -1,7 +1,7 @@
 # 🥛 PuretyFarm — Customer Web Application
 
 > **Pure A2 Desi Gir Cow Milk, Delivered Fresh to Your Doorstep in Raipur**  
-> Farm-fresh, unadulterated, cold-chained raw milk delivered before 7:00 AM daily in sanitized glass bottles across Raipur, Chhattisgarh.
+> Farm-fresh, unadulterated, cold-chained raw milk delivered before 10:00 AM daily in sanitized glass bottles across Raipur, Chhattisgarh.
 
 ---
 
@@ -37,10 +37,10 @@
 **PuretyFarm** is a direct-to-consumer milk subscription service delivering 100% pure, raw, chilled A2 Gir cow milk to households across Raipur, Chhattisgarh.
 
 - **100% Indigenous Desi Gir Cows**: Naturally rich in the A2 beta-casein protein, easier to digest, and sourced from ethically reared cows free-range grazing in organic pastures.
-- **Milked at Dawn, Delivered by 7:00 AM**: Milked at 4:30 AM, immediately chilled at 4°C, and dispatched straight to customer doorsteps in early morning slots (5:30 AM – 7:00 AM).
+- **Milked at Dawn, Delivered by 10:00 AM**: Milked at 4:30 AM, immediately chilled at 4°C, and dispatched straight to customer doorsteps in morning slots (delivered before 10:00 AM).
 - **Eco-Friendly Sanitized Glass Bottles**: Plastic-free distribution in sterilized, temperature-preserving glass bottles collected and sanitized daily.
 - **40+ Rigorous Quality Checks**: Zero preservatives, zero synthetic fats, zero added water, and zero antibiotics or growth hormones. FSSAI licensed.
-- **Zero-Risk 7-Day Starter Experience**: 100% money-back guarantee with no advance security deposit or long-term commitment.
+- **Zero-Risk 7-Day Starter Experience**: 100% money-back guarantee with cancel-anytime flexibility and no long-term commitment.
 
 ---
 
@@ -56,14 +56,14 @@ The primary customer landing page (`/`) is structured into high-conversion, inte
   - **Phone Call**: Direct dial to `+91 90828 73561`.
   - **WhatsApp**: Instant link with pre-filled customer support message.
 - **Primary CTA**: Fast-access *"Start Trial"* button.
-- **Mobile Drawer Navigation**: Slide-out menu with live morning delivery status notification (*5:30 AM – 7:00 AM active dispatch*), navigation links, legal links, and one-tap contact buttons.
+- **Mobile Drawer Navigation**: Slide-out menu with live morning delivery status notification (*Delivered before 10:00 AM active dispatch*), navigation links, legal links, and one-tap contact buttons.
 
 ---
 
 ### 2. Hero Section
 - **Trust Badge**: Highlighting `⭐ 500+ Happy Families in Raipur` with a 5-star rating icon cluster.
 - **Main Heading**: *"Pure A2 Cow Milk, Delivered Fresh to Your Door"*.
-- **Sub-headline**: Details farm-fresh Gir cow milk delivered before 7:00 AM across Shankar Nagar, VIP Road, Samta Colony, and all major Raipur localities.
+- **Sub-headline**: Details farm-fresh Gir cow milk delivered before 10:00 AM across Shankar Nagar, VIP Road, Samta Colony, and all major Raipur localities.
 - **Dual Conversion CTAs**:
   - **Primary**: *"Start My 7-Day Trial"* (with bolt icon)
   - **Secondary**: *"Download Our App"* (with download icon)
@@ -76,8 +76,8 @@ The primary customer landing page (`/`) is structured into high-conversion, inte
 - **Badge**: *"No-Risk Starter Experience"*.
 - **Headline**: *"Experience Pure A2 Goodness for 7 Days"*.
 - **Guaranteed Inclusions**:
-  1. **1 Litre daily** delivered before 7:00 AM in sanitized glass bottles.
-  2. **Free home delivery** across Raipur with zero deposit required.
+  1. **1 Litre daily** delivered before 10:00 AM in sanitized glass bottles.
+  2. **Free home delivery** across Raipur with cancel-anytime flexibility.
   3. **Daily WhatsApp & app updates** with morning dispatch and milkman status.
   4. **100% money-back guarantee** if you don't taste the difference.
 - **CTA**: Direct button to initiate the 7-day trial with reassurance (*"No credit card required • Cancel anytime"*).
@@ -89,7 +89,7 @@ Four key value propositions displayed in responsive hover-elevated cards:
 1. **100% Desi Gir Cows**: Ethically reared, free-range grazing in organic pastures.
 2. **Glass Bottle Delivery**: Eco-friendly packaging maintaining a crisp 4°C chill.
 3. **40+ Quality Tests**: Zero antibiotics, adulterated water, or synthetic fats guaranteed.
-4. **Farm-to-Table in Hours**: Milked at 4:30 AM, on your doorstep before 7:00 AM.
+4. **Farm-to-Table in Hours**: Milked at 4:30 AM, on your doorstep before 10:00 AM.
 
 ---
 
@@ -99,7 +99,7 @@ Visual stepped timeline featuring animated connector line drawing on desktop and
 2. **Choose Your Plan**: Pick from 7-day trial, monthly, or quarterly subscriptions.
 3. **Start Your Trial**: Begin with our risk-free 7-day trial without commitment.
 4. **Set Delivery Preference**: Choose daily quantity (0.5L, 1L, 2L) and preferred morning delivery slot.
-5. **Receive Fresh Milk**: Wake up to pure A2 milk at your doorstep before 7:00 AM.
+5. **Receive Fresh Milk**: Wake up to pure A2 milk at your doorstep before 10:00 AM.
 
 ---
 
@@ -124,10 +124,10 @@ Transparent, unbundled pricing tiers tailored for different family sizes:
 | Plan | Quantity | Price | Original Price | Best For | Features Included |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Starter** | 0.5 Litre Daily | **₹45 / day** | — | Couples & small families | Free morning delivery, glass bottle packaging, WhatsApp dispatch updates, cancel anytime. |
-| **Family** *(Most Popular)* | 1 Litre Daily | **₹80 / day** | ₹90 / day | Families of 3–4 members | All Starter features + priority morning slot & weekend quantity adjustments. |
-| **Joint Family** | 2 Litres Daily | **₹150 / day** | ₹170 / day | Large & joint families | All Family features + dedicated delivery partner & bulk savings. |
+| **Family** *(Most Popular)* | 1 Litre Daily | **₹90 / day** | — | Families of 3–4 members | All Starter features + priority morning slot & weekend quantity adjustments. |
+| **Joint Family** | 2 Litres Daily | **₹180 / day** | — | Large & joint families | All Family features + dedicated delivery partner & twin 1000ml bottles. |
 
-*All plans include free home delivery before 7:00 AM, sealed glass bottles, and a 100% money-back guarantee.*
+*All plans include free home delivery before 10:00 AM, sealed glass bottles, and a 100% money-back guarantee.*
 
 ---
 
@@ -136,7 +136,7 @@ Instant client-side locality search allowing visitors to verify doorstep morning
 - **Search Bar**: Real-time query matching with quick-clear and validation (minimum 2 characters).
 - **Popular Area Quick-Chips**: One-click tags for *Shankar Nagar, VIP Road, Telibandha, Civil Lines, Samta Colony,* and *Devendra Nagar*.
 - **Interactive Result States**:
-  - **Service Active (Success)**: Confirms delivery between 5:30 AM – 7:00 AM, with buttons to *"Start 7-Day Trial in [Area]"* or chat directly on WhatsApp.
+  - **Service Active (Success)**: Confirms delivery before 10:00 AM, with buttons to *"Start 7-Day Trial in [Area]"* or chat directly on WhatsApp.
   - **Expanding Soon (Empty State)**: Polite notification that the area is not yet covered, with a one-tap button to *"Request [Area] on WhatsApp"* and a list of all currently active delivery sectors.
   - **Input Validation (Error)**: Inline alert guiding the user to enter a valid locality name.
 - **Active Coverage List (23+ Raipur Sectors)**:
@@ -165,9 +165,9 @@ Interactive accordion providing complete operational clarity:
 2. **What areas in Raipur do you deliver to?**  
    Summarizes active localities across Shankar Nagar, Samta Colony, VIP Road, Telibandha, Civil Lines, Devendra Nagar, and surrounding hubs.
 3. **How does the 7-day trial work?**  
-   Clarifies zero advance payment, zero deposit, daily 1L delivery, and payment only upon satisfaction.
+   Clarifies zero advance payment required, daily 1L delivery, and payment only upon satisfaction.
 4. **What time is milk delivered?**  
-   Confirmed morning dispatch window between 5:30 AM and 7:00 AM daily.
+   Confirmed morning dispatch window delivered before 10:00 AM daily.
 5. **Can I pause or cancel my subscription?**  
    Explains flexible pause/vacation settings via the app or WhatsApp before 8:00 PM with zero cancellation charges.
 
@@ -178,7 +178,7 @@ Interactive accordion providing complete operational clarity:
 - **Direct Multi-Channel Contact Bar**:
   - 📞 **Phone Support**: [`+91 90828 73561`](tel:+919082873561)
   - 💬 **WhatsApp Desk**: Instant chat with Raipur farm dispatch support.
-  - ✉️ **Email**: [`care@puretyfarm.com`](mailto:care@puretyfarm.com)
+  - ✉️ **Email**: [`care@puretyfarm.in`](mailto:care@puretyfarm.in)
   - 📸 **Instagram**: [`@puretyfarm`](https://instagram.com/puretyfarm)
 - **Quick Links**: Navigation to internal sections, [Delivery Areas](/service-area), [Terms & Conditions](/terms), and [Privacy Policy](/privacy).
 - **Geo-Badge**: *"Made with ❤️ in Raipur, Chhattisgarh"*.
@@ -297,7 +297,7 @@ NEXT_PUBLIC_PLAY_STORE_URL="https://play.google.com/store/apps/details?id=com.pu
 NEXT_PUBLIC_WHATSAPP_NUMBER="919082873561"
 NEXT_PUBLIC_PHONE_NUMBER="+919082873561"
 NEXT_PUBLIC_PHONE_DISPLAY="+91 90828 73561"
-NEXT_PUBLIC_SUPPORT_EMAIL="care@puretyfarm.com"
+NEXT_PUBLIC_SUPPORT_EMAIL="care@puretyfarm.in"
 
 # Canonical Production URL
 NEXT_PUBLIC_SITE_URL="https://puretyfarm.com"

@@ -346,7 +346,7 @@ export function HowItWorks() {
                   Taste Trial
                 </span>
                 <span className="text-[9px] font-bold text-emerald-800 bg-white/90 border border-emerald-200 px-2 py-0.5 rounded-full mt-2 leading-none whitespace-nowrap shadow-2xs">
-                  ₹0 Deposit • Money Back
+                  Money-Back Guarantee
                 </span>
               </div>
 
@@ -359,7 +359,7 @@ export function HowItWorks() {
                   Claim Your 7-Day Taste Trial
                 </h3>
                 <p className="mt-1 text-xs sm:text-[13px] text-[#6B584C] leading-relaxed">
-                  Taste fresh unadulterated Gir cow milk with ₹0 bottle deposit & money-back pledge.
+                  Taste fresh unadulterated Gir cow milk with our 100% money-back pledge.
                 </p>
               </div>
             </div>
@@ -387,7 +387,7 @@ export function HowItWorks() {
               {/* Text Information */}
               <div className="flex-1 min-w-0 order-2 sm:order-1">
                 <span className="inline-block bg-purple-50 text-purple-700 border border-purple-200/80 rounded-full px-2.5 py-0.5 text-[11px] font-bold mb-1.5">
-                  Before 7:00 AM
+                  Before 10:00 AM
                 </span>
                 <h3 className="text-base sm:text-lg font-bold text-[#1A1008] leading-snug">
                   Set Delivery Location & Doorstep Notes
@@ -410,7 +410,7 @@ export function HowItWorks() {
 
                 <div className="flex items-center gap-1 text-[10px] font-bold text-purple-700">
                   <FiClock className="w-3 h-3 text-purple-600" />
-                  <span>Before 7:00 AM</span>
+                  <span>Before 10:00 AM</span>
                 </div>
               </div>
             </div>

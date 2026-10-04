@@ -110,7 +110,7 @@ export function HeroVideoModal({ isOpen, onClose }: HeroVideoModalProps) {
                   Dawn Milked &amp; Chilled to 4°C
                 </h4>
                 <p className="text-xs sm:text-sm text-white/80 mt-2 leading-relaxed">
-                  Raw unpasteurised Gir cow milk sealed immediately in sanitised glass bottles and delivered to Shankar Nagar, Civil Lines, VIP Road &amp; all Raipur before 7:00 AM.
+                  Raw unpasteurised Gir cow milk sealed immediately in sanitised glass bottles and delivered to Shankar Nagar, Civil Lines, VIP Road &amp; all Raipur before 10:00 AM.
                 </p>
               </div>
 
@@ -124,7 +124,7 @@ export function HeroVideoModal({ isOpen, onClose }: HeroVideoModalProps) {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 bg-[#23150D] border-t border-white/10">
               <div className="flex items-center gap-2 text-xs text-white/80">
                 <FiCheckCircle className="text-emerald-400 w-4 h-4 shrink-0" />
-                <span>Zero plastic touch • Sanitized glass • No deposit needed</span>
+                <span>Zero plastic touch • Sanitized glass • 100% money back</span>
               </div>
               <button
                 onClick={() => {

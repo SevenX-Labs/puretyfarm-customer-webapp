@@ -43,8 +43,8 @@ const PLANS = [
   {
     name: "Family",
     quantity: "1 Litre Daily",
-    price: 80,
-    originalPrice: 90,
+    price: 90,
+    originalPrice: null,
     description: "Most popular for families of 3-4",
     icon: FiAward,
     gradient: "from-[#FAF3EA] via-white to-[#FFFDF7]",
@@ -60,8 +60,8 @@ const PLANS = [
   {
     name: "Joint Family",
     quantity: "2 Litres Daily",
-    price: 150,
-    originalPrice: 170,
+    price: 180,
+    originalPrice: null,
     description: "Best value for large families",
     icon: FiUsers,
     gradient: "from-slate-50 to-white",
@@ -70,14 +70,14 @@ const PLANS = [
       { text: "Free morning delivery", icon: FiTruck },
       { text: "Glass bottle packaging", icon: FiShield },
       { text: "Dedicated delivery partner", icon: FiUsers },
-      { text: "Bulk savings (₹75/litre)", icon: FiAward },
+      { text: "Twin 1000ml bottles daily", icon: FiAward },
     ],
     highlighted: false,
   },
 ] as const;
 
 const INCLUDED_PERKS = [
-  { icon: FiTruck, label: "Free 7 AM Delivery" },
+  { icon: FiTruck, label: "Free 10 AM Delivery" },
   { icon: FiShield, label: "Zero Plastic Glass" },
   { icon: FiMessageCircle, label: "WhatsApp Pause/Skip" },
   { icon: FiCheck, label: "Money-Back Promise" },
@@ -111,7 +111,7 @@ export function Pricing() {
       </h2>
 
       <p ref={subtitleRef} className="mt-4 text-base sm:text-lg text-[#3A241C]/80 text-center max-w-xl mx-auto leading-relaxed">
-        All plans include free home delivery before 7 AM, sealed glass bottles,
+        All plans include free home delivery before 10 AM, sealed glass bottles,
         and 100% pure A2 Gir cow milk.
       </p>
 

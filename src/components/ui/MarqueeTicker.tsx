@@ -19,10 +19,10 @@ const TICKER_ITEMS = [
     : []),
   { icon: FiPackage, text: "Sanitized Eco Glass Bottles", color: "text-[#5C1B13]" },
   { icon: FiThermometer, text: "Chilled to 4°C Farm-to-Doorstep", color: "text-blue-600" },
-  { icon: FiClock, text: "Delivered Before 7:00 AM Daily", color: "text-[#5C1B13]" },
+  { icon: FiClock, text: "Delivered Before 10:00 AM Daily", color: "text-[#5C1B13]" },
   { icon: FiDroplet, text: "Zero Added Water, Hormones, or Preservatives", color: "text-emerald-600" },
   { icon: FiMapPin, text: "Serving All Major Localities Across Raipur", color: "text-amber-600" },
-  { icon: FiStar, text: "Risk-Free 7-Day Trial — No Deposit", color: "text-amber-500" },
+  { icon: FiStar, text: "Risk-Free 7-Day Trial — 100% Money-Back", color: "text-amber-500" },
 ];
 
 export function MarqueeTicker({ className = "" }: { className?: string }) {

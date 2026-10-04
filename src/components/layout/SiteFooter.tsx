@@ -54,7 +54,7 @@ export function SiteFooter() {
             </Link>
 
             <p className={styles.footerBrandDesc}>
-              Raipur&apos;s trusted source for 100% raw, unadulterated A2 Gir cow milk. Ethically reared, milked at dawn, chilled at 4°C, and delivered to your doorstep in sanitized glass bottles before 7:00 AM.
+              Raipur&apos;s trusted source for 100% raw, unadulterated A2 Gir cow milk. Ethically reared, milked at dawn, chilled at 4°C, and delivered to your doorstep in sanitized glass bottles before 10:00 AM.
             </p>
 
             <div className={styles.footerTrustBadge}>

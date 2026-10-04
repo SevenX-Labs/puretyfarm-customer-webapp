@@ -44,7 +44,7 @@ const PRIVACY_HIGHLIGHTS: {
     tag: "Raipur Delivery",
     title: "Delivery-Only Location Use",
     description:
-      "Your address and location permissions are used strictly to route morning deliveries between 5:30 AM and 7:00 AM.",
+      "Your address and location permissions are used strictly to route morning deliveries before 10:00 AM.",
   },
   {
     icon: "clock",

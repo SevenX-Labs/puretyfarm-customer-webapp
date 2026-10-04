@@ -1,7 +1,7 @@
 {
   "name": "PuretyFarm — Pure A2 Cow Milk Raipur",
   "short_name": "PuretyFarm",
-  "description": "Farm-fresh A2 Gir cow milk delivered before 7:00 AM daily in Raipur.",
+  "description": "Farm-fresh A2 Gir cow milk delivered before 10:00 AM daily in Raipur.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFDF7",

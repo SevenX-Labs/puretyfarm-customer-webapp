@@ -78,7 +78,7 @@ const TESTIMONIALS: readonly TestimonialItem[] = [
   },
   {
     quote:
-      "Punctual dawn delivery before 7:00 AM without fail. In peak summer, the milk arrives properly chilled at 4°C in temperature-controlled bags. Top notch consistency and transparent billing.",
+      "Punctual morning delivery before 10:00 AM without fail. In peak summer, the milk arrives properly chilled at 4°C in temperature-controlled bags. Top notch consistency and transparent billing.",
     name: "CA Manish Agrawal",
     location: "Pandri",
     tag: "Daily Subscriber",

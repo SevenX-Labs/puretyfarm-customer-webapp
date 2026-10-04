@@ -8,7 +8,7 @@ export interface BrandLogoProps {
   condensed?: boolean;
   /** Whether to show the text wordmark alongside the logo mark */
   showWordmark?: boolean;
-  /** Whether to show the Raipur A2 Dairy subtitle */
+  /** Whether to show the Raipur’s No.1 A2 Milk subtitle */
   showSubtitle?: boolean;
   /** Priority loading for LCP / above-the-fold header */
   priority?: boolean;
@@ -93,10 +93,10 @@ export function BrandLogo({
           </span>
           {showSubtitle && (
             <span
-              className={`${subSizes} font-bold text-[#541711] uppercase leading-none mt-1`}
+              className={`${subSizes} font-bold text-[#541711] uppercase leading-none mt-1 whitespace-nowrap`}
               style={{ letterSpacing: "0.14em" }}
             >
-              Raipur A2 Dairy
+              Raipur’s No.1 A2 Milk
             </span>
           )}
         </span>

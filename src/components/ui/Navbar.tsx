@@ -142,7 +142,7 @@ export function Navbar() {
                 </div>
                 <div>
                   <p className="font-bold text-[#1A1008]">Morning Dispatch Active</p>
-                  <p className="text-[10px] text-[#3A241C]/70">5:30 AM – 7:00 AM Raipur</p>
+                  <p className="text-[10px] text-[#3A241C]/70">Delivered Before 10:00 AM Raipur</p>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">

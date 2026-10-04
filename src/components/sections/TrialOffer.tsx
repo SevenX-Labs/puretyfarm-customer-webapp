@@ -53,9 +53,9 @@ const TRIAL_VOLUMES = [
     sub: "Family",
     icon: FaUsers,
     volumeStr: "1.0 Litre Daily (7.0L Total)",
-    bottles: "1 sanitized 1000ml glass bottle",
-    dailyPrice: 80,
-    totalPrice: 560,
+    bottles: "1 sanitized 1 Liter glass bottle",
+    dailyPrice: 90,
+    totalPrice: 630,
   },
   {
     id: "two",
@@ -63,9 +63,9 @@ const TRIAL_VOLUMES = [
     sub: "Joint",
     icon: FaPeopleRoof,
     volumeStr: "2.0 Litres Daily (14.0L Total)",
-    bottles: "2 sanitized 1000ml glass bottles",
-    dailyPrice: 150,
-    totalPrice: 1050,
+    bottles: "2 sanitized 2 Liter glass bottles",
+    dailyPrice: 180,
+    totalPrice: 1260,
   },
 ] as const;
 
@@ -73,7 +73,7 @@ const BOTTOM_BENEFITS = [
   {
     icon: FiShield,
     title: "Risk-Free 7-Day Trial",
-    subtitle: "No Deposit",
+    subtitle: "Money-Back Guarantee",
   },
   {
     icon: FaCow,
@@ -92,7 +92,7 @@ const BOTTOM_BENEFITS = [
   },
   {
     icon: FiClock,
-    title: "Delivered Before 7:00 AM",
+    title: "Delivered Before 10:00 AM",
     subtitle: "Daily",
   },
   {
@@ -171,7 +171,7 @@ export function TrialOffer() {
                   className="mt-4 text-sm sm:text-base text-[#4A3B32] leading-relaxed max-w-xl"
                 >
                   Experience the authentic natural aroma, thick cream layer (malai), and light
-                  digestion of raw Gir cow milk. Zero commitment, zero bottle deposit.
+                  digestion of raw Gir cow milk. Zero commitment, cancel anytime.
                 </p>
 
                 {/* Daily Quantity Selector */}
@@ -229,7 +229,7 @@ export function TrialOffer() {
                       <FiClock className="w-4 h-4" />
                     </div>
                     <div className="text-xs sm:text-sm text-[#1A1008] leading-tight">
-                      <span className="font-bold">Delivered daily before 7:00 AM</span>
+                      <span className="font-bold">Delivered daily before 10:00 AM</span>
                       <span className="text-[#6B584C] ml-1.5 font-normal">
                         in sanitized glass bottles
                       </span>
@@ -246,7 +246,7 @@ export function TrialOffer() {
                     <div className="text-xs sm:text-sm text-[#1A1008] leading-tight">
                       <span className="font-bold">Free home delivery across Raipur</span>
                       <span className="text-[#6B584C] ml-1.5 font-normal">
-                        — zero deposit required
+                        — prompt morning dispatch
                       </span>
                     </div>
                   </div>
@@ -340,7 +340,7 @@ export function TrialOffer() {
                         <FiClock className="w-4 h-4 text-[#3E1610] shrink-0" />
                         <span className="font-medium text-[#4A3B32]">Morning Window</span>
                       </div>
-                      <span className="font-bold text-[#1A1008]">5:30 – 7:00 AM</span>
+                      <span className="font-bold text-[#1A1008]">Before 10:00 AM</span>
                     </div>
 
                     {/* Row 4: Rate */}
@@ -356,14 +356,6 @@ export function TrialOffer() {
                       </span>
                     </div>
 
-                    {/* Row 5: Bottle Deposit */}
-                    <div className="flex items-center justify-between pb-3 border-b border-[#ECE4DA]/60">
-                      <div className="flex items-center gap-3 text-[#5C4E44]">
-                        <FiShield className="w-4 h-4 text-[#3E1610] shrink-0" />
-                        <span className="font-medium text-[#4A3B32]">Bottle Deposit</span>
-                      </div>
-                      <span className="font-bold text-emerald-700">₹0 (Deposit Waived)</span>
-                    </div>
 
                     {/* Row 6: Delivery Charges */}
                     <div className="flex items-center justify-between">

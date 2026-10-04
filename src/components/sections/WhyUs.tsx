@@ -99,7 +99,7 @@ const COMPARISON_CATEGORIES = [
       source: "Our dedicated single-origin Gir cow gaushala near Raipur",
       mechanism: "Plate-chilled to 4°C within 15 mins of dawn milking",
       symptoms: "Living enzymes, active vitamins & natural sweetness retained",
-      processing: "Milked at 4:30 AM, delivered to your door before 7:00 AM",
+      processing: "Milked at 4:30 AM, delivered to your door before 10:00 AM",
       badge: "< 3 Hours Fresh",
     },
   },
@@ -221,13 +221,13 @@ const JOURNEY_STEPS = [
     location: "Raipur Neighborhoods",
     temperature: "4.2°C (Insulated Vans)",
     description:
-      "Our dedicated temperature-controlled delivery vans deliver the sealed glass bottles right to your doorstep before 7:00 AM, in time for your morning tea.",
+      "Our dedicated temperature-controlled delivery vans deliver the sealed glass bottles right to your doorstep before 10:00 AM, in time for your morning tea.",
     keyMetrics: [
       { label: "Transit Time", value: "< 180 Mins" },
-      { label: "Delivery By", value: "07:00 AM" },
+      { label: "Delivery By", value: "10:00 AM" },
       { label: "Doorstep Fresh", value: "100%" },
     ],
-    statusPill: "Before 7:00 AM",
+    statusPill: "Before 10:00 AM",
   },
 ] as const;
 
@@ -518,7 +518,7 @@ export function WhyUs() {
                       className="h-28 w-auto object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute -bottom-1 bg-white/95 backdrop-blur-xs border border-[#E8DFD4] text-[10px] font-bold text-[#1A1008] px-3 py-1 rounded-full shadow-2xs">
-                      Deposit Waived · Doorstep Pickup
+                      Daily Doorstep Pickup · Sanitized
                     </div>
                   </div>
 
@@ -547,7 +547,7 @@ export function WhyUs() {
                     </div>
 
                     <h3 className="text-xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)] min-h-[56px] flex items-center">
-                      Milked at 4:30 AM · Delivered by 7:00 AM
+                      Milked at 4:30 AM · Delivered by 10:00 AM
                     </h3>
 
                     <p className="mt-2 text-xs sm:text-sm text-[#3A241C]/80 leading-relaxed">

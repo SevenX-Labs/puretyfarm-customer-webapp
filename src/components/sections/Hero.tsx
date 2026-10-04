@@ -85,7 +85,7 @@ export function Hero() {
                 transition={{ duration: 0.55, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 className="mt-2.5 sm:mt-3 text-xs sm:text-sm md:text-base text-[#3E2D24] leading-relaxed max-w-xl font-normal px-2"
               >
-                Farm-fresh, 100% unadulterated Gir cow milk delivered before 7:00 AM daily across
+                Farm-fresh, 100% unadulterated Gir cow milk delivered . Order before 10 pm get it before 11 am next day morning across
                 Shankar Nagar, VIP Road, Samta Colony, Civil Lines &amp; all Raipur localities.
               </m.p>
 

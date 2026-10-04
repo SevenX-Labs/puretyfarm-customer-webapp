@@ -46,7 +46,7 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
   "documentType": "Customer Service Agreement & Terms of Use",
   "entityName": "Puretyfarms (Incorporated under the Companies Act, 2013)",
   "registeredOffice": "Kumhari Chowk, Durg – Chhattisgarh - 490042, India",
-  "officialEmail": "support@Puretyfarm",
+  "officialEmail": "care@puretyfarm.in",
   "effectiveDate": "Last Updated: January 2025",
   "jurisdiction": "Courts of Durg, Chhattisgarh, India",
   "preamble": "Overview: This document is an electronic record in terms of Information Technology Act, 2000 and rules there under as applicable and the amended provisions pertaining to electronic records in various statutes as amended by the Information Technology Act, 2000.",
@@ -433,7 +433,7 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
             },
             {
               "label": "6.",
-              "content": "You agree and grant permission to Puretyfarm to receive promotional SMS and e-mails from Puretyfarm or allied partners. In case you wish to opt out of receiving promotional SMS or email please send a mail to support@Puretyfarm."
+              "content": "You agree and grant permission to Puretyfarm to receive promotional SMS and e-mails from Puretyfarm or allied partners. In case you wish to opt out of receiving promotional SMS or email please send a mail to care@puretyfarm.in."
             },
             {
               "label": "7.",
@@ -737,14 +737,14 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
       "number": 19,
       "title": "CONTACT US",
       "paragraphs": [
-        "Please contact us for any questions or comments regarding this Platform.Mr. Nirmal Singh (Owner) , Harman Aulakh (Founder)PuretyfarmOffice: Kumhari Chowk,Durg – Chattisgarh - 490042Email: support@Puretyfarm\n\nTime: All Days (10:00 am- 6:30 pm)"
+        "Please contact us for any questions or comments regarding this Platform.Mr. Nirmal Singh (Owner) , Harman Aulakh (Founder)PuretyfarmOffice: Kumhari Chowk,Durg – Chattisgarh - 490042Email: care@puretyfarm.in\n\nTime: All Days (10:00 am- 6:30 pm)"
       ],
       "subsections": [],
       "badge": "Contact Details",
       "callout": {
         "type": "contact",
         "title": "Official Grievance & Executive Contacts",
-        "text": "Mr. Nirmal Singh (Owner) | Harman Aulakh (Founder) | Office: Kumhari Chowk, Durg – Chhattisgarh - 490042 | Email: support@Puretyfarm | Working Hours: All Days 10:00 AM – 6:30 PM"
+        "text": "Mr. Nirmal Singh (Owner) | Harman Aulakh (Founder) | Office: Kumhari Chowk, Durg – Chhattisgarh - 490042 | Email: care@puretyfarm.in | Working Hours: All Days 10:00 AM – 6:30 PM"
       }
     }
   ]

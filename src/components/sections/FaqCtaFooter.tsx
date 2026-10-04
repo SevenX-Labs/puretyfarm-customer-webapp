@@ -28,12 +28,12 @@ const FAQ_ITEMS = [
   {
     question: "How does the 7-day trial work?",
     answer:
-      "Simply download our app or contact us via WhatsApp. We start delivering 1 litre of fresh A2 milk daily for 7 days. No advance payment, no deposit. Pay only after your trial if you love it.",
+      "Simply download our app or contact us via WhatsApp. We start delivering 1 litre of fresh A2 milk daily for 7 days. No advance payment required. Pay only after your trial if you love it.",
   },
   {
     question: "What time is milk delivered?",
     answer:
-      "We deliver between 5:30 AM and 7:00 AM every morning. You can track your delivery partner live on the app.",
+      "We deliver before 10:00 AM every morning. You can track your delivery partner live on the app.",
   },
   {
     question: "Can I pause or cancel my subscription?",

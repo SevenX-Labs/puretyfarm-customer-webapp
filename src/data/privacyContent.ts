@@ -46,7 +46,7 @@ export const PRIVACY_POLICY_DATA: LegalDocument = {
   "documentType": "Official Privacy & Data Protection Policy",
   "entityName": "PURETYFARM",
   "registeredOffice": "Kumhari Chowk, Dhamdha Road, Durg, Chhattisgarh – 490042",
-  "officialEmail": "support@puretyfarm.com",
+  "officialEmail": "care@puretyfarm.in",
   "effectiveDate": "Last Updated: January 2025",
   "jurisdiction": "Durg, Chhattisgarh, India",
   "preamble": "This Privacy Policy (“Policy”) describes the policies and procedures on the collection, use, disclosure and protection of your information when you use our website located at Puretyfarm, or the Puretyfarm mobile application (collectively, “Platform”) made available by PURETYFARM (“Puretyfarm”, “Company”, “we”, “us” and “our”), a company established under the laws of India having its registered office at Kumhari Chowk – Durg,Chhattisgarh – 490042.The terms “you” and “your” refer to the user of the Platform. The term “Services” refers to any services offered by Puretyfarm whether on the Platform or otherwise.Please read this Policy before using the Platform or submitting any personal information to Puretyfarm. This Policy is part of and incorporated within, and is to be read along with, the Terms of Use.",
@@ -357,14 +357,14 @@ export const PRIVACY_POLICY_DATA: LegalDocument = {
       "number": 9,
       "title": "OPT-OUT",
       "paragraphs": [
-        "When you sign up for an account, you are opting in to receive emails from Puretyfarm. You can follow the “unsubscribe” instructions in commercial email messages, but note that you cannot opt out of receiving certain administrative notices, service notices, or legal notices from Puretyfarm.If you wish to withdraw your consent for the use and disclosure of your personal information in the manner provided in this Policy, please write to us at support@Puretyfarm. Please note that we may take time to process such requests, and your request shall take effect no later than 5 (five) business days from the receipt of such request, after which we will not use your personal data for any processing unless required by us to comply with our legal obligations/requirements. We may not be able to offer you any or all Services upon such withdrawal of your consent."
+        "When you sign up for an account, you are opting in to receive emails from Puretyfarm. You can follow the “unsubscribe” instructions in commercial email messages, but note that you cannot opt out of receiving certain administrative notices, service notices, or legal notices from Puretyfarm.If you wish to withdraw your consent for the use and disclosure of your personal information in the manner provided in this Policy, please write to us at care@puretyfarm.in. Please note that we may take time to process such requests, and your request shall take effect no later than 5 (five) business days from the receipt of such request, after which we will not use your personal data for any processing unless required by us to comply with our legal obligations/requirements. We may not be able to offer you any or all Services upon such withdrawal of your consent."
       ],
       "subsections": [],
       "badge": "User Consent & Control",
       "callout": {
         "type": "highlight",
         "title": "Consent Withdrawal Window",
-        "text": "You have the right to withdraw your consent for personal information processing anytime by writing to support@puretyfarm.com. Requests take effect within 5 business days from receipt."
+        "text": "You have the right to withdraw your consent for personal information processing anytime by writing to care@puretyfarm.in. Requests take effect within 5 business days from receipt."
       }
     },
     {
@@ -372,16 +372,16 @@ export const PRIVACY_POLICY_DATA: LegalDocument = {
       "number": 10,
       "title": "GRIEVANCE OFFICER AND PLATFORM SECURITY",
       "paragraphs": [
-        "If you have any queries relating to the processing or usage of information provided by you in connection with this Policy, please email us at support@Puretyfarm or write to our Grievance Officer at the following address:Puretyfarm OfficePURETYFARM",
+        "If you have any queries relating to the processing or usage of information provided by you in connection with this Policy, please email us at care@puretyfarm.in or write to our Grievance Officer at the following address:Puretyfarm OfficePURETYFARM",
         "Kumhari Chowk, Dhamdha Road, Chhattisgarh – 490042",
-        "If you come across any abuse or violation of the Policy, please report to support@Puretyfarm"
+        "If you come across any abuse or violation of the Policy, please report to care@puretyfarm.in"
       ],
       "subsections": [],
       "badge": "Grievance Officer",
       "callout": {
         "type": "contact",
         "title": "Grievance Officer Contact Details",
-        "text": "PURETYFARM Office: Kumhari Chowk, Dhamdha Road, Durg, Chhattisgarh – 490042 | Email: support@puretyfarm.com | Response Timeline: 5 Business Days"
+        "text": "PURETYFARM Office: Kumhari Chowk, Dhamdha Road, Durg, Chhattisgarh – 490042 | Email: care@puretyfarm.in | Response Timeline: 5 Business Days"
       }
     }
   ]

@@ -200,7 +200,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
         </div>
       </div>
 
-      {/* Badge 3: Mid/Bottom-Left - 7 AM Morning Delivery (Desktop/Tablet) */}
+      {/* Badge 3: Mid/Bottom-Left - 10 AM Morning Delivery (Desktop/Tablet) */}
       <div
         ref={badge3Ref}
         className="hidden sm:block absolute bottom-12 left-0 sm:bottom-16 sm:-left-6 lg:-left-10 z-10 pointer-events-auto"
@@ -209,7 +209,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
           <FiClock className="w-4 h-4 text-[#5C1B13]" />
           <div>
             <p className="text-xs sm:text-sm font-bold text-[#1A1008] leading-tight">
-              Before 7:00 AM
+              Before 10:00 AM
             </p>
             <p className="text-[10px] sm:text-xs text-[#3A241C]/70">
               Fresh daily delivery
