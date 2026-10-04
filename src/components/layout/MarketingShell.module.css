@@ -308,8 +308,8 @@
 
 @media (min-width: 1024px) {
   .footerGrid {
-    grid-template-columns: 1.5fr 1fr 1.2fr 1.3fr;
-    gap: 44px;
+    grid-template-columns: 1.4fr 1fr 1.3fr;
+    gap: 48px;
   }
 }
 

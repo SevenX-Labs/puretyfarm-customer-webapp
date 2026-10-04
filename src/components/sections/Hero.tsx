@@ -2,19 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { m } from "framer-motion";
-import { FiZap, FiArrowRight, FiPlay } from "react-icons/fi";
-import { handleTrialClick } from "@/lib/cta";
+import { FiArrowRight, FiPlay } from "react-icons/fi";
 import { HeroBenefitBar } from "./HeroBenefitBar";
-import { HeroVideoModal } from "./HeroVideoModal";
 
 export function Hero() {
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const ctaContainerRef = useRef<HTMLDivElement>(null);
   const ctaRowRef = useRef<HTMLDivElement>(null);
   const [ctaScale, setCtaScale] = useState(1);
 
-  // Dynamic logic: ensures "Start My 7-Day Trial" and "Watch How It Works" ALWAYS stay on a single line across any screen width
+  // Dynamic logic: ensures "View Pricing" and "Watch How It Works" ALWAYS stay on a single line across any screen width
   useEffect(() => {
     const updateCtaScale = () => {
       if (!ctaContainerRef.current || !ctaRowRef.current) return;
@@ -47,8 +45,7 @@ export function Hero() {
   }, []);
 
   return (
-    <>
-      <section
+    <section
         id="hero"
         aria-label="PuretyFarm A2 Cow Milk Hero"
         className="relative w-full bg-[#FFFDF7] overflow-hidden flex flex-col justify-between min-h-[100dvh] lg:h-[100dvh] lg:max-h-[100dvh] pt-18 sm:pt-20 lg:pt-16 pb-0"
@@ -143,38 +140,35 @@ export function Hero() {
                     ref={ctaRowRef}
                     className="inline-flex flex-row items-center gap-2 sm:gap-3.5 md:gap-4 flex-nowrap whitespace-nowrap"
                   >
-                    {/* Primary Dominant CTA: Start My 7-Day Trial */}
-                    <m.button
-                      type="button"
-                      whileHover={{ scale: 1.03, y: -1 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={handleTrialClick}
-                      className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-3.5 py-2 sm:px-5 sm:py-2.5 md:px-7 md:py-3.5 rounded-full bg-[#541711] hover:bg-[#40110D] active:bg-[#40110D] text-white font-bold text-xs sm:text-sm md:text-base shadow-xl shadow-[#541711]/25 hover:shadow-2xl hover:shadow-[#541711]/35 transition-all duration-200 cursor-pointer shrink-0 whitespace-nowrap min-h-[40px] sm:min-h-[46px]"
-                    >
-                      <FiZap className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-[#F5E729] shrink-0" />
-                      <span className="whitespace-nowrap">Start My 7-Day Trial</span>
-                      <FiArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:translate-x-1 shrink-0" />
-                    </m.button>
+                    {/* Primary Dominant CTA: View Pricing */}
+                    <m.div whileHover={{ scale: 1.03, y: -1 }} whileTap={{ scale: 0.97 }} className="shrink-0">
+                      <Link
+                        href="/#pricing"
+                        className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 md:px-7 md:py-3.5 rounded-full bg-[#541711] hover:bg-[#40110D] active:bg-[#40110D] text-white font-bold text-xs sm:text-sm md:text-base shadow-xl shadow-[#541711]/25 hover:shadow-2xl hover:shadow-[#541711]/35 transition-all duration-200 cursor-pointer shrink-0 whitespace-nowrap min-h-[40px] sm:min-h-[46px]"
+                      >
+                        <span className="whitespace-nowrap">View Pricing</span>
+                        <FiArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:translate-x-1 shrink-0" />
+                      </Link>
+                    </m.div>
 
-                    {/* Secondary CTA: Watch How It Works (1 min video) */}
-                    <button
-                      type="button"
-                      onClick={() => setIsVideoModalOpen(true)}
+                    {/* Secondary CTA: How It Works */}
+                    <Link
+                      href="/#how-it-works"
                       className="group inline-flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full hover:bg-white/80 active:bg-white/90 transition-all duration-200 cursor-pointer text-left shrink-0 whitespace-nowrap min-h-[40px] sm:min-h-[46px]"
-                      aria-label="Watch how PuretyFarm works, 1 minute video"
+                      aria-label="See how PuretyFarm works"
                     >
                       <span className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-[#F2ECE1] border border-[#E3D7C9] flex items-center justify-center text-[#541711] shadow-xs group-hover:scale-105 group-hover:bg-[#EFE4D6] transition-transform duration-200 shrink-0">
                         <FiPlay className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ml-0.5 fill-current" />
                       </span>
                       <div className="flex flex-col whitespace-nowrap">
                         <span className="text-xs sm:text-sm font-bold text-[#1A1008] group-hover:text-[#541711] transition-colors leading-tight whitespace-nowrap">
-                          Watch How It Works
+                          How It Works
                         </span>
                         <span className="text-[10px] sm:text-[11px] text-[#6B584C] font-medium mt-0.5 whitespace-nowrap">
-                          1 min video
+                          5 simple steps
                         </span>
                       </div>
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </m.div>
@@ -190,12 +184,5 @@ export function Hero() {
         {/* ─── BOTTOM HERO BENEFIT BAR ─── */}
         <HeroBenefitBar />
       </section>
-
-      {/* ─── INTERACTIVE 1-MINUTE STORY VIDEO MODAL ─── */}
-      <HeroVideoModal
-        isOpen={isVideoModalOpen}
-        onClose={() => setIsVideoModalOpen(false)}
-      />
-    </>
   );
 }

@@ -4,25 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ENV } from "@/config/env";
 import { getEmailUrl, getPhoneUrl, getWhatsAppUrl } from "@/lib/cta";
-import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
 import { FiShield, FiPhone, FiMail, FiMapPin, FiArrowUp } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import styles from "./MarketingShell.module.css";
-
-const FEATURED_AREAS = [
-  "Shankar Nagar",
-  "VIP Road",
-  "Telibandha",
-  "Civil Lines",
-  "Samta Colony",
-  "Devendra Nagar",
-  "Pandri",
-  "Avanti Vihar",
-  "Khamardih",
-  "Pachpedi Naka",
-  "Tatibandh",
-];
 
 export function SiteFooter() {
   const { scrollTo } = useLenis();
@@ -88,25 +73,7 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          {/* Column 3: Raipur Delivery Corridors */}
-          <div className={styles.footerCol}>
-            <h3 className={styles.footerColTitle}>Raipur Delivery Sectors</h3>
-            <div className={styles.footerSectorGrid}>
-              {FEATURED_AREAS.map((area) => (
-                <span
-                  key={area}
-                  className={styles.footerSectorChip}
-                >
-                  {area}
-                </span>
-              ))}
-            </div>
-            <p className="text-xs text-white/60 font-semibold mt-2">
-              Serving {SERVICEABLE_AREAS.length}+ localities across Raipur daily before 10:00 AM
-            </p>
-          </div>
-
-          {/* Column 4: Contact & Morning Dispatch Support */}
+          {/* Column 3: Contact & Morning Dispatch Support */}
           <div className={styles.footerCol}>
             <h3 className={styles.footerColTitle}>Morning Dispatch &amp; Support</h3>
             <div className="flex flex-col gap-3">
