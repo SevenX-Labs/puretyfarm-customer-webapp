@@ -123,25 +123,25 @@ export async function apiClient<T = unknown>(
   }
 }
 
-// HTTP method convenience helpers
-export const api = {
-  get: <T = unknown>(endpoint: string, options?: RequestOptions) =>
-    apiClient<T>(endpoint, { ...options, method: "GET" }),
+// Attach HTTP method convenience helpers directly to apiClient
+apiClient.get = <T = unknown>(endpoint: string, options?: RequestOptions) =>
+  apiClient<T>(endpoint, { ...options, method: "GET" });
 
-  post: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    apiClient<T>(endpoint, {
-      ...options,
-      method: "POST",
-      body: body instanceof FormData ? body : JSON.stringify(body),
-    }),
+apiClient.post = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+  apiClient<T>(endpoint, {
+    ...options,
+    method: "POST",
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  });
 
-  patch: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    apiClient<T>(endpoint, {
-      ...options,
-      method: "PATCH",
-      body: body instanceof FormData ? body : JSON.stringify(body),
-    }),
+apiClient.patch = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+  apiClient<T>(endpoint, {
+    ...options,
+    method: "PATCH",
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  });
 
-  delete: <T = unknown>(endpoint: string, options?: RequestOptions) =>
-    apiClient<T>(endpoint, { ...options, method: "DELETE" }),
-};
+apiClient.delete = <T = unknown>(endpoint: string, options?: RequestOptions) =>
+  apiClient<T>(endpoint, { ...options, method: "DELETE" });
+
+export const api = apiClient;
