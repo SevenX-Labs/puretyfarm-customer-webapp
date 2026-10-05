@@ -134,8 +134,9 @@ export function checkRateLimit(
     };
   }
 
-  // 3. Enforce per-IP hourly limit (max 10/hr)
-  if (ip && ip !== "unknown") {
+  // 3. Enforce per-IP hourly limit (max 10/hr in prod, bypassed for localhost in dev)
+  const isLocalDevIp = process.env.NODE_ENV !== "production" && (ip === "::1" || ip === "127.0.0.1" || ip === "localhost");
+  if (ip && ip !== "unknown" && !isLocalDevIp) {
     let ipBucket = ipSendLimitMap.get(ip);
     if (!ipBucket) {
       ipBucket = { timestamps: [] };

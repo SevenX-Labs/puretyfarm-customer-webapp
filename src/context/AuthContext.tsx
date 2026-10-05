@@ -37,8 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.user) {
-          setUser(data.user);
-          return data.user;
+          const userWithStep: AuthUser = {
+            ...data.user,
+            onboardingStep: data.onboardingStep,
+          };
+          setUser(userWithStep);
+          return userWithStep;
         }
       }
       setUser(null);
@@ -61,7 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (res.ok) {
           const data = await res.json();
           if (!ignore && data.success && data.user) {
-            setUser(data.user);
+            setUser({
+              ...data.user,
+              onboardingStep: data.onboardingStep,
+            });
             return;
           }
         }

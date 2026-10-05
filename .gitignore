@@ -56,3 +56,4 @@ PROJECT_RULES.md
 VERSION
 .dev-db.json
 scratch/
+test-results/
