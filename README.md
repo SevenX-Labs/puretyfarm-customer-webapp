@@ -26,6 +26,7 @@
 - [Design System & Theme](#-design-system--theme)
 - [Project Directory Structure](#-project-directory-structure)
 - [Environment Configuration](#-environment-configuration)
+- [Authentication & Customer Account System](#-authentication--customer-account-system)
 - [Getting Started & Local Development](#-getting-started--local-development)
 - [SEO, Performance & Accessibility](#-seo-performance--accessibility)
 - [License & Credits](#-license--credits)
@@ -301,7 +302,149 @@ NEXT_PUBLIC_SUPPORT_EMAIL="care@puretyfarm.in"
 
 # Canonical Production URL
 NEXT_PUBLIC_SITE_URL="https://puretyfarm.com"
+
+# Session JWT Secret (minimum 32 characters)
+AUTH_SECRET="puretyfarm-production-jwt-secret-key-min-32-chars!"
+
+# OTP Provider: 'console' (local dev/demo), 'msg91', or 'twilio'
+OTP_PROVIDER="console"
 ```
+
+---
+
+## 🔐 Authentication & Customer Account System
+
+PuretyFarm includes a production-grade, phone-number + OTP customer account system with signed `httpOnly` sessions and a dedicated `/account` portal.
+
+### 1. How Authentication Works
+- **Unified Flow**: There are no separate login or signup forms. Visiting `/auth` prompts the user for their Indian mobile number (`+91`). If the account is new, it is provisioned automatically; if existing, the customer is signed in.
+- **OTP Security**:
+  - Cryptographically secure 6-digit random code generated with Node.js `crypto.randomInt`.
+  - Stored strictly as a SHA-256 HMAC hash; never in plaintext or returned in production API responses.
+  - **Single-Use & Expiry**: 5-minute validity window. The OTP record is deleted immediately upon successful verification.
+  - **Attempt Throttling**: Maximum 5 attempts per OTP code before automatic invalidation.
+  - **Rate Limiting**: Enforces server-side 30-second cooldown between resends, maximum 3 requests per phone per hour, and maximum 10 requests per IP per hour.
+- **Session Management**:
+  - Signed 30-day JWT cookie (`pf_session`) signed with `HS256` via `jose`.
+  - Security attributes: `httpOnly: true`, `secure: true` (in production), `sameSite: "lax"`.
+  - Zero sensitive tokens stored in `localStorage`.
+- **First-Time Onboarding**:
+  - After OTP verification, first-time users are prompted for their Full Name (required) and Email (optional for morning receipts).
+- **Customer Portal (`/account`)**:
+  - **Profile**: View verified phone number (immutable account key), edit full name and email.
+  - **Orders**: History of orders, statuses (`Placed`, `Confirmed`, `Out for delivery`, `Delivered`), order detail modal, empty state with quick sample bottle order.
+  - **Addresses**: Multi-address management across Raipur localities with default delivery selection.
+  - **Milk Subscription**: Current subscription plan, next morning delivery slot (before 10:00 AM), and 1-tap **Vacation Mode** pause/resume (with 10:00 PM cut-off rule).
+  - **Logout**: Clears session cookie and redirects safely to home.
+
+### 2. How to Switch OTP Providers
+The application implements an `OtpProvider` interface (`src/lib/auth/otpProviders.ts`) configured via the `OTP_PROVIDER` environment variable:
+
+| Provider | `OTP_PROVIDER` value | Required Environment Variables | Description |
+|---|---|---|---|
+| **Console Provider** | `console` (default) | None | Logs the OTP to the terminal console. In non-production, surfaces a convenient dev hint in the UI for frictionless testing. In production, securely refuses to output OTPs. |
+| **MSG91** | `msg91` | `MSG91_AUTH_KEY`, `MSG91_TEMPLATE_ID`, `MSG91_SENDER_ID` | Direct integration with MSG91 SendOTP API. |
+| **Twilio** | `twilio` | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` | Dispatches SMS via Twilio REST API. |
+
+### 3. How to Run Locally & Test
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start dev server (OTP_PROVIDER=console is active by default in .env.local)
+npm run dev
+
+# 3. Open http://localhost:3000
+# - Click "Account" in the navbar -> Redirects to /auth
+# - Enter any valid 10-digit mobile number (e.g. 9876543210)
+# - View the OTP in your terminal or click "Autofill" on the Dev Mode banner
+# - Click "Verify & Continue" -> Routed automatically to /onboarding
+```
+
+---
+
+## 🚪 Post-Login Onboarding Workflow & Serviceability
+
+PuretyFarm includes a derived, multi-step post-login customer onboarding journey (`/onboarding`) extending phone + OTP authentication.
+
+### 1. Onboarding Flow Architecture
+```text
+Login (/auth)
+     │
+     ▼ (Auto-check session / OTP verified)
+Derive Status on Server
+     ├── "profile_pending"   ──► Step 1: Profile (Name required, Avatar with square-crop, Email optional)
+     ├── "location_pending"  ──► Step 2: Delivery Location & Serviceability Check
+     ├── "plan_pending"      ──► Step 3: Plan Selection (Trial, Monthly, Single bottle)
+     └── "complete"          ──► /account (Customer Portal)
+```
+
+- **Derived Status**: The status (`profile_pending` → `location_pending` → `plan_pending` → `complete`) is computed dynamically on the server from active user records (name presence, default serviceable address, active orders/subscriptions). Clients cannot fake completion.
+- **Auto-Login & Routing**:
+  - If a valid session cookie exists, visiting `/auth` or clicking **Account** in the navbar routes directly to the customer's current onboarding step (or `/account` if onboarding is complete).
+  - Returning users resume exactly where they left off.
+- **Privacy & Security**: Internal Customer Account IDs / user IDs are never exposed in UI labels, profile pages, or order screens. Orders use opaque identifiers (e.g. `ORD-XXXXXX`).
+- **Profile Image Storage**:
+  - Image uploader includes client-side canvas square-crop (1:1 viewport, zoom, pan) and client-side compression to $\le$ 512x512 WebP/JPEG under 2 MB with initials fallback.
+  - In production on Vercel, avatars are uploaded to **Vercel Blob** via `BLOB_READ_WRITE_TOKEN`.
+  - In local development without a token, the endpoint automatically falls back to in-memory compressed data URLs without throwing errors.
+
+---
+
+### 2. How to Add or Remove Serviceable Pincodes
+Serviceability data is backed by the `ServiceArea` table.
+
+1. **Edit the Seed File**:
+   Open [`src/data/serviceAreasSeed.ts`](file:///src/data/serviceAreasSeed.ts) and modify or add pincodes:
+   ```typescript
+   export const DEFAULT_SERVICE_AREAS: ServiceAreaSeed[] = [
+     {
+       pincode: "492001",
+       areaName: "Civil Lines & Byron Bazar",
+       city: "Raipur",
+       active: true,
+     },
+     {
+       pincode: "492007",
+       areaName: "Shankar Nagar & Pandri",
+       city: "Raipur",
+       active: true,
+     },
+     // Add new pincodes here or set active: false to disable delivery
+   ];
+   ```
+
+2. **Run the Seed Script**:
+   ```bash
+   npm run seed:service-areas
+   ```
+   *(Or `npx tsx scripts/seed-service-areas.ts`)*.
+   The local database initializes these records automatically on first startup.
+
+3. **Server-Side Re-verification**:
+   The backend endpoint `POST /api/serviceability/check` validates user inputs. When an address is saved (`POST /api/addresses`), the server re-verifies serviceability against the database table and rejects unserviceable addresses.
+
+---
+
+### 3. How to Swap the Reverse Geocoder Provider
+When users tap **"Use my current location"**, GPS coordinates (`lat`, `lng`) are resolved to a Raipur pincode server-side through a pluggable geocoder implementing the `GeocoderProvider` interface ([`src/lib/geocoding/geocoder.ts`](file:///src/lib/geocoding/geocoder.ts)).
+
+Configure the provider in `.env.local` using `GEOCODER_PROVIDER`:
+
+| Provider | `GEOCODER_PROVIDER` | Environment Variables | Description |
+|---|---|---|---|
+| **Nominatim (OpenStreetMap)** | `nominatim` (default) | None | Free for development and low-traffic use. Automatically sets an identified HTTP `User-Agent`, throttles calls, and caches spatial coordinates (~100m quantization) in memory. |
+| **Google Maps Geocoding** | `google` | `GOOGLE_MAPS_API_KEY` | Commercial production reverse geocoding via Google Maps API. API keys remain strictly server-side and are never exposed to the client. |
+
+#### Adding a Custom Provider:
+To add Mapbox, Photon, or a custom internal GIS service, implement `GeocoderProvider`:
+```typescript
+export interface GeocoderProvider {
+  name: string;
+  reverseGeocode(lat: number, lng: number): Promise<GeocodeResult | null>;
+}
+```
+And register it in `getGeocoderProvider()` in `src/lib/geocoding/geocoder.ts`.
 
 ---
 

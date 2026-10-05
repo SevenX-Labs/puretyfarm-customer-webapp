@@ -2,20 +2,21 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
 import { Button } from "./Button";
 import { BrandLogo } from "./BrandLogo";
 import { Magnet } from "@/components/reactbits";
+import { useAuth } from "@/context/AuthContext";
 import {
   handleTrialClick,
-  handleDownloadClick,
 } from "@/lib/cta";
 import {
   FiChevronRight,
   FiSun,
   FiMenu,
   FiX,
-  FiDownload,
+  FiUser,
 } from "react-icons/fi";
 
 const NAV_LINKS = [
@@ -30,6 +31,20 @@ const NAV_LINKS = [
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isLoggedIn, user } = useAuth();
+  const router = useRouter();
+
+  const handleAccountClick = () => {
+    if (isLoggedIn) {
+      if (user?.onboardingStep && user.onboardingStep !== "complete") {
+        router.push("/onboarding");
+      } else {
+        router.push("/account");
+      }
+    } else {
+      router.push("/auth?redirect=/account");
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,17 +106,17 @@ export function Navbar() {
 
           {/* Right: Quick Action Controls */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Primary Action Button: Download App (Desktop only, mobile/tablet uses hamburger drawer) */}
+            {/* Primary Action Button: Account (Desktop only, mobile/tablet uses hamburger drawer) */}
             <div className="hidden lg:block">
               <Magnet magnetStrength={0.15}>
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={handleDownloadClick}
+                  onClick={handleAccountClick}
                   className="rounded-full px-5 py-2.5 text-xs font-bold h-[38px] bg-[#541711] hover:bg-[#40110D] text-white shadow-md shadow-[#541711]/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                 >
-                  <FiDownload className="w-3.5 h-3.5 text-white/95" />
-                  <span>Download App</span>
+                  <FiUser className="w-3.5 h-3.5 text-white/95" />
+                  <span>Account</span>
                 </Button>
               </Magnet>
             </div>
@@ -179,12 +194,12 @@ export function Navbar() {
                 fullWidth
                 onClick={() => {
                   closeMenu();
-                  handleDownloadClick();
+                  handleAccountClick();
                 }}
                 className="rounded-xl py-3 text-xs font-bold shadow-lg shadow-[#5C1B13]/20 flex items-center justify-center gap-2"
               >
-                <FiDownload className="w-4 h-4 text-[#F5E729]" />
-                <span>Download Customer App</span>
+                <FiUser className="w-4 h-4 text-[#F5E729]" />
+                <span>Account</span>
               </Button>
               <Button
                 variant="secondary"

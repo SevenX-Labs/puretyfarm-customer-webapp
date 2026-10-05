@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import { ENV } from "@/config/env";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
+import { AuthProvider } from "@/context/AuthContext";
 import { MarketingMotion } from "@/components/layout/MarketingMotion";
 import "./globals.css";
 
@@ -195,7 +196,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col">
         <SmoothScrollProvider>
-          <MarketingMotion>{children}</MarketingMotion>
+          <AuthProvider>
+            <MarketingMotion>{children}</MarketingMotion>
+          </AuthProvider>
         </SmoothScrollProvider>
       </body>
     </html>

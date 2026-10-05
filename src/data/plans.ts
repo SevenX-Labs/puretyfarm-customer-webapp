@@ -1,0 +1,111 @@
+import {
+  FiCalendar,
+  FiAward,
+  FiPackage,
+  FiTruck,
+  FiClock,
+  FiShield,
+  FiMessageCircle,
+  FiX,
+  FiCheck,
+} from "react-icons/fi";
+import { IconType } from "react-icons";
+
+export interface PlanFeature {
+  text: string;
+  icon: IconType;
+}
+
+export interface PlanDefinition {
+  id: "trial" | "monthly" | "single";
+  name: string;
+  badge: string;
+  quantity: string;
+  price: number;
+  originalPrice: number | null;
+  savingsText: string | null;
+  rateText: string;
+  periodLabel: string;
+  description: string;
+  icon: IconType;
+  gradient: string;
+  borderColor: string;
+  features: PlanFeature[];
+  highlighted: boolean;
+  ctaText: string;
+}
+
+export const PLANS: PlanDefinition[] = [
+  {
+    id: "trial",
+    name: "7-Day Trial Plan",
+    badge: "ONE-TIME OFFER",
+    quantity: "7 consecutive mornings of fresh farm milk delivery",
+    price: 525,
+    originalPrice: 595,
+    savingsText: "Save ₹70",
+    rateText: "₹75 / litre",
+    periodLabel: "one-time offer",
+    description: "7 consecutive mornings of farm-fresh pure A2 Gir cow milk delivered right to your doorstep.",
+    icon: FiCalendar,
+    gradient: "from-[#FAF6F0] via-white to-[#FFFDF7]",
+    borderColor: "border-[#E8DFD4]",
+    features: [
+      { text: "7 consecutive morning deliveries", icon: FiTruck },
+      { text: "Delivered fresh before 10 AM", icon: FiClock },
+      { text: "Sealed reusable glass bottles", icon: FiShield },
+      { text: "Daily morning WhatsApp updates", icon: FiMessageCircle },
+      { text: "Zero commitment • Cancel anytime", icon: FiX },
+    ],
+    highlighted: false,
+    ctaText: "Start 7-Day Trial",
+  },
+  {
+    id: "monthly",
+    name: "Monthly Subscription",
+    badge: "MOST POPULAR",
+    quantity: "1L Daily (30L / mo)",
+    price: 2250,
+    originalPrice: null,
+    savingsText: null,
+    rateText: "₹75 / delivery",
+    periodLabel: "/ month",
+    description: "Our flagship family plan with automatic morning delivery, zero hassle, and total flexibility.",
+    icon: FiAward,
+    gradient: "from-[#FAF3EA] via-white to-[#FFFDF7]",
+    borderColor: "border-[#5C1B13]",
+    features: [
+      { text: "1L delivered fresh daily before 10 AM", icon: FiTruck },
+      { text: "Flexible pause / vacation mode", icon: FiCalendar },
+      { text: "Sealed reusable glass bottles", icon: FiShield },
+      { text: "WhatsApp updates & instant pause/skip", icon: FiMessageCircle },
+      { text: "Priority morning delivery slot", icon: FiClock },
+    ],
+    highlighted: true,
+    ctaText: "Subscribe Monthly",
+  },
+  {
+    id: "single",
+    name: "Buy Once (1 Litre)",
+    badge: "SAMPLE BOTTLE",
+    quantity: "Order single bottles (0 of 7 used)",
+    price: 85,
+    originalPrice: null,
+    savingsText: null,
+    rateText: "₹85 / bottle",
+    periodLabel: "one-time order",
+    description: "Taste test our rich farm milk with a single bottle before starting a daily subscription.",
+    icon: FiPackage,
+    gradient: "from-slate-50 via-white to-[#FFFDF7]",
+    borderColor: "border-[#E8DFD4]",
+    features: [
+      { text: "1 Litre pure farm A2 Gir cow milk", icon: FiCheck },
+      { text: "Morning doorstep delivery before 10 AM", icon: FiClock },
+      { text: "Sealed sanitized glass bottle", icon: FiShield },
+      { text: "Instant WhatsApp confirmation", icon: FiMessageCircle },
+      { text: "Single order • Zero commitment", icon: FiX },
+    ],
+    highlighted: false,
+    ctaText: "Order Single Bottle",
+  },
+];

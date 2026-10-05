@@ -54,4 +54,5 @@ GSD-STYLE.md
 model_capabilities.yaml
 PROJECT_RULES.md
 VERSION
-
+.dev-db.json
+scratch/
