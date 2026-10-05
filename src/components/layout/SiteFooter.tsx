@@ -7,6 +7,7 @@ import { getEmailUrl, getPhoneUrl, getWhatsAppUrl } from "@/lib/cta";
 import { FiShield, FiPhone, FiMail, FiMapPin, FiArrowUp } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
+import { FOOTER_EXPLORE_LINKS, FOOTER_LEGAL_LINKS } from "@/content/navigation";
 import styles from "./MarketingShell.module.css";
 
 export function SiteFooter() {
@@ -52,24 +53,11 @@ export function SiteFooter() {
           <div className={styles.footerCol}>
             <h3 className={styles.footerColTitle}>Explore PuretyFarm</h3>
             <ul className={styles.footerNavList}>
-              <li>
-                <Link href="/#why-puretyfarm">Why PuretyFarm</Link>
-              </li>
-              <li>
-                <Link href="/#how-it-works">How It Works</Link>
-              </li>
-              <li>
-                <Link href="/#trial-offer">7-Day Starter Trial</Link>
-              </li>
-              <li>
-                <Link href="/#pricing">Subscription Plans</Link>
-              </li>
-              <li>
-                <Link href="/#app-showcase">PuretyFarm Mobile App</Link>
-              </li>
-              <li>
-                <Link href="/#faq">Frequently Asked Questions</Link>
-              </li>
+              {FOOTER_EXPLORE_LINKS.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href}>{link.label}</Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -118,8 +106,11 @@ export function SiteFooter() {
         <div className={styles.footerBottomBar}>
           <div className={styles.footerLegalLinks}>
             <span>© {new Date().getFullYear()} PuretyFarm Raipur. All rights reserved.</span>
-            <Link href="/privacy-policy">Privacy Policy</Link>
-            <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
+            {FOOTER_LEGAL_LINKS.map((link) => (
+              <Link key={link.label} href={link.href}>
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           <button

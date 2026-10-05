@@ -19,14 +19,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 
-const NAV_LINKS = [
-  { label: "Why Us", href: "/#why-puretyfarm", id: "nav-why" },
-  { label: "How It Works", href: "/#how-it-works", id: "nav-how" },
-  { label: "Pricing", href: "/#pricing", id: "nav-pricing" },
-  { label: "Testimonials", href: "/#testimonials", id: "nav-testimonials" },
-  { label: "Contact", href: "/#contact", id: "nav-contact" },
-  { label: "FAQs", href: "/#faq", id: "nav-faq" },
-] as const;
+import { MAIN_NAV_LINKS as NAV_LINKS } from "@/content/navigation";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
