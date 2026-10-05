@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { Navbar } from "@/components/ui/Navbar";
-import { FaqCtaFooter } from "@/components/sections/FaqCtaFooter";
+import { FaqCtaFooter } from "@/features/landing";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 
 export const metadata: Metadata = {

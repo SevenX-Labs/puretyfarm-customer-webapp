@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { Hero } from "@/components/sections/Hero";
+import { Hero } from "@/features/landing/components/Hero";
 import { FLAGS } from "@/config/flags";
 
 function SectionSkeleton({
@@ -19,56 +19,56 @@ function SectionSkeleton({
 }
 
 const TrialOffer = dynamic(
-  () => import("@/components/sections/TrialOffer").then((mod) => mod.TrialOffer),
+  () => import("@/features/landing/components/TrialOffer").then((mod) => mod.TrialOffer),
   {
     loading: () => <SectionSkeleton minHeight="380px" bg="bg-[#FAF3EA]" />,
   }
 );
 
 const WhyUs = dynamic(
-  () => import("@/components/sections/WhyUs").then((mod) => mod.WhyUs),
+  () => import("@/features/landing/components/WhyUs").then((mod) => mod.WhyUs),
   {
     loading: () => <SectionSkeleton minHeight="480px" bg="bg-[#FFFDF7]" />,
   }
 );
 
 const HowItWorks = dynamic(
-  () => import("@/components/sections/HowItWorks").then((mod) => mod.HowItWorks),
+  () => import("@/features/landing/components/HowItWorks").then((mod) => mod.HowItWorks),
   {
     loading: () => <SectionSkeleton minHeight="460px" bg="bg-[#FAF3EA]" />,
   }
 );
 
 const AppShowcase = dynamic(
-  () => import("@/components/sections/AppShowcase").then((mod) => mod.AppShowcase),
+  () => import("@/features/landing/components/AppShowcase").then((mod) => mod.AppShowcase),
   {
     loading: () => <SectionSkeleton minHeight="580px" bg="bg-[#FBF6EE]" />,
   }
 );
 
 const Pricing = dynamic(
-  () => import("@/components/sections/Pricing").then((mod) => mod.Pricing),
+  () => import("@/features/landing/components/Pricing").then((mod) => mod.Pricing),
   {
     loading: () => <SectionSkeleton minHeight="520px" bg="bg-[#FFFDF7]" />,
   }
 );
 
 const SocialProof = dynamic(
-  () => import("@/components/sections/SocialProof").then((mod) => mod.SocialProof),
+  () => import("@/features/landing/components/SocialProof").then((mod) => mod.SocialProof),
   {
     loading: () => <SectionSkeleton minHeight="480px" bg="bg-[#FFFDF7]" />,
   }
 );
 
 const ContactUs = dynamic(
-  () => import("@/components/sections/ContactUs").then((mod) => mod.ContactUs),
+  () => import("@/features/landing/components/ContactUs").then((mod) => mod.ContactUs),
   {
     loading: () => <SectionSkeleton minHeight="500px" bg="bg-[#FFFDF7]" />,
   }
 );
 
 const FaqCtaFooter = dynamic(
-  () => import("@/components/sections/FaqCtaFooter").then((mod) => mod.FaqCtaFooter),
+  () => import("@/features/landing/components/FaqCtaFooter").then((mod) => mod.FaqCtaFooter),
   {
     loading: () => <SectionSkeleton minHeight="600px" bg="bg-[#5C1B13]" />,
   }

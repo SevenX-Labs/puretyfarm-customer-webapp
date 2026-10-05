@@ -6,6 +6,12 @@ import { getGeocoderProvider } from "@/server/geocoding/geocoder";
 const ipRateMap = new Map<string, { count: number; expiresAt: number }>();
 
 function isRateLimited(ip: string): boolean {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    (ip === "unknown" || ip === "127.0.0.1" || ip === "::1" || ip === "localhost")
+  ) {
+    return false;
+  }
   const now = Date.now();
   const entry = ipRateMap.get(ip);
   if (!entry || now > entry.expiresAt) {
