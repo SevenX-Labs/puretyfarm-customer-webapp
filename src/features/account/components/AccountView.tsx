@@ -26,6 +26,7 @@ export function AccountView() {
     activeTab,
     setActiveTab,
     isEditingProfile,
+    setIsEditingProfile,
     profileName,
     setProfileName,
     profileEmail,
