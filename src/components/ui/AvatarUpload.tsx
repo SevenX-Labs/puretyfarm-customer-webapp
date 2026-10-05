@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { FiCamera, FiUpload, FiTrash2, FiCheck, FiX, FiZoomIn } from "react-icons/fi";
+import { useAuth } from "@/context/AuthContext";
 
 interface AvatarUploadProps {
   initialUrl?: string;
@@ -18,6 +19,7 @@ export function AvatarUpload({
   onError,
   className = "",
 }: AvatarUploadProps) {
+  const { refreshUser } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string>(initialUrl || "");
   const [prevInitialUrl, setPrevInitialUrl] = useState<string | undefined>(initialUrl);
   const [uploading, setUploading] = useState(false);
@@ -206,8 +208,16 @@ export function AvatarUpload({
         throw new Error(data.error || "Upload failed.");
       }
 
-      setAvatarUrl(data.url);
-      onUploaded(data.url);
+      const uploadedUrl = data.avatarUrl || data.url || "";
+      setPrevInitialUrl(uploadedUrl);
+      setAvatarUrl(uploadedUrl);
+      onUploaded(uploadedUrl);
+
+      try {
+        await refreshUser();
+      } catch (err) {
+        console.error("Failed to refresh user after avatar upload:", err);
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error uploading avatar";
       onError?.(message);
@@ -217,6 +227,7 @@ export function AvatarUpload({
   };
 
   const handleRemovePhoto = () => {
+    setPrevInitialUrl("");
     setAvatarUrl("");
     onUploaded("");
   };

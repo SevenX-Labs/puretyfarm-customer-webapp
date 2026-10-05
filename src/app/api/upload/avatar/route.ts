@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         avatarUrl,
+        url: avatarUrl,
       });
     }
 
@@ -121,6 +122,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       avatarUrl,
+      url: avatarUrl,
     });
   } catch (err) {
     console.error("[avatar upload error]", err);
