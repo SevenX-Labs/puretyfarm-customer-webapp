@@ -78,7 +78,7 @@ export const PLANS: PlanDefinition[] = [
     id: "single",
     name: "Buy Once (1 Litre)",
     badge: "SAMPLE BOTTLE",
-    quantity: "Order single bottles (0 of 7 used)",
+    quantity: "1 Litre bottle",
     price: 85,
     originalPrice: null,
     savingsText: null,

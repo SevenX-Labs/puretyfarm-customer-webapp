@@ -13,13 +13,42 @@ export interface GeocoderProvider {
   reverseGeocode(lat: number, lng: number): Promise<GeocodeResult | null>;
 }
 
-// In-memory cache for coordinates (~100m radius quantization) to respect rate limits
+// In-memory bounded LRU cache for coordinates (~100m radius quantization) to respect rate limits
+const MAX_CACHE_ENTRIES = 500;
 const geocodeCache = new Map<string, { result: GeocodeResult; timestamp: number }>();
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function getCacheKey(lat: number, lng: number): string {
   // 3 decimal places is ~110m precision
   return `${lat.toFixed(3)},${lng.toFixed(3)}`;
+}
+
+function getFromCache(key: string): GeocodeResult | null {
+  const cached = geocodeCache.get(key);
+  if (!cached) return null;
+
+  if (Date.now() - cached.timestamp >= CACHE_TTL_MS) {
+    geocodeCache.delete(key);
+    return null;
+  }
+
+  // Refresh LRU order on access
+  geocodeCache.delete(key);
+  geocodeCache.set(key, cached);
+  return cached.result;
+}
+
+function setInCache(key: string, result: GeocodeResult): void {
+  if (geocodeCache.has(key)) {
+    geocodeCache.delete(key);
+  } else if (geocodeCache.size >= MAX_CACHE_ENTRIES) {
+    // Evict least recently used (first inserted) key
+    const oldestKey = geocodeCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      geocodeCache.delete(oldestKey);
+    }
+  }
+  geocodeCache.set(key, { result, timestamp: Date.now() });
 }
 
 /**
@@ -156,15 +185,14 @@ export function getGeocoderProvider(): GeocoderProvider {
     name: provider.name,
     async reverseGeocode(lat: number, lng: number): Promise<GeocodeResult | null> {
       const key = getCacheKey(lat, lng);
-      const cached = geocodeCache.get(key);
-
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-        return cached.result;
+      const cached = getFromCache(key);
+      if (cached) {
+        return cached;
       }
 
       const result = await provider.reverseGeocode(lat, lng);
       if (result) {
-        geocodeCache.set(key, { result, timestamp: Date.now() });
+        setInCache(key, result);
       }
 
       return result;

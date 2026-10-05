@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db/store";
 import { normalizeIndianPhoneNumber } from "@/server/auth/security";
 
+import { getCurrentSession } from "@/server/auth/session";
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { phone: rawPhone, pincode, locality } = body;
+    const session = await getCurrentSession();
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required." },
+        { status: 401 }
+      );
+    }
 
-    const { valid, phone, error } = normalizeIndianPhoneNumber(rawPhone);
+    const body = await req.json().catch(() => ({}));
+    const { pincode, locality } = body;
+
+    const { valid, phone, error } = normalizeIndianPhoneNumber(session.phone);
     if (!valid || !phone) {
       return NextResponse.json(
         { success: false, error: error || "Valid mobile number is required." },
@@ -23,7 +33,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const entry = await db.createWaitlistRequest({
+    await db.createWaitlistRequest({
       phone,
       pincode: cleanPin,
       locality: locality ? String(locality).trim() : "",
@@ -32,7 +42,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "You're on the waitlist! We will alert you on WhatsApp as soon as deliveries start in your area.",
-      entry,
     });
   } catch (err) {
     console.error("[waitlist error]", err);

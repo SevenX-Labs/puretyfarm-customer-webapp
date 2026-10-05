@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { planId } = body;
+    const { planId, addressId } = body;
 
     const chosenPlan = PLANS.find((p) => p.id === planId);
     if (!chosenPlan) {
@@ -24,12 +24,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Check that user has a serviceable address saved (Server-side enforcement)
+    // 1. Check that client-provided addressId matches user's own serviceable address
     const addresses = await db.getAddressesByUserId(session.userId);
-    const defaultAddress = addresses.find((a) => a.isDefault && a.isServiceable !== false) ||
-      addresses.find((a) => a.isServiceable !== false);
+    const matchedAddress = addressId
+      ? addresses.find((a) => a.id === addressId && a.isServiceable === true)
+      : null;
 
-    if (!defaultAddress) {
+    if (!matchedAddress) {
       return NextResponse.json(
         {
           success: false,
@@ -40,7 +41,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Create Order record linked to user and chosen plan with status "Placed"
+    // 2. Check onboarding status before provisioning to prevent duplicates
+    const currentOnboardingStatus = await db.getUserOnboardingStatus(session.userId);
+    if (currentOnboardingStatus === "complete") {
+      return NextResponse.json({
+        success: true,
+        message: "Onboarding is already complete.",
+        onboardingStep: "complete",
+      });
+    }
+
+    // 3. Create Order record linked to user and chosen plan with status "Placed"
     const orderQuantity = chosenPlan.id === "trial" ? 7 : 1;
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -59,14 +70,14 @@ export async function POST(req: NextRequest) {
       totalAmount: chosenPlan.price,
       status: "Placed",
       deliveryAddress: {
-        fullName: defaultAddress.fullName,
-        phone: defaultAddress.phone,
-        alternatePhone: defaultAddress.alternatePhone,
-        street: defaultAddress.street,
-        locality: defaultAddress.locality,
-        city: defaultAddress.city,
-        pincode: defaultAddress.pincode,
-        addressType: defaultAddress.addressType,
+        fullName: matchedAddress.fullName,
+        phone: matchedAddress.phone,
+        alternatePhone: matchedAddress.alternatePhone,
+        street: matchedAddress.street,
+        locality: matchedAddress.locality,
+        city: matchedAddress.city,
+        pincode: matchedAddress.pincode,
+        addressType: matchedAddress.addressType,
       },
       deliveryDate: tomorrow.toISOString().split("T")[0],
     });

@@ -6,10 +6,20 @@ import { useAuth } from "@/context/AuthContext";
 import { authApi } from "../api/authApi";
 import { AuthStep } from "../types";
 
+function getSafeRedirectUrl(param: string | null): string {
+  if (!param) return "/account";
+  const trimmed = param.trim();
+  // Reject non-relative paths, protocol-relative paths (//), and backslashes (\)
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("\\")) {
+    return "/account";
+  }
+  return trimmed;
+}
+
 export function useAuthFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = searchParams.get("redirect") || "/account";
+  const redirectUrl = getSafeRedirectUrl(searchParams.get("redirect"));
   const { isLoggedIn, user, refreshUser } = useAuth();
 
   // If already logged in, route straight to current onboarding step or account

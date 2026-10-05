@@ -47,8 +47,28 @@ export async function POST(req: NextRequest) {
     let targetArea: string | undefined = addressText;
     let detectedAddress: string | undefined;
 
-    // 1. If lat & lng provided, reverse-geocode to pincode and locality
-    if (typeof lat === "number" && typeof lng === "number") {
+    // 1. If lat or lng provided, validate coordinates and reverse-geocode
+    if (lat !== undefined || lng !== undefined) {
+      if (
+        typeof lat !== "number" ||
+        typeof lng !== "number" ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng) ||
+        lat < -90 ||
+        lat > 90 ||
+        lng < -180 ||
+        lng > 180
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Invalid coordinates provided. Latitude must be between -90 and 90, and longitude between -180 and 180.",
+          },
+          { status: 400 }
+        );
+      }
+
       const geocoder = getGeocoderProvider();
       const geocoded = await geocoder.reverseGeocode(lat, lng);
 

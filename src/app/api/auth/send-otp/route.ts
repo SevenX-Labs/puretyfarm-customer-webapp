@@ -47,17 +47,7 @@ export async function POST(req: NextRequest) {
     const codeHash = hashOtp(phone, code);
     const now = Date.now();
 
-    // 4. Save to database
-    await db.saveOtp({
-      phone,
-      codeHash,
-      expiresAt: now + SECURITY_CONSTANTS.OTP_EXPIRY_MS,
-      attempts: 0,
-      lastSentAt: now,
-      createdAt: now,
-    });
-
-    // 5. Send OTP via configured provider
+    // 4. Send OTP via configured provider
     const provider = getOtpProvider();
     const sendResult = await provider.send(phone, code);
 
@@ -70,6 +60,16 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    // 5. Save to database only after successful delivery
+    await db.saveOtp({
+      phone,
+      codeHash,
+      expiresAt: now + SECURITY_CONSTANTS.OTP_EXPIRY_MS,
+      attempts: 0,
+      lastSentAt: now,
+      createdAt: now,
+    });
 
     // 6. Record send for rate-limiting
     recordSendOtp(phone, ip);
