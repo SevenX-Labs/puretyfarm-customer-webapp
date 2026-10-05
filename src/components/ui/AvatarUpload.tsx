@@ -19,7 +19,7 @@ export function AvatarUpload({
   onError,
   className = "",
 }: AvatarUploadProps) {
-  const { refreshUser } = useAuth();
+  const { refreshUser, setUser } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string>(initialUrl || "");
   const [prevInitialUrl, setPrevInitialUrl] = useState<string | undefined>(initialUrl);
   const [uploading, setUploading] = useState(false);
@@ -213,6 +213,9 @@ export function AvatarUpload({
       setAvatarUrl(uploadedUrl);
       onUploaded(uploadedUrl);
 
+      // Immediately update auth context so that header and profile views update without needing a page reload
+      setUser((prev) => (prev ? { ...prev, avatarUrl: uploadedUrl } : null));
+
       try {
         await refreshUser();
       } catch (err) {
@@ -226,10 +229,18 @@ export function AvatarUpload({
     }
   };
 
-  const handleRemovePhoto = () => {
+  const handleRemovePhoto = async () => {
     setPrevInitialUrl("");
     setAvatarUrl("");
     onUploaded("");
+    setUser((prev) => (prev ? { ...prev, avatarUrl: "" } : null));
+
+    try {
+      await fetch("/api/upload/avatar", { method: "DELETE" });
+      await refreshUser();
+    } catch (err) {
+      console.error("Failed to remove avatar on server:", err);
+    }
   };
 
   return (

@@ -3,6 +3,9 @@ import { getCurrentSession } from "@/server/auth/session";
 import { db } from "@/server/db/store";
 import { put } from "@vercel/blob";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -132,3 +135,30 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE() {
+  try {
+    const session = await getCurrentSession();
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Authentication required." },
+        { status: 401 }
+      );
+    }
+
+    await db.updateUser(session.userId, { avatarUrl: "" });
+
+    return NextResponse.json({
+      success: true,
+      avatarUrl: "",
+      url: "",
+    });
+  } catch (err) {
+    console.error("[avatar delete error]", err);
+    return NextResponse.json(
+      { success: false, error: "Failed to remove avatar image." },
+      { status: 500 }
+    );
+  }
+}
+

@@ -9,7 +9,7 @@ import { AccountTab, AddressFormData } from "../types";
 
 export function useAccountData() {
   const router = useRouter();
-  const { user, loading: authLoading, logout, refreshUser } = useAuth();
+  const { user, loading: authLoading, logout, refreshUser, setUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<AccountTab>("profile");
 
@@ -151,6 +151,16 @@ export function useAccountData() {
       if (!data.success) {
         setProfileMsg({ type: "error", text: data.error || "Failed to update profile." });
       } else {
+        setUser((prev) =>
+          prev
+            ? {
+                ...prev,
+                name: profileName.trim(),
+                email: profileEmail.trim(),
+                avatarUrl: profileAvatar,
+              }
+            : null
+        );
         await refreshUser();
         setIsEditingProfile(false);
         setProfileMsg({ type: "success", text: "Profile updated successfully!" });

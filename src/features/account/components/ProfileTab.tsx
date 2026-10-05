@@ -167,7 +167,12 @@ export function ProfileTab({
         <div className="space-y-4">
           {/* Profile Avatar Card */}
           <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]">
-            <div className="w-16 h-16 rounded-full border border-[#E8DFD4] overflow-hidden bg-gradient-to-br from-[#FAF3EA] to-[#F3E7D7] flex items-center justify-center shrink-0">
+            <button
+              type="button"
+              onClick={onStartEdit}
+              title="Click to change profile photo"
+              className="relative group w-16 h-16 rounded-full border border-[#E8DFD4] hover:border-[#5C1B13] overflow-hidden bg-gradient-to-br from-[#FAF3EA] to-[#F3E7D7] flex items-center justify-center shrink-0 cursor-pointer transition-colors"
+            >
               {user.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -185,7 +190,10 @@ export function ProfileTab({
                     .toUpperCase()}
                 </span>
               )}
-            </div>
+              <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                <FiEdit2 className="w-4 h-4" />
+              </div>
+            </button>
             <div>
               <h3 className="text-base font-bold text-[#1A1008]">{user.name || "Purety Member"}</h3>
               <p className="text-xs text-[#3A241C]/65">Farm Fresh Milk Subscriber</p>

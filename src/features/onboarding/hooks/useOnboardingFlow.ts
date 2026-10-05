@@ -11,7 +11,7 @@ import { StepKey, ServiceCheckResult, AddressDetailsFormData } from "../types";
 export function useOnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser, setUser } = useAuth();
 
   // Current active step in UI
   const [currentStep, setCurrentStep] = useState<StepKey>(1);
@@ -167,6 +167,17 @@ export function useOnboardingFlow() {
         ...prev,
         receiverName: prev.receiverName || profileName.trim(),
       }));
+
+      setUser((prev) =>
+        prev
+          ? {
+              ...prev,
+              name: profileName.trim(),
+              email: profileEmail.trim(),
+              avatarUrl: profileAvatar,
+            }
+          : null
+      );
 
       await refreshUser();
       setMaxAllowedStep((prev) => Math.max(prev, 2) as StepKey);

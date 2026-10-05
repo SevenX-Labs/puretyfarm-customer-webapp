@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
-import { checkServiceArea, ServiceAreaResult } from "@/lib/serviceArea";
-import { SERVICEABLE_AREAS } from "@/data/serviceableAreas";
+import { apiClient } from "@/lib/api/client";
 import { handleTrialClick, getWhatsAppUrl } from "@/lib/cta";
 import {
   FiMapPin,
@@ -17,6 +16,7 @@ import {
   FiHome,
   FiArrowRight,
   FiPackage,
+  FiLoader,
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -31,13 +31,51 @@ const POPULAR_AREAS = [
 
 import confetti from "canvas-confetti";
 
+interface ServiceCheckResponse {
+  success: boolean;
+  serviceable: boolean;
+  areaName?: string;
+  pincode?: string;
+  reason?: string;
+  error?: string;
+}
+
+interface AreaListResponse {
+  success: boolean;
+  areas: { areaName: string; pincode: string; city: string }[];
+  count: number;
+}
+
 export function ServiceAreaChecker() {
   const [query, setQuery] = useState("");
-  const [result, setResult] = useState<ServiceAreaResult | null>(null);
+  const [result, setResult] = useState<ServiceCheckResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [checkedArea, setCheckedArea] = useState<string>("");
+  const [checking, setChecking] = useState(false);
 
-  const handleCheck = (areaName?: string) => {
+  // Active areas loaded from backend
+  const [activeAreas, setActiveAreas] = useState<string[]>([]);
+  const [areasCount, setAreasCount] = useState(0);
+
+  // Fetch active areas from backend on mount
+  useEffect(() => {
+    let ignore = false;
+    async function loadAreas() {
+      try {
+        const data = await apiClient.get<AreaListResponse>("/api/serviceability/areas");
+        if (!ignore && data.success) {
+          setActiveAreas(data.areas.map((a) => a.areaName));
+          setAreasCount(data.count);
+        }
+      } catch {
+        // Silently fail — areas list is non-critical UI
+      }
+    }
+    loadAreas();
+    return () => { ignore = true; };
+  }, []);
+
+  const handleCheck = async (areaName?: string) => {
     const target = (areaName ?? query).trim();
 
     if (!target) {
@@ -54,16 +92,34 @@ export function ServiceAreaChecker() {
 
     setErrorMessage(null);
     setCheckedArea(target);
-    const res = checkServiceArea(target);
-    setResult(res);
+    setChecking(true);
+    setResult(null);
 
-    if (res.serviceable) {
-      confetti({
-        particleCount: 55,
-        spread: 70,
-        origin: { y: 0.65 },
-        colors: ["#F5E729", "#5C1B13", "#10B981", "#FFFDF7"],
-      });
+    try {
+      const res = await apiClient.post<ServiceCheckResponse>(
+        "/api/serviceability/check",
+        { addressText: target }
+      );
+
+      setResult(res);
+
+      if (res.serviceable) {
+        // Update checked area name with server-returned canonical name
+        if (res.areaName) {
+          setCheckedArea(res.areaName);
+        }
+        confetti({
+          particleCount: 55,
+          spread: 70,
+          origin: { y: 0.65 },
+          colors: ["#F5E729", "#5C1B13", "#10B981", "#FFFDF7"],
+        });
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unable to check delivery. Please try again.";
+      setErrorMessage(message);
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -128,6 +184,7 @@ export function ServiceAreaChecker() {
                 placeholder="Enter locality e.g. Shankar Nagar, Telibandha"
                 className="w-full pl-10 pr-10 py-3 text-base text-[#1A1008] bg-[#FFFDF7] border border-[#E8DFD4] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5C1B13] focus:border-transparent transition-all placeholder:text-[#3A241C]/40"
                 aria-label="Enter your Raipur locality"
+                disabled={checking}
               />
               {query && (
                 <button
@@ -141,8 +198,15 @@ export function ServiceAreaChecker() {
               )}
             </div>
 
-            <Button type="submit" variant="primary" size="lg" className="whitespace-nowrap">
-              Check Availability
+            <Button type="submit" variant="primary" size="lg" className="whitespace-nowrap" disabled={checking}>
+              {checking ? (
+                <span className="flex items-center gap-2">
+                  <FiLoader className="w-4 h-4 animate-spin" />
+                  Checking…
+                </span>
+              ) : (
+                "Check Availability"
+              )}
             </Button>
           </form>
 
@@ -157,11 +221,12 @@ export function ServiceAreaChecker() {
                   whileHover={{ scale: 1.05, y: -1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleChipClick(area)}
+                  disabled={checking}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
                     query.toLowerCase() === area.toLowerCase()
                       ? "bg-[#5C1B13] text-white border-[#5C1B13]"
                       : "bg-[#FBF6EE] text-[#3A241C] border-[#E8DFD4] hover:border-[#5C1B13]/30 hover:bg-white"
-                  }`}
+                  } ${checking ? "opacity-50 pointer-events-none" : ""}`}
                 >
                   {area}
                 </m.button>
@@ -170,7 +235,7 @@ export function ServiceAreaChecker() {
           </div>
 
           <AnimatePresence mode="wait">
-            {/* ─── ERROR STATE (Item 15) ─── */}
+            {/* ─── ERROR STATE ─── */}
             {errorMessage && (
               <m.div
                 key="error-alert"
@@ -192,7 +257,7 @@ export function ServiceAreaChecker() {
               </m.div>
             )}
 
-            {/* ─── SUCCESS STATE (Item 16) ─── */}
+            {/* ─── SUCCESS STATE ─── */}
             {result && result.serviceable && (
               <m.div
                 key={`success-${checkedArea}`}
@@ -269,7 +334,7 @@ export function ServiceAreaChecker() {
               </m.div>
             )}
 
-            {/* ─── EMPTY STATE (Item 12) ─── */}
+            {/* ─── NOT SERVICEABLE STATE ─── */}
             {result && !result.serviceable && (
               <m.div
                 key={`empty-${checkedArea}`}
@@ -299,7 +364,7 @@ export function ServiceAreaChecker() {
                 </h3>
 
                 <p className="text-sm text-[#3A241C]/75 max-w-md mx-auto mt-2 leading-relaxed">
-                  Our farm cold-chain vehicles currently service 23+ prime Raipur sectors. We expand to new localities based on family demand!
+                  {result.reason || "Our farm cold-chain vehicles currently service prime Raipur sectors. We expand to new localities based on family demand!"}
                 </p>
 
                 <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -321,15 +386,17 @@ export function ServiceAreaChecker() {
                   </button>
                 </div>
 
-                {/* Active areas list preview */}
-                <div className="mt-5 pt-4 border-t border-[#E8DFD4]/60 text-left">
-                  <p className="text-xs font-semibold text-[#1A1008] mb-2">
-                    Currently active delivery sectors in Raipur ({SERVICEABLE_AREAS.length} areas):
-                  </p>
-                  <p className="text-xs text-[#3A241C]/70 leading-relaxed">
-                    {SERVICEABLE_AREAS.join(" • ")}
-                  </p>
-                </div>
+                {/* Active areas list from backend */}
+                {activeAreas.length > 0 && (
+                  <div className="mt-5 pt-4 border-t border-[#E8DFD4]/60 text-left">
+                    <p className="text-xs font-semibold text-[#1A1008] mb-2">
+                      Currently active delivery sectors in Raipur ({areasCount} areas):
+                    </p>
+                    <p className="text-xs text-[#3A241C]/70 leading-relaxed">
+                      {activeAreas.join(" • ")}
+                    </p>
+                  </div>
+                )}
               </m.div>
             )}
           </AnimatePresence>

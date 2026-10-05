@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
     try {
       const res = await fetch("/api/me", {
+        cache: "no-store",
         headers: { "Cache-Control": "no-cache" },
       });
       if (res.ok) {
@@ -60,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const checkSession = async () => {
       try {
         const res = await fetch("/api/me", {
+          cache: "no-store",
           headers: { "Cache-Control": "no-cache" },
         });
         if (res.ok) {

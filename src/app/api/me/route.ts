@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/server/auth/session";
 import { db } from "@/server/db/store";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const session = await getCurrentSession();
@@ -22,18 +25,25 @@ export async function GET() {
 
     const onboardingStep = await db.getUserOnboardingStatus(session.userId);
 
-    return NextResponse.json({
-      success: true,
-      onboardingStep,
-      user: {
-        id: user.id,
-        phone: user.phone,
-        name: user.name,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-        createdAt: user.createdAt,
+    return NextResponse.json(
+      {
+        success: true,
+        onboardingStep,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          name: user.name,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+          createdAt: user.createdAt,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err) {
     console.error("[me GET error]", err);
     return NextResponse.json(
