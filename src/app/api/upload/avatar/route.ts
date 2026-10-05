@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentSession } from "@/lib/auth/session";
-import { db } from "@/lib/db/store";
+import { getCurrentSession } from "@/server/auth/session";
+import { db } from "@/server/db/store";
 import { put } from "@vercel/blob";
 
 const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB

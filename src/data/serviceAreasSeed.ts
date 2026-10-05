@@ -1,4 +1,4 @@
-import { ServiceArea } from "@/lib/db/types";
+import { ServiceArea } from "@/types/models";
 
 /**
  * Seed data for PuretyFarm serviceable delivery coverage across Raipur, Chhattisgarh.

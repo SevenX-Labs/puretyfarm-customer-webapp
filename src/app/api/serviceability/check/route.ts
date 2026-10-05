@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db/store";
-import { getGeocoderProvider } from "@/lib/geocoding/geocoder";
+import { db } from "@/server/db/store";
+import { getGeocoderProvider } from "@/server/geocoding/geocoder";
 
 // In-memory rate limiting for serviceability checks (max 40 requests per IP per hour)
 const ipRateMap = new Map<string, { count: number; expiresAt: number }>();

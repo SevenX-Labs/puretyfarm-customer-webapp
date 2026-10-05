@@ -3,12 +3,12 @@ import {
   normalizeIndianPhoneNumber,
   verifyOtpHash,
   SECURITY_CONSTANTS,
-} from "@/lib/auth/security";
-import { db } from "@/lib/db/store";
+} from "@/server/auth/security";
+import { db } from "@/server/db/store";
 import {
   createSessionToken,
   getSessionCookieOptions,
-} from "@/lib/auth/session";
+} from "@/server/auth/session";
 
 export async function POST(req: NextRequest) {
   try {

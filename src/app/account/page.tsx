@@ -7,7 +7,7 @@ import { m, AnimatePresence } from "framer-motion";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
-import { Address, Order, Subscription } from "@/lib/db/types";
+import { Address, Order, Subscription } from "@/types/models";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import {
   FiUser,

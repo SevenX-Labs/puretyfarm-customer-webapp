@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { useAuth } from "@/context/AuthContext";
 import { PLANS, PlanDefinition } from "@/data/plans";
-import { Address } from "@/lib/db/types";
+import { Address } from "@/types/models";
 import {
   FiCheckCircle,
   FiAlertCircle,

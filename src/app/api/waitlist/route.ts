@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db/store";
-import { normalizeIndianPhoneNumber } from "@/lib/auth/security";
+import { db } from "@/server/db/store";
+import { normalizeIndianPhoneNumber } from "@/server/auth/security";
 
 export async function POST(req: NextRequest) {
   try {

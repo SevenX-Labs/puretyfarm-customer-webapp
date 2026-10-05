@@ -25,6 +25,32 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/terms",
+        destination: "/terms-and-conditions",
+        permanent: true,
+      },
+      {
+        source: "/privacy",
+        destination: "/privacy-policy",
+        permanent: true,
+      },
+    ];
+  },
+  async rewrites() {
+    const backendUrl = process.env.BACKEND_URL;
+    if (!backendUrl) return [];
+    return {
+      afterFiles: [
+        {
+          source: "/api/:path*",
+          destination: `${backendUrl}/api/:path*`,
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;

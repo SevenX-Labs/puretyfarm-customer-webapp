@@ -10,6 +10,19 @@
   --cream: #FBF6EE;
 }
 
+@theme {
+  --color-brand-maroon: #5C1B13;
+  --color-brand-maroon-hover: #4A1510;
+  --color-brand-maroon-dark: #40110D;
+  --color-brand-gold: #F5E729;
+  --color-brand-cream: #FFFDF7;
+  --color-brand-cream-surface: #FBF6EE;
+  --color-brand-cream-muted: #FAF3EA;
+  --color-brand-border: #E8DFD4;
+  --color-brand-charcoal: #1A1008;
+  --color-brand-espresso: #3A241C;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

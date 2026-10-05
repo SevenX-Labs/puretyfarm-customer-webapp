@@ -1,3 +1,5 @@
+import "server-only";
+
 export interface GeocodeResult {
   pincode?: string;
   areaName?: string;

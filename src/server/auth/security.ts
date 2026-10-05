@@ -1,3 +1,4 @@
+import "server-only";
 import crypto from "crypto";
 
 const OTP_SECRET = process.env.AUTH_SECRET || "puretyfarm-secret-key-32-chars-long!";

@@ -12,6 +12,30 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unused-vars": "warn",
     },
   },
+  {
+    files: [
+      "src/components/**",
+      "src/features/**",
+      "src/hooks/**",
+      "src/context/**",
+      "src/types/**",
+      "src/content/**",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/server", "@/server/**"],
+              message:
+                "src/server modules are server-only and cannot be imported by client or UI components.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -1,3 +1,5 @@
+import "server-only";
+
 export interface SendOtpResult {
   success: boolean;
   messageId?: string;

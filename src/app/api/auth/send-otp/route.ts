@@ -6,9 +6,9 @@ import {
   checkRateLimit,
   recordSendOtp,
   SECURITY_CONSTANTS,
-} from "@/lib/auth/security";
-import { db } from "@/lib/db/store";
-import { getOtpProvider } from "@/lib/auth/otpProviders";
+} from "@/server/auth/security";
+import { db } from "@/server/db/store";
+import { getOtpProvider } from "@/server/auth/otpProviders";
 
 export async function POST(req: NextRequest) {
   try {
