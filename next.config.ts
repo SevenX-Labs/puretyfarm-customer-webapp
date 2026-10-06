@@ -32,11 +32,7 @@ const nextConfig: NextConfig = {
         destination: "/terms-and-conditions",
         permanent: true,
       },
-      {
-        source: "/privacy",
-        destination: "/privacy-policy",
-        permanent: true,
-      },
+
     ];
   },
   async rewrites() {

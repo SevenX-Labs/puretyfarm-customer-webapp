@@ -37,7 +37,7 @@ const HIGHLIGHT_ICONS: Record<HighlightIconType, typeof FiShield> = {
 
 interface LegalPageShellProps {
   document: LegalDocument;
-  activeSlug: "privacy" | "terms" | "terms-and-conditions" | "privacy-policy";
+  activeSlug: "privacy" | "terms" | "terms-and-conditions";
   highlights: {
     icon: HighlightIconType;
     title: string;
@@ -60,7 +60,7 @@ export function LegalPageShell({
   const [readingProgress, setReadingProgress] = useState(0);
   const [textScale, setTextScale] = useState<"normal" | "large" | "xlarge">("normal");
 
-  const isPrivacyPage = activeSlug === "privacy" || activeSlug === "privacy-policy";
+  const isPrivacyPage = activeSlug === "privacy";
 
   const isProgrammaticScroll = useRef(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -730,7 +730,7 @@ export function LegalPageShell({
                 Terms &amp; Conditions
               </Link>
             ) : (
-              <Link href="/privacy-policy" className="hover:underline">
+              <Link href="/privacy" className="hover:underline">
                 Privacy Policy
               </Link>
             )}

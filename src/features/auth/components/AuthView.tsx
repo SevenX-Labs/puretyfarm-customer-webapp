@@ -222,7 +222,7 @@ export function AuthView() {
                 </Link>{" "}
                 &amp;{" "}
                 <Link
-                  href="/privacy-policy"
+                  href="/privacy"
                   className="underline hover:text-[#1A1008] font-medium"
                 >
                   Privacy Policy
