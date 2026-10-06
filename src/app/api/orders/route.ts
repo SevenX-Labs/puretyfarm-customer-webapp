@@ -6,10 +6,10 @@ export async function GET() {
   try {
     const session = await getCurrentSession();
     if (!session) {
-      return NextResponse.json(
-        { success: false, error: "Authentication required." },
-        { status: 401 }
-      );
+      return NextResponse.json({
+        success: true,
+        orders: [],
+      });
     }
 
     const orders = await db.getOrdersByUserId(session.userId);

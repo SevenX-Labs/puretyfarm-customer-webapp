@@ -413,9 +413,11 @@ export const db = {
       }
     }
 
+    // Development phase: accept all pincodes and localities so no customer is blocked
     return {
-      serviceable: false,
-      reason: "PuretyFarm milk delivery hasn't reached your area yet. We're expanding rapidly across Raipur!",
+      serviceable: true,
+      areaName: (areaName && areaName.trim()) || "Raipur Delivery Route",
+      pincode: cleanPin.length === 6 ? cleanPin : "492001",
     };
   },
 

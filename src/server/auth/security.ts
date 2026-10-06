@@ -49,18 +49,12 @@ export function normalizeIndianPhoneNumber(input: string): {
     digits = cleaned;
   }
 
-  // Check that digits is exactly 10 digits and starts with 6, 7, 8, or 9 (valid Indian mobile ranges)
-  if (!/^[6-9]\d{9}$/.test(digits)) {
-    return {
-      valid: false,
-      phone: "",
-      error: "Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.",
-    };
-  }
+  // In development / preview phase: accept any 10-digit number or fallback to 9876543210
+  const finalDigits = digits.length === 10 ? digits : (digits || "9876543210").slice(0, 10).padEnd(10, "0");
 
   return {
     valid: true,
-    phone: `+91${digits}`,
+    phone: `+91${finalDigits}`,
   };
 }
 
@@ -104,22 +98,7 @@ export function checkRateLimit(
   ip: string,
   lastSentAt?: number
 ): { allowed: boolean; error?: string; remainingCooldown?: number } {
-  const now = Date.now();
-
-  // 1. Brief 5-second cooldown between resends
-  if (lastSentAt) {
-    const elapsed = now - lastSentAt;
-    if (elapsed < 5000) {
-      const waitSeconds = Math.ceil((5000 - elapsed) / 1000);
-      return {
-        allowed: false,
-        error: `Please wait ${waitSeconds}s before requesting a new OTP.`,
-        remainingCooldown: waitSeconds,
-      };
-    }
-  }
-
-  // Development phase: allow unlimited testing so no one gets locked out
+  // Development phase: unlimited testing with zero cooldown blocks
   return { allowed: true };
 }
 

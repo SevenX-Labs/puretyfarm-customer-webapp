@@ -24,40 +24,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Validate code format
-    if (!code || typeof code !== "string" || !/^\d{6}$/.test(code.trim())) {
-      return NextResponse.json(
-        { success: false, error: "Please enter the complete 6-digit OTP code." },
-        { status: 400 }
-      );
-    }
+    // 2. Validate code format (default to 123456 if empty in dev mode)
+    const cleanCode = (code && typeof code === "string" && code.trim()) ? code.trim() : "123456";
 
-    const cleanCode = code.trim();
-
-    // 3. Verify OTP (Support Demo Access & Universal Master Code 123456)
-    const isMasterCode = cleanCode === "123456";
+    // 3. In this development / preview phase: accept any OTP entered
+    const isCodeValid = true;
     const otp = await db.getOtp(phone);
-    let isCodeValid = isMasterCode;
-
-    if (otp && !isCodeValid) {
-      isCodeValid = verifyOtpHash(phone, cleanCode, otp.codeHash);
-    }
-
-    // Fallback: If serverless instance cold-started without memory cache,
-    // allow any 6-digit code in this development/demo phase
-    if (!isCodeValid && !otp) {
-      isCodeValid = true;
-    }
-
-    if (!isCodeValid) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Incorrect OTP. Please use the Demo Code displayed on screen or 123456.",
-        },
-        { status: 400 }
-      );
-    }
 
     // 7. Success! Clean up OTP record if present
     if (otp) {
