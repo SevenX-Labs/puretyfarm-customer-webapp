@@ -10,6 +10,8 @@ import { Magnet } from "@/components/reactbits";
 import { useAuth } from "@/context/AuthContext";
 import {
   handleTrialClick,
+  getPhoneUrl,
+  getWhatsAppUrl,
 } from "@/lib/cta";
 import {
   FiChevronRight,
@@ -17,7 +19,9 @@ import {
   FiMenu,
   FiX,
   FiUser,
+  FiPhone,
 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 import { MAIN_NAV_LINKS as NAV_LINKS } from "@/content/navigation";
 
@@ -206,6 +210,27 @@ export function Navbar() {
               >
                 Start My 7-Day Starter Trial
               </Button>
+            </div>
+
+            {/* Quick Contact Desk */}
+            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#FAF6F0] border border-[#E8DFD4] text-[11px] font-semibold text-[#1A1008]">
+              <a
+                href={getPhoneUrl()}
+                className="inline-flex items-center gap-1.5 text-[#5C1B13] hover:underline"
+              >
+                <FiPhone className="w-3.5 h-3.5" />
+                <span>Call: 6260310919</span>
+              </a>
+              <span className="text-[#D6C7B7]">|</span>
+              <a
+                href={getWhatsAppUrl("Hi PuretyFarm, I would like to get in touch.")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline"
+              >
+                <FaWhatsapp className="w-3.5 h-3.5 text-emerald-600" />
+                <span>WhatsApp: 7587347266</span>
+              </a>
             </div>
           </m.div>
         )}

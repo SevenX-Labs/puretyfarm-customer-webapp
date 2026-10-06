@@ -75,8 +75,8 @@ const BOTTOM_BENEFITS = [
     icon: FiShield,
     iconColor: "text-[#5C1B13]",
     iconBg: "bg-[#5C1B13]/10",
-    title: "Risk-Free 7-Day Trial",
-    subtitle: "Money-Back Guarantee",
+    title: "7-Day Trial Plan",
+    subtitle: "Non-Refundable Deposit",
   },
   {
     icon: FaCow,
@@ -391,7 +391,7 @@ export function TrialOffer() {
                   {/* Footer Guarantee Micro-copy */}
                   <div className="mt-6 pt-2 text-center sm:text-left">
                     <p className="text-[11px] sm:text-xs text-[#8C7A6B] leading-relaxed">
-                      No lock-in contracts · Pause or cancel anytime via app or WhatsApp
+                      No lock-in contracts · Non-refundable deposit · Pause or cancel anytime via app or WhatsApp
                     </p>
                   </div>
                 </div>

@@ -22,7 +22,7 @@ const TICKER_ITEMS = [
   { icon: FiClock, text: "Delivered Before 10:00 AM Daily", color: "text-[#5C1B13]" },
   { icon: FiDroplet, text: "Zero Added Water, Hormones, or Preservatives", color: "text-emerald-600" },
   { icon: FiMapPin, text: "Serving All Major Localities Across Raipur", color: "text-amber-600" },
-  { icon: FiStar, text: "Risk-Free 7-Day Trial — 100% Money-Back", color: "text-amber-500" },
+  { icon: FiStar, text: "7-Day Trial — Non-Refundable Deposit", color: "text-amber-600" },
 ];
 
 export function MarqueeTicker({ className = "" }: { className?: string }) {

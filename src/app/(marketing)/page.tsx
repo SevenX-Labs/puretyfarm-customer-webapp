@@ -74,8 +74,8 @@ const FaqCtaFooter = dynamic(
   }
 );
 
-const StickyCtaBar = dynamic(
-  () => import("@/components/ui/StickyCtaBar").then((mod) => mod.StickyCtaBar)
+const BottomNavbar = dynamic(
+  () => import("@/components/ui/BottomNavbar").then((mod) => mod.BottomNavbar)
 );
 
 export default function Home() {
@@ -92,7 +92,7 @@ export default function Home() {
         <ContactUs />
         <FaqCtaFooter />
       </main>
-      <StickyCtaBar />
+      <BottomNavbar />
     </>
   );
 }

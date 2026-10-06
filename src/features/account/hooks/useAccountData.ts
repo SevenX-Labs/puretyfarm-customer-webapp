@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Address, Order, Subscription } from "@/types/models";
 import { accountApi } from "../api/accountApi";
@@ -9,9 +9,23 @@ import { AccountTab, AddressFormData } from "../types";
 
 export function useAccountData() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading, logout, refreshUser, setUser } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<AccountTab>("profile");
+  const queryTab = searchParams.get("tab") as AccountTab | null;
+  const [activeTab, setActiveTab] = useState<AccountTab>(() => {
+    if (queryTab && ["profile", "orders", "addresses", "subscription", "preferences", "security", "activity"].includes(queryTab)) {
+      return queryTab;
+    }
+    return "profile";
+  });
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as AccountTab | null;
+    if (tab && ["profile", "orders", "addresses", "subscription", "preferences", "security", "activity"].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);

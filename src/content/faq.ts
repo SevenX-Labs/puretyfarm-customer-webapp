@@ -65,9 +65,9 @@ export const FAQ_ITEMS: FaqItem[] = [
     num: "03",
     question: "How does the 7-day trial work?",
     answer:
-      "Simply download our app or contact us via WhatsApp. We start delivering 1 litre of fresh A2 milk daily for 7 days. No advance payment required. Pay only after your trial if you love it.",
+      "Simply download our app or contact us via WhatsApp. We start delivering 1 litre of fresh A2 milk daily for 7 days with prompt morning doorstep delivery (non-refundable deposit applies).",
     badge: {
-      label: "Risk Free",
+      label: "Taste Trial",
       icon: FiShield,
       bg: "bg-[#EEF5EB]",
       border: "border-[#D6E6D1]",

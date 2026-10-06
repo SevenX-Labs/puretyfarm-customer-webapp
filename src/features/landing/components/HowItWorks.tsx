@@ -346,20 +346,20 @@ export function HowItWorks() {
                   Taste Trial
                 </span>
                 <span className="text-[9px] font-bold text-emerald-800 bg-white/90 border border-emerald-200 px-2 py-0.5 rounded-full mt-2 leading-none whitespace-nowrap shadow-2xs">
-                  Money-Back Guarantee
+                  Non-Refundable Deposit
                 </span>
               </div>
 
               {/* Text Information */}
               <div className="flex-1 min-w-0">
                 <span className="inline-block bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full px-2.5 py-0.5 text-[11px] font-bold mb-1.5">
-                  100% Risk Free
+                  Fresh Daily
                 </span>
                 <h3 className="text-base sm:text-lg font-bold text-[#1A1008] leading-snug">
                   Claim Your 7-Day Taste Trial
                 </h3>
                 <p className="mt-1 text-xs sm:text-[13px] text-[#6B584C] leading-relaxed">
-                  Taste fresh unadulterated Gir cow milk with our 100% money-back pledge.
+                  Taste fresh unadulterated Gir cow milk with convenient daily morning delivery (non-refundable deposit applies).
                 </p>
               </div>
             </div>

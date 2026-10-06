@@ -41,7 +41,7 @@
 - **Milked at Dawn, Delivered by 10:00 AM**: Milked at 4:30 AM, immediately chilled at 4°C, and dispatched straight to customer doorsteps in morning slots (delivered before 10:00 AM).
 - **Eco-Friendly Sanitized Glass Bottles**: Plastic-free distribution in sterilized, temperature-preserving glass bottles collected and sanitized daily.
 - **40+ Rigorous Quality Checks**: Zero preservatives, zero synthetic fats, zero added water, and zero antibiotics or growth hormones. FSSAI licensed.
-- **Zero-Risk 7-Day Starter Experience**: 100% money-back guarantee with cancel-anytime flexibility and no long-term commitment.
+- **Zero-Risk 7-Day Starter Experience**: Non-refundable deposit with cancel-anytime flexibility and no long-term commitment.
 
 ---
 
@@ -80,7 +80,7 @@ The primary customer landing page (`/`) is structured into high-conversion, inte
   1. **1 Litre daily** delivered before 10:00 AM in sanitized glass bottles.
   2. **Free home delivery** across Raipur with cancel-anytime flexibility.
   3. **Daily WhatsApp & app updates** with morning dispatch and milkman status.
-  4. **100% money-back guarantee** if you don't taste the difference.
+  4. **Non-refundable deposit** applies with cancel-anytime flexibility.
 - **CTA**: Direct button to initiate the 7-day trial with reassurance (*"No credit card required • Cancel anytime"*).
 
 ---
@@ -124,11 +124,11 @@ Transparent, unbundled pricing tiers tailored for different family sizes:
 
 | Plan | Quantity | Price | Original Price | Best For | Features Included |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **7-Day Trial Plan** *(One-Time Offer)* | 7 consecutive mornings (1L daily) | **₹525** *(₹75 / litre)* | ₹595 (Save ₹70) | First-time trial | 7 consecutive morning deliveries before 10 AM, sealed glass bottles, WhatsApp alerts, 100% money-back guarantee. |
+| **7-Day Trial Plan** *(One-Time Offer)* | 7 consecutive mornings (1L daily) | **₹525** *(₹75 / litre)* | ₹595 (Save ₹70) | First-time trial | 7 consecutive morning deliveries before 10 AM, sealed glass bottles, WhatsApp alerts, non-refundable deposit. |
 | **Monthly Subscription** *(Most Popular)* | 1L Daily (30L / mo) | **₹2,250 / mo** *(₹75 / delivery)* | — | Families of 3–4 members | Free morning delivery before 10 AM, priority morning slot, flexible pause / vacation mode, WhatsApp skip. |
 | **Buy Once (1 Litre)** | Single bottle sample (0 of 7 used) | **₹85** *(one-time order)* | — | Sample test & flexibility | 1L pure farm A2 Gir cow milk delivered before 10 AM, sealed glass bottle, zero subscription commitment. |
 
-*All plans include free home delivery before 10:00 AM, sealed glass bottles, and a 100% money-back guarantee.*
+*All plans include free home delivery before 10:00 AM, sealed glass bottles, and a non-refundable deposit.*
 
 ---
 

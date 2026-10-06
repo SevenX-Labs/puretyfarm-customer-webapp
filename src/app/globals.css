@@ -28,6 +28,11 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body);
   --font-mono: var(--font-geist-mono);
+  --font-script: var(--font-script);
+}
+
+.font-script {
+  font-family: var(--font-script), 'Caveat', cursive;
 }
 
 /* Prevent horizontal scroll / overflow across the entire page without breaking position: sticky */

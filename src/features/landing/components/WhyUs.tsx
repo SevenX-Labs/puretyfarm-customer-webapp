@@ -285,13 +285,13 @@ export function WhyUs() {
       >
         <div>
           <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-0.5 rounded-full mb-2">
-            100% Risk Free
+            7-Day Starter Trial
           </span>
           <h4 className="text-xl sm:text-2xl font-bold text-[#1A1008] font-[family-name:var(--font-heading)]">
             Taste the PuretyFarm Difference
           </h4>
           <p className="text-xs sm:text-sm text-[#3A241C]/80 mt-1 max-w-md">
-            Start your 7-day trial with full money-back guarantee and convenient daily morning delivery.
+            Start your 7-day trial with non-refundable deposit and convenient daily morning delivery.
           </p>
         </div>
 

@@ -111,7 +111,7 @@ export const INCLUDED_PERKS = [
   { icon: FiTruck, label: "Free 10 AM Delivery" },
   { icon: FiShield, label: "Zero Plastic Glass" },
   { icon: FiMessageCircle, label: "WhatsApp Pause/Skip" },
-  { icon: FiCheck, label: "Money-Back Promise" },
+  { icon: FiCheck, label: "Non-Refundable Deposit" },
 ] as const;
 
 export const PLANS_BY_ID = Object.fromEntries(PLANS.map((p) => [p.id, p])) as Record<

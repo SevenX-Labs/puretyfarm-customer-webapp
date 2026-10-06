@@ -8,8 +8,8 @@ const BENEFITS = [
     icon: FiShield,
     iconColor: "text-[#5C1B13]",
     iconBg: "bg-[#5C1B13]/10",
-    title: "Risk-Free 7-Day Trial",
-    subtitle: "Money-Back Guarantee",
+    title: "7-Day Trial Plan",
+    subtitle: "Non-Refundable Deposit",
   },
   {
     icon: FaCow,

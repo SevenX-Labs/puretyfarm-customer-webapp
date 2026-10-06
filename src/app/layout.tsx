@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans, Caveat } from "next/font/google";
 import { ENV } from "@/config/env";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { AuthProvider } from "@/context/AuthContext";
@@ -15,6 +15,13 @@ const headingFont = Playfair_Display({
 
 const bodyFont = Plus_Jakarta_Sans({
   variable: "--font-body",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
+const scriptFont = Caveat({
+  variable: "--font-script",
   subsets: ["latin"],
   display: "swap",
   preload: false,
@@ -186,7 +193,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${headingFont.variable} ${bodyFont.variable} h-full antialiased`}
+      className={`${headingFont.variable} ${bodyFont.variable} ${scriptFont.variable} h-full antialiased`}
     >
       <head>
         <script

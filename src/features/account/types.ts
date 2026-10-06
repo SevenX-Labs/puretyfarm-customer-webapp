@@ -1,6 +1,13 @@
 import { Address, Order, Subscription } from "@/types/models";
 
-export type AccountTab = "profile" | "orders" | "addresses" | "subscription";
+export type AccountTab =
+  | "profile"
+  | "preferences"
+  | "security"
+  | "activity"
+  | "orders"
+  | "addresses"
+  | "subscription";
 
 export interface AddressFormData {
   fullName: string;

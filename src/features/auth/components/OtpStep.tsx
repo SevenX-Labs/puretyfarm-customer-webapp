@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/Button";
-import { FiShield, FiEdit2, FiRefreshCw, FiClock } from "react-icons/fi";
+import { FiEdit2, FiRefreshCw, FiClock, FiArrowRight } from "react-icons/fi";
 
 export interface OtpStepProps {
   phoneNumber: string;
@@ -37,53 +36,42 @@ export function OtpStep({
 }: OtpStepProps) {
   return (
     <div>
-      <div className="text-center mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center mx-auto mb-3">
-          <FiShield className="w-6 h-6" />
+      {/* Target Phone row */}
+      <div className="flex items-center justify-between p-3 rounded-xl bg-[#FAF6F0] border border-[#E8DFD4] mb-5 text-xs text-[#6B584C]">
+        <div className="flex items-center gap-1.5">
+          <span>Sent to</span>
+          <strong className="text-[#1A1008] font-bold">+91 {phoneNumber}</strong>
         </div>
-        <h1 className="text-2xl font-serif font-bold text-[#1A1008] tracking-tight">
-          Verify Your Mobile
-        </h1>
-        <div className="flex items-center justify-center gap-2 mt-1.5 text-xs text-[#3A241C]/80">
-          <span>
-            Code sent to <strong className="text-[#1A1008] font-bold">+91 {phoneNumber}</strong>
-          </span>
-          <button
-            type="button"
-            onClick={onChangePhone}
-            className="text-[#5C1B13] font-bold hover:underline inline-flex items-center gap-1 ml-1 cursor-pointer"
-          >
-            <FiEdit2 className="w-3 h-3" />
-            <span>Change</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onChangePhone}
+          className="text-[#5C1B13] font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+        >
+          <FiEdit2 className="w-3 h-3" />
+          <span>Edit</span>
+        </button>
       </div>
 
       {/* Dev Mode OTP Hint Banner */}
       {devOtpHint && (
-        <div className="mb-5 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold flex items-center gap-1.5">
-              <span>🧪</span> Dev Mode Hint: OTP is{" "}
-              <span className="font-mono font-bold tracking-widest text-[#5C1B13]">
-                {devOtpHint}
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={onAutofillDevOtp}
-              className="text-[11px] font-bold bg-amber-200/70 hover:bg-amber-300 text-amber-900 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
-            >
-              Autofill
-            </button>
-          </div>
+        <div className="mb-4 p-2.5 rounded-xl bg-[#FAF4ED] border border-[#E8DFD4] text-xs text-[#6B584C] flex items-center justify-between gap-2">
+          <span className="font-medium text-[11px]">
+            Dev Code: <strong className="font-mono text-[#5C1B13] tracking-widest">{devOtpHint}</strong>
+          </span>
+          <button
+            type="button"
+            onClick={onAutofillDevOtp}
+            className="text-[11px] font-bold text-[#5C1B13] hover:underline cursor-pointer"
+          >
+            Autofill
+          </button>
         </div>
       )}
 
       <form onSubmit={onSubmit} className="space-y-5">
         <div>
-          <label className="block text-center text-xs font-bold text-[#1A1008] uppercase tracking-wider mb-2.5">
-            Enter 6-Digit OTP Code
+          <label className="block text-center text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-3">
+            Enter 6-Digit Verification Code
           </label>
           <div className="grid grid-cols-6 gap-2 sm:gap-2.5">
             {otpValues.map((digit, idx) => (
@@ -102,40 +90,41 @@ export function OtpStep({
                 onKeyDown={(e) => onOtpKeyDown(idx, e)}
                 onPaste={idx === 0 ? onOtpPaste : undefined}
                 className={`
-                  h-13 sm:h-14 text-center text-xl font-bold rounded-2xl border-2 transition-all
-                  ${digit ? "border-[#5C1B13] bg-[#5C1B13]/5 text-[#5C1B13]" : "border-[#E8DFD4] bg-[#FFFDF7] text-[#1A1008]"}
-                  focus:border-[#5C1B13] focus:bg-white focus:outline-none shadow-xs
+                  h-12 sm:h-13 text-center text-xl font-bold rounded-xl border transition-all
+                  ${digit ? "border-[#5C1B13] bg-[#5C1B13]/5 text-[#5C1B13]" : "border-[#D5C7B8] bg-white text-[#1A1008]"}
+                  focus:border-[#5C1B13] focus:ring-2 focus:ring-[#5C1B13]/10 focus:outline-none shadow-2xs
                 `}
+                aria-label={`Digit ${idx + 1}`}
               />
             ))}
           </div>
         </div>
 
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          size="md"
-          fullWidth
           disabled={loading || otpValues.join("").length !== 6}
-          className="rounded-2xl py-3.5 text-sm font-bold shadow-lg shadow-[#5C1B13]/20"
+          className="w-full py-3.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] active:scale-[0.99] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <span className="flex items-center gap-2">
               <FiRefreshCw className="w-4 h-4 animate-spin" />
-              <span>Verifying...</span>
+              <span>Verifying code...</span>
             </span>
           ) : (
-            <span>Verify & Continue</span>
+            <span className="flex items-center justify-center gap-2">
+              <span>Verify & Continue</span>
+              <FiArrowRight className="w-4 h-4" />
+            </span>
           )}
-        </Button>
+        </button>
 
         {/* Resend Action */}
-        <div className="text-center pt-2">
+        <div className="text-center pt-0.5">
           {countdown > 0 ? (
-            <p className="text-xs text-[#3A241C]/60 flex items-center justify-center gap-1.5 font-medium">
-              <FiClock className="w-3.5 h-3.5 text-[#3A241C]/50" />
+            <p className="text-xs text-[#8C7A6B] flex items-center justify-center gap-1.5 font-medium">
+              <FiClock className="w-3.5 h-3.5 text-[#8C7A6B]" />
               <span>
-                Resend code in <strong>{countdown}s</strong>
+                Resend in <strong>{countdown}s</strong>
               </span>
             </p>
           ) : (
@@ -143,9 +132,9 @@ export function OtpStep({
               type="button"
               onClick={onResendOtp}
               disabled={loading}
-              className="text-xs font-bold text-[#5C1B13] hover:text-[#40110D] underline cursor-pointer"
+              className="text-xs font-semibold text-[#5C1B13] hover:underline cursor-pointer"
             >
-              Didn&apos;t receive code? Resend OTP
+              Didn&apos;t receive code? Resend
             </button>
           )}
         </div>

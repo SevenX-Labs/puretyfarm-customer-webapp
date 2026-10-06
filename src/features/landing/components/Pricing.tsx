@@ -221,7 +221,7 @@ export function Pricing() {
 
       {/* Trust line */}
       <p ref={trustRef} className="mt-6 text-center text-xs sm:text-sm text-[#3A241C]/60">
-        No commitment • Cancel anytime • 100% money-back guarantee
+        No commitment • Cancel anytime • Non-refundable deposit
       </p>
     </Section>
   );

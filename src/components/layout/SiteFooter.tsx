@@ -81,8 +81,8 @@ export function SiteFooter() {
               >
                 <FaWhatsapp className="w-4 h-4 text-[#6ee7b7] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-[#6ee7b7]">Instant WhatsApp Assistance</p>
-                  <p className="text-xs text-white/50">Vacation pause &amp; plan changes</p>
+                  <p className="font-semibold text-[#6ee7b7]">{ENV.WHATSAPP_DISPLAY}</p>
+                  <p className="text-xs text-white/50">WhatsApp Desk: Vacation &amp; plans</p>
                 </div>
               </a>
 

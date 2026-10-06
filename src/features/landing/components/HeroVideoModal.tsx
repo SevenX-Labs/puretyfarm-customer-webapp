@@ -124,7 +124,7 @@ export function HeroVideoModal({ isOpen, onClose }: HeroVideoModalProps) {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 bg-[#23150D] border-t border-white/10">
               <div className="flex items-center gap-2 text-xs text-white/80">
                 <FiCheckCircle className="text-emerald-400 w-4 h-4 shrink-0" />
-                <span>Zero plastic touch • Sanitized glass • 100% money back</span>
+                <span>Zero plastic touch • Sanitized glass • Non-refundable deposit</span>
               </div>
               <button
                 onClick={() => {
