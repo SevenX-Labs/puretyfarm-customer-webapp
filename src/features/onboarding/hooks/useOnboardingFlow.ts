@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Address } from "@/types/models";
@@ -63,7 +63,13 @@ export function useOnboardingFlow() {
   const [planError, setPlanError] = useState<string | null>(null);
 
   // Synchronize state with authenticated user
+  const hasInitialized = useRef(false);
+
   const initUserData = useCallback(async () => {
+    // Only run initialization once — subsequent step changes are handled
+    // explicitly by action handlers (handleSaveProfile, handleSaveVerifiedAddress, etc.)
+    // This prevents refreshUser() from re-triggering initUserData and resetting currentStep.
+    if (hasInitialized.current) return;
     if (authLoading) return;
 
     if (!user) {
@@ -126,6 +132,7 @@ export function useOnboardingFlow() {
     } catch (err) {
       console.error("Failed to load onboarding status:", err);
     } finally {
+      hasInitialized.current = true;
       setInitialLoading(false);
     }
   }, [user, authLoading, router, searchParams]);
@@ -133,6 +140,7 @@ export function useOnboardingFlow() {
   useEffect(() => {
     initUserData();
   }, [initUserData]);
+
 
   // Handle Step Navigation (Back / Forward)
   const handleGoToStep = (targetStep: StepKey) => {
