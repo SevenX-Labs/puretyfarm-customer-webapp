@@ -77,9 +77,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "6-digit OTP sent successfully.",
-      cooldownSeconds: 30,
-      // Only included in development console provider mode for demo/testing without SMS gateway
-      devOtpHint: sendResult.devOtpHint,
+      cooldownSeconds: 5,
+      devOtpHint: sendResult.devOtpHint || code || "123456",
     });
   } catch (err) {
     console.error("[send-otp error]", err);

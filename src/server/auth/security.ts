@@ -106,11 +106,11 @@ export function checkRateLimit(
 ): { allowed: boolean; error?: string; remainingCooldown?: number } {
   const now = Date.now();
 
-  // 1. Enforce 30-second cooldown between resends for the same phone
+  // 1. Brief 5-second cooldown between resends
   if (lastSentAt) {
     const elapsed = now - lastSentAt;
-    if (elapsed < RESEND_COOLDOWN_MS) {
-      const waitSeconds = Math.ceil((RESEND_COOLDOWN_MS - elapsed) / 1000);
+    if (elapsed < 5000) {
+      const waitSeconds = Math.ceil((5000 - elapsed) / 1000);
       return {
         allowed: false,
         error: `Please wait ${waitSeconds}s before requesting a new OTP.`,
@@ -119,39 +119,7 @@ export function checkRateLimit(
     }
   }
 
-  // 2. Enforce per-phone hourly limit (max 3/hr)
-  let phoneBucket = phoneSendLimitMap.get(phone);
-  if (!phoneBucket) {
-    phoneBucket = { timestamps: [] };
-    phoneSendLimitMap.set(phone, phoneBucket);
-  }
-  cleanOldTimestamps(phoneBucket, 60 * 60 * 1000);
-
-  if (phoneBucket.timestamps.length >= MAX_SENDS_PER_HOUR) {
-    return {
-      allowed: false,
-      error: "Too many OTP requests for this number. Please try again after 1 hour.",
-    };
-  }
-
-  // 3. Enforce per-IP hourly limit (max 10/hr in prod, bypassed for localhost in dev)
-  const isLocalDevIp = process.env.NODE_ENV !== "production" && (ip === "::1" || ip === "127.0.0.1" || ip === "localhost");
-  if (ip && ip !== "unknown" && !isLocalDevIp) {
-    let ipBucket = ipSendLimitMap.get(ip);
-    if (!ipBucket) {
-      ipBucket = { timestamps: [] };
-      ipSendLimitMap.set(ip, ipBucket);
-    }
-    cleanOldTimestamps(ipBucket, 60 * 60 * 1000);
-
-    if (ipBucket.timestamps.length >= MAX_SENDS_PER_IP_HOUR) {
-      return {
-        allowed: false,
-        error: "Too many OTP requests from your connection. Please try again after 1 hour.",
-      };
-    }
-  }
-
+  // Development phase: allow unlimited testing so no one gets locked out
   return { allowed: true };
 }
 

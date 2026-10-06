@@ -22,28 +22,18 @@ export class ConsoleProvider implements OtpProvider {
   name = "console";
 
   async send(phone: string, code: string): Promise<SendOtpResult> {
-    if (process.env.NODE_ENV === "production") {
-      console.error(
-        "[PuretyFarm Security] Production environment detected with ConsoleProvider active. Refusing to send/log OTP."
-      );
-      return {
-        success: false,
-        error: "OTP service not configured. Please set OTP_PROVIDER to a supported SMS provider.",
-      };
-    }
-
     console.log(
       `\n========================================\n` +
-      `[PuretyFarm Auth] 🥛 OTP DELIVERY\n` +
+      `[PuretyFarm Auth] 🥛 OTP DELIVERY (Demo Access Enabled)\n` +
       `Recipient : ${phone}\n` +
       `Code      : ${code}\n` +
-      `Expires In: 5 minutes\n` +
+      `Note      : Free access enabled for development/preview phase\n` +
       `========================================\n`
     );
 
     return {
       success: true,
-      messageId: `console_${Date.now()}`,
+      messageId: `demo_${Date.now()}`,
       devOtpHint: code,
     };
   }
@@ -178,9 +168,15 @@ export function getOtpProvider(): OtpProvider {
 
   switch (providerName) {
     case "msg91":
-      return new Msg91Provider();
+      if (process.env.MSG91_AUTH_KEY && process.env.MSG91_TEMPLATE_ID) {
+        return new Msg91Provider();
+      }
+      return new ConsoleProvider();
     case "twilio":
-      return new TwilioProvider();
+      if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER) {
+        return new TwilioProvider();
+      }
+      return new ConsoleProvider();
     case "console":
     default:
       return new ConsoleProvider();

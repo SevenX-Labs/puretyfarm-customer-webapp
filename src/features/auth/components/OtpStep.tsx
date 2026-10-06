@@ -52,21 +52,25 @@ export function OtpStep({
         </button>
       </div>
 
-      {/* Dev Mode OTP Hint Banner */}
-      {devOtpHint && (
-        <div className="mb-4 p-2.5 rounded-xl bg-[#FAF4ED] border border-[#E8DFD4] text-xs text-[#6B584C] flex items-center justify-between gap-2">
-          <span className="font-medium text-[11px]">
-            Dev Code: <strong className="font-mono text-[#5C1B13] tracking-widest">{devOtpHint}</strong>
+      {/* Demo Mode OTP Hint Banner */}
+      <div className="mb-4 p-2.5 sm:p-3 rounded-2xl bg-[#FAF4ED] border border-[#E8DFD4] text-xs text-[#6B584C] flex items-center justify-between gap-2 shadow-2xs">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="font-medium text-[11px] text-[#1A1008]">
+            Demo Access OTP:{" "}
+            <strong className="font-mono text-[#5C1B13] text-xs tracking-widest">
+              {devOtpHint || "123456"}
+            </strong>
           </span>
-          <button
-            type="button"
-            onClick={onAutofillDevOtp}
-            className="text-[11px] font-bold text-[#5C1B13] hover:underline cursor-pointer"
-          >
-            Autofill
-          </button>
         </div>
-      )}
+        <button
+          type="button"
+          onClick={onAutofillDevOtp}
+          className="text-xs font-bold text-[#5C1B13] hover:text-[#48150f] bg-white px-2.5 py-1 rounded-lg border border-[#E8DFD4] hover:bg-[#FAF3EA] transition-all shadow-2xs cursor-pointer"
+        >
+          Autofill OTP
+        </button>
+      </div>
 
       <form onSubmit={onSubmit} className="space-y-5">
         <div>

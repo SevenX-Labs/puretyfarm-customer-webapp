@@ -45,7 +45,7 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-function BottomNavbarContent() {
+function BottomNavbarContent({ className = "" }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -85,12 +85,16 @@ function BottomNavbarContent() {
       );
     }
     if (item.id === "wallets") {
-      return pathname === "/wallet";
+      return (
+        pathname === "/wallet" ||
+        (pathname === "/account" && searchParams.get("tab") === "wallet")
+      );
     }
     if (item.id === "account") {
       return (
         pathname === "/account" &&
-        searchParams.get("tab") !== "orders"
+        searchParams.get("tab") !== "orders" &&
+        searchParams.get("tab") !== "wallet"
       );
     }
     return false;
@@ -100,7 +104,7 @@ function BottomNavbarContent() {
     <nav
       data-testid="bottom-navbar"
       aria-label="Bottom Navigation"
-      className="fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-sm sm:max-w-md pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+      className={`md:hidden fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-sm sm:max-w-md pb-[max(0.25rem,env(safe-area-inset-bottom))] ${className}`.trim()}
     >
       <div className="bg-white/95 backdrop-blur-md rounded-full sm:rounded-3xl border border-[#E8DFD4] shadow-[0_12px_40px_rgba(92,27,19,0.12)] p-1.5 sm:p-2">
         <div className="grid grid-cols-4 items-center">
@@ -154,10 +158,10 @@ function BottomNavbarContent() {
   );
 }
 
-export function BottomNavbar() {
+export function BottomNavbar({ className = "" }: { className?: string }) {
   return (
     <Suspense fallback={null}>
-      <BottomNavbarContent />
+      <BottomNavbarContent className={className} />
     </Suspense>
   );
 }

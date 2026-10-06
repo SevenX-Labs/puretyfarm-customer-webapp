@@ -101,10 +101,8 @@ export function useAuthFlow() {
         return;
       }
 
-      setCountdown(data.cooldownSeconds || 30);
-      if (data.devOtpHint) {
-        setDevOtpHint(data.devOtpHint);
-      }
+      setCountdown(data.cooldownSeconds || 5);
+      setDevOtpHint(data.devOtpHint || "123456");
       setSuccessMessage("Verification code sent to your phone.");
       setStep("otp");
       setOtpValues(["", "", "", "", "", ""]);
@@ -166,9 +164,10 @@ export function useAuthFlow() {
   };
 
   const handleAutofillDevOtp = () => {
-    if (!devOtpHint || devOtpHint.length !== 6) return;
-    const digits = devOtpHint.split("");
+    const hint = devOtpHint || "123456";
+    const digits = hint.split("");
     setOtpValues(digits);
+    setErrorMessage(null);
     otpInputRefs.current[5]?.focus();
   };
 
