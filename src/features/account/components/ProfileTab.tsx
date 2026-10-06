@@ -66,12 +66,12 @@ export function ProfileTab({
   return (
     <div className="w-full">
       {/* ─── CARD HEADER ─── */}
-      <div className="flex items-center justify-between pb-6 border-b border-[#E8DFD4] mb-8">
+      <div className="flex items-center justify-between pb-5 border-b border-[#E8DFD4] mb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A1008]">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1A1008]">
             Personal Information
           </h2>
-          <p className="text-sm sm:text-base text-[#6B584C] mt-1">
+          <p className="text-xs sm:text-sm text-[#6B584C] mt-0.5">
             Your verified PuretyFarm customer profile and sunrise delivery details.
           </p>
         </div>
@@ -80,18 +80,18 @@ export function ProfileTab({
           <button
             type="button"
             onClick={onStartEdit}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#FAF3EA] hover:bg-[#5C1B13] hover:text-white border border-[#E8DFD4] text-[#5C1B13] text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FAF3EA] hover:bg-[#5C1B13] hover:text-white border border-[#E8DFD4] text-[#5C1B13] text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
-            <FiEdit3 className="w-4 h-4" />
+            <FiEdit3 className="w-3.5 h-3.5" />
             <span>Edit Profile</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={onCancelEdit}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white border border-[#E8DFD4] hover:bg-[#FAF6F0] text-[#6B584C] text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#E8DFD4] hover:bg-[#FAF6F0] text-[#6B584C] text-xs font-semibold transition-all cursor-pointer shadow-2xs"
           >
-            <FiX className="w-4 h-4" />
+            <FiX className="w-3.5 h-3.5" />
             <span>Cancel</span>
           </button>
         )}
@@ -100,16 +100,16 @@ export function ProfileTab({
       {/* Status toast message */}
       {profileMsg && (
         <div
-          className={`mb-6 p-4 rounded-2xl text-sm font-semibold flex items-center gap-3 ${
+          className={`mb-5 p-3.5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 ${
             profileMsg.type === "success"
               ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
               : "bg-red-50 text-red-900 border border-red-200"
           }`}
         >
           {profileMsg.type === "success" ? (
-            <FiCheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+            <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
           ) : (
-            <FiAlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+            <FiAlertCircle className="w-4 h-4 text-red-600 shrink-0" />
           )}
           <span>{profileMsg.text}</span>
         </div>
@@ -117,10 +117,10 @@ export function ProfileTab({
 
       {/* ─── READ MODE (EXACT DESIGN MATCH) ─── */}
       {!isEditingProfile ? (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {/* Member Card Header Row */}
-          <div className="flex items-center gap-5 p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="w-18 h-18 rounded-full bg-[#FAF3EA] border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] font-serif font-bold text-2xl shrink-0 overflow-hidden shadow-xs">
+          <div className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+            <div className="w-16 h-16 rounded-full bg-[#FAF3EA] border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] font-serif font-bold text-xl shrink-0 overflow-hidden shadow-xs">
               {user.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -134,48 +134,48 @@ export function ProfileTab({
             </div>
 
             <div>
-              <h3 className="text-lg sm:text-xl font-bold text-[#1A1008]">
+              <h3 className="text-base sm:text-lg font-bold text-[#1A1008]">
                 {user.name || "manthan utekar"}
               </h3>
-              <p className="text-xs sm:text-sm text-[#6B584C] mt-1 font-medium">
+              <p className="text-xs text-[#6B584C] mt-0.5 font-medium">
                 FarmFresh Milk Subscriber • Raipur Dawn Cold-Chain
               </p>
             </div>
           </div>
 
           {/* Row 1: Mobile Number */}
-          <div className="flex items-center justify-between p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
-                <FiPhone className="w-5 h-5" />
+          <div className="flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+            <div className="flex items-center gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
+                <FiPhone className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-[11px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
+                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
                   MOBILE NUMBER
                 </span>
-                <span className="text-base sm:text-lg font-bold text-[#1A1008] font-mono mt-0.5 block">
+                <span className="text-sm sm:text-base font-bold text-[#1A1008] font-mono mt-0.5 block">
                   {formattedPhone}
                 </span>
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-full">
-              <FiCheckCircle className="w-4 h-4 text-emerald-600" />
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+              <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600" />
               <span>Verified</span>
             </span>
           </div>
 
           {/* Row 2: Full Name */}
-          <div className="flex items-center justify-between p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
-                <FiUser className="w-5 h-5" />
+          <div className="flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+            <div className="flex items-center gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
+                <FiUser className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-[11px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
+                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
                   FULL NAME
                 </span>
-                <span className="text-base sm:text-lg font-bold text-[#1A1008] mt-0.5 block">
+                <span className="text-sm sm:text-base font-bold text-[#1A1008] mt-0.5 block">
                   {user.name || "manthan utekar"}
                 </span>
               </div>
@@ -184,25 +184,25 @@ export function ProfileTab({
             <button
               type="button"
               onClick={onStartEdit}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[#8C7A6B] hover:text-[#5C1B13] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#8C7A6B] hover:text-[#5C1B13] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
               title="Edit Name"
               aria-label="Edit Full Name"
             >
-              <FiEdit2 className="w-4 h-4" />
+              <FiEdit2 className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Row 3: Email Address */}
-          <div className="flex items-center justify-between p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-2xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
-                <FiMail className="w-5 h-5" />
+          <div className="flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+            <div className="flex items-center gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
+                <FiMail className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-[11px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
+                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
                   EMAIL ADDRESS
                 </span>
-                <span className="text-base sm:text-lg font-semibold text-[#1A1008] mt-0.5 block">
+                <span className="text-sm sm:text-base font-semibold text-[#1A1008] mt-0.5 block">
                   {user.email || "manthanut27@gmail.com"}
                 </span>
               </div>
@@ -211,19 +211,19 @@ export function ProfileTab({
             <button
               type="button"
               onClick={onStartEdit}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[#8C7A6B] hover:text-[#5C1B13] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-[#8C7A6B] hover:text-[#5C1B13] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
               title="Edit Email"
               aria-label="Edit Email Address"
             >
-              <FiEdit2 className="w-4 h-4" />
+              <FiEdit2 className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Bottom Quote Banner */}
-          <div className="rounded-2xl sm:rounded-3xl bg-[#FAF4ED] border border-[#E8DFD4]/70 p-5 sm:p-6 flex items-center gap-4 mt-6">
-            <div className="w-10 h-10 rounded-full bg-[#FAF3EA] flex items-center justify-center text-[#966038] shrink-0 border border-[#E8DFD4]/60">
+          <div className="rounded-2xl bg-[#FAF4ED] border border-[#E8DFD4]/70 p-4 sm:p-5 flex items-center gap-3.5 mt-5">
+            <div className="w-9 h-9 rounded-full bg-[#FAF3EA] flex items-center justify-center text-[#966038] shrink-0 border border-[#E8DFD4]/60">
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -239,7 +239,7 @@ export function ProfileTab({
                 <path d="M12 3v7" />
               </svg>
             </div>
-            <p className="text-sm sm:text-base font-serif italic text-[#8C5D38] leading-relaxed">
+            <p className="text-xs sm:text-sm font-serif italic text-[#8C5D38] leading-relaxed">
               “Pure milk. Healthier you. A better tomorrow.”
             </p>
           </div>

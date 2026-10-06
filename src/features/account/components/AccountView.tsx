@@ -10,6 +10,7 @@ import { ProfileTab } from "./ProfileTab";
 import { OrdersTab } from "./OrdersTab";
 import { AddressesTab } from "./AddressesTab";
 import { SubscriptionTab } from "./SubscriptionTab";
+import { WalletTab } from "./WalletTab";
 import { AccountTab } from "../types";
 import {
   FiUser,
@@ -23,6 +24,7 @@ import {
   FiX,
   FiChevronDown,
 } from "react-icons/fi";
+import { LuWallet } from "react-icons/lu";
 
 export function AccountView() {
   const {
@@ -67,6 +69,11 @@ export function AccountView() {
     subUpdating,
     handleToggleSubPause,
     handleActivatePlan,
+    walletBalance,
+    walletLoading,
+    walletRecharging,
+    walletSuccessMsg,
+    handleRechargeWallet,
   } = useAccountData();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -104,7 +111,10 @@ export function AccountView() {
     { id: "orders" as AccountTab, label: `Orders (${orders.length})`, icon: FiPackage },
     { id: "addresses" as AccountTab, label: `Addresses (${addresses.length})`, icon: FiMapPin },
     { id: "subscription" as AccountTab, label: "Milk Subscription", icon: FiCalendar },
+    { id: "wallet" as AccountTab, label: `Wallet (₹${walletBalance.toFixed(0)})`, icon: LuWallet },
   ];
+
+  const isWideTab = activeTab === "subscription" || activeTab === "wallet";
 
   return (
     <div
@@ -149,8 +159,23 @@ export function AccountView() {
             </div>
           </div>
 
-          {/* Right: Namaste user greeting + Log Out button */}
-          <div className="flex items-center gap-2.5 sm:gap-4">
+          {/* Right: Wallet pill + Namaste user greeting + Log Out button */}
+          <div className="flex items-center gap-2 sm:gap-3.5">
+            {/* Quick Wallet Pill */}
+            <button
+              type="button"
+              onClick={() => setActiveTab("wallet")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                activeTab === "wallet"
+                  ? "bg-[#5C1B13] text-white border-[#5C1B13]"
+                  : "bg-[#FAF3EA] text-[#5C1B13] border-[#E8DFD4] hover:bg-[#F3E7D8]"
+              }`}
+              title="Open PuretyFarm Wallet"
+            >
+              <LuWallet className="w-3.5 h-3.5" />
+              <span>₹{walletBalance.toFixed(0)}</span>
+            </button>
+
             <div className="flex items-center gap-2 bg-transparent pl-1 pr-1.5 py-0.5 select-none">
               <div className="w-8 h-8 rounded-full border border-[#E8DFD4] overflow-hidden bg-[#FAF3EA] flex items-center justify-center text-xs font-serif font-bold text-[#5C1B13] shrink-0 shadow-2xs">
                 {user.avatarUrl ? (
@@ -208,21 +233,32 @@ export function AccountView() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Link
                   href="/"
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-2.5 rounded-2xl bg-[#FAF6F0] text-xs font-semibold text-[#1A1008] hover:bg-[#FAF3EA] transition-colors text-center"
                 >
-                  PuretyFarm Home
+                  Home
                 </Link>
                 <Link
                   href="/#pricing"
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-2.5 rounded-2xl bg-[#FAF6F0] text-xs font-semibold text-[#1A1008] hover:bg-[#FAF3EA] transition-colors text-center"
                 >
-                  Milk Pricing
+                  Pricing
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("wallet");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="p-2.5 rounded-2xl bg-[#FAF3EA] text-xs font-bold text-[#5C1B13] hover:bg-[#F3E7D8] transition-colors text-center flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <LuWallet className="w-3.5 h-3.5 text-[#5C1B13]" />
+                  <span>₹{walletBalance.toFixed(0)}</span>
+                </button>
               </div>
 
               <button
@@ -242,10 +278,10 @@ export function AccountView() {
       </header>
 
       {/* ─── MAIN CONTENT ─── */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 pt-8 sm:pt-10 pb-12 z-10">
+      <main className={`flex-1 ${isWideTab ? "max-w-[1536px]" : "max-w-7xl"} w-full mx-auto px-4 sm:px-8 pt-6 sm:pt-8 pb-12 z-10 transition-all duration-300`}>
         {/* Welcome Section */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
-          <div>
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-6">
+          <div className="max-w-2xl">
             {/* Raipur Cold-Chain Customer Badge */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF3EA]/90 border border-[#E8DFD4] text-[#5C1B13] text-xs font-semibold shadow-2xs backdrop-blur-xs">
               <FiShield className="w-3.5 h-3.5 text-[#5C1B13]" />
@@ -253,8 +289,8 @@ export function AccountView() {
             </div>
 
             {/* Main Greeting */}
-            <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-serif font-bold text-[#1A1008] tracking-tight leading-tight mt-2.5">
-              Welcome back, {user.name || "manthan utekar"}
+            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#1A1008] tracking-tight leading-tight mt-2.5">
+              Welcome back, {user.name || "Customer"}
             </h1>
 
             {/* Subtitle */}
@@ -264,11 +300,11 @@ export function AccountView() {
           </div>
 
           {/* Right Action: Start 7-Day Trial */}
-          <div className="self-start md:self-auto shrink-0 pt-1">
+          <div className="self-start lg:self-auto shrink-0 pt-1">
             <button
               type="button"
               onClick={() => handlePlaceSampleOrder("trial")}
-              className="rounded-full px-6 py-2.5 text-xs sm:text-sm font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 shadow-md shadow-[#5C1B13]/15 transition-all cursor-pointer"
+              className="rounded-full px-5 py-2.5 text-xs sm:text-sm font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 shadow-md shadow-[#5C1B13]/15 transition-all cursor-pointer"
             >
               <span>Start 7-Day Trial</span>
               <FiArrowRight className="w-4 h-4" />
@@ -276,8 +312,12 @@ export function AccountView() {
           </div>
         </div>
 
-        {/* ─── TABS NAVIGATION ─── */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1 mb-6">
+        {/* ─── TABS NAVIGATION (Aligned with left card) ─── */}
+        <div
+          className={`w-full ${
+            isWideTab ? "lg:w-[70%] max-w-5xl" : "lg:w-[62%] xl:w-[58%] max-w-3xl"
+          } flex items-center gap-2 overflow-x-auto scrollbar-none py-1 mb-5 transition-all duration-300 ease-out`}
+        >
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -286,7 +326,7 @@ export function AccountView() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center gap-2 px-5 py-2.5 rounded-2xl text-xs sm:text-sm transition-all cursor-pointer select-none whitespace-nowrap relative
+                  flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm transition-all cursor-pointer select-none whitespace-nowrap relative
                   ${
                     isActive
                       ? "bg-white text-[#1A1008] font-bold border border-[#E8DFD4] shadow-sm"
@@ -297,15 +337,19 @@ export function AccountView() {
                 <Icon className={`w-4 h-4 ${isActive ? "text-[#5C1B13]" : "text-[#5C1B13]/80"}`} />
                 <span>{tab.label}</span>
                 {isActive && (
-                  <span className="absolute bottom-1.5 left-5 right-5 h-0.5 bg-[#5C1B13] rounded-full" />
+                  <span className="absolute bottom-1.5 left-4 right-4 h-0.5 bg-[#5C1B13] rounded-full" />
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* ─── TAB CONTENT CARD (SPACIOUS FULL-WIDTH CONTAINER) ─── */}
-        <div className="w-full bg-white/95 backdrop-blur-md rounded-[32px] sm:rounded-[40px] border border-[#E8DFD4] p-6 sm:p-10 lg:p-12 shadow-[0_24px_60px_rgba(74,46,27,0.09)] mb-12">
+        {/* ─── TAB CONTENT CARD (COVERS 70% ON SUBSCRIPTION/WALLET, 58% ON OTHERS, EXPOSING FARM ART ON RIGHT) ─── */}
+        <div
+          className={`w-full ${
+            isWideTab ? "lg:w-[70%] max-w-5xl" : "lg:w-[62%] xl:w-[58%] max-w-3xl"
+          } bg-white/95 backdrop-blur-md rounded-[32px] border border-[#E8DFD4] p-6 sm:p-8 shadow-[0_16px_44px_rgba(74,46,27,0.07)] mb-12 transition-all duration-300 ease-out`}
+        >
           {/* PROFILE */}
           {activeTab === "profile" && (
             <ProfileTab
@@ -369,6 +413,18 @@ export function AccountView() {
               subUpdating={subUpdating}
               onToggleSubPause={handleToggleSubPause}
               onActivatePlan={handleActivatePlan}
+            />
+          )}
+
+          {/* WALLET */}
+          {activeTab === "wallet" && (
+            <WalletTab
+              user={user}
+              walletBalance={walletBalance}
+              walletLoading={walletLoading}
+              walletRecharging={walletRecharging}
+              walletSuccessMsg={walletSuccessMsg}
+              onRecharge={handleRechargeWallet}
             />
           )}
         </div>

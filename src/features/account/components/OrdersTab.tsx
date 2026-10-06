@@ -40,55 +40,55 @@ export function OrdersTab({
   };
 
   return (
-    <m.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E8DFD4]">
+    <m.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#E8DFD4]">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A1008]">Order History & Deliveries</h2>
-          <p className="text-sm sm:text-base text-[#6B584C] mt-1">Track your past and active farm milk deliveries in Raipur.</p>
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1A1008]">Order History & Deliveries</h2>
+          <p className="text-xs sm:text-sm text-[#6B584C] mt-0.5">Track your past and active farm milk deliveries in Raipur.</p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
+        <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
           <Button
             variant="primary"
-            size="md"
+            size="sm"
             onClick={() => onPlaceSampleOrder("single")}
-            className="rounded-2xl px-6 py-3 text-xs sm:text-sm font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 shadow-sm cursor-pointer"
+            className="rounded-xl px-4 py-2 text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <FiPlus className="w-4 h-4" />
+            <FiPlus className="w-3.5 h-3.5" />
             <span>Order Sample Bottle (₹85)</span>
           </Button>
         </div>
       </div>
 
       {ordersLoading ? (
-        <div className="py-24 text-center">
-          <div className="w-10 h-10 rounded-full border-3 border-[#5C1B13] border-t-transparent animate-spin mx-auto mb-3" />
-          <p className="text-base text-[#1A1008] font-bold">Loading orders...</p>
-          <p className="text-xs sm:text-sm text-[#6B584C] mt-1">Fetching your delivery records</p>
+        <div className="py-20 text-center">
+          <div className="w-9 h-9 rounded-full border-3 border-[#5C1B13] border-t-transparent animate-spin mx-auto mb-3" />
+          <p className="text-sm text-[#1A1008] font-bold">Loading orders...</p>
+          <p className="text-xs text-[#6B584C] mt-1">Fetching your delivery records</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-10 sm:p-14 text-center max-w-xl mx-auto shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center mx-auto mb-4 border border-[#E8DFD4]/70">
-            <FiPackage className="w-8 h-8" />
+        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-8 sm:p-10 text-center max-w-lg mx-auto shadow-2xs">
+          <div className="w-14 h-14 rounded-2xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center mx-auto mb-4 border border-[#E8DFD4]/70">
+            <FiPackage className="w-7 h-7" />
           </div>
-          <h3 className="text-xl font-serif font-bold text-[#1A1008] mb-2">No orders yet</h3>
-          <p className="text-sm text-[#6B584C] mb-6 max-w-md mx-auto leading-relaxed">
+          <h3 className="text-lg font-serif font-bold text-[#1A1008] mb-1.5">No orders yet</h3>
+          <p className="text-xs sm:text-sm text-[#6B584C] mb-5 max-w-sm mx-auto leading-relaxed">
             Experience pure A2 Gir cow milk delivered fresh to your doorstep before 10 AM in Raipur.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
             <Button
               variant="primary"
-              size="md"
+              size="sm"
               onClick={() => onPlaceSampleOrder("single")}
-              className="rounded-2xl px-6 py-3 text-xs sm:text-sm font-bold w-full sm:w-auto bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-sm"
+              className="rounded-xl px-5 py-2 text-xs font-bold w-full sm:w-auto bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-sm"
             >
               <span>Order Sample Bottle (₹85)</span>
             </Button>
             <Link href="/#pricing">
               <Button
                 variant="secondary"
-                size="md"
-                className="rounded-2xl px-6 py-3 text-xs sm:text-sm font-semibold w-full sm:w-auto border-[#E8DFD4] bg-white hover:bg-[#FAF6F0]"
+                size="sm"
+                className="rounded-xl px-5 py-2 text-xs font-semibold w-full sm:w-auto border-[#E8DFD4] bg-white hover:bg-[#FAF6F0]"
               >
                 <span>Explore Monthly Plans</span>
               </Button>
@@ -96,26 +96,26 @@ export function OrdersTab({
           </div>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-4">
           {orders.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-[26px] sm:rounded-[30px] border border-[#E8DFD4] p-6 sm:p-7 shadow-xs hover:border-[#5C1B13]/30 transition-all flex flex-col md:flex-row md:items-center justify-between gap-5"
+              className="bg-white rounded-2xl border border-[#E8DFD4] p-4.5 sm:p-5 shadow-2xs hover:border-[#5C1B13]/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
             >
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-mono text-xs sm:text-sm font-bold text-[#1A1008] bg-[#FAF3EA] px-3 py-1 rounded-lg border border-[#E8DFD4]/70">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <span className="font-mono text-xs font-bold text-[#1A1008] bg-[#FAF3EA] px-2.5 py-0.5 rounded-lg border border-[#E8DFD4]/70">
                     {order.id}
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusBadge(
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${getStatusBadge(
                       order.status
                     )}`}
                   >
                     {order.status}
                   </span>
-                  <span className="text-xs text-[#6B584C] flex items-center gap-1.5 font-medium">
-                    <FiClock className="w-3.5 h-3.5 text-[#8C603D]" />
+                  <span className="text-xs text-[#6B584C] flex items-center gap-1 font-medium">
+                    <FiClock className="w-3 h-3 text-[#8C603D]" />
                     <span>
                       {new Date(order.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
@@ -126,7 +126,7 @@ export function OrdersTab({
                   </span>
                 </div>
 
-                <div className="text-sm sm:text-base text-[#1A1008] font-bold">
+                <div className="text-sm text-[#1A1008] font-bold">
                   {order.items.map((item, idx) => (
                     <span key={item.id || idx}>
                       {item.name} × {item.quantity}
@@ -135,8 +135,8 @@ export function OrdersTab({
                   ))}
                 </div>
 
-                <div className="text-xs sm:text-sm text-[#6B584C] flex items-center gap-2">
-                  <FiMapPin className="w-4 h-4 text-[#5C1B13] shrink-0" />
+                <div className="text-xs text-[#6B584C] flex items-center gap-1.5">
+                  <FiMapPin className="w-3.5 h-3.5 text-[#5C1B13] shrink-0" />
                   <span>
                     {order.deliveryAddress.street}, {order.deliveryAddress.locality},{" "}
                     {order.deliveryAddress.city}
@@ -144,15 +144,15 @@ export function OrdersTab({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between md:flex-col md:items-end gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-[#E8DFD4]">
-                <div className="text-xl sm:text-2xl font-extrabold font-mono text-[#5C1B13]">
+              <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-[#E8DFD4]">
+                <div className="text-lg font-bold font-mono text-[#5C1B13]">
                   ₹{order.totalAmount}
                 </div>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => onSelectOrder(order)}
-                  className="rounded-xl px-4 py-2 text-xs sm:text-sm font-bold border-[#E8DFD4] bg-white hover:bg-[#FAF6F0] text-[#1A1008]"
+                  className="rounded-xl px-3.5 py-1.5 text-xs font-bold border-[#E8DFD4] bg-white hover:bg-[#FAF6F0] text-[#1A1008]"
                 >
                   View Details
                 </Button>

@@ -7,7 +7,8 @@ export type AccountTab =
   | "activity"
   | "orders"
   | "addresses"
-  | "subscription";
+  | "subscription"
+  | "wallet";
 
 export interface AddressFormData {
   fullName: string;

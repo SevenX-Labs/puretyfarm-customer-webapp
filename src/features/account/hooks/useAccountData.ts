@@ -14,7 +14,7 @@ export function useAccountData() {
 
   const queryTab = searchParams.get("tab") as AccountTab | null;
   const [activeTab, setActiveTab] = useState<AccountTab>(() => {
-    if (queryTab && ["profile", "orders", "addresses", "subscription", "preferences", "security", "activity"].includes(queryTab)) {
+    if (queryTab && ["profile", "orders", "addresses", "subscription", "wallet", "preferences", "security", "activity"].includes(queryTab)) {
       return queryTab;
     }
     return "profile";
@@ -22,7 +22,7 @@ export function useAccountData() {
 
   useEffect(() => {
     const tab = searchParams.get("tab") as AccountTab | null;
-    if (tab && ["profile", "orders", "addresses", "subscription", "preferences", "security", "activity"].includes(tab)) {
+    if (tab && ["profile", "orders", "addresses", "subscription", "wallet", "preferences", "security", "activity"].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -63,6 +63,74 @@ export function useAccountData() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [subLoading, setSubLoading] = useState(true);
   const [subUpdating, setSubUpdating] = useState(false);
+
+  // Wallet State
+  const [walletBalance, setWalletBalance] = useState<number>(255);
+  const [walletLoading, setWalletLoading] = useState<boolean>(true);
+  const [walletRecharging, setWalletRecharging] = useState<boolean>(false);
+  const [walletSuccessMsg, setWalletSuccessMsg] = useState<string | null>(null);
+
+  // Sync wallet balance from localStorage & custom events
+  useEffect(() => {
+    if (!user) return;
+    const syncBalance = () => {
+      try {
+        const saved = localStorage.getItem(`pf_wallet_${user.id}`);
+        if (saved !== null) {
+          setWalletBalance(parseFloat(saved) || 0);
+        } else {
+          setWalletBalance(255);
+        }
+      } catch {
+        setWalletBalance(255);
+      } finally {
+        setWalletLoading(false);
+      }
+    };
+
+    syncBalance();
+
+    window.addEventListener("storage", syncBalance);
+    window.addEventListener("wallet_update", syncBalance);
+    return () => {
+      window.removeEventListener("storage", syncBalance);
+      window.removeEventListener("wallet_update", syncBalance);
+    };
+  }, [user]);
+
+  const handleRechargeWallet = (amount: number) => {
+    if (!user || amount <= 0) return;
+    setWalletRecharging(true);
+    setTimeout(() => {
+      const next = walletBalance + amount;
+      setWalletBalance(next);
+      try {
+        localStorage.setItem(`pf_wallet_${user.id}`, next.toString());
+        const txKey = `pf_wallet_tx_${user.id}`;
+        const existingTx = JSON.parse(localStorage.getItem(txKey) || "[]");
+        const newTx = {
+          id: `tx_${Date.now()}`,
+          type: "credit",
+          amount,
+          title: `Wallet Top-Up (₹${amount})`,
+          description: "Online Instant UPI/Card Recharge",
+          date: new Date().toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        localStorage.setItem(txKey, JSON.stringify([newTx, ...existingTx]));
+        window.dispatchEvent(new Event("wallet_update"));
+      } catch {
+        // Ignore
+      }
+      setWalletRecharging(false);
+      setWalletSuccessMsg(`Successfully added ₹${amount} to your PuretyFarm wallet!`);
+      setTimeout(() => setWalletSuccessMsg(null), 4000);
+    }, 600);
+  };
 
   // Redirect if unauthenticated
   useEffect(() => {
@@ -426,5 +494,10 @@ export function useAccountData() {
     subUpdating,
     handleToggleSubPause,
     handleActivatePlan,
+    walletBalance,
+    walletLoading,
+    walletRecharging,
+    walletSuccessMsg,
+    handleRechargeWallet,
   };
 }

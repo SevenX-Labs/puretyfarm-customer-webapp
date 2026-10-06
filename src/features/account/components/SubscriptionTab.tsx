@@ -70,44 +70,44 @@ export function SubscriptionTab({
   ];
 
   return (
-    <m.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+    <m.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* ─── SECTION TITLE ─── */}
-      <div className="pb-6 border-b border-[#E8DFD4]">
-        <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A1008]">
+      <div className="pb-5 border-b border-[#E8DFD4]">
+        <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1A1008]">
           Milk Subscription & Vacation Schedule
         </h2>
-        <p className="text-sm sm:text-base text-[#6B584C] mt-1">
+        <p className="text-xs sm:text-sm text-[#6B584C] mt-0.5">
           Delivered chilled every morning before 10:00 AM across Raipur in sanitized glass bottles.
         </p>
       </div>
 
       {subLoading ? (
-        <div className="py-24 text-center">
-          <div className="w-10 h-10 rounded-full border-3 border-[#5C1B13] border-t-transparent animate-spin mx-auto mb-3" />
-          <p className="text-base text-[#1A1008] font-bold">Checking subscription details...</p>
-          <p className="text-xs sm:text-sm text-[#6B584C] mt-1">Retrieving farm dispatch schedule</p>
+        <div className="py-20 text-center">
+          <div className="w-9 h-9 rounded-full border-3 border-[#5C1B13] border-t-transparent animate-spin mx-auto mb-3" />
+          <p className="text-sm text-[#1A1008] font-bold">Checking subscription details...</p>
+          <p className="text-xs text-[#6B584C] mt-1">Retrieving farm dispatch schedule</p>
         </div>
       ) : subscription ? (
         /* ─── ACTIVE SUBSCRIPTION CARD ─── */
-        <div className="bg-[#FAF8F5] rounded-[28px] sm:rounded-[34px] border border-[#E8DFD4] p-7 sm:p-10 shadow-xs">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-7 border-b border-[#E8DFD4] gap-6">
+        <div className="bg-[#FAF8F5] rounded-2xl sm:rounded-3xl border border-[#E8DFD4] p-5 sm:p-6 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E8DFD4] gap-4">
             <div>
-              <div className="flex flex-wrap items-center gap-3 mb-2.5">
-                <span className="w-10 h-10 rounded-2xl bg-[#FAF3EA] border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] shrink-0">
-                  <FiCalendar className="w-5 h-5" />
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="w-8 h-8 rounded-xl bg-[#FAF3EA] border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] shrink-0">
+                  <FiCalendar className="w-4 h-4" />
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A1008]">
+                <h3 className="text-xl font-serif font-bold text-[#1A1008]">
                   {subscription.planName}
                 </h3>
                 <span
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-2 ${
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5 ${
                     subscription.status === "active"
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                       : "bg-amber-100 text-amber-900 border border-amber-200"
                   }`}
                 >
                   <span
-                    className={`w-2 h-2 rounded-full ${
+                    className={`w-1.5 h-1.5 rounded-full ${
                       subscription.status === "active" ? "bg-emerald-600 animate-pulse" : "bg-amber-600"
                     }`}
                   />
@@ -115,29 +115,29 @@ export function SubscriptionTab({
                 </span>
               </div>
 
-              <p className="text-sm sm:text-base text-[#6B584C] pl-0 sm:pl-13">
-                Plan Rate: <strong className="text-[#5C1B13] font-mono font-bold text-lg">₹{subscription.price}</strong> • {subscription.dailyQuantity}
+              <p className="text-xs sm:text-sm text-[#6B584C]">
+                Plan Rate: <strong className="text-[#5C1B13] font-mono font-bold text-sm sm:text-base">₹{subscription.price}</strong> • {subscription.dailyQuantity}
               </p>
             </div>
 
             {/* Vacation Pause / Resume Control */}
-            <div className="self-start lg:self-auto shrink-0">
+            <div className="self-start sm:self-auto shrink-0">
               <Button
                 variant={subscription.status === "active" ? "secondary" : "primary"}
-                size="md"
+                size="sm"
                 disabled={subUpdating}
                 onClick={onToggleSubPause}
-                className="rounded-2xl px-7 py-3.5 text-xs sm:text-sm font-bold flex items-center gap-2.5 cursor-pointer shadow-sm transition-all"
+                className="rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-2 cursor-pointer shadow-2xs transition-all"
               >
                 {subscription.status === "active" ? (
                   <>
-                    <FiPause className="w-4 h-4 text-[#5C1B13]" />
-                    <span>Pause Delivery (Vacation Mode)</span>
+                    <FiPause className="w-3.5 h-3.5 text-[#5C1B13]" />
+                    <span>Pause (Vacation Mode)</span>
                   </>
                 ) : (
                   <>
-                    <FiPlay className="w-4 h-4 text-white" />
-                    <span>Resume Morning Deliveries</span>
+                    <FiPlay className="w-3.5 h-3.5 text-white" />
+                    <span>Resume Deliveries</span>
                   </>
                 )}
               </Button>
@@ -145,144 +145,142 @@ export function SubscriptionTab({
           </div>
 
           {/* Key Delivery Status Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-7">
-            <div className="p-6 rounded-2xl sm:rounded-3xl bg-white border border-[#E8DFD4] shadow-xs">
-              <span className="text-xs font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-2">
-                <FiTruck className="w-4 h-4 text-[#5C1B13]" /> Next Delivery
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <div className="p-3.5 rounded-xl bg-white border border-[#E8DFD4] shadow-2xs">
+              <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1.5">
+                <FiTruck className="w-3.5 h-3.5 text-[#5C1B13]" /> Next Delivery
               </span>
-              <p className="text-lg font-bold text-[#1A1008] mt-2">
+              <p className="text-sm font-bold text-[#1A1008] mt-1">
                 {subscription.status === "active" ? "Tomorrow before 10 AM" : "Paused on Vacation"}
               </p>
-              <p className="text-xs sm:text-sm text-[#8C7A6B] mt-1">Sunrise route van dispatch</p>
+              <p className="text-[10px] text-[#8C7A6B] mt-0.5">Sunrise van route</p>
             </div>
 
-            <div className="p-6 rounded-2xl sm:rounded-3xl bg-white border border-[#E8DFD4] shadow-xs">
-              <span className="text-xs font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-2">
-                <FiShield className="w-4 h-4 text-[#5C1B13]" /> Packaging Standard
+            <div className="p-3.5 rounded-xl bg-white border border-[#E8DFD4] shadow-2xs">
+              <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1.5">
+                <FiShield className="w-3.5 h-3.5 text-[#5C1B13]" /> Packaging Standard
               </span>
-              <p className="text-lg font-bold text-[#1A1008] mt-2">
+              <p className="text-sm font-bold text-[#1A1008] mt-1">
                 Chilled Glass Bottles
               </p>
-              <p className="text-xs sm:text-sm text-[#8C7A6B] mt-1">Zero microplastics • Sanitized at dawn</p>
+              <p className="text-[10px] text-[#8C7A6B] mt-0.5">Sanitized at dawn</p>
             </div>
 
-            <div className="p-6 rounded-2xl sm:rounded-3xl bg-white border border-[#E8DFD4] shadow-xs">
-              <span className="text-xs font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-2">
-                <FiClock className="w-4 h-4 text-[#5C1B13]" /> Daily Cut-Off Time
+            <div className="p-3.5 rounded-xl bg-white border border-[#E8DFD4] shadow-2xs">
+              <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1.5">
+                <FiClock className="w-3.5 h-3.5 text-[#5C1B13]" /> Cut-Off Time
               </span>
-              <p className="text-lg font-bold text-[#5C1B13] mt-2 font-mono">
+              <p className="text-sm font-bold text-[#5C1B13] mt-1 font-mono">
                 10:00 PM Tonight
               </p>
-              <p className="text-xs sm:text-sm text-[#8C7A6B] mt-1">Pause/modify before 10 PM for next morning</p>
+              <p className="text-[10px] text-[#8C7A6B] mt-0.5">Modify for tomorrow morning</p>
             </div>
           </div>
 
           {/* Vacation Policy Note */}
-          <div className="mt-6 p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-[#E8DFD4] text-xs sm:text-sm text-[#6B584C] flex items-start gap-3">
-            <FiShield className="w-5 h-5 text-[#5C1B13] shrink-0 mt-0.5" />
+          <div className="mt-4 p-3.5 rounded-xl bg-white border border-[#E8DFD4] text-xs text-[#6B584C] flex items-start gap-2.5">
+            <FiShield className="w-4 h-4 text-[#5C1B13] shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              <strong className="text-[#1A1008]">Vacation Flexibility:</strong> Traveling outside Raipur? Pause your bottles anytime before 10:00 PM without any fee. Unused bottle quota remains credited in your PuretyFarm account.
+              <strong className="text-[#1A1008]">Vacation Flexibility:</strong> Pause your daily bottles anytime before 10:00 PM without fee. Unused quota stays credited in your account.
             </p>
           </div>
         </div>
       ) : null}
 
-      {/* ─── AVAILABLE PLANS SECTION (EXPANSIVE 3-COLUMN CARDS) ─── */}
-      <div className="space-y-6 pt-2">
+      {/* ─── AVAILABLE PLANS SECTION (SPACIOUS HORIZONTAL CARDS) ─── */}
+      <div className="space-y-3.5 pt-1">
         <div>
-          <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A1008]">
+          <h3 className="text-lg sm:text-xl font-serif font-bold text-[#1A1008]">
             {subscription ? "Switch or Upgrade Plan" : "Choose Your PuretyFarm Plan"}
           </h3>
-          <p className="text-sm sm:text-base text-[#6B584C] mt-1">
+          <p className="text-xs sm:text-sm text-[#6B584C] mt-0.5">
             Select a pure delivery plan tailored to your family&apos;s morning routine in Raipur.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-4.5">
           {availablePlans.map((plan) => {
             const isCurrent = subscription?.planId === plan.id;
             return (
               <div
                 key={plan.id}
-                className={`rounded-[28px] sm:rounded-[34px] p-7 sm:p-8 lg:p-9 border flex flex-col justify-between transition-all duration-300 relative ${
+                className={`rounded-2xl p-5 border flex flex-col justify-between transition-all ${
                   plan.isPopular
-                    ? "bg-[#FFFDF9] border-[#5C1B13] shadow-xl shadow-[#5C1B13]/10 ring-2 ring-[#5C1B13]"
-                    : "bg-white border-[#E8DFD4] hover:border-[#5C1B13]/40 hover:shadow-lg"
+                    ? "bg-[#FFFDF9] border-[#5C1B13] shadow-md shadow-[#5C1B13]/8 ring-1 ring-[#5C1B13]"
+                    : "bg-white border-[#E8DFD4] hover:border-[#5C1B13]/40 shadow-2xs"
                 }`}
               >
                 <div>
-                  {/* Popular / Starter Tag on top */}
-                  <div className="flex items-center justify-between gap-2 mb-4">
+                  {/* Header: Tag + Current Plan Badge */}
+                  <div className="flex items-center justify-between gap-1.5 mb-2.5">
                     <span
-                      className={`text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full ${
+                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
                         plan.isPopular
-                          ? "bg-[#5C1B13] text-white shadow-xs"
+                          ? "bg-[#5C1B13] text-white"
                           : "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4]"
                       }`}
                     >
                       {plan.tag}
                     </span>
-
                     {isCurrent && (
-                      <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                         Current Plan ✓
                       </span>
                     )}
                   </div>
 
-                  <h4 className="font-serif font-bold text-2xl sm:text-[26px] text-[#1A1008] tracking-tight">
+                  <h4 className="font-serif font-bold text-base sm:text-lg text-[#1A1008] leading-snug">
                     {plan.name}
                   </h4>
 
-                  {/* Price Block */}
-                  <div className="mt-4 mb-5 pb-5 border-b border-[#E8DFD4]/70">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-5xl font-extrabold text-[#5C1B13] font-mono tracking-tight">
-                        ₹{plan.price}
-                      </span>
-                      <span className="text-sm sm:text-base text-[#8C7A6B] font-medium font-sans">
-                        / {plan.rate}
-                      </span>
-                    </div>
-                    <p className="text-sm text-[#4A3225] mt-3 leading-relaxed min-h-[44px]">
-                      {plan.desc}
-                    </p>
+                  {/* Price display */}
+                  <div className="mt-2 mb-2 flex items-baseline gap-1.5">
+                    <span className="text-2xl sm:text-3xl font-extrabold text-[#5C1B13] font-mono">
+                      ₹{plan.price}
+                    </span>
+                    <span className="text-xs text-[#8C7A6B] font-medium font-sans">
+                      / {plan.rate}
+                    </span>
                   </div>
 
-                  {/* Feature Checkmarks List */}
-                  <div className="space-y-3.5 mb-8">
+                  <p className="text-xs text-[#6B584C] leading-relaxed mb-4">
+                    {plan.desc}
+                  </p>
+
+                  {/* Features list */}
+                  <div className="space-y-2 pt-3 border-t border-[#E8DFD4]/70 mb-5">
                     {plan.features.map((feat, idx) => (
-                      <div key={idx} className="flex items-start gap-3 text-sm sm:text-[15px] text-[#2C1810]">
-                        <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200">
-                          <FiCheck className="w-3.5 h-3.5" />
-                        </div>
+                      <div key={idx} className="flex items-start gap-2 text-xs text-[#2C1810]">
+                        <FiCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                         <span className="leading-snug">{feat}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Plan Action CTA */}
-                <Button
-                  variant={isCurrent ? "secondary" : "primary"}
-                  size="md"
-                  fullWidth
-                  disabled={subUpdating || isCurrent}
-                  onClick={() => onActivatePlan(plan.id)}
-                  className={`rounded-2xl py-4 text-sm sm:text-base font-bold transition-all cursor-pointer ${
-                    isCurrent
-                      ? "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4] cursor-default"
-                      : "bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-md hover:shadow-lg"
-                  }`}
-                >
-                  {isCurrent
-                    ? "Currently Active Plan"
-                    : plan.id === "trial"
-                    ? "Start 7-Day Trial (₹525)"
-                    : plan.id === "monthly"
-                    ? "Subscribe Monthly (₹2,250)"
-                    : "Order 1 Litre Bottle (₹85)"}
-                </Button>
+                {/* Bottom CTA Button */}
+                <div className="pt-2">
+                  <Button
+                    variant={isCurrent ? "secondary" : "primary"}
+                    size="sm"
+                    fullWidth
+                    disabled={subUpdating || isCurrent}
+                    onClick={() => onActivatePlan(plan.id)}
+                    className={`rounded-xl py-2.5 text-xs font-bold transition-all cursor-pointer ${
+                      isCurrent
+                        ? "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4] cursor-default"
+                        : "bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-2xs"
+                    }`}
+                  >
+                    {isCurrent
+                      ? "Currently Active"
+                      : plan.id === "trial"
+                      ? "Start 7-Day Trial"
+                      : plan.id === "monthly"
+                      ? "Subscribe Monthly"
+                      : "Order 1 Litre Bottle"}
+                  </Button>
+                </div>
               </div>
             );
           })}
