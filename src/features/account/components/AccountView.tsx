@@ -11,6 +11,7 @@ import { OrdersTab } from "./OrdersTab";
 import { AddressesTab } from "./AddressesTab";
 import { SubscriptionTab } from "./SubscriptionTab";
 import { WalletTab } from "./WalletTab";
+import { SubscriptionPanel } from "@/features/subscription";
 import { AccountTab } from "../types";
 import {
   FiUser,
@@ -69,6 +70,8 @@ export function AccountView() {
     subUpdating,
     handleToggleSubPause,
     handleActivatePlan,
+    customPlan,
+    handleApplyCustomSchedule,
     walletBalance,
     walletLoading,
     walletRecharging,
@@ -78,6 +81,11 @@ export function AccountView() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSubPanelOpen, setIsSubPanelOpen] = useState(false);
+
+  useEffect(() => {
+    setIsSubPanelOpen(false);
+  }, [activeTab]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,11 +122,9 @@ export function AccountView() {
     { id: "wallet" as AccountTab, label: `Wallet (₹${walletBalance.toFixed(0)})`, icon: LuWallet },
   ];
 
-  const isWideTab = activeTab === "subscription" || activeTab === "wallet";
-
   return (
     <div
-      className="min-h-screen w-full relative flex flex-col bg-cover bg-center bg-no-repeat bg-fixed selection:bg-[#5C1B13]/15 selection:text-[#5C1B13]"
+      className="min-h-screen w-full max-w-full overflow-x-hidden relative flex flex-col bg-cover bg-center bg-no-repeat bg-fixed selection:bg-[#5C1B13]/15 selection:text-[#5C1B13]"
       style={{
         backgroundImage: "url('/account-bg.png')",
       }}
@@ -278,7 +284,7 @@ export function AccountView() {
       </header>
 
       {/* ─── MAIN CONTENT ─── */}
-      <main className={`flex-1 ${isWideTab ? "max-w-[1536px]" : "max-w-7xl"} w-full mx-auto px-4 sm:px-8 pt-6 sm:pt-8 pb-12 z-10 transition-all duration-300`}>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-12 z-10 transition-all duration-300 overflow-x-hidden">
         {/* Welcome Section */}
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-6">
           <div className="max-w-2xl">
@@ -303,7 +309,7 @@ export function AccountView() {
           <div className="self-start lg:self-auto shrink-0 pt-1">
             <button
               type="button"
-              onClick={() => handlePlaceSampleOrder("trial")}
+              onClick={() => setActiveTab("subscription")}
               className="rounded-full px-5 py-2.5 text-xs sm:text-sm font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 shadow-md shadow-[#5C1B13]/15 transition-all cursor-pointer"
             >
               <span>Start 7-Day Trial</span>
@@ -312,16 +318,8 @@ export function AccountView() {
           </div>
         </div>
 
-        {/* ─── TABS NAVIGATION (Aligned with left card) ─── */}
-        <div
-          className={`w-full ${
-            activeTab === "subscription"
-              ? "lg:w-[calc(100%-480px)] lg:max-w-[calc(100vw-500px)] xl:max-w-4xl"
-              : isWideTab
-              ? "lg:w-[70%] max-w-5xl"
-              : "lg:w-[62%] xl:w-[58%] max-w-3xl"
-          } flex items-center gap-2 overflow-x-auto scrollbar-none py-1 mb-5 transition-all duration-300 ease-out`}
-        >
+        {/* ─── TABS NAVIGATION ─── */}
+        <div className="w-full max-w-full flex items-center gap-2 overflow-x-auto scrollbar-none py-1 mb-5 transition-all duration-300 ease-out">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -348,94 +346,112 @@ export function AccountView() {
           })}
         </div>
 
-        {/* ─── TAB CONTENT CARD ─── */}
-        <div
-          className={`w-full ${
-            activeTab === "subscription"
-              ? "lg:w-[calc(100%-480px)] lg:max-w-[calc(100vw-500px)] xl:max-w-4xl"
-              : isWideTab
-              ? "lg:w-[70%] max-w-5xl"
-              : "lg:w-[62%] xl:w-[58%] max-w-3xl"
-          } bg-white/95 backdrop-blur-md rounded-[32px] border border-[#E8DFD4] p-6 sm:p-8 shadow-[0_16px_44px_rgba(74,46,27,0.07)] mb-12 transition-all duration-300 ease-out`}
-        >
-          {/* PROFILE */}
-          {activeTab === "profile" && (
-            <ProfileTab
-              user={user}
-              isEditingProfile={isEditingProfile}
-              profileName={profileName}
-              profileEmail={profileEmail}
-              profileAvatar={profileAvatar}
-              profileSaving={profileSaving}
-              profileMsg={profileMsg}
-              onStartEdit={handleStartEditProfile}
-              onCancelEdit={() => {
-                setIsEditingProfile(false);
-                setProfileName(user.name || "");
-                setProfileEmail(user.email || "");
-                setProfileAvatar(user.avatarUrl || "");
-              }}
-              onNameChange={setProfileName}
-              onEmailChange={setProfileEmail}
-              onAvatarChange={setProfileAvatar}
-              onProfileError={(msg) => setProfileMsg({ type: "error", text: msg })}
-              onSaveProfile={handleSaveProfile}
-            />
-          )}
+        {/* ─── TAB CONTENT (Side-by-side on subscription when customize is open) ─── */}
+        {activeTab === "subscription" ? (
+          <div className="flex flex-col lg:flex-row items-start gap-6 w-full mb-12">
+            {/* Main Milk Subscription Card */}
+            <div className="flex-1 min-w-0 w-full bg-white/95 backdrop-blur-md rounded-[32px] border border-[#E8DFD4] p-5 sm:p-8 shadow-[0_16px_44px_rgba(74,46,27,0.07)] transition-all duration-300">
+              <SubscriptionTab
+                subscription={subscription}
+                subLoading={subLoading}
+                subUpdating={subUpdating}
+                onToggleSubPause={handleToggleSubPause}
+                onActivatePlan={handleActivatePlan}
+                customPlan={customPlan}
+                onConfirmPlan={handleApplyCustomSchedule}
+                isPanelOpen={isSubPanelOpen}
+                onOpenPanel={() => setIsSubPanelOpen(true)}
+                onClosePanel={() => setIsSubPanelOpen(false)}
+              />
+            </div>
 
-          {/* ORDERS */}
-          {activeTab === "orders" && (
-            <OrdersTab
-              orders={orders}
-              ordersLoading={ordersLoading}
-              selectedOrder={selectedOrder}
-              onSelectOrder={setSelectedOrder}
-              onPlaceSampleOrder={handlePlaceSampleOrder}
-            />
-          )}
+            {/* Customize Milk Subscription Card - directly on the right side of milk subscription card, designed SAME AS MAIN CARD */}
+            <AnimatePresence>
+              {isSubPanelOpen && (
+                <m.div
+                  initial={{ opacity: 0, x: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.98 }}
+                  transition={{ duration: 0.25 }}
+                  className="w-full lg:w-[450px] xl:w-[470px] shrink-0 bg-white/95 backdrop-blur-md rounded-[32px] border border-[#E8DFD4] p-5 sm:p-7 shadow-[0_16px_44px_rgba(74,46,27,0.07)] relative"
+                >
+                  <SubscriptionPanel
+                    isOpen={isSubPanelOpen}
+                    onClose={() => setIsSubPanelOpen(false)}
+                    onConfirmPlan={handleApplyCustomSchedule}
+                    inline={true}
+                    title="Customize Milk Subscription"
+                  />
+                </m.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <div className="w-full max-w-4xl bg-white/95 backdrop-blur-md rounded-[32px] border border-[#E8DFD4] p-5 sm:p-8 shadow-[0_16px_44px_rgba(74,46,27,0.07)] mb-12">
+            {activeTab === "profile" && (
+              <ProfileTab
+                user={user}
+                isEditingProfile={isEditingProfile}
+                profileName={profileName}
+                profileEmail={profileEmail}
+                profileAvatar={profileAvatar}
+                profileSaving={profileSaving}
+                profileMsg={profileMsg}
+                onStartEdit={handleStartEditProfile}
+                onCancelEdit={() => {
+                  setIsEditingProfile(false);
+                  setProfileName(user.name || "");
+                  setProfileEmail(user.email || "");
+                  setProfileAvatar(user.avatarUrl || "");
+                }}
+                onNameChange={setProfileName}
+                onEmailChange={setProfileEmail}
+                onAvatarChange={setProfileAvatar}
+                onProfileError={(msg) => setProfileMsg({ type: "error", text: msg })}
+                onSaveProfile={handleSaveProfile}
+              />
+            )}
 
-          {/* ADDRESSES */}
-          {activeTab === "addresses" && (
-            <AddressesTab
-              addresses={addresses}
-              addressesLoading={addressesLoading}
-              showAddressModal={showAddressModal}
-              editingAddress={editingAddress}
-              addressForm={addressForm}
-              addressSaving={addressSaving}
-              onOpenAddAddress={handleOpenAddAddress}
-              onOpenEditAddress={handleOpenEditAddress}
-              onCloseModal={() => setShowAddressModal(false)}
-              onChangeForm={setAddressForm}
-              onSaveAddress={handleSaveAddress}
-              onDeleteAddress={handleDeleteAddress}
-              onSetDefaultAddress={handleSetDefaultAddress}
-            />
-          )}
+            {activeTab === "orders" && (
+              <OrdersTab
+                orders={orders}
+                ordersLoading={ordersLoading}
+                selectedOrder={selectedOrder}
+                onSelectOrder={setSelectedOrder}
+                onPlaceSampleOrder={handlePlaceSampleOrder}
+              />
+            )}
 
-          {/* SUBSCRIPTION */}
-          {activeTab === "subscription" && (
-            <SubscriptionTab
-              subscription={subscription}
-              subLoading={subLoading}
-              subUpdating={subUpdating}
-              onToggleSubPause={handleToggleSubPause}
-              onActivatePlan={handleActivatePlan}
-            />
-          )}
+            {activeTab === "addresses" && (
+              <AddressesTab
+                addresses={addresses}
+                addressesLoading={addressesLoading}
+                showAddressModal={showAddressModal}
+                editingAddress={editingAddress}
+                addressForm={addressForm}
+                addressSaving={addressSaving}
+                onOpenAddAddress={handleOpenAddAddress}
+                onOpenEditAddress={handleOpenEditAddress}
+                onCloseModal={() => setShowAddressModal(false)}
+                onChangeForm={setAddressForm}
+                onSaveAddress={handleSaveAddress}
+                onDeleteAddress={handleDeleteAddress}
+                onSetDefaultAddress={handleSetDefaultAddress}
+              />
+            )}
 
-          {/* WALLET */}
-          {activeTab === "wallet" && (
-            <WalletTab
-              user={user}
-              walletBalance={walletBalance}
-              walletLoading={walletLoading}
-              walletRecharging={walletRecharging}
-              walletSuccessMsg={walletSuccessMsg}
-              onRecharge={handleRechargeWallet}
-            />
-          )}
-        </div>
+            {activeTab === "wallet" && (
+              <WalletTab
+                user={user}
+                walletBalance={walletBalance}
+                walletLoading={walletLoading}
+                walletRecharging={walletRecharging}
+                walletSuccessMsg={walletSuccessMsg}
+                onRecharge={handleRechargeWallet}
+              />
+            )}
+          </div>
+        )}
       </main>
 
       {/* ─── FOOTER ─── */}

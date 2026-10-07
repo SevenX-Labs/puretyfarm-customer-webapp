@@ -330,7 +330,9 @@ export function getDeliverySchedulePreview(
 }[] {
   const baseDate = startDate ? new Date(startDate) : new Date();
   if (!startDate) {
-    baseDate.setDate(baseDate.getDate() + 1); // Default to tomorrow dawn
+    const currentHour = new Date().getHours();
+    const daysToAdd = currentHour >= CUT_OFF_HOUR ? 2 : 1;
+    baseDate.setDate(baseDate.getDate() + daysToAdd);
   }
 
   const items: {

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
 import {
@@ -335,8 +336,11 @@ export function HowItWorks() {
               </div>
 
               {/* Illustration: 7-Day Taste Trial Badge */}
-              <div className="w-28 sm:w-32 rounded-xl bg-[#F0FDF4] border border-emerald-200/80 p-3 flex flex-col items-center justify-center text-center shrink-0 shadow-2xs mx-auto sm:mx-0">
-                <div className="w-7 h-7 rounded-full bg-[#16A34A] text-white flex items-center justify-center mb-1.5 shadow-2xs">
+              <Link
+                href="/account?tab=subscription"
+                className="w-28 sm:w-32 rounded-xl bg-[#F0FDF4] hover:bg-[#DCFCE7] transition-colors border border-emerald-200/80 p-3 flex flex-col items-center justify-center text-center shrink-0 shadow-2xs mx-auto sm:mx-0 cursor-pointer group"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#16A34A] text-white flex items-center justify-center mb-1.5 shadow-2xs group-hover:scale-105 transition-transform">
                   <FiCheck className="w-4 h-4 stroke-[3]" />
                 </div>
                 <span className="text-xs sm:text-[13px] font-bold text-[#064E3B] leading-tight">
@@ -348,7 +352,7 @@ export function HowItWorks() {
                 <span className="text-[9px] font-bold text-emerald-800 bg-white/90 border border-emerald-200 px-2 py-0.5 rounded-full mt-2 leading-none whitespace-nowrap shadow-2xs">
                   Non-Refundable Deposit
                 </span>
-              </div>
+              </Link>
 
               {/* Text Information */}
               <div className="flex-1 min-w-0">
@@ -361,6 +365,14 @@ export function HowItWorks() {
                 <p className="mt-1 text-xs sm:text-[13px] text-[#6B584C] leading-relaxed">
                   Taste fresh unadulterated Gir cow milk with convenient daily morning delivery (non-refundable deposit applies).
                 </p>
+                <div className="mt-2.5">
+                  <Link
+                    href="/account?tab=subscription"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-950 underline cursor-pointer"
+                  >
+                    <span>Start 7-Day Trial on Account →</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

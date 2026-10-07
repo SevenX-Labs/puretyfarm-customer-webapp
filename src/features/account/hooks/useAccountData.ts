@@ -6,6 +6,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Address, Order, Subscription } from "@/types/models";
 import { accountApi } from "../api/accountApi";
 import { AccountTab, AddressFormData } from "../types";
+import {
+  PricingResult,
+  SubscriptionDraft,
+  SubscriptionCustomizationPayload,
+  calculateSubscriptionPricing,
+  DRAFT_STORAGE_KEY,
+} from "@/features/subscription";
 
 export function useAccountData() {
   const router = useRouter();
@@ -425,12 +432,78 @@ export function useAccountData() {
     }
   };
 
-  // Activate Plan
+  // Custom Plan state (loaded from DRAFT_STORAGE_KEY if available)
+  const [customPlan, setCustomPlan] = useState<{
+    price: number;
+    dailyQuantity: string;
+    breakdownText?: string;
+  } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const pricing = calculateSubscriptionPricing(parsed);
+        return {
+          price: pricing.totalPrice,
+          dailyQuantity: `${parsed.frequency === "daily" ? "Daily" : "Alternate Day"} (${pricing.totalLitres}L / mo)`,
+          breakdownText: pricing.breakdownText,
+        };
+      }
+    } catch {}
+    return null;
+  });
+
+  // Apply custom schedule confirmed via SubscriptionPanel
+  const handleApplyCustomSchedule = async (
+    result: PricingResult,
+    draft: SubscriptionDraft,
+    _payload: SubscriptionCustomizationPayload
+  ) => {
+    const customDetails = {
+      price: result.totalPrice,
+      dailyQuantity: `${draft.frequency === "daily" ? "Daily" : "Alternate Day"} (${result.totalLitres}L / mo)`,
+      breakdownText: result.breakdownText,
+    };
+    setCustomPlan(customDetails);
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {}
+
+    setSubUpdating(true);
+    try {
+      const data = await accountApi.createSubscription({
+        planId: "monthly",
+        planName: "Monthly Subscription",
+        price: customDetails.price,
+        dailyQuantity: customDetails.dailyQuantity,
+      });
+
+      if (data.success) {
+        setSubscription(data.subscription);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubUpdating(false);
+    }
+  };
+
+  // Activate Plan (uses customized plan details if user previously customized monthly plan)
   const handleActivatePlan = async (planId: "trial" | "monthly" | "single") => {
     setSubUpdating(true);
+    const defaultMonthly = { name: "Monthly Subscription", price: 2250, dailyQuantity: "1L Daily (30L / mo)" };
+    const monthlyDetails = customPlan
+      ? {
+          name: "Monthly Subscription",
+          price: customPlan.price,
+          dailyQuantity: customPlan.dailyQuantity,
+        }
+      : defaultMonthly;
+
     const planDetails = {
       trial: { name: "7-Day Trial Plan", price: 525, dailyQuantity: "1L Daily for 7 Days" },
-      monthly: { name: "Monthly Subscription", price: 2250, dailyQuantity: "1L Daily (30L / mo)" },
+      monthly: monthlyDetails,
       single: { name: "Buy Once (1 Litre)", price: 85, dailyQuantity: "Single Bottle Order" },
     }[planId];
 
@@ -494,6 +567,8 @@ export function useAccountData() {
     subUpdating,
     handleToggleSubPause,
     handleActivatePlan,
+    customPlan,
+    handleApplyCustomSchedule,
     walletBalance,
     walletLoading,
     walletRecharging,

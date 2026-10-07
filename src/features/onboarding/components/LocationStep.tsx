@@ -37,7 +37,7 @@ export interface LocationStepProps {
   waitlistJoining: boolean;
   waitlistJoined: boolean;
   onGoBack: () => void;
-  onAutoLocationCheck: () => void;
+  onAutoLocationCheck: () => Promise<boolean> | void;
   onManualPincodeChange: (val: string) => void;
   onManualLocalityChange: (val: string) => void;
   onManualCheck: (e: React.FormEvent) => void;
@@ -97,18 +97,14 @@ export function LocationStep({
     setAreaSearch("");
   };
 
-  const handleAutoLocationClick = () => {
-    setSelectedArea(null);
-    onManualPincodeChange("");
-    onManualLocalityChange("");
-    onAutoLocationCheck();
-  };
-
-  useEffect(() => {
-    if (serviceCheckResult?.performed && serviceCheckResult.serviceable) {
+  const handleAutoLocationClick = async () => {
+    const success = await onAutoLocationCheck();
+    if (success) {
       setSelectedArea(null);
+      onManualPincodeChange("");
+      onManualLocalityChange("");
     }
-  }, [serviceCheckResult]);
+  };
 
   return (
     <m.div

@@ -5,7 +5,12 @@ import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Subscription } from "@/types/models";
 import { FiPause, FiPlay, FiShield, FiCheck, FiTruck, FiClock, FiCalendar, FiSliders } from "react-icons/fi";
-import { SubscriptionPanel } from "@/features/subscription";
+import {
+  SubscriptionPanel,
+  PricingResult,
+  SubscriptionDraft,
+  SubscriptionCustomizationPayload,
+} from "@/features/subscription";
 
 export interface SubscriptionTabProps {
   subscription: Subscription | null;
@@ -13,6 +18,16 @@ export interface SubscriptionTabProps {
   subUpdating: boolean;
   onToggleSubPause: () => void;
   onActivatePlan: (planId: "trial" | "monthly" | "single") => void;
+  customPlan?: {
+    price: number;
+    dailyQuantity: string;
+    breakdownText?: string;
+  } | null;
+  onConfirmPlan?: (
+    result: PricingResult,
+    draft: SubscriptionDraft,
+    payload: SubscriptionCustomizationPayload
+  ) => Promise<void> | void;
   isPanelOpen?: boolean;
   onOpenPanel?: () => void;
   onClosePanel?: () => void;
@@ -24,6 +39,8 @@ export function SubscriptionTab({
   subUpdating,
   onToggleSubPause,
   onActivatePlan,
+  customPlan,
+  onConfirmPlan,
   isPanelOpen: externalIsOpen,
   onOpenPanel,
   onClosePanel,
@@ -51,14 +68,16 @@ export function SubscriptionTab({
     },
     {
       id: "monthly" as const,
-      name: "Monthly Subscription",
-      price: 2250,
-      rate: "₹75 / delivery",
-      tag: "MOST POPULAR",
+      name: customPlan ? "Customized Monthly Plan" : "Monthly Subscription",
+      price: customPlan ? customPlan.price : 2250,
+      rate: "₹75 / litre",
+      tag: customPlan ? "CUSTOM SCHEDULE" : "MOST POPULAR",
       isPopular: true,
-      desc: "Daily 1L delivery (30 litres / month) with seamless pause mode for vacations.",
+      desc: customPlan
+        ? `Custom delivery schedule (${customPlan.dailyQuantity}) with seamless pause mode for vacations.`
+        : "Daily 1L delivery (30 litres / month) with seamless pause mode for vacations.",
       features: [
-        "Daily morning delivery (30L / mo)",
+        customPlan?.breakdownText ? `Custom schedule: ${customPlan.breakdownText}` : "Daily morning delivery (30L / mo)",
         "Zero-penalty vacation pause anytime",
         "Free doorstep insulated carry bag",
         "Priority batch reservation from farm",
@@ -315,6 +334,7 @@ export function SubscriptionTab({
         <SubscriptionPanel
           isOpen={isPanelOpen}
           onClose={handleClosePanel}
+          onConfirmPlan={onConfirmPlan}
           title="Customize Milk Subscription"
         />
       )}

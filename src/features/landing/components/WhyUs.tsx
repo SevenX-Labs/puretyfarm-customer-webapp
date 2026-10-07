@@ -1,6 +1,7 @@
 "use client";
 
 import { m } from "framer-motion";
+import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { ShinyText } from "@/components/reactbits";
@@ -296,15 +297,16 @@ export function WhyUs() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full sm:w-auto">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleTrialClick}
-            className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/25"
-          >
-            <span>Start 7-Day Trial</span>
-            <FiArrowRight className="w-4 h-4" />
-          </Button>
+          <Link href="/account?tab=subscription" className="w-full sm:w-auto">
+            <Button
+              variant="primary"
+              size="md"
+              className="w-full sm:w-auto shadow-lg shadow-[#5C1B13]/25 cursor-pointer"
+            >
+              <span>Start 7-Day Trial</span>
+              <FiArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
 
           <a
             href={getWhatsAppUrl("Hi PuretyFarm, I would like to know more about your A2 milk.")}

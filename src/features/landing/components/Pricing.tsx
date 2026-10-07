@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { TiltCard } from "@/components/ui/TiltCard";
@@ -163,15 +164,16 @@ export function Pricing() {
 
                   {/* CTA with React Bits Magnet */}
                   <Magnet magnetStrength={0.16} className="w-full">
-                    <Button
-                      variant={plan.highlighted ? "primary" : "secondary"}
-                      size="sm"
-                      fullWidth
-                      onClick={handleTrialClick}
-                      className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl cursor-pointer ${plan.highlighted ? "shadow-md shadow-[#5C1B13]/20" : ""}`}
-                    >
-                      {plan.ctaText}
-                    </Button>
+                    <Link href="/account?tab=subscription" className="w-full block">
+                      <Button
+                        variant={plan.highlighted ? "primary" : "secondary"}
+                        size="sm"
+                        fullWidth
+                        className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl cursor-pointer ${plan.highlighted ? "shadow-md shadow-[#5C1B13]/20" : ""}`}
+                      >
+                        {plan.ctaText}
+                      </Button>
+                    </Link>
                   </Magnet>
                 </div>
               </TiltCard>

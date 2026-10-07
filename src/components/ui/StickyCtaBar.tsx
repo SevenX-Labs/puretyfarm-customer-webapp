@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "./Button";
 import { handleTrialClick, handleDownloadClick } from "@/lib/cta";
 
@@ -33,15 +34,16 @@ export function StickyCtaBar() {
       `.trim()}
     >
       <div className="flex items-center gap-3 max-w-lg mx-auto">
-        <Button
-          variant="primary"
-          size="md"
-          fullWidth
-          onClick={handleTrialClick}
-          className="h-11 text-xs font-bold shadow-md shadow-[#5C1B13]/20"
-        >
-          Start My 7-Day Trial
-        </Button>
+        <Link href="/account?tab=subscription" className="w-full">
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            className="h-11 text-xs font-bold shadow-md shadow-[#5C1B13]/20 cursor-pointer"
+          >
+            Start My 7-Day Trial
+          </Button>
+        </Link>
         <Button
           variant="secondary"
           size="md"

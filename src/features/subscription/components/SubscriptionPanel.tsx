@@ -92,10 +92,12 @@ export function SubscriptionPanel({
     previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
     // Body scroll lock on mobile only (<768px)
+    let didLockScroll = false;
     let originalOverflow = "";
     if (typeof window !== "undefined" && window.innerWidth < 768) {
       originalOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
+      didLockScroll = true;
     }
 
     // Set initial focus inside dialog
@@ -110,7 +112,7 @@ export function SubscriptionPanel({
 
     return () => {
       clearTimeout(timer);
-      if (typeof window !== "undefined" && originalOverflow) {
+      if (typeof window !== "undefined" && didLockScroll) {
         document.body.style.overflow = originalOverflow;
       }
       if (

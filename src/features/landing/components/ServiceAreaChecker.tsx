@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { m, AnimatePresence } from "framer-motion";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
@@ -316,9 +317,11 @@ export function ServiceAreaChecker() {
                     </div>
 
                     <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                      <Button variant="primary" size="md" onClick={handleTrialClick} className="shadow-md shadow-[#5C1B13]/20">
-                        Start 7-Day Trial in {checkedArea}
-                      </Button>
+                      <Link href="/account?tab=subscription">
+                        <Button variant="primary" size="md" className="shadow-md shadow-[#5C1B13]/20 cursor-pointer w-full sm:w-auto">
+                          Start 7-Day Trial in {checkedArea}
+                        </Button>
+                      </Link>
                       <a
                         href={getWhatsAppUrl(`Hi PuretyFarm, I verified delivery for ${checkedArea} and would like to start my trial.`)}
                         target="_blank"

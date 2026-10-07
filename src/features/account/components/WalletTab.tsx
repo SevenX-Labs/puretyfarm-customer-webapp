@@ -181,7 +181,7 @@ export function WalletTab({
           </div>
 
           {/* Linked Account info badge */}
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-xs space-y-1 sm:min-w-[210px] shrink-0">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 text-xs space-y-1 w-full sm:w-auto shrink-0">
             <span className="text-[10px] uppercase font-bold text-white/70 tracking-wider block">
               Linked Customer Account
             </span>

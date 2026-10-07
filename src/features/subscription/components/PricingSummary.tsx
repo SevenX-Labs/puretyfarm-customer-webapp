@@ -30,6 +30,10 @@ export function PricingSummary({ result, schedulePreview }: PricingSummaryProps)
       ? `₹${(day1Litres * pricePerLitre).toLocaleString("en-IN")} per delivery`
       : `₹${(day1Litres * pricePerLitre).toLocaleString("en-IN")} / ₹${(day2Litres * pricePerLitre).toLocaleString("en-IN")} per delivery`;
 
+  const cutOffHour12 = CUT_OFF_HOUR % 12 === 0 ? 12 : CUT_OFF_HOUR % 12;
+  const cutOffPeriod = CUT_OFF_HOUR >= 12 ? "PM" : "AM";
+  const cutOffFormatted = `${cutOffHour12}:00 ${cutOffPeriod}`;
+
   return (
     <div
       aria-live="polite"
@@ -118,7 +122,7 @@ export function PricingSummary({ result, schedulePreview }: PricingSummaryProps)
         <div className="flex items-start gap-2 pt-1 text-[11px]">
           <FiClock className="w-3.5 h-3.5 text-[#5C1B13] shrink-0 mt-0.5" />
           <p>
-            <strong className="text-[#1A1008]">{CUT_OFF_HOUR}:00 PM Daily Cut-Off:</strong> Modify quantities or pause mornings anytime before 10:00 PM via customer WhatsApp/portal.
+            <strong className="text-[#1A1008]">{cutOffFormatted} Daily Cut-Off:</strong> Modify quantities or pause mornings anytime before 10:00 PM via customer WhatsApp/portal.
           </p>
         </div>
 

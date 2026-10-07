@@ -91,12 +91,77 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    const VALID_GENDERS = ["male", "female", "other"];
+    if (gender !== undefined) {
+      if (typeof gender !== "string") {
+        return NextResponse.json(
+          { success: false, error: "Gender must be a valid string." },
+          { status: 400 }
+        );
+      }
+      const trimmedGender = gender.trim().toLowerCase();
+      if (trimmedGender !== "" && !VALID_GENDERS.includes(trimmedGender)) {
+        return NextResponse.json(
+          { success: false, error: "Unsupported gender value. Choose male, female, or other." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (dob !== undefined) {
+      if (typeof dob !== "string") {
+        return NextResponse.json(
+          { success: false, error: "Date of birth must be a valid string." },
+          { status: 400 }
+        );
+      }
+      const trimmedDob = dob.trim();
+      if (trimmedDob !== "") {
+        const dobRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dobRegex.test(trimmedDob)) {
+          return NextResponse.json(
+            { success: false, error: "Please enter date of birth in YYYY-MM-DD format." },
+            { status: 400 }
+          );
+        }
+
+        const [yearStr, monthStr, dayStr] = trimmedDob.split("-");
+        const year = Number(yearStr);
+        const month = Number(monthStr);
+        const day = Number(dayStr);
+
+        const dateObj = new Date(Date.UTC(year, month - 1, day));
+        if (
+          dateObj.getUTCFullYear() !== year ||
+          dateObj.getUTCMonth() !== month - 1 ||
+          dateObj.getUTCDate() !== day
+        ) {
+          return NextResponse.json(
+            { success: false, error: "Please enter a valid calendar date." },
+            { status: 400 }
+          );
+        }
+
+        const now = new Date();
+        const todayUtcStr = now.toISOString().split("T")[0];
+        if (trimmedDob > todayUtcStr) {
+          return NextResponse.json(
+            { success: false, error: "Date of birth cannot be in the future." },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    const genderToSave = gender !== undefined ? gender.trim().toLowerCase() : undefined;
+    const dobToSave = dob !== undefined ? dob.trim() : undefined;
+
     let userRecord = await db.updateUser(session.userId, {
       ...(name !== undefined ? { name: name.trim() } : {}),
       ...(email !== undefined ? { email: email.trim() } : {}),
       ...(avatarUrl !== undefined ? { avatarUrl } : {}),
-      ...(gender !== undefined ? { gender: typeof gender === "string" ? gender : "" } : {}),
-      ...(dob !== undefined ? { dob: typeof dob === "string" ? dob : "" } : {}),
+      ...(genderToSave !== undefined ? { gender: genderToSave } : {}),
+      ...(dobToSave !== undefined ? { dob: dobToSave } : {}),
     });
 
     if (!userRecord) {
@@ -107,8 +172,8 @@ export async function PATCH(req: NextRequest) {
         name: (name && typeof name === "string" && name.trim()) ? name.trim() : "Customer",
         email: (email && typeof email === "string") ? email.trim() : "",
         avatarUrl: typeof avatarUrl === "string" ? avatarUrl : "",
-        gender: typeof gender === "string" ? gender : undefined,
-        dob: typeof dob === "string" ? dob : undefined,
+        gender: genderToSave,
+        dob: dobToSave,
       });
     }
 
@@ -129,6 +194,8 @@ export async function PATCH(req: NextRequest) {
         name: userRecord.name,
         email: userRecord.email,
         avatarUrl: userRecord.avatarUrl,
+        gender: userRecord.gender,
+        dob: userRecord.dob,
         createdAt: userRecord.createdAt,
       },
     });

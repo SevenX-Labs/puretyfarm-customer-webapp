@@ -17,9 +17,8 @@ import {
   calculateSubscriptionPricing,
   SubscriptionDraft,
   PricingResult,
+  DRAFT_STORAGE_KEY,
 } from "@/features/subscription";
-
-const DRAFT_STORAGE_KEY = "pf_subscription_draft";
 
 export interface PlanStepProps {
   savedAddress: Address | null;
@@ -63,6 +62,11 @@ export function PlanStep({
   const handleConfirmSchedule = useCallback(
     (_result: PricingResult, draft: SubscriptionDraft) => {
       setCustomDraft(draft);
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+      } catch {
+        // Ignore storage errors
+      }
       onSelectPlanId("monthly");
     },
     [onSelectPlanId]
@@ -75,7 +79,7 @@ export function PlanStep({
         ...plan,
         price: customPricing.totalPrice,
         quantity: `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`,
-        rateText: `₹${customPricing.pricePerLitre} / delivery`,
+        rateText: `₹${customPricing.pricePerLitre} / litre`,
         orderItem: {
           ...plan.orderItem,
           price: customPricing.totalPrice,

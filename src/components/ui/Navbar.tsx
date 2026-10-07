@@ -204,9 +204,9 @@ export function Navbar() {
                 fullWidth
                 onClick={() => {
                   closeMenu();
-                  handleTrialClick();
+                  router.push("/account?tab=subscription");
                 }}
-                className="rounded-xl py-2.5 text-xs font-semibold"
+                className="rounded-xl py-2.5 text-xs font-semibold cursor-pointer"
               >
                 Start My 7-Day Starter Trial
               </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Section } from "@/components/ui/Section";
 import { handleTrialClick } from "@/lib/cta";
 import { useScrollReveal, useStaggerReveal } from "@/lib/animations";
@@ -293,14 +294,13 @@ export function TrialOffer() {
                   ref={ctaRef}
                   className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-5 flex-wrap"
                 >
-                  <button
-                    type="button"
-                    onClick={handleTrialClick}
+                  <Link
+                    href="/account?tab=subscription"
                     className="inline-flex items-center justify-center gap-2 bg-[#3E1610] hover:bg-[#501D14] text-white font-bold text-xs sm:text-sm px-6 py-3.5 rounded-2xl shadow-lg shadow-[#3E1610]/20 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                   >
                     <span>Start 7-Day Trial ({selectedVolume.label})</span>
                     <span aria-hidden="true">→</span>
-                  </button>
+                  </Link>
 
                   <div className="hidden sm:block h-8 w-px bg-[#ECE4DA]" aria-hidden="true" />
 

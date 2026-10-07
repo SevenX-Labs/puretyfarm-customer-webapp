@@ -3,7 +3,7 @@ import { ENV } from "@/config/env";
 
 export function handleTrialClick(): void {
   if (typeof window !== "undefined") {
-    window.location.href = ENV.PLAY_STORE_URL;
+    window.location.href = "/account?tab=subscription";
   }
 }
 

@@ -17,7 +17,7 @@ import {
   MAX_LITRES,
 } from "./pricing";
 
-const DRAFT_STORAGE_KEY = "pf_subscription_draft_v2";
+export const DRAFT_STORAGE_KEY = "pf_subscription_draft_v2";
 
 const DEFAULT_DRAFT: SubscriptionDraft = {
   frequency: "daily",

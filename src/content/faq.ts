@@ -65,7 +65,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     num: "03",
     question: "How does the 7-day trial work?",
     answer:
-      "Simply download our app or contact us via WhatsApp. We start delivering 1 litre of fresh A2 milk daily for 7 days with prompt morning doorstep delivery (non-refundable deposit applies).",
+      "Simply choose the 7-Day Trial Plan on your account page or contact us via WhatsApp. We deliver 1 litre of fresh A2 milk daily for 7 days with prompt morning doorstep delivery before 10 AM (non-refundable deposit applies).",
     badge: {
       label: "Taste Trial",
       icon: FiShield,

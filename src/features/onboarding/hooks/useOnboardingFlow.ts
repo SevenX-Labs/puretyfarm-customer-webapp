@@ -206,80 +206,88 @@ export function useOnboardingFlow() {
   };
 
   // ─── STEP 2 HANDLER: Auto Geolocation Check ───
-  const handleAutoLocationCheck = () => {
+  const handleAutoLocationCheck = (): Promise<boolean> => {
     setAutoChecking(true);
     setAutoCheckError(null);
     setServiceCheckResult(null);
 
-    if (!navigator.geolocation) {
-      setAutoCheckError(
-        "Location detection is not supported by your browser. Please enter your address below."
-      );
-      setAutoChecking(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-
-          const data = await onboardingApi.checkServiceability({ lat, lng });
-
-          if (!data.success && data.error) {
-            setAutoCheckError(
-              data.error ||
-                "Could not detect address from location. Please enter your pincode below."
-            );
-            return;
-          }
-
-          setServiceCheckResult({
-            performed: true,
-            serviceable: data.serviceable,
-            areaName: data.areaName,
-            pincode: data.pincode,
-            reason: data.reason,
-          });
-
-          if (data.serviceable) {
-            setManualPincode("");
-            setManualLocality("");
-            setAddressDetails((prev) => ({
-              ...prev,
-              locality: data.areaName || prev.locality,
-              street: data.formattedAddress ? data.formattedAddress.split(",")[0] : prev.street,
-            }));
-          } else {
-            setManualPincode(data.pincode || "");
-            setManualLocality(data.areaName || "");
-          }
-        } catch {
-          setAutoCheckError(
-            "Could not connect to service check. Please enter your address details below."
-          );
-        } finally {
-          setAutoChecking(false);
-        }
-      },
-      (err) => {
-        let errorMsg = "Couldn't detect your location. Enter your address below.";
-        if (err.code === err.PERMISSION_DENIED) {
-          errorMsg = "Location access was denied. Enter your address below.";
-        } else if (err.code === err.TIMEOUT) {
-          errorMsg = "Location detection timed out. Enter your address below.";
-        } else if (err.code === err.POSITION_UNAVAILABLE) {
-          errorMsg = "Current location unavailable. Enter your address below.";
-        }
-        setAutoCheckError(errorMsg);
+    return new Promise<boolean>((resolve) => {
+      if (!navigator.geolocation) {
+        setAutoCheckError(
+          "Location detection is not supported by your browser. Please enter your address below."
+        );
         setAutoChecking(false);
-      },
-      {
-        timeout: 10000,
-        enableHighAccuracy: true,
+        resolve(false);
+        return;
       }
-    );
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+
+            const data = await onboardingApi.checkServiceability({ lat, lng });
+
+            if (!data.success && data.error) {
+              setAutoCheckError(
+                data.error ||
+                  "Could not detect address from location. Please enter your pincode below."
+              );
+              resolve(false);
+              return;
+            }
+
+            setServiceCheckResult({
+              performed: true,
+              serviceable: data.serviceable,
+              areaName: data.areaName,
+              pincode: data.pincode,
+              reason: data.reason,
+            });
+
+            if (data.serviceable) {
+              setManualPincode("");
+              setManualLocality("");
+              setAddressDetails((prev) => ({
+                ...prev,
+                locality: data.areaName || prev.locality,
+                street: data.formattedAddress ? data.formattedAddress.split(",")[0] : prev.street,
+              }));
+              resolve(true);
+            } else {
+              setManualPincode(data.pincode || "");
+              setManualLocality(data.areaName || "");
+              resolve(false);
+            }
+          } catch {
+            setAutoCheckError(
+              "Could not connect to service check. Please enter your address details below."
+            );
+            resolve(false);
+          } finally {
+            setAutoChecking(false);
+          }
+        },
+        (err) => {
+          let errorMsg = "Couldn't detect your location. Enter your address below.";
+          if (err.code === err.PERMISSION_DENIED) {
+            errorMsg = "Location access was denied. Enter your address below.";
+          } else if (err.code === err.TIMEOUT) {
+            errorMsg = "Location detection timed out. Enter your address below.";
+          } else if (err.code === err.POSITION_UNAVAILABLE) {
+            errorMsg = "Current location unavailable. Enter your address below.";
+          }
+          setAutoCheckError(errorMsg);
+          setAutoChecking(false);
+          resolve(false);
+        },
+        {
+          timeout: 10000,
+          enableHighAccuracy: true,
+        }
+      );
+    });
   };
 
   // ─── STEP 2 HANDLER: Manual Pincode & Locality Check ───
