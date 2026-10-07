@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Subscription } from "@/types/models";
-import { FiPause, FiPlay, FiShield, FiCheck, FiTruck, FiClock, FiCalendar, FiSliders } from "react-icons/fi";
+import { FiPause, FiPlay, FiShield, FiCheck, FiTruck, FiClock, FiCalendar, FiSliders, FiAlertCircle } from "react-icons/fi";
 import {
   SubscriptionPanel,
   PricingResult,
   SubscriptionDraft,
   SubscriptionCustomizationPayload,
 } from "@/features/subscription";
+import { plansApi, PlanOverviewItem } from "@/features/plans/api/plansApi";
 
 export interface SubscriptionTabProps {
   subscription: Subscription | null;
@@ -49,6 +50,28 @@ export function SubscriptionTab({
   const isPanelOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const handleOpenPanel = onOpenPanel || (() => setInternalIsOpen(true));
   const handleClosePanel = onClosePanel || (() => setInternalIsOpen(false));
+
+  const [planOverviews, setPlanOverviews] = useState<PlanOverviewItem[]>([]);
+
+  useEffect(() => {
+    async function loadPlans() {
+      try {
+        const res = await plansApi.getPlansOverview();
+        if (res?.plans) {
+          setPlanOverviews(res.plans);
+        }
+      } catch (err) {
+        console.warn("Could not fetch plans overview:", err);
+      }
+    }
+    loadPlans();
+  }, []);
+
+  const getPlanEligibility = (id: "trial" | "monthly" | "single") => {
+    const backendType =
+      id === "trial" ? "SEVEN_DAY_TRIAL" : id === "single" ? "BUY_ONCE" : "MONTHLY";
+    return planOverviews.find((p) => p.type === backendType);
+  };
 
   const availablePlans = [
     {
@@ -119,51 +142,66 @@ export function SubscriptionTab({
           <p className="text-xs text-[#6B584C] mt-1">Retrieving farm dispatch schedule</p>
         </div>
       ) : subscription ? (
-        /* ─── ACTIVE SUBSCRIPTION CARD ─── */
-        <div className="bg-[#FAF8F5] rounded-2xl sm:rounded-3xl border border-[#E8DFD4] p-5 sm:p-6 shadow-2xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E8DFD4] gap-4">
+        /* ─── CURRENT ACTIVE SUBSCRIPTION CARD ─── */
+        <div className="rounded-2xl border-2 border-[#5C1B13] bg-[#FFFDF9] p-5 sm:p-6 shadow-md shadow-[#5C1B13]/8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E8DFD4]">
             <div>
-              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="w-8 h-8 rounded-xl bg-[#FAF3EA] border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] shrink-0">
-                  <FiCalendar className="w-4 h-4" />
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#5C1B13] text-white">
+                  Active Subscription
                 </span>
-                <h3 className="text-xl font-serif font-bold text-[#1A1008]">
-                  {subscription.planName}
-                </h3>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1.5 ${
+                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                     subscription.status === "active"
-                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                      : "bg-amber-100 text-amber-900 border border-amber-200"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
                   }`}
                 >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      subscription.status === "active" ? "bg-emerald-600 animate-pulse" : "bg-amber-600"
-                    }`}
-                  />
-                  {subscription.status === "active" ? "Active Daily Delivery" : "Paused (Vacation Mode)"}
+                  {subscription.status === "active" ? "Morning Dispatch ON" : "Vacation Paused"}
                 </span>
               </div>
-
-              <p className="text-xs sm:text-sm text-[#6B584C]">
-                Plan Rate: <strong className="text-[#5C1B13] font-mono font-bold text-sm sm:text-base">₹{subscription.price}</strong> • {subscription.dailyQuantity}
+              <h3 className="font-serif font-bold text-lg sm:text-xl text-[#1A1008]">
+                {subscription.planName}
+              </h3>
+              <p className="text-xs text-[#6B584C] mt-0.5">
+                {subscription.dailyQuantity} •{" "}
+                <span className="font-semibold text-[#5C1B13]">
+                  ₹{subscription.price}/month
+                </span>
               </p>
             </div>
 
-            {/* Vacation Pause / Resume Control */}
-            <div className="self-start sm:self-auto shrink-0">
+            {/* Pause / Resume Button */}
+            <div className="flex items-center gap-2">
+              {subscription.planId === "monthly" && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleOpenPanel}
+                  className="rounded-xl min-h-[44px] px-3.5 py-2 text-xs font-bold border-[#E8DFD4] text-[#5C1B13] hover:bg-[#FAF3EA] cursor-pointer"
+                >
+                  <FiSliders className="w-3.5 h-3.5 mr-1" />
+                  <span>Edit Schedule</span>
+                </Button>
+              )}
+
               <Button
                 variant={subscription.status === "active" ? "secondary" : "primary"}
                 size="sm"
                 disabled={subUpdating}
                 onClick={onToggleSubPause}
-                className="rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-2 cursor-pointer shadow-2xs transition-all"
+                className={`rounded-xl min-h-[44px] px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  subscription.status === "active"
+                    ? "border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100"
+                    : "bg-[#5C1B13] hover:bg-[#48150f] text-white"
+                }`}
               >
-                {subscription.status === "active" ? (
+                {subUpdating ? (
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : subscription.status === "active" ? (
                   <>
-                    <FiPause className="w-3.5 h-3.5 text-[#5C1B13]" />
-                    <span>Pause (Vacation Mode)</span>
+                    <FiPause className="w-3.5 h-3.5" />
+                    <span>Pause Deliveries</span>
                   </>
                 ) : (
                   <>
@@ -232,11 +270,16 @@ export function SubscriptionTab({
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-4.5">
           {availablePlans.map((plan) => {
             const isCurrent = subscription?.planId === plan.id;
+            const eligibility = getPlanEligibility(plan.id);
+            const isBlocked = eligibility?.available === false;
+
             return (
               <div
                 key={plan.id}
                 className={`rounded-2xl p-5 border flex flex-col justify-between transition-all ${
-                  plan.isPopular
+                  isBlocked
+                    ? "bg-[#FAF7F2]/60 border-[#E8DFD4] opacity-70"
+                    : plan.isPopular
                     ? "bg-[#FFFDF9] border-[#5C1B13] shadow-md shadow-[#5C1B13]/8 ring-1 ring-[#5C1B13]"
                     : "bg-white border-[#E8DFD4] hover:border-[#5C1B13]/40 shadow-2xs"
                 }`}
@@ -244,20 +287,37 @@ export function SubscriptionTab({
                 <div>
                   {/* Header: Tag + Current Plan Badge */}
                   <div className="flex items-center justify-between gap-1.5 mb-2.5">
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
-                        plan.isPopular
-                          ? "bg-[#5C1B13] text-white"
-                          : "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4]"
-                      }`}
-                    >
-                      {plan.tag}
-                    </span>
-                    {isCurrent && (
+                    {isBlocked ? (
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-stone-200 text-stone-700">
+                        {eligibility?.blockedReason === "BUY_ONCE_ALREADY_USED"
+                          ? "Trial Ineligible"
+                          : eligibility?.blockedReason === "TRIAL_ALREADY_USED"
+                          ? "Trial Used"
+                          : eligibility?.blockedReason === "MAX_USES_REACHED"
+                          ? "Limit Reached"
+                          : "Unavailable"}
+                      </span>
+                    ) : (
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                          plan.isPopular
+                            ? "bg-[#5C1B13] text-white"
+                            : "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4]"
+                        }`}
+                      >
+                        {plan.tag}
+                      </span>
+                    )}
+
+                    {isCurrent ? (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                         Current Plan ✓
                       </span>
-                    )}
+                    ) : eligibility?.remainingUses !== undefined && !isBlocked ? (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                        {eligibility.remainingUses} Left
+                      </span>
+                    ) : null}
                   </div>
 
                   <h4 className="font-serif font-bold text-base sm:text-lg text-[#1A1008] leading-snug">
@@ -291,7 +351,7 @@ export function SubscriptionTab({
 
                 {/* Bottom CTA Button */}
                 <div className="pt-2 space-y-2">
-                  {plan.id === "monthly" && (
+                  {plan.id === "monthly" && !isBlocked && (
                     <button
                       type="button"
                       onClick={handleOpenPanel}
@@ -303,18 +363,22 @@ export function SubscriptionTab({
                   )}
 
                   <Button
-                    variant={isCurrent ? "secondary" : "primary"}
+                    variant={isCurrent || isBlocked ? "secondary" : "primary"}
                     size="sm"
                     fullWidth
-                    disabled={subUpdating || isCurrent}
+                    disabled={subUpdating || isCurrent || isBlocked}
                     onClick={() => onActivatePlan(plan.id)}
                     className={`rounded-xl py-2.5 min-h-[44px] text-xs font-bold transition-all cursor-pointer ${
-                      isCurrent
+                      isBlocked
+                        ? "bg-stone-100 text-stone-400 border border-stone-200 cursor-not-allowed"
+                        : isCurrent
                         ? "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4] cursor-default"
                         : "bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-2xs"
                     }`}
                   >
-                    {isCurrent
+                    {isBlocked
+                      ? "Unavailable"
+                      : isCurrent
                       ? "Currently Active"
                       : plan.id === "trial"
                       ? "Start 7-Day Trial"

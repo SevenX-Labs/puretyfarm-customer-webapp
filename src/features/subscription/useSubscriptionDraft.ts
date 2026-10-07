@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   DeliveryFrequency,
   DeliveryMode,
@@ -16,6 +16,7 @@ import {
   MIN_LITRES,
   MAX_LITRES,
 } from "./pricing";
+import { plansApi, PlanQuote } from "@/features/plans/api/plansApi";
 
 export const DRAFT_STORAGE_KEY = "pf_subscription_draft_v2";
 
@@ -47,10 +48,15 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
   const [day1Litres, setDay1Litres] = useState<number>(DEFAULT_DRAFT.day1Litres);
   const [day2Litres, setDay2Litres] = useState<number>(DEFAULT_DRAFT.day2Litres);
 
+  const [serverQuote, setServerQuote] = useState<PlanQuote | null>(null);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [hasLoadedDraft, setHasLoadedDraft] = useState(false);
+
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 1. Load draft from localStorage on initial mount
   useEffect(() => {
@@ -99,18 +105,69 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     }
   }, [hasLoadedDraft, frequency, mode, fixedLitres, day1Litres, day2Litres]);
 
-  // 3. Compute derived pricing result strictly through pure pricing function
+  // 3. Fetch server-calculated monthly quote asynchronously (debounced)
+  useEffect(() => {
+    if (!hasLoadedDraft) return;
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(async () => {
+      setIsQuoteLoading(true);
+      try {
+        const backendFreq = frequency === "daily" ? "DAILY" : "ALTERNATE_DAYS";
+        const backendMode = mode === "fixed" ? "FIXED" : "ALTERNATING";
+
+        const quote = await plansApi.createMonthlyQuote({
+          frequency: backendFreq,
+          quantityMode: backendMode,
+          quantity: mode === "fixed" ? fixedLitres : undefined,
+          quantityA: mode === "pattern" ? day1Litres : undefined,
+          quantityB: mode === "pattern" ? day2Litres : undefined,
+        });
+
+        if (quote && quote.quoteId) {
+          setServerQuote(quote);
+        }
+      } catch (err) {
+        console.warn("Could not fetch server-side monthly quote:", err);
+      } finally {
+        setIsQuoteLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [hasLoadedDraft, frequency, mode, fixedLitres, day1Litres, day2Litres]);
+
+  // 4. Compute derived pricing result (with server quote overrides if available)
   const pricingResult = useMemo<PricingResult>(() => {
-    return calculateSubscriptionPricing({
+    const local = calculateSubscriptionPricing({
       frequency,
       mode,
       fixedLitres,
       day1Litres,
       day2Litres,
     });
-  }, [frequency, mode, fixedLitres, day1Litres, day2Litres]);
 
-  // 4. Compute first 4 delivery dates preview
+    if (serverQuote) {
+      return {
+        ...local,
+        totalDeliveries: serverQuote.deliveryOccurrences,
+        totalLitres: serverQuote.totalLitres,
+        pricePerLitre: Math.round(serverQuote.sellingPricePerLitre / 100),
+        totalPrice: Math.round(serverQuote.totalSellingAmount / 100),
+      };
+    }
+
+    return local;
+  }, [frequency, mode, fixedLitres, day1Litres, day2Litres, serverQuote]);
+
+  // 5. Compute first 4 delivery dates preview
   const schedulePreview = useMemo<DeliveryDatePreviewItem[]>(() => {
     return getDeliverySchedulePreview(
       frequency,
@@ -122,7 +179,7 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     );
   }, [frequency, mode, fixedLitres, day1Litres, day2Litres, startDate]);
 
-  // 5. Safe setters enforcing MIN_LITRES (1) and MAX_LITRES (5)
+  // 6. Safe setters enforcing MIN_LITRES (1) and MAX_LITRES (5)
   const handleSetFrequency = useCallback((freq: DeliveryFrequency) => {
     setFrequency(freq);
     setSubmitError(null);
@@ -160,7 +217,7 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     setIsSuccess(false);
   }, []);
 
-  // 6. Submit handler with double-submit guard
+  // 7. Submit handler with server quote confirmation and double-submit guard
   const handleConfirmSubscription = useCallback(async () => {
     if (isSubmitting) return; // Guard against double submission
 
@@ -188,11 +245,39 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     };
 
     try {
+      // 1. If serverQuote is available, confirm it on backend
+      let quote = serverQuote;
+      if (!quote) {
+        quote = await plansApi.createMonthlyQuote({
+          frequency: frequency === "daily" ? "DAILY" : "ALTERNATE_DAYS",
+          quantityMode: mode === "fixed" ? "FIXED" : "ALTERNATING",
+          quantity: mode === "fixed" ? fixedLitres : undefined,
+          quantityA: mode === "pattern" ? day1Litres : undefined,
+          quantityB: mode === "pattern" ? day2Litres : undefined,
+        }).catch(() => null);
+      }
+
+      if (quote?.quoteId) {
+        try {
+          await plansApi.confirmPlanQuote({
+            quoteId: quote.quoteId,
+            paymentMethod: "WALLET",
+          });
+        } catch (confirmErr: any) {
+          // If insufficient wallet balance, fall back to CASH confirmation
+          if (confirmErr?.data?.error === "INSUFFICIENT_WALLET_BALANCE" || confirmErr?.status === 400) {
+            await plansApi.confirmPlanQuote({
+              quoteId: quote.quoteId,
+              paymentMethod: "CASH",
+            }).catch(() => {});
+          }
+        }
+      }
+
       if (onConfirm) {
         await onConfirm(pricingResult, currentDraft, payload);
       } else if (mockSubmission) {
-        // Mock debounce
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
       setIsSuccess(true);
     } catch (err: unknown) {
@@ -210,6 +295,7 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     day1Litres,
     day2Litres,
     pricingResult,
+    serverQuote,
     onConfirm,
     mockSubmission,
   ]);
@@ -222,6 +308,8 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     day2Litres,
     pricingResult,
     schedulePreview,
+    serverQuote,
+    isQuoteLoading,
     isSubmitting,
     submitError,
     isSuccess,

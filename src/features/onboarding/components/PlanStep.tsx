@@ -1,24 +1,19 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Address } from "@/types/models";
 import { PLANS, PlanDefinition } from "@/features/plans";
+import { plansApi, PlanOverviewItem } from "@/features/plans/api/plansApi";
+import { SubscriptionPanel } from "@/features/subscription/components/SubscriptionPanel";
 import {
-  FiMapPin,
-  FiAlertCircle,
-  FiArrowLeft,
-  FiSliders,
-  FiCheck,
-} from "react-icons/fi";
-import {
-  SubscriptionPanel,
-  calculateSubscriptionPricing,
-  SubscriptionDraft,
   PricingResult,
-  DRAFT_STORAGE_KEY,
-} from "@/features/subscription";
+  SubscriptionDraft,
+  SubscriptionCustomizationPayload,
+} from "@/features/subscription/types";
+import { calculateSubscriptionPricing } from "@/features/subscription/pricing";
+import { FiCheck, FiArrowLeft, FiMapPin, FiSliders, FiAlertCircle } from "react-icons/fi";
 
 export interface PlanStepProps {
   savedAddress: Address | null;
@@ -40,91 +35,81 @@ export function PlanStep({
   onGoToStep,
 }: PlanStepProps) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [customDraft, setCustomDraft] = useState<SubscriptionDraft | null>(null);
+  const [planOverviews, setPlanOverviews] = useState<PlanOverviewItem[]>([]);
 
-  // Load persisted draft from localStorage on mount
+  // Load backend plan availability & eligibility
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (saved) {
-        setCustomDraft(JSON.parse(saved));
+    async function fetchPlanEligibility() {
+      try {
+        const data = await plansApi.getPlansOverview();
+        if (data && data.plans) {
+          setPlanOverviews(data.plans);
+        }
+      } catch (err) {
+        console.warn("Could not load plans overview:", err);
       }
-    } catch {
-      // Ignore storage errors
     }
+    fetchPlanEligibility();
   }, []);
 
-  // Compute pricing for the custom draft if available
-  const customPricing: PricingResult | null = customDraft
-    ? calculateSubscriptionPricing(customDraft)
-    : null;
-
-  const handleConfirmSchedule = useCallback(
-    (_result: PricingResult, draft: SubscriptionDraft) => {
-      setCustomDraft(draft);
-      try {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
-      } catch {
-        // Ignore storage errors
+  // Custom schedule pricing result if user customized
+  const [customPricing, setCustomPricing] = useState<PricingResult | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = localStorage.getItem("pf_subscription_draft");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return calculateSubscriptionPricing(parsed);
       }
-      onSelectPlanId("monthly");
-    },
-    [onSelectPlanId]
-  );
+    } catch {}
+    return null;
+  });
+
+  const handleConfirmSchedule = (
+    result: PricingResult,
+    draft: SubscriptionDraft,
+    _payload: SubscriptionCustomizationPayload
+  ) => {
+    setCustomPricing(result);
+    try {
+      localStorage.setItem("pf_subscription_draft", JSON.stringify(draft));
+    } catch {}
+    onSelectPlanId("monthly");
+  };
 
   const handleSelectAndComplete = (plan: PlanDefinition) => {
-    if (plan.id === "monthly" && customPricing && customDraft) {
-      // Provide dynamic customized monthly plan with exact pricing and breakdown
-      const customizedPlan: PlanDefinition = {
-        ...plan,
-        price: customPricing.totalPrice,
-        quantity: `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`,
-        rateText: `₹${customPricing.pricePerLitre} / litre`,
-        orderItem: {
-          ...plan.orderItem,
-          price: customPricing.totalPrice,
-          quantity: customPricing.totalLitres,
-          unit: `${customPricing.totalLitres} Litres`,
-          name: `Custom Monthly Plan (${customPricing.breakdownText})`,
-        },
-      };
-      onCompletePlanSelection(customizedPlan);
-    } else {
-      onCompletePlanSelection(plan);
-    }
+    onSelectPlanId(plan.id);
+    onCompletePlanSelection(plan);
+  };
+
+  const getPlanEligibility = (planId: "trial" | "monthly" | "single") => {
+    const typeKey =
+      planId === "trial"
+        ? "SEVEN_DAY_TRIAL"
+        : planId === "single"
+        ? "BUY_ONCE"
+        : "MONTHLY";
+
+    return planOverviews.find((p) => p.type === typeKey);
   };
 
   return (
     <m.div
-      key="step3"
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.35 }}
       className="space-y-8"
     >
-      {/* Header info card */}
-      <div className="bg-white rounded-3xl border border-[#E8DFD4] p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xs">
-        <div>
-          <span className="inline-block px-3 py-1 rounded-full bg-[#5C1B13]/8 text-[#5C1B13] text-[11px] font-bold tracking-wide mb-2 uppercase">
-            Step 3 of 3 · Final Step
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#1A1008]">
-            Select Your Fresh Milk Plan
-          </h1>
-          <p className="text-xs sm:text-sm text-[#3A241C]/70 mt-1">
-            Bottled fresh after 4:00 AM and delivered chilled in reusable glass bottles to your doorstep.
-          </p>
-        </div>
-
-        {/* Verified delivery address pill */}
+      {/* Top Delivery Address Badge */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         {savedAddress && (
-          <div className="p-3.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4] text-xs flex items-center justify-between gap-4 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                <FiMapPin className="w-4 h-4" />
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center shrink-0">
+                <FiMapPin className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-bold text-[#1A1008]">
+                <p className="text-xs font-bold text-[#1A1008]">
                   Delivering to: {savedAddress.street}
                 </p>
                 <p className="text-[11px] text-[#3A241C]/65">
@@ -161,29 +146,47 @@ export function PlanStep({
           const isSelected = selectedPlanId === plan.id;
           const isMonthly = plan.id === "monthly";
           const displayPrice = isMonthly && customPricing ? customPricing.totalPrice : plan.price;
-          const displayQuantity = isMonthly && customPricing
-            ? `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`
-            : plan.quantity;
+          const displayQuantity =
+            isMonthly && customPricing
+              ? `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`
+              : plan.quantity;
+
+          const eligibility = getPlanEligibility(plan.id);
+          const isBlocked = eligibility?.available === false;
 
           return (
             <div
               key={plan.id}
-              onClick={() => onSelectPlanId(plan.id)}
+              onClick={() => !isBlocked && onSelectPlanId(plan.id)}
               className={`
-                relative rounded-3xl border-2 transition-all p-6 sm:p-7 flex flex-col justify-between cursor-pointer
+                relative rounded-3xl border-2 transition-all p-6 sm:p-7 flex flex-col justify-between
                 bg-gradient-to-b ${plan.gradient}
                 ${
-                  isSelected
-                    ? "border-[#5C1B13] ring-4 ring-[#5C1B13]/10 shadow-xl shadow-[#5C1B13]/15 -translate-y-1"
-                    : "border-[#E8DFD4] hover:border-[#5C1B13]/40 shadow-xs"
+                  isBlocked
+                    ? "opacity-60 grayscale-[30%] cursor-not-allowed border-[#E8DFD4]"
+                    : isSelected
+                    ? "border-[#5C1B13] ring-4 ring-[#5C1B13]/10 shadow-xl shadow-[#5C1B13]/15 -translate-y-1 cursor-pointer"
+                    : "border-[#E8DFD4] hover:border-[#5C1B13]/40 shadow-xs cursor-pointer"
                 }
               `}
             >
               {/* Top badge */}
-              {plan.badge && (
+              {plan.badge && !isBlocked && (
                 <div className="absolute -top-3 left-6">
                   <span className="px-3 py-1 rounded-full bg-[#5C1B13] text-white text-[10px] font-bold tracking-wider uppercase shadow-sm">
                     {plan.badge}
+                  </span>
+                </div>
+              )}
+
+              {isBlocked && (
+                <div className="absolute -top-3 left-6">
+                  <span className="px-3 py-1 rounded-full bg-stone-700 text-white text-[10px] font-bold tracking-wider uppercase shadow-sm">
+                    {eligibility?.blockedReason === "BUY_ONCE_ALREADY_USED"
+                      ? "Buy Once Used"
+                      : eligibility?.blockedReason === "TRIAL_ALREADY_USED"
+                      ? "Trial Already Used"
+                      : "Plan Unavailable"}
                   </span>
                 </div>
               )}
@@ -197,6 +200,10 @@ export function PlanStep({
                   {isMonthly && customPricing ? (
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1">
                       <FiCheck className="w-3 h-3" /> Customized
+                    </span>
+                  ) : eligibility?.remainingUses !== undefined ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
+                      {eligibility.remainingUses} Uses Left
                     </span>
                   ) : plan.savingsText ? (
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
@@ -267,24 +274,26 @@ export function PlanStep({
                   </button>
                 )}
 
-                {/* Main Action button - min 44px tap target */}
+                {/* Main Action button */}
                 <Button
                   type="button"
                   variant={isSelected ? "primary" : "secondary"}
                   size="md"
                   fullWidth
-                  disabled={planSubmitting}
+                  disabled={planSubmitting || isBlocked}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSelectAndComplete(plan);
+                    if (!isBlocked) handleSelectAndComplete(plan);
                   }}
-                  className="rounded-2xl min-h-[44px] py-3 text-xs font-bold shadow-md cursor-pointer"
+                  className="rounded-2xl min-h-[44px] py-3 text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
                 >
                   {planSubmitting && selectedPlanId === plan.id ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                       <span>Activating Delivery...</span>
                     </div>
+                  ) : isBlocked ? (
+                    <span>Unavailable</span>
                   ) : (
                     <span>{plan.ctaText}</span>
                   )}
@@ -309,7 +318,7 @@ export function PlanStep({
         </Button>
       </div>
 
-      {/* Accessible Subscription Panel Dialog */}
+      {/* Subscription Panel Dialog */}
       <SubscriptionPanel
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}

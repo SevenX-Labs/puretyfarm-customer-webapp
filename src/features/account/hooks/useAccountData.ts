@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Address, Order, Subscription } from "@/types/models";
 import { accountApi } from "../api/accountApi";
+import { plansApi } from "@/features/plans/api/plansApi";
 import { AccountTab, AddressFormData } from "../types";
 import {
   PricingResult,
@@ -508,10 +509,41 @@ export function useAccountData() {
     }[planId];
 
     try {
+      // 1. Generate live server quote
+      let quote;
+      if (planId === "trial") {
+        quote = await plansApi.createTrialQuote(1).catch(() => null);
+      } else if (planId === "single") {
+        quote = await plansApi.createBuyOnceQuote(1).catch(() => null);
+      } else {
+        quote = await plansApi.createMonthlyQuote({
+          frequency: "DAILY",
+          quantityMode: "FIXED",
+          quantity: 1,
+        }).catch(() => null);
+      }
+
+      // 2. Confirm quote via WALLET or CASH
+      if (quote?.quoteId) {
+        try {
+          await plansApi.confirmPlanQuote({
+            quoteId: quote.quoteId,
+            paymentMethod: "WALLET",
+          });
+        } catch (confirmErr: any) {
+          if (confirmErr?.data?.error === "INSUFFICIENT_WALLET_BALANCE" || confirmErr?.status === 400) {
+            await plansApi.confirmPlanQuote({
+              quoteId: quote.quoteId,
+              paymentMethod: "CASH",
+            }).catch(() => {});
+          }
+        }
+      }
+
       const data = await accountApi.createSubscription({
         planId,
         planName: planDetails.name,
-        price: planDetails.price,
+        price: quote ? Math.round(quote.totalSellingAmount / 100) : planDetails.price,
         dailyQuantity: planDetails.dailyQuantity,
       });
 
@@ -519,7 +551,7 @@ export function useAccountData() {
         setSubscription(data.subscription);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Plan activation error:", err);
     } finally {
       setSubUpdating(false);
     }
