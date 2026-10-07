@@ -41,7 +41,7 @@ export function AuthView() {
     <div
       className="min-h-screen w-full relative flex flex-col justify-between bg-[#F8F3EA] bg-cover bg-center bg-no-repeat selection:bg-[#5C1B13]/15 selection:text-[#5C1B13] overflow-x-hidden"
       style={{
-        backgroundImage: "url('/loginbg.jpeg')",
+        backgroundImage: "url('/loginbg.png')",
       }}
     >
       {/* ─── TOP NAVIGATION BAR ─── */}
