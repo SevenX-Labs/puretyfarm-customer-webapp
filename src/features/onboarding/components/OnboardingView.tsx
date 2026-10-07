@@ -2,12 +2,12 @@
 
 import React from "react";
 import { BrandLogo } from "@/components/ui/BrandLogo";
+import { FiCheck } from "react-icons/fi";
 import { useOnboardingFlow } from "../hooks/useOnboardingFlow";
 import { ProfileStep } from "./ProfileStep";
 import { LocationStep } from "./LocationStep";
 import { PlanStep } from "./PlanStep";
 import { StepKey } from "../types";
-import { FiCheck } from "react-icons/fi";
 
 export function OnboardingView() {
   const {
@@ -34,25 +34,7 @@ export function OnboardingView() {
     handleSaveProfile,
     // Step 2
     savedAddress,
-    autoChecking,
-    autoCheckError,
-    manualPincode,
-    setManualPincode,
-    manualLocality,
-    setManualLocality,
-    manualChecking,
-    serviceCheckResult,
-    setServiceCheckResult,
-    addressDetails,
-    setAddressDetails,
-    addressSaving,
-    addressSaveError,
-    waitlistJoining,
-    waitlistJoined,
-    handleAutoLocationCheck,
-    handleManualCheck,
     handleSaveVerifiedAddress,
-    handleJoinWaitlist,
     // Step 3
     selectedPlanId,
     setSelectedPlanId,
@@ -74,7 +56,7 @@ export function OnboardingView() {
 
   const stepsList = [
     { num: 1 as StepKey, title: "Profile Details", desc: "Name & Avatar" },
-    { num: 2 as StepKey, title: "Delivery Location", desc: "Raipur Serviceability" },
+    { num: 2 as StepKey, title: "Delivery Location", desc: "Service Delivery Hub" },
     { num: 3 as StepKey, title: "Select Plan", desc: "Morning Deliveries" },
   ];
 
@@ -183,34 +165,11 @@ export function OnboardingView() {
           />
         )}
 
-        {/* ─── STEP 2: DELIVERY LOCATION + SERVICEABILITY ─── */}
+        {/* ─── STEP 2: DELIVERY LOCATION + HIERARCHY / GPS CHECK ─── */}
         {currentStep === 2 && (
           <LocationStep
             user={user}
-            autoChecking={autoChecking}
-            autoCheckError={autoCheckError}
-            manualPincode={manualPincode}
-            manualLocality={manualLocality}
-            manualChecking={manualChecking}
-            serviceCheckResult={serviceCheckResult}
-            addressDetails={addressDetails}
-            addressSaving={addressSaving}
-            addressSaveError={addressSaveError}
-            waitlistJoining={waitlistJoining}
-            waitlistJoined={waitlistJoined}
-            onGoBack={() => handleGoToStep(1)}
-            onAutoLocationCheck={handleAutoLocationCheck}
-            onManualPincodeChange={setManualPincode}
-            onManualLocalityChange={setManualLocality}
-            onManualCheck={handleManualCheck}
-            onJoinWaitlist={handleJoinWaitlist}
-            onResetServiceCheck={() => {
-              setServiceCheckResult(null);
-              setManualPincode("");
-              setManualLocality("");
-            }}
-            onAddressDetailsChange={setAddressDetails}
-            onSaveAddress={handleSaveVerifiedAddress}
+            onAddressSaved={handleSaveVerifiedAddress}
           />
         )}
 

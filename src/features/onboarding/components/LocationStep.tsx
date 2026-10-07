@@ -1,525 +1,626 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { m } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { User } from "@/types/models";
 import {
-  ServiceCheckResult,
-  AddressDetailsFormData,
-} from "../types";
-import {
-  SERVICEABLE_AREAS_DATA,
-  POPULAR_SERVICE_AREAS,
-} from "@/content/serviceAreas";
-import {
-  FiArrowLeft,
-  FiArrowRight,
-  FiAlertCircle,
-  FiCrosshair,
   FiMapPin,
+  FiNavigation,
   FiCheckCircle,
-  FiChevronDown,
-  FiSearch,
+  FiAlertCircle,
+  FiArrowRight,
+  FiRefreshCw,
+  FiHome,
+  FiLayers,
 } from "react-icons/fi";
+import {
+  locationApi,
+  StateItem,
+  CityItem,
+  AreaItem,
+  DetectLocationResponse,
+} from "@/features/location/api/locationApi";
+import { User } from "@/types/models";
 
 export interface LocationStepProps {
   user: User | null;
-  autoChecking: boolean;
-  autoCheckError: string | null;
-  manualPincode: string;
-  manualLocality: string;
-  manualChecking: boolean;
-  serviceCheckResult: ServiceCheckResult | null;
-  addressDetails: AddressDetailsFormData;
-  addressSaving: boolean;
-  addressSaveError: string | null;
-  waitlistJoining: boolean;
-  waitlistJoined: boolean;
-  onGoBack: () => void;
-  onAutoLocationCheck: () => Promise<boolean> | void;
-  onManualPincodeChange: (val: string) => void;
-  onManualLocalityChange: (val: string) => void;
-  onManualCheck: (e: React.FormEvent) => void;
-  onJoinWaitlist: () => void;
-  onResetServiceCheck: () => void;
-  onAddressDetailsChange: (details: AddressDetailsFormData) => void;
-  onSaveAddress: (e: React.FormEvent) => void;
+  onAddressSaved: () => void;
 }
 
-export function LocationStep({
-  user,
-  autoChecking,
-  autoCheckError,
-  manualPincode,
-  manualLocality,
-  manualChecking,
-  serviceCheckResult,
-  addressDetails,
-  addressSaving,
-  addressSaveError,
-  waitlistJoining,
-  waitlistJoined,
-  onGoBack,
-  onAutoLocationCheck,
-  onManualPincodeChange,
-  onManualLocalityChange,
-  onManualCheck,
-  onJoinWaitlist,
-  onResetServiceCheck,
-  onAddressDetailsChange,
-  onSaveAddress,
-}: LocationStepProps) {
-  // ─── Manual Area Selection State (design-only) ───
-  const [showManualSelect, setShowManualSelect] = useState(false);
-  const [areaSearch, setAreaSearch] = useState("");
-  const [selectedArea, setSelectedArea] = useState<{
-    areaName: string;
-    pincode: string;
-  } | null>(null);
+export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
+  // Mode: "gps" | "manual"
+  const [selectionMode, setSelectionMode] = useState<"gps" | "manual">("gps");
 
-  // Unique areas sorted alphabetically
-  const uniqueAreas = SERVICEABLE_AREAS_DATA.filter((a) => a.active);
-  const filteredAreas = areaSearch.trim()
-    ? uniqueAreas.filter(
-        (a) =>
-          a.areaName.toLowerCase().includes(areaSearch.toLowerCase()) ||
-          a.pincode.includes(areaSearch)
-      )
-    : uniqueAreas;
+  // GPS State
+  const [gpsDetecting, setGpsDetecting] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [detectedLocation, setDetectedLocation] = useState<DetectLocationResponse | null>(null);
 
-  const handleAreaSelect = (area: { areaName: string; pincode: string }) => {
-    setSelectedArea(area);
-    onManualPincodeChange(area.pincode);
-    onManualLocalityChange(area.areaName);
-    onAddressDetailsChange({ ...addressDetails, locality: area.areaName });
-    setShowManualSelect(false);
-    setAreaSearch("");
+  // Hierarchy Catalog State
+  const [states, setStates] = useState<StateItem[]>([]);
+  const [cities, setCities] = useState<CityItem[]>([]);
+  const [areas, setAreas] = useState<AreaItem[]>([]);
+
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingAreas, setLoadingAreas] = useState(false);
+
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState("");
+  const [selectedAreaId, setSelectedAreaId] = useState("");
+  const [selectedAreaPincode, setSelectedAreaPincode] = useState("");
+
+  // Address Details Form
+  const [houseNumber, setHouseNumber] = useState("");
+  const [buildingName, setBuildingName] = useState("");
+  const [streetName, setStreetName] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [fullName, setFullName] = useState(user?.name || "");
+  const [mobile, setMobile] = useState(user?.phone || "");
+  const [addressType, setAddressType] = useState<"Home" | "Work" | "Other">("Home");
+
+  // Submission State
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Coordinates from GPS if available
+  const [coords, setCoords] = useState<{ lat?: number; lng?: number }>({});
+
+  // 1. Initial load of States Catalog
+  useEffect(() => {
+    async function loadStates() {
+      setLoadingStates(true);
+      try {
+        const stateList = await locationApi.getStates();
+        setStates(stateList);
+        if (stateList.length === 1) {
+          setSelectedStateId(stateList[0].id);
+        }
+      } catch (err) {
+        console.warn("Failed to load states:", err);
+      } finally {
+        setLoadingStates(false);
+      }
+    }
+    loadStates();
+  }, []);
+
+  // 2. Load Cities when State changes
+  useEffect(() => {
+    if (!selectedStateId) {
+      setCities([]);
+      setSelectedCityId("");
+      return;
+    }
+
+    async function loadCities() {
+      setLoadingCities(true);
+      try {
+        const cityList = await locationApi.getCities(selectedStateId);
+        setCities(cityList);
+        if (cityList.length === 1) {
+          setSelectedCityId(cityList[0].id);
+        } else {
+          setSelectedCityId("");
+        }
+      } catch (err) {
+        console.warn("Failed to load cities:", err);
+      } finally {
+        setLoadingCities(false);
+      }
+    }
+    loadCities();
+  }, [selectedStateId]);
+
+  // 3. Load Areas when City changes
+  useEffect(() => {
+    if (!selectedCityId) {
+      setAreas([]);
+      setSelectedAreaId("");
+      setSelectedAreaPincode("");
+      return;
+    }
+
+    async function loadAreas() {
+      setLoadingAreas(true);
+      try {
+        const areaList = await locationApi.getAreas(selectedCityId);
+        setAreas(areaList);
+        setSelectedAreaId("");
+        setSelectedAreaPincode("");
+      } catch (err) {
+        console.warn("Failed to load areas:", err);
+      } finally {
+        setLoadingAreas(false);
+      }
+    }
+    loadAreas();
+  }, [selectedCityId]);
+
+  // Handle Area Selection change
+  const handleAreaSelect = (areaId: string) => {
+    setSelectedAreaId(areaId);
+    const chosen = areas.find((a) => a.id === areaId);
+    if (chosen) {
+      setSelectedAreaPincode(chosen.pincode || "");
+    }
   };
 
-  const handleAutoLocationClick = async () => {
-    const success = await onAutoLocationCheck();
-    if (success) {
-      setSelectedArea(null);
-      onManualPincodeChange("");
-      onManualLocalityChange("");
+  // ─── GPS Auto-Detection Handler ───
+  const handleDetectGps = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setGpsError("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setGpsDetecting(true);
+    setGpsError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setCoords({ lat, lng });
+
+        try {
+          const res = await locationApi.detectLocation({ latitude: lat, longitude: lng });
+          setDetectedLocation(res);
+
+          // Try to match detected state, city, and area with active catalog
+          const allStates = states.length > 0 ? states : await locationApi.getStates();
+          const matchedState = allStates.find(
+            (s) => s.name.toLowerCase() === res.state.toLowerCase()
+          ) || allStates[0];
+
+          if (matchedState) {
+            setSelectedStateId(matchedState.id);
+            const cityList = await locationApi.getCities(matchedState.id);
+            setCities(cityList);
+
+            const matchedCity = cityList.find(
+              (c) => c.name.toLowerCase() === res.city.toLowerCase()
+            ) || cityList[0];
+
+            if (matchedCity) {
+              setSelectedCityId(matchedCity.id);
+              const areaList = await locationApi.getAreas(matchedCity.id);
+              setAreas(areaList);
+
+              const matchedArea =
+                areaList.find((a) => a.pincode === res.pincode) ||
+                areaList.find(
+                  (a) =>
+                    a.name.toLowerCase().includes(res.area.toLowerCase()) ||
+                    res.area.toLowerCase().includes(a.name.toLowerCase())
+                ) ||
+                areaList[0];
+
+              if (matchedArea) {
+                setSelectedAreaId(matchedArea.id);
+                setSelectedAreaPincode(matchedArea.pincode || res.pincode);
+              }
+            }
+          }
+        } catch (err: any) {
+          const errorMsg =
+            err?.data?.message || err?.message || "Location detection failed. Please select your area manually.";
+          setGpsError(Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg));
+        } finally {
+          setGpsDetecting(false);
+        }
+      },
+      (err) => {
+        setGpsDetecting(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setGpsError("Location access was denied. Please select your state and city below.");
+        } else {
+          setGpsError("Could not retrieve GPS coordinates. Please select manually below.");
+        }
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  const isAreaServiceable = Boolean(selectedStateId && selectedCityId && selectedAreaId);
+
+  // Selected State/City/Area names for badges
+  const selectedStateName = states.find((s) => s.id === selectedStateId)?.name || detectedLocation?.state || "";
+  const selectedCityName = cities.find((c) => c.id === selectedCityId)?.name || detectedLocation?.city || "";
+  const selectedAreaObj = areas.find((a) => a.id === selectedAreaId);
+  const selectedAreaName = selectedAreaObj?.name || detectedLocation?.area || "";
+  const activePincode = selectedAreaObj?.pincode || selectedAreaPincode || detectedLocation?.pincode || "";
+
+  // ─── Save Address Handler ───
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedStateId || !selectedCityId || !selectedAreaId) {
+      setSaveError("Please select a serviceable State, City, and Delivery Area first.");
+      return;
+    }
+
+    if (!houseNumber.trim()) {
+      setSaveError("Please enter your flat / house / unit number.");
+      return;
+    }
+
+    setSavingAddress(true);
+    setSaveError(null);
+
+    try {
+      await locationApi.createAddress({
+        fullName: fullName.trim() || user?.name || "Customer",
+        mobile: mobile.trim() || user?.phone || "+919876543210",
+        houseNumber: houseNumber.trim(),
+        buildingName: buildingName.trim() || undefined,
+        streetName: streetName.trim() || undefined,
+        landmark: landmark.trim() || undefined,
+        stateId: selectedStateId,
+        cityId: selectedCityId,
+        areaId: selectedAreaId,
+        pincode: activePincode || undefined,
+        latitude: coords.lat,
+        longitude: coords.lng,
+      });
+
+      onAddressSaved();
+    } catch (err: any) {
+      const errorMsg =
+        err?.data?.message || err?.message || "Failed to save address. Please check your details.";
+      setSaveError(Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg));
+    } finally {
+      setSavingAddress(false);
     }
   };
 
   return (
     <m.div
-      key="step2"
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="max-w-2xl mx-auto bg-white rounded-3xl border border-[#E8DFD4] p-6 sm:p-9 shadow-xs"
+      transition={{ duration: 0.35 }}
+      className="space-y-6"
     >
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <span className="inline-block px-3 py-1 rounded-full bg-[#5C1B13]/8 text-[#5C1B13] text-[11px] font-bold tracking-wide mb-2 uppercase">
-            Step 2 of 3
-          </span>
-          <h1 className="text-2xl font-serif font-bold text-[#1A1008]">
-            Delivery Location & Service Check
-          </h1>
-          <p className="text-xs sm:text-sm text-[#3A241C]/70 mt-1">
-            We currently deliver before 10 AM across major residential sectors in Raipur.
-          </p>
-        </div>
+      {/* ─── SECTION 1: SELECTION MODE SWITCHER ─── */}
+      <div className="bg-[#FAF6F0] p-1.5 rounded-2xl border border-[#E8DFD4] flex items-center gap-1.5">
         <button
           type="button"
-          onClick={onGoBack}
-          className="text-xs text-[#5C1B13] hover:underline inline-flex items-center gap-1 font-semibold cursor-pointer shrink-0 ml-2"
+          onClick={() => setSelectionMode("gps")}
+          className={`
+            flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer
+            ${
+              selectionMode === "gps"
+                ? "bg-white text-[#5C1B13] shadow-sm border border-[#E8DFD4]"
+                : "text-[#6B584C] hover:text-[#1A1008]"
+            }
+          `}
         >
-          <FiArrowLeft className="w-3.5 h-3.5" />
-          <span>Edit Profile</span>
+          <FiNavigation className="w-3.5 h-3.5" />
+          <span>Use Current Location (GPS)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setSelectionMode("manual")}
+          className={`
+            flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer
+            ${
+              selectionMode === "manual"
+                ? "bg-white text-[#5C1B13] shadow-sm border border-[#E8DFD4]"
+                : "text-[#6B584C] hover:text-[#1A1008]"
+            }
+          `}
+        >
+          <FiLayers className="w-3.5 h-3.5" />
+          <span>Select State / City / Area</span>
         </button>
       </div>
 
-      {/* Auto check banner / Error notification */}
-      {autoCheckError && (
-        <div
-          role="alert"
-          aria-live="polite"
-          className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2"
-        >
-          <FiAlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-          <span>{autoCheckError}</span>
-        </div>
-      )}
-
-      {/* A) AUTO-DETECT CONVENIENCE BANNER */}
-      <div className="mb-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#FAF3EA] to-[#FFFDF7] border border-[#E8DFD4] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="text-xs sm:text-sm font-bold text-[#1A1008] flex items-center gap-2">
-            <FiCrosshair className="w-4 h-4 text-[#5C1B13]" />
-            <span>Detect Location Automatically</span>
-          </h3>
-          <p className="text-[11px] sm:text-xs text-[#3A241C]/70 mt-0.5">
-            Quickly fill your Raipur sector and postal code using device GPS.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          onClick={handleAutoLocationClick}
-          disabled={autoChecking}
-          className="rounded-xl px-4 py-2 text-xs font-bold shrink-0 cursor-pointer self-start sm:self-auto"
-        >
-          {autoChecking ? (
-            <div className="flex items-center gap-2">
-              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Detecting...</span>
+      {/* ─── MODE A: GPS LOCATION DETECTION ─── */}
+      {selectionMode === "gps" && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-[#1A1008] flex items-center gap-1.5">
+                <FiMapPin className="w-4 h-4 text-[#5C1B13]" />
+                <span>GPS Serviceability Check</span>
+              </h3>
+              <p className="text-xs text-[#6B584C] mt-0.5">
+                Detect your device coordinates to confirm morning cold-chain delivery.
+              </p>
             </div>
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <FiCrosshair className="w-3.5 h-3.5" />
-              <span>Use My Location</span>
+
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={handleDetectGps}
+              disabled={gpsDetecting}
+              className="rounded-xl px-4 py-2.5 text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 shrink-0 cursor-pointer shadow-xs"
+            >
+              {gpsDetecting ? (
+                <>
+                  <FiRefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Detecting GPS...</span>
+                </>
+              ) : (
+                <>
+                  <FiNavigation className="w-3.5 h-3.5" />
+                  <span>{detectedLocation ? "Re-detect GPS" : "Detect Location"}</span>
+                </>
+              )}
+            </Button>
+          </div>
+
+          {gpsError && (
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
+              <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+              <span>{gpsError}</span>
             </div>
           )}
-        </Button>
-      </div>
 
-      {/* B) MANUAL AREA SELECTION — Shown as alternative */}
-      {!serviceCheckResult?.performed && (
-        <div className="mb-6">
-          {/* Divider with "OR" */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-[#E8DFD4]" />
-            <span className="text-[10px] font-bold text-[#3A241C]/40 uppercase tracking-widest">
-              or select manually
-            </span>
-            <div className="flex-1 h-px bg-[#E8DFD4]" />
-          </div>
-
-          {/* Manual Area Selector Card */}
-          <div className="p-4 sm:p-5 rounded-2xl border border-[#E8DFD4] bg-[#FFFDF7]">
-            <div className="flex items-center gap-2 mb-3">
-              <FiMapPin className="w-4 h-4 text-[#5C1B13]" />
-              <h3 className="text-xs sm:text-sm font-bold text-[#1A1008]">
-                Choose Your Area in Raipur
-              </h3>
-            </div>
-
-            {/* Popular Area Chips */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {POPULAR_SERVICE_AREAS.map((area) => {
-                const areaData = uniqueAreas.find((a) => a.areaName === area);
-                const isActive = selectedArea?.areaName === area;
-                return (
-                  <button
-                    key={area}
-                    type="button"
-                    onClick={() =>
-                      areaData &&
-                      handleAreaSelect({
-                        areaName: areaData.areaName,
-                        pincode: areaData.pincode,
-                      })
-                    }
-                    className={`
-                      px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer border
-                      ${
-                        isActive
-                          ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-sm"
-                          : "bg-white text-[#3A241C]/80 border-[#E8DFD4] hover:border-[#5C1B13]/40 hover:bg-[#FAF3EA]"
-                      }
-                    `}
-                  >
-                    {area}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Dropdown trigger for all areas */}
-            <button
-              type="button"
-              onClick={() => setShowManualSelect(!showManualSelect)}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-[#E8DFD4] bg-white hover:border-[#5C1B13]/40 transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center gap-2.5">
-                <FiMapPin className="w-3.5 h-3.5 text-[#3A241C]/40 group-hover:text-[#5C1B13] transition-colors" />
-                <span className={`text-xs font-semibold ${selectedArea ? "text-[#1A1008]" : "text-[#3A241C]/50"}`}>
-                  {selectedArea
-                    ? `${selectedArea.areaName} — ${selectedArea.pincode}`
-                    : "Browse all Raipur areas..."}
-                </span>
+          {detectedLocation && (
+            <div className="p-3.5 rounded-xl bg-[#FAF6F0] border border-[#E8DFD4] text-xs space-y-1">
+              <div className="flex items-center justify-between font-semibold text-[#1A1008]">
+                <span>Detected Address:</span>
+                <span className="font-mono text-[11px] text-[#5C1B13]">{detectedLocation.pincode}</span>
               </div>
-              <FiChevronDown
-                className={`w-4 h-4 text-[#3A241C]/40 transition-transform duration-200 ${
-                  showManualSelect ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {/* Dropdown Panel */}
-            {showManualSelect && (
-              <m.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-2 rounded-xl border border-[#E8DFD4] bg-white shadow-lg overflow-hidden"
-              >
-                {/* Search Input */}
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-[#E8DFD4] bg-[#FFFDF7]">
-                  <FiSearch className="w-3.5 h-3.5 text-[#3A241C]/40" />
-                  <input
-                    type="text"
-                    value={areaSearch}
-                    onChange={(e) => setAreaSearch(e.target.value)}
-                    placeholder="Search area or pincode..."
-                    className="w-full bg-transparent text-xs font-semibold text-[#1A1008] placeholder:text-[#3A241C]/40 focus:outline-none"
-                    autoFocus
-                  />
-                </div>
-
-                {/* Area List */}
-                <div className="max-h-48 overflow-y-auto">
-                  {filteredAreas.length === 0 ? (
-                    <div className="px-4 py-6 text-center">
-                      <p className="text-xs text-[#3A241C]/50">
-                        No areas found matching &ldquo;{areaSearch}&rdquo;
-                      </p>
-                    </div>
-                  ) : (
-                    filteredAreas.map((area, idx) => {
-                      const isActive = selectedArea?.areaName === area.areaName;
-                      return (
-                        <button
-                          key={`${area.pincode}-${area.areaName}-${idx}`}
-                          type="button"
-                          onClick={() =>
-                            handleAreaSelect({
-                              areaName: area.areaName,
-                              pincode: area.pincode,
-                            })
-                          }
-                          className={`
-                            w-full flex items-center justify-between px-4 py-2.5 text-left cursor-pointer transition-colors
-                            ${
-                              isActive
-                                ? "bg-[#5C1B13]/5 text-[#5C1B13]"
-                                : "hover:bg-[#FAF3EA] text-[#1A1008]"
-                            }
-                            ${idx < filteredAreas.length - 1 ? "border-b border-[#E8DFD4]/50" : ""}
-                          `}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <FiMapPin className={`w-3 h-3 ${isActive ? "text-[#5C1B13]" : "text-[#3A241C]/30"}`} />
-                            <span className="text-xs font-semibold">{area.areaName}</span>
-                          </div>
-                          <span className="text-[10px] font-mono text-[#3A241C]/50">{area.pincode}</span>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              </m.div>
-            )}
-
-            {/* Selected area confirmation */}
-            {selectedArea && (
-              <m.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200"
-              >
-                <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span className="text-[11px] font-semibold text-emerald-800">
-                  Selected: {selectedArea.areaName} ({selectedArea.pincode}) — Raipur
-                </span>
-              </m.div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Serviceable Area Confirmation Banner if detected/checked */}
-      {serviceCheckResult?.performed && serviceCheckResult.serviceable && (
-        <div className="mb-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-            <div className="text-xs">
-              <span className="font-bold">
-                Serviceable Area: {serviceCheckResult.areaName || "Raipur Sector"} ({serviceCheckResult.pincode})
-              </span>
-              <span className="hidden sm:inline text-emerald-700/80 text-[11px] ml-1">
-                — Fresh cold-chain delivery active before 10 AM.
-              </span>
+              <p className="text-[#6B584C] text-[11px] leading-relaxed">
+                {detectedLocation.formattedAddress}
+              </p>
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* DELIVERY ADDRESS FORM (DIRECTLY ACCESSIBLE) */}
-      <form onSubmit={onSaveAddress} className="space-y-4">
-        {addressSaveError && (
-          <div
-            role="alert"
-            aria-live="polite"
-            className="p-3 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2"
-          >
-            <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-            <span>{addressSaveError}</span>
-          </div>
-        )}
+      {/* ─── MODE B: STATE -> CITY -> AREA SELECTOR (ALWAYS VISIBLE OR WHEN MANUAL) ─── */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs space-y-4">
+        <h3 className="text-sm font-bold text-[#1A1008] flex items-center gap-1.5">
+          <FiLayers className="w-4 h-4 text-[#8C603D]" />
+          <span>Active Service Delivery Hub</span>
+        </h3>
 
-        {/* Pincode & Locality */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* State Selector */}
           <div>
-            <label htmlFor="pincodeInput" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-              6-Digit Pincode *
-            </label>
-            <input
-              id="pincodeInput"
-              type="text"
-              maxLength={6}
-              value={manualPincode || serviceCheckResult?.pincode || "492001"}
-              onChange={(e) => onManualPincodeChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="e.g. 492001"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-mono font-semibold text-[#1A1008] focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="localityInput" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-              Locality / Area Name *
-            </label>
-            <input
-              id="localityInput"
-              type="text"
-              value={addressDetails.locality || manualLocality || serviceCheckResult?.areaName || "Civil Lines"}
-              onChange={(e) => {
-                onManualLocalityChange(e.target.value);
-                onAddressDetailsChange({ ...addressDetails, locality: e.target.value });
-              }}
-              placeholder="e.g. Shankar Nagar, Civil Lines"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* House No & Street */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div>
-            <label htmlFor="houseNoInput" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-              House / Flat / Villa No. *
-            </label>
-            <input
-              id="houseNoInput"
-              type="text"
-              required
-              value={addressDetails.houseNo}
-              onChange={(e) => onAddressDetailsChange({ ...addressDetails, houseNo: e.target.value })}
-              placeholder="e.g. Flat 302, Tower B"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="streetInput" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-              Building / Society / Street *
-            </label>
-            <input
-              id="streetInput"
-              type="text"
-              required
-              value={addressDetails.street}
-              onChange={(e) => onAddressDetailsChange({ ...addressDetails, street: e.target.value })}
-              placeholder="e.g. Palm Springs Residency"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Landmark */}
-        <div>
-          <label htmlFor="landmarkInput" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-            Landmark (Optional)
-          </label>
-          <input
-            id="landmarkInput"
-            type="text"
-            value={addressDetails.landmark}
-            onChange={(e) => onAddressDetailsChange({ ...addressDetails, landmark: e.target.value })}
-            placeholder="e.g. Near City Center Mall"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-medium text-[#1A1008] focus:outline-none"
-          />
-        </div>
-
-        {/* Label, Receiver Name, Alt Phone */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-          <div>
-            <label htmlFor="addressLabelSelect" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-              Address Label
+            <label className="block text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider mb-1">
+              1. State *
             </label>
             <select
-              id="addressLabelSelect"
-              value={addressDetails.addressType}
-              onChange={(e) =>
-                onAddressDetailsChange({
-                  ...addressDetails,
-                  addressType: e.target.value as "Home" | "Work" | "Other",
-                })
-              }
+              value={selectedStateId}
+              onChange={(e) => setSelectedStateId(e.target.value)}
+              disabled={loadingStates}
               className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer"
             >
-              <option value="Home">Home</option>
-              <option value="Work">Work</option>
-              <option value="Other">Other</option>
+              <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* City Selector */}
           <div>
-            <label htmlFor="receiverNameInput" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-              Receiver Name
+            <label className="block text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider mb-1">
+              2. City *
             </label>
-            <input
-              id="receiverNameInput"
-              type="text"
-              value={addressDetails.receiverName || user?.name || ""}
-              onChange={(e) => onAddressDetailsChange({ ...addressDetails, receiverName: e.target.value })}
-              placeholder="Name of receiver"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
-            />
+            <select
+              value={selectedCityId}
+              onChange={(e) => setSelectedCityId(e.target.value)}
+              disabled={!selectedStateId || loadingCities}
+              className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer disabled:opacity-50"
+            >
+              <option value="">
+                {loadingCities
+                  ? "Loading cities..."
+                  : !selectedStateId
+                  ? "Choose state first"
+                  : "Select City"}
+              </option>
+              {cities.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
 
+          {/* Area / Hub Selector */}
           <div>
-            <label htmlFor="alternatePhoneInput" className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-              Alt Phone (Optional)
+            <label className="block text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider mb-1">
+              3. Delivery Hub / Area *
             </label>
-            <input
-              id="alternatePhoneInput"
-              type="tel"
-              maxLength={10}
-              value={addressDetails.alternatePhone}
-              onChange={(e) =>
-                onAddressDetailsChange({
-                  ...addressDetails,
-                  alternatePhone: e.target.value.replace(/\D/g, "").slice(0, 10),
-                })
-              }
-              placeholder="Secondary contact"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-mono font-semibold text-[#1A1008] focus:outline-none"
-            />
+            <select
+              value={selectedAreaId}
+              onChange={(e) => handleAreaSelect(e.target.value)}
+              disabled={!selectedCityId || loadingAreas}
+              className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer disabled:opacity-50"
+            >
+              <option value="">
+                {loadingAreas
+                  ? "Loading areas..."
+                  : !selectedCityId
+                  ? "Choose city first"
+                  : "Select Area / Hub"}
+              </option>
+              {areas.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.pincode})
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        <div className="pt-2">
-          <Button
-            type="submit"
-            variant="primary"
-            size="md"
-            fullWidth
-            disabled={addressSaving}
-            className="rounded-2xl py-3.5 text-xs font-bold shadow-md shadow-[#5C1B13]/15 flex items-center justify-center gap-2 cursor-pointer bg-[#5C1B13] hover:bg-[#48150f] text-white"
+        {/* Confirmed Serviceable Badge */}
+        {isAreaServiceable && (
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 font-medium">
+              <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                Serviceable Hub: <strong>{selectedAreaName}, {selectedCityName} ({activePincode})</strong>
+              </span>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+              Daily Delivery Active
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ─── SECTION 2: MANUAL ADDRESS DETAILS FORM (ENABLED ONCE SERVICEABLE) ─── */}
+      <AnimatePresence>
+        {isAreaServiceable ? (
+          <m.form
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            onSubmit={handleSaveAddress}
+            className="p-4 sm:p-6 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs space-y-4"
           >
-            <span>{addressSaving ? "Saving Address..." : "Save Address & Choose Milk Plan"}</span>
-            <FiArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </form>
+            <div className="pb-1 border-b border-[#E8DFD4]/60">
+              <h3 className="text-sm font-bold text-[#1A1008] flex items-center gap-1.5">
+                <FiHome className="w-4 h-4 text-[#5C1B13]" />
+                <span>Enter Street &amp; House Details</span>
+              </h3>
+              <p className="text-xs text-[#6B584C]">
+                Provide your exact door details for sunrise cold-chain delivery before 10 AM.
+              </p>
+            </div>
+
+            {saveError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
+                <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+                <span>{saveError}</span>
+              </div>
+            )}
+
+            {/* Flat / House Number & Building Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                  Flat / House / Unit Number *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={houseNumber}
+                  onChange={(e) => setHouseNumber(e.target.value)}
+                  placeholder="e.g. Flat 402, Building A"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                  Building / Society / Apartment
+                </label>
+                <input
+                  type="text"
+                  value={buildingName}
+                  onChange={(e) => setBuildingName(e.target.value)}
+                  placeholder="e.g. Green Acres Residency"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Street & Landmark */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                  Street / Road Name
+                </label>
+                <input
+                  type="text"
+                  value={streetName}
+                  onChange={(e) => setStreetName(e.target.value)}
+                  placeholder="e.g. Hill Road, Main Market Lane"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                  Landmark (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  placeholder="e.g. Near Mehboob Studio"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-medium text-[#1A1008] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Contact Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                  Address Label
+                </label>
+                <select
+                  value={addressType}
+                  onChange={(e) => setAddressType(e.target.value as "Home" | "Work" | "Other")}
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer"
+                >
+                  <option value="Home">Home</option>
+                  <option value="Work">Work</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                  Receiver Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Full name of receiver"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                  Mobile Number *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  placeholder="+919876543210"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-mono font-semibold text-[#1A1008] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                fullWidth
+                disabled={savingAddress}
+                className="rounded-2xl py-3.5 text-xs font-bold shadow-md shadow-[#5C1B13]/15 flex items-center justify-center gap-2 cursor-pointer bg-[#5C1B13] hover:bg-[#48150f] text-white"
+              >
+                <span>{savingAddress ? "Saving Address..." : "Save Delivery Address & Continue"}</span>
+                <FiArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </m.form>
+        ) : (
+          <div className="p-4 rounded-2xl bg-[#FAF6F0] border border-dashed border-[#E8DFD4] text-center text-xs text-[#8C7A6B]">
+            Please detect your location or select your State, City, and Delivery Hub above to unlock the address form.
+          </div>
+        )}
+      </AnimatePresence>
     </m.div>
   );
 }

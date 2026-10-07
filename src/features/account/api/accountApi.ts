@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api/client";
 import { profileApi } from "@/features/profile/api/profileApi";
+import { locationApi } from "@/features/location/api/locationApi";
 import {
   OrdersResponse,
   OrderResponse,
@@ -19,6 +20,32 @@ export const accountApi = {
   },
 
   async getAddresses(): Promise<AddressesResponse> {
+    try {
+      const addresses = await locationApi.getAddresses();
+      if (addresses && Array.isArray(addresses)) {
+        return {
+          success: true,
+          addresses: addresses.map((a, idx) => ({
+            id: a.id,
+            userId: a.userId,
+            fullName: a.fullName,
+            phone: a.mobile,
+            street: `${a.houseNumber}, ${
+              a.buildingName ? a.buildingName + ", " : ""
+            }${a.streetName || ""}`.trim(),
+            locality: a.area,
+            landmark: a.landmark,
+            city: a.city,
+            pincode: a.pincode,
+            isDefault: idx === 0,
+            isServiceable: true,
+            createdAt: a.createdAt,
+          })),
+        };
+      }
+    } catch (err) {
+      console.warn("Direct address fetch error, falling back to local route:", err);
+    }
     return apiClient.get<AddressesResponse>("/api/addresses");
   },
 
@@ -31,7 +58,12 @@ export const accountApi = {
   },
 
   async deleteAddress(id: string): Promise<{ success: boolean; message?: string }> {
-    return apiClient.delete<{ success: boolean; message?: string }>(`/api/addresses/${id}`);
+    try {
+      await locationApi.deleteAddress(id);
+      return { success: true, message: "Address deleted successfully." };
+    } catch {
+      return apiClient.delete<{ success: boolean; message?: string }>(`/api/addresses/${id}`);
+    }
   },
 
   async getSubscription(): Promise<SubscriptionResponse> {
@@ -70,9 +102,7 @@ export const accountApi = {
         dateOfBirth: payload.dob,
       });
 
-      // Keep local mock route sync for serverless preview
       await apiClient.patch("/api/me", payload).catch(() => {});
-
       return { success: true, message: "Profile updated successfully." };
     } catch (err: any) {
       const errorMsg =
