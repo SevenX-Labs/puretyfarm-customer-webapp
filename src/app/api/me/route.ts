@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentSession } from "@/server/auth/session";
+import {
+  getCurrentSession,
+  createSessionToken,
+  getSessionCookieOptions,
+} from "@/server/auth/session";
 import { db } from "@/server/db/store";
 
 export const dynamic = "force-dynamic";
@@ -19,8 +23,9 @@ export async function GET() {
     if (!user) {
       // Auto-heal missing user record in serverless environments
       user = await db.createUser({
+        id: session.userId,
         phone: session.phone || "+919876543210",
-        name: "Customer",
+        name: session.name || "Customer",
       });
     }
 
@@ -93,6 +98,7 @@ export async function PATCH(req: NextRequest) {
     if (!userRecord) {
       // Auto-heal missing user record in serverless environments
       userRecord = await db.createUser({
+        id: session.userId,
         phone: session.phone || "+919876543210",
         name: (name && typeof name === "string" && name.trim()) ? name.trim() : "Customer",
         email: (email && typeof email === "string") ? email.trim() : "",
@@ -102,7 +108,12 @@ export async function PATCH(req: NextRequest) {
 
     const onboardingStep = await db.getUserOnboardingStatus(session.userId);
 
-    return NextResponse.json({
+    // Re-issue session cookie with updated name so auto-heal on other
+    // serverless instances uses the current name instead of the stale one
+    const newToken = await createSessionToken(userRecord);
+    const cookieOpts = getSessionCookieOptions();
+
+    const response = NextResponse.json({
       success: true,
       message: "Profile updated successfully.",
       onboardingStep,
@@ -115,6 +126,16 @@ export async function PATCH(req: NextRequest) {
         createdAt: userRecord.createdAt,
       },
     });
+
+    response.cookies.set(cookieOpts.name, newToken, {
+      httpOnly: cookieOpts.httpOnly,
+      secure: cookieOpts.secure,
+      sameSite: cookieOpts.sameSite,
+      path: cookieOpts.path,
+      maxAge: cookieOpts.maxAge,
+    });
+
+    return response;
   } catch (err) {
     console.error("[me PATCH error]", err);
     return NextResponse.json(

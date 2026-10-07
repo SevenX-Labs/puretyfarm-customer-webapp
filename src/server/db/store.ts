@@ -113,13 +113,14 @@ export const db = {
   },
 
   async createUser(userData: {
+    id?: string;
     phone: string;
     name: string;
     email?: string;
     avatarUrl?: string;
   }): Promise<User> {
     const data = loadDb();
-    const id = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const id = userData.id || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date().toISOString();
 
     const newUser: User = {
