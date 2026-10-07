@@ -735,6 +735,10 @@ export function LegalPageShell({
               </Link>
             )}
             <span className="text-[#DDD0C2]">·</span>
+            <Link href="/delete-account" className="hover:underline">
+              Delete Account
+            </Link>
+            <span className="text-[#DDD0C2]">·</span>
             <Link href="/" className="hover:underline">
               Home
             </Link>

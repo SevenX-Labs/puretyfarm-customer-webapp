@@ -25,4 +25,5 @@ export const FOOTER_EXPLORE_LINKS = [
 export const FOOTER_LEGAL_LINKS = [
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms & Conditions", href: "/terms-and-conditions" },
+  { label: "Delete Account", href: "/delete-account" },
 ] as const;
