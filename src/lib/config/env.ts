@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const clientEnvSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default("https://puretyfarm.com"),
-  NEXT_PUBLIC_API_URL: z.string().default(""),
+  NEXT_PUBLIC_API_URL: z.string().default("https://api-puretyfarm.onrender.com"),
   NEXT_PUBLIC_API_MODE: z.enum(["proxy", "direct"]).default("proxy"),
   NEXT_PUBLIC_PLAY_STORE_URL: z
     .string()
@@ -21,14 +21,14 @@ const serverEnvSchema = clientEnvSchema.extend({
   BLOB_READ_WRITE_TOKEN: z.string().optional(),
   GEOCODER_PROVIDER: z.enum(["nominatim", "google"]).default("nominatim"),
   GOOGLE_MAPS_API_KEY: z.string().optional(),
-  BACKEND_URL: z.string().url().optional(),
+  BACKEND_URL: z.string().url().default("https://api-puretyfarm.onrender.com"),
 });
 
 function validateEnv() {
   const isServer = typeof window === "undefined";
   const rawEnv = {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "https://api-puretyfarm.onrender.com",
     NEXT_PUBLIC_API_MODE: process.env.NEXT_PUBLIC_API_MODE,
     NEXT_PUBLIC_PLAY_STORE_URL: process.env.NEXT_PUBLIC_PLAY_STORE_URL,
     NEXT_PUBLIC_WHATSAPP_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER,
@@ -41,7 +41,7 @@ function validateEnv() {
     BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
     GEOCODER_PROVIDER: process.env.GEOCODER_PROVIDER,
     GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY,
-    BACKEND_URL: process.env.BACKEND_URL,
+    BACKEND_URL: process.env.BACKEND_URL || "https://api-puretyfarm.onrender.com",
   };
 
   if (isServer) {

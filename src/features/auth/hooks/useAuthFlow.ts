@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "../api/authApi";
@@ -36,7 +36,6 @@ export function useAuthFlow() {
   const [step, setStep] = useState<AuthStep>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpValues, setOtpValues] = useState<string[]>(["", "", "", "", "", ""]);
-  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
 
   // Onboarding fields for first-time users
   const [name, setName] = useState("");
@@ -82,7 +81,7 @@ export function useAuthFlow() {
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (phoneNumber.length !== 10) {
-      setErrorMessage("Please enter a valid 10-digit mobile number.");
+      setErrorMessage("Please enter a valid 10-digit Indian mobile number.");
       return;
     }
 
@@ -91,23 +90,28 @@ export function useAuthFlow() {
     setSuccessMessage(null);
 
     try {
-      const data = await authApi.sendOtp({ phone: phoneNumber });
+      const data = await authApi.sendOtp({
+        mobile: phoneNumber,
+        phone: phoneNumber,
+      });
 
       if (!data.success) {
-        setErrorMessage(data.error || "Failed to send verification code.");
+        setErrorMessage(data.error || data.message || "Failed to send verification code.");
         if (data.remainingCooldown) {
           setCountdown(data.remainingCooldown);
         }
         return;
       }
 
-      setCountdown(data.cooldownSeconds || 5);
-      setDevOtpHint(data.devOtpHint || "123456");
-      setSuccessMessage("Verification code sent to your phone.");
+      setCountdown(data.cooldownSeconds || 60);
+      setSuccessMessage("OTP sent successfully to your mobile number.");
       setStep("otp");
       setOtpValues(["", "", "", "", "", ""]);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Network error. Please check your connection and try again.";
+      const errorMsg =
+        err instanceof Error
+          ? err.message
+          : "Network error. Please check your connection and try again.";
       setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
@@ -163,14 +167,6 @@ export function useAuthFlow() {
     otpInputRefs.current[targetFocus]?.focus();
   };
 
-  const handleAutofillDevOtp = () => {
-    const hint = devOtpHint || "123456";
-    const digits = hint.split("");
-    setOtpValues(digits);
-    setErrorMessage(null);
-    otpInputRefs.current[5]?.focus();
-  };
-
   // Step 2: Verify OTP
   const handleVerifyOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -185,19 +181,24 @@ export function useAuthFlow() {
 
     try {
       const data = await authApi.verifyOtp({
+        mobile: phoneNumber,
+        otp: code,
         phone: phoneNumber,
         code,
       });
 
       if (!data.success) {
-        setErrorMessage(data.error || "Invalid verification code.");
+        setErrorMessage(data.error || data.message || "Invalid verification code.");
         return;
       }
 
       const updatedUser = await refreshUser();
-      const nextStep = data.onboardingStep || updatedUser?.onboardingStep || (data.isNewUser ? "profile_pending" : "complete");
+      const nextStep =
+        data.onboardingStep ||
+        updatedUser?.onboardingStep ||
+        (data.isNewUser ? "profile_pending" : "complete");
 
-      setSuccessMessage("Verification successful! Redirecting...");
+      setSuccessMessage("Authentication successful! Redirecting...");
       setTimeout(() => {
         if (nextStep !== "complete") {
           router.replace("/onboarding");
@@ -206,7 +207,8 @@ export function useAuthFlow() {
         }
       }, 400);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Verification failed. Please check your connection.";
+      const errorMsg =
+        err instanceof Error ? err.message : "Verification failed. Please check your connection.";
       setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
@@ -231,7 +233,7 @@ export function useAuthFlow() {
       });
 
       if (!data.success) {
-        setErrorMessage(data.error || "Failed to save profile.");
+        setErrorMessage(data.error || data.message || "Failed to save profile.");
         return;
       }
 
@@ -241,7 +243,8 @@ export function useAuthFlow() {
         router.replace(redirectUrl);
       }, 600);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Error updating profile. Please try again.";
+      const errorMsg =
+        err instanceof Error ? err.message : "Error updating profile. Please try again.";
       setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
@@ -253,7 +256,6 @@ export function useAuthFlow() {
     setStep,
     phoneNumber,
     otpValues,
-    devOtpHint,
     name,
     setName,
     email,
@@ -270,7 +272,6 @@ export function useAuthFlow() {
     handleOtpDigitChange,
     handleOtpKeyDown,
     handleOtpPaste,
-    handleAutofillDevOtp,
     handleVerifyOtp,
     handleSaveProfile,
   };

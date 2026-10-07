@@ -1,15 +1,24 @@
 import { ApiError, ApiResponse } from "@/types/api";
 import { env } from "@/lib/config/env";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
 
 export interface RequestOptions extends RequestInit {
   timeoutMs?: number;
   params?: Record<string, string | number | boolean | undefined>;
+  skipAuth?: boolean;
 }
 
+const BACKEND_BASE_URL = (
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL) ||
+  env.NEXT_PUBLIC_API_URL ||
+  "https://api-puretyfarm.onrender.com"
+).replace(/\/+$/, "");
+
 /**
- * Resolves the full URL based on configured API mode:
- * - "proxy" (default): Uses relative path (e.g. /api/...) or configured proxy
- * - "direct": Prepend NEXT_PUBLIC_API_URL for cross-origin calls
+ * Resolves the full URL based on configured API mode and endpoint path:
+ * - Paths starting with /api/v1/ or /auth/ are routed directly to backend base URL
+ * - If NEXT_PUBLIC_API_MODE is 'direct', relative paths are routed to backend base URL
+ * - Otherwise relative paths remain local (Next.js API routes)
  */
 function resolveUrl(path: string): string {
   if (path.startsWith("http://") || path.startsWith("https://")) {
@@ -18,23 +27,35 @@ function resolveUrl(path: string): string {
 
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-  if (env.NEXT_PUBLIC_API_MODE === "direct" && env.NEXT_PUBLIC_API_URL) {
-    const baseUrl = env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
-    return `${baseUrl}${cleanPath}`;
+  if (
+    cleanPath.startsWith("/api/v1/") ||
+    cleanPath.startsWith("/auth/") ||
+    cleanPath.includes("/auth/customer") ||
+    env.NEXT_PUBLIC_API_MODE === "direct"
+  ) {
+    return `${BACKEND_BASE_URL}${cleanPath}`;
   }
 
   return cleanPath;
 }
 
+let isRefreshing = false;
+let refreshSubscribers: ((token: string) => void)[] = [];
+
+function onTokenRefreshed(newToken: string) {
+  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers = [];
+}
+
 /**
  * Universal typed API client for PuretyFarm.
- * Handles timeouts, credentials, JSON parsing, 401 handling, and error normalization.
+ * Handles timeouts, Bearer token injection, automatic token rotation on 401, credentials, and error normalization.
  */
 export async function apiClient<T = unknown>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { timeoutMs = 15000, params, headers, ...customConfig } = options;
+  const { timeoutMs = 15000, params, headers, skipAuth = false, ...customConfig } = options;
 
   let url = resolveUrl(endpoint);
 
@@ -55,7 +76,7 @@ export async function apiClient<T = unknown>(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  const defaultHeaders: HeadersInit = {
+  const defaultHeaders: Record<string, string> = {
     Accept: "application/json",
   };
 
@@ -64,11 +85,19 @@ export async function apiClient<T = unknown>(
     defaultHeaders["Content-Type"] = "application/json";
   }
 
+  // Automatically attach Bearer token from tokenStorage if available and not skipped
+  if (!skipAuth && typeof window !== "undefined") {
+    const token = tokenStorage.getAccessToken();
+    if (token) {
+      defaultHeaders["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
   const config: RequestInit = {
     ...customConfig,
     headers: {
       ...defaultHeaders,
-      ...headers,
+      ...(headers as Record<string, string>),
     },
     credentials: "include", // Supports first-party cookies and cross-origin with CORS
     signal: controller.signal,
@@ -78,14 +107,54 @@ export async function apiClient<T = unknown>(
     const response = await fetch(url, config);
     clearTimeout(timeoutId);
 
-    // Handle 401 Unauthorized globally: redirect to /auth on client
-    if (response.status === 401) {
-      if (typeof window !== "undefined") {
-        const currentPath = window.location.pathname;
-        if (!currentPath.startsWith("/auth") && currentPath !== "/") {
-          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-          window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
+    // If 401 Unauthorized occurs on an authenticated request and we have a refreshToken, attempt refresh once
+    const isAuthEndpoint =
+      endpoint.includes("/refresh") ||
+      endpoint.includes("/login") ||
+      endpoint.includes("/verify-otp");
+
+    if (response.status === 401 && !isAuthEndpoint && typeof window !== "undefined") {
+      const refreshToken = tokenStorage.getRefreshToken();
+      if (refreshToken && !isRefreshing) {
+        isRefreshing = true;
+        try {
+          const refreshRes = await fetch(`${BACKEND_BASE_URL}/api/v1/auth/customer/refresh`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ refreshToken }),
+          });
+
+          if (refreshRes.ok) {
+            const refreshData = await refreshRes.json();
+            if (refreshData.accessToken && refreshData.refreshToken) {
+              tokenStorage.setTokens({
+                accessToken: refreshData.accessToken,
+                refreshToken: refreshData.refreshToken,
+              });
+              onTokenRefreshed(refreshData.accessToken);
+              isRefreshing = false;
+
+              // Retry original request with new access token
+              return apiClient<T>(endpoint, {
+                ...options,
+                headers: {
+                  ...headers,
+                  Authorization: `Bearer ${refreshData.accessToken}`,
+                },
+              });
+            }
+          }
+        } catch (refreshErr) {
+          console.error("Token refresh failed:", refreshErr);
+        } finally {
+          isRefreshing = false;
         }
+
+        // If refresh failed, clear tokens
+        tokenStorage.clearTokens();
       }
     }
 
@@ -96,6 +165,7 @@ export async function apiClient<T = unknown>(
       const errorMessage =
         (data && typeof data.error === "string" ? data.error : null) ||
         (data && typeof data.message === "string" ? data.message : null) ||
+        (data && Array.isArray((data as any).message) ? (data as any).message.join(", ") : null) ||
         `Request failed with status ${response.status}`;
 
       throw new ApiError(
@@ -138,6 +208,13 @@ apiClient.patch = <T = unknown>(endpoint: string, body?: unknown, options?: Requ
   apiClient<T>(endpoint, {
     ...options,
     method: "PATCH",
+    body: body instanceof FormData ? body : JSON.stringify(body),
+  });
+
+apiClient.put = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+  apiClient<T>(endpoint, {
+    ...options,
+    method: "PUT",
     body: body instanceof FormData ? body : JSON.stringify(body),
   });
 
