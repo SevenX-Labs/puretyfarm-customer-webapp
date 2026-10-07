@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import { profileApi } from "@/features/profile/api/profileApi";
 import {
   OrdersResponse,
   OrderResponse,
@@ -52,12 +53,35 @@ export const accountApi = {
 
   async updateProfile(payload: {
     name: string;
-    email: string;
+    email?: string;
     avatarUrl?: string;
+    gender?: string;
+    dob?: string;
   }): Promise<{ success: boolean; message?: string; user?: unknown; error?: string }> {
-    return apiClient.patch<{ success: boolean; message?: string; user?: unknown; error?: string }>(
-      "/api/me",
-      payload
-    );
+    try {
+      const parts = (payload.name || "").trim().split(/\s+/);
+      const firstName = parts[0] || "Customer";
+      const lastName = parts.slice(1).join(" ") || "User";
+
+      await profileApi.saveProfile({
+        firstName,
+        lastName,
+        gender: payload.gender,
+        dateOfBirth: payload.dob,
+      });
+
+      // Keep local mock route sync for serverless preview
+      await apiClient.patch("/api/me", payload).catch(() => {});
+
+      return { success: true, message: "Profile updated successfully." };
+    } catch (err: any) {
+      const errorMsg =
+        err?.data?.message ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to update profile.";
+      const message = Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg);
+      return { success: false, error: message };
+    }
   },
 };

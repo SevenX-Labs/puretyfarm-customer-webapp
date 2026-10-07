@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/features/auth/api/authApi";
+import { profileApi, CustomerProfile } from "@/features/profile/api/profileApi";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
 import { CustomerUser } from "@/features/auth/types";
 import { User, OnboardingStatus } from "@/types/models";
@@ -40,29 +41,43 @@ interface UserDataInput {
   updatedAt?: string;
 }
 
-function normalizeCustomerUser(data: UserDataInput): AuthUser {
-  const mobile = data.mobile || data.phone || "";
-  const displayName =
-    data.name && data.name.trim()
-      ? data.name.trim()
-      : mobile
-      ? `Customer (${mobile.slice(-4)})`
-      : "Customer";
+function normalizeCustomerUser(
+  data: UserDataInput,
+  profile?: CustomerProfile | null
+): AuthUser {
+  const mobile = profile?.mobile || data.mobile || data.phone || "";
+
+  let fullName = "";
+  if (profile && (profile.firstName || profile.lastName)) {
+    fullName = `${profile.firstName || ""} ${profile.lastName || ""}`.trim();
+  } else if (data.name && data.name.trim()) {
+    fullName = data.name.trim();
+  }
+
+  const displayName = fullName || (mobile ? `Customer (${mobile.slice(-4)})` : "Customer");
+
+  // If profile exists in database, onboarding step has passed profile creation
+  let onboardingStep: OnboardingStatus = "profile_pending";
+  if (profile) {
+    onboardingStep = (data.onboardingStep as OnboardingStatus) || "location_pending";
+  } else if (data.onboardingStep) {
+    onboardingStep = data.onboardingStep as OnboardingStatus;
+  }
 
   return {
-    id: data.id || "",
+    id: profile?.userId || data.id || "",
     phone: mobile,
     mobile: mobile,
     name: displayName,
-    email: data.email ? String(data.email) : undefined,
-    emailVerified: Boolean(data.emailVerified),
-    avatarUrl: data.avatarUrl,
+    email: profile?.email || (data.email ? String(data.email) : undefined),
+    emailVerified: Boolean(profile?.emailVerified ?? data.emailVerified),
+    avatarUrl: profile?.profileImageUrl || data.avatarUrl || undefined,
     role: data.role || "CUSTOMER",
-    gender: data.gender,
-    dob: data.dob,
-    onboardingStep: (data.onboardingStep as OnboardingStatus) || "complete",
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
+    gender: profile?.gender?.toLowerCase() || data.gender,
+    dob: profile?.dateOfBirth ? profile.dateOfBirth.split("T")[0] : data.dob,
+    onboardingStep,
+    createdAt: profile?.createdAt || data.createdAt,
+    updatedAt: profile?.updatedAt || data.updatedAt,
   };
 }
 
@@ -71,41 +86,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const fetchFullUserProfile = async (
+    accessToken: string
+  ): Promise<AuthUser | null> => {
+    try {
+      const [authData, profileData] = await Promise.all([
+        authApi.getMe(),
+        profileApi.getProfile().catch(() => null),
+      ]);
+
+      if (authData && authData.id) {
+        return normalizeCustomerUser(authData, profileData);
+      }
+      return null;
+    } catch (err: any) {
+      if (err?.status === 401 || err?.statusCode === 401) {
+        const refreshToken = tokenStorage.getRefreshToken();
+        if (refreshToken) {
+          await authApi.refreshToken(refreshToken);
+          const [authData, profileData] = await Promise.all([
+            authApi.getMe(),
+            profileApi.getProfile().catch(() => null),
+          ]);
+          if (authData && authData.id) {
+            return normalizeCustomerUser(authData, profileData);
+          }
+        }
+      }
+      throw err;
+    }
+  };
+
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
     try {
       const accessToken = tokenStorage.getAccessToken();
 
-      // If JWT access token exists, fetch authenticated customer profile from backend
       if (accessToken) {
         try {
-          const profile = await authApi.getMe();
-          if (profile && profile.id) {
-            const authUser = normalizeCustomerUser(profile);
+          const authUser = await fetchFullUserProfile(accessToken);
+          if (authUser) {
             setUser(authUser);
             return authUser;
           }
         } catch (err) {
-          console.warn("[AuthContext] getMe error, attempting token refresh:", err);
-          const refreshToken = tokenStorage.getRefreshToken();
-          if (refreshToken) {
-            try {
-              await authApi.refreshToken(refreshToken);
-              const retriedProfile = await authApi.getMe();
-              if (retriedProfile && retriedProfile.id) {
-                const authUser = normalizeCustomerUser(retriedProfile);
-                setUser(authUser);
-                return authUser;
-              }
-            } catch {
-              tokenStorage.clearTokens();
-            }
-          } else {
-            tokenStorage.clearTokens();
-          }
+          console.warn("[AuthContext] Token profile error:", err);
+          tokenStorage.clearTokens();
         }
       }
 
-      // Fallback check to /api/me session cookie
+      // Fallback check to local /api/me session cookie
       const res = await fetch("/api/me", {
         cache: "no-store",
         headers: { "Cache-Control": "no-cache" },
@@ -139,27 +168,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const accessToken = tokenStorage.getAccessToken();
         if (accessToken) {
           try {
-            const profile = await authApi.getMe();
-            if (!ignore && profile && profile.id) {
-              setUser(normalizeCustomerUser(profile));
+            const authUser = await fetchFullUserProfile(accessToken);
+            if (!ignore && authUser) {
+              setUser(authUser);
               return;
             }
           } catch {
-            const refreshToken = tokenStorage.getRefreshToken();
-            if (refreshToken) {
-              try {
-                await authApi.refreshToken(refreshToken);
-                const retriedProfile = await authApi.getMe();
-                if (!ignore && retriedProfile && retriedProfile.id) {
-                  setUser(normalizeCustomerUser(retriedProfile));
-                  return;
-                }
-              } catch {
-                tokenStorage.clearTokens();
-              }
-            } else {
-              tokenStorage.clearTokens();
-            }
+            tokenStorage.clearTokens();
           }
         }
 

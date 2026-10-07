@@ -1,31 +1,33 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { FiCamera, FiUpload, FiTrash2, FiCheck, FiX, FiZoomIn } from "react-icons/fi";
+import { FiCamera, FiUpload, FiTrash2, FiZoomIn, FiCheck, FiX } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
+import { profileApi } from "@/features/profile/api/profileApi";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
 
-interface AvatarUploadProps {
+export interface AvatarUploadProps {
   initialUrl?: string;
   name?: string;
   onUploaded: (url: string) => void;
-  onError?: (msg: string) => void;
+  onError?: (error: string) => void;
   className?: string;
 }
 
 export function AvatarUpload({
-  initialUrl,
+  initialUrl = "",
   name = "",
   onUploaded,
   onError,
   className = "",
 }: AvatarUploadProps) {
   const { refreshUser, setUser } = useAuth();
-  const [avatarUrl, setAvatarUrl] = useState<string>(initialUrl || "");
-  const [prevInitialUrl, setPrevInitialUrl] = useState<string | undefined>(initialUrl);
+  const [avatarUrl, setAvatarUrl] = useState<string>(initialUrl);
+  const [prevInitialUrl, setPrevInitialUrl] = useState<string>(initialUrl);
   const [uploading, setUploading] = useState(false);
-  const [showCropModal, setShowCropModal] = useState(false);
 
-  // Crop / Canvas state
+  // Modal / Crop States
+  const [showCropModal, setShowCropModal] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -63,9 +65,9 @@ export function AvatarUpload({
       return;
     }
 
-    // 2. Validate max 2 MB
-    if (file.size > 2 * 1024 * 1024) {
-      onError?.("Image size must be 2 MB or less.");
+    // 2. Validate max 3 MB
+    if (file.size > 3 * 1024 * 1024) {
+      onError?.("Image size must be 3 MB or less.");
       return;
     }
 
@@ -186,40 +188,41 @@ export function AvatarUpload({
 
       // Convert to blob with compression (WebP preferred, fallback to JPEG)
       const blob = await new Promise<Blob | null>((resolve) => {
-        exportCanvas.toBlob(
-          (b) => resolve(b),
-          "image/webp",
-          0.85
-        );
+        exportCanvas.toBlob((b) => resolve(b), "image/webp", 0.85);
       });
 
       if (!blob) throw new Error("Failed to compress image.");
 
-      const formData = new FormData();
-      formData.append("file", blob, `avatar_${Date.now()}.webp`);
+      let uploadedUrl = "";
 
-      const res = await fetch("/api/upload/avatar", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Upload failed.");
+      if (tokenStorage.getAccessToken()) {
+        try {
+          const profile = await profileApi.uploadAvatar(blob);
+          uploadedUrl = profile.profileImageUrl || "";
+        } catch (err) {
+          console.warn("Direct avatar upload error, trying local fallback:", err);
+        }
       }
 
-      const uploadedUrl = data.avatarUrl || data.url || "";
-      setPrevInitialUrl(uploadedUrl);
-      setAvatarUrl(uploadedUrl);
-      onUploaded(uploadedUrl);
+      if (!uploadedUrl) {
+        const formData = new FormData();
+        formData.append("file", blob, `avatar_${Date.now()}.webp`);
+        const res = await fetch("/api/upload/avatar", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          uploadedUrl = data.avatarUrl || data.url || "";
+        }
+      }
 
-      // Immediately update auth context so that header and profile views update without needing a page reload
-      setUser((prev) => (prev ? { ...prev, avatarUrl: uploadedUrl } : null));
-
-      try {
-        await refreshUser();
-      } catch (err) {
-        console.error("Failed to refresh user after avatar upload:", err);
+      if (uploadedUrl) {
+        setPrevInitialUrl(uploadedUrl);
+        setAvatarUrl(uploadedUrl);
+        onUploaded(uploadedUrl);
+        setUser((prev) => (prev ? { ...prev, avatarUrl: uploadedUrl } : null));
+        await refreshUser().catch(() => {});
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error uploading avatar";
@@ -236,8 +239,11 @@ export function AvatarUpload({
     setUser((prev) => (prev ? { ...prev, avatarUrl: "" } : null));
 
     try {
-      await fetch("/api/upload/avatar", { method: "DELETE" });
-      await refreshUser();
+      if (tokenStorage.getAccessToken()) {
+        await profileApi.removeAvatar().catch(() => {});
+      }
+      await fetch("/api/upload/avatar", { method: "DELETE" }).catch(() => {});
+      await refreshUser().catch(() => {});
     } catch (err) {
       console.error("Failed to remove avatar on server:", err);
     }
@@ -305,7 +311,7 @@ export function AvatarUpload({
         <div>
           <h4 className="text-sm font-bold text-[#1A1008]">Profile Picture</h4>
           <p className="text-[11px] text-[#3A241C]/65">
-            JPG, PNG or WebP · Max 2 MB · Square auto-cropped
+            JPG, PNG or WebP · Max 3 MB · Square auto-cropped
           </p>
         </div>
 
