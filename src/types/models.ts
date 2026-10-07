@@ -10,6 +10,8 @@ export interface User {
   name: string;
   email?: string;
   avatarUrl?: string;
+  gender?: string;
+  dob?: string;
   onboardingStep?: OnboardingStatus;
   createdAt?: string;
   updatedAt?: string;

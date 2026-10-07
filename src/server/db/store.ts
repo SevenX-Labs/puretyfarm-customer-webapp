@@ -118,6 +118,8 @@ export const db = {
     name: string;
     email?: string;
     avatarUrl?: string;
+    gender?: string;
+    dob?: string;
   }): Promise<User> {
     const data = loadDb();
     const id = userData.id || `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -129,6 +131,8 @@ export const db = {
       name: userData.name,
       email: userData.email || "",
       avatarUrl: userData.avatarUrl || "",
+      gender: userData.gender,
+      dob: userData.dob,
       createdAt: now,
       updatedAt: now,
     };
@@ -141,7 +145,7 @@ export const db = {
 
   async updateUser(
     id: string,
-    updates: Partial<Pick<User, "name" | "email" | "avatarUrl">>
+    updates: Partial<Pick<User, "name" | "email" | "avatarUrl" | "gender" | "dob">>
   ): Promise<User | null> {
     const data = loadDb();
     const existing = data.users[id];

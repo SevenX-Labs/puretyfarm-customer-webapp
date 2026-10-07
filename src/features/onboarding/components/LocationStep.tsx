@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { User } from "@/types/models";
@@ -9,13 +9,18 @@ import {
   AddressDetailsFormData,
 } from "../types";
 import {
+  SERVICEABLE_AREAS_DATA,
+  POPULAR_SERVICE_AREAS,
+} from "@/content/serviceAreas";
+import {
   FiArrowLeft,
   FiArrowRight,
   FiAlertCircle,
   FiCrosshair,
   FiMapPin,
   FiCheckCircle,
-  FiBell,
+  FiChevronDown,
+  FiSearch,
 } from "react-icons/fi";
 
 export interface LocationStepProps {
@@ -65,6 +70,46 @@ export function LocationStep({
   onAddressDetailsChange,
   onSaveAddress,
 }: LocationStepProps) {
+  // ─── Manual Area Selection State (design-only) ───
+  const [showManualSelect, setShowManualSelect] = useState(false);
+  const [areaSearch, setAreaSearch] = useState("");
+  const [selectedArea, setSelectedArea] = useState<{
+    areaName: string;
+    pincode: string;
+  } | null>(null);
+
+  // Unique areas sorted alphabetically
+  const uniqueAreas = SERVICEABLE_AREAS_DATA.filter((a) => a.active);
+  const filteredAreas = areaSearch.trim()
+    ? uniqueAreas.filter(
+        (a) =>
+          a.areaName.toLowerCase().includes(areaSearch.toLowerCase()) ||
+          a.pincode.includes(areaSearch)
+      )
+    : uniqueAreas;
+
+  const handleAreaSelect = (area: { areaName: string; pincode: string }) => {
+    setSelectedArea(area);
+    onManualPincodeChange(area.pincode);
+    onManualLocalityChange(area.areaName);
+    onAddressDetailsChange({ ...addressDetails, locality: area.areaName });
+    setShowManualSelect(false);
+    setAreaSearch("");
+  };
+
+  const handleAutoLocationClick = () => {
+    setSelectedArea(null);
+    onManualPincodeChange("");
+    onManualLocalityChange("");
+    onAutoLocationCheck();
+  };
+
+  useEffect(() => {
+    if (serviceCheckResult?.performed && serviceCheckResult.serviceable) {
+      setSelectedArea(null);
+    }
+  }, [serviceCheckResult]);
+
   return (
     <m.div
       key="step2"
@@ -108,7 +153,7 @@ export function LocationStep({
       )}
 
       {/* A) AUTO-DETECT CONVENIENCE BANNER */}
-      <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#FAF3EA] to-[#FFFDF7] border border-[#E8DFD4] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="mb-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#FAF3EA] to-[#FFFDF7] border border-[#E8DFD4] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-xs sm:text-sm font-bold text-[#1A1008] flex items-center gap-2">
             <FiCrosshair className="w-4 h-4 text-[#5C1B13]" />
@@ -122,7 +167,7 @@ export function LocationStep({
           type="button"
           variant="primary"
           size="sm"
-          onClick={onAutoLocationCheck}
+          onClick={handleAutoLocationClick}
           disabled={autoChecking}
           className="rounded-xl px-4 py-2 text-xs font-bold shrink-0 cursor-pointer self-start sm:self-auto"
         >
@@ -139,6 +184,160 @@ export function LocationStep({
           )}
         </Button>
       </div>
+
+      {/* B) MANUAL AREA SELECTION — Shown as alternative */}
+      {!serviceCheckResult?.performed && (
+        <div className="mb-6">
+          {/* Divider with "OR" */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-[#E8DFD4]" />
+            <span className="text-[10px] font-bold text-[#3A241C]/40 uppercase tracking-widest">
+              or select manually
+            </span>
+            <div className="flex-1 h-px bg-[#E8DFD4]" />
+          </div>
+
+          {/* Manual Area Selector Card */}
+          <div className="p-4 sm:p-5 rounded-2xl border border-[#E8DFD4] bg-[#FFFDF7]">
+            <div className="flex items-center gap-2 mb-3">
+              <FiMapPin className="w-4 h-4 text-[#5C1B13]" />
+              <h3 className="text-xs sm:text-sm font-bold text-[#1A1008]">
+                Choose Your Area in Raipur
+              </h3>
+            </div>
+
+            {/* Popular Area Chips */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {POPULAR_SERVICE_AREAS.map((area) => {
+                const areaData = uniqueAreas.find((a) => a.areaName === area);
+                const isActive = selectedArea?.areaName === area;
+                return (
+                  <button
+                    key={area}
+                    type="button"
+                    onClick={() =>
+                      areaData &&
+                      handleAreaSelect({
+                        areaName: areaData.areaName,
+                        pincode: areaData.pincode,
+                      })
+                    }
+                    className={`
+                      px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer border
+                      ${
+                        isActive
+                          ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-sm"
+                          : "bg-white text-[#3A241C]/80 border-[#E8DFD4] hover:border-[#5C1B13]/40 hover:bg-[#FAF3EA]"
+                      }
+                    `}
+                  >
+                    {area}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Dropdown trigger for all areas */}
+            <button
+              type="button"
+              onClick={() => setShowManualSelect(!showManualSelect)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-[#E8DFD4] bg-white hover:border-[#5C1B13]/40 transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center gap-2.5">
+                <FiMapPin className="w-3.5 h-3.5 text-[#3A241C]/40 group-hover:text-[#5C1B13] transition-colors" />
+                <span className={`text-xs font-semibold ${selectedArea ? "text-[#1A1008]" : "text-[#3A241C]/50"}`}>
+                  {selectedArea
+                    ? `${selectedArea.areaName} — ${selectedArea.pincode}`
+                    : "Browse all Raipur areas..."}
+                </span>
+              </div>
+              <FiChevronDown
+                className={`w-4 h-4 text-[#3A241C]/40 transition-transform duration-200 ${
+                  showManualSelect ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Dropdown Panel */}
+            {showManualSelect && (
+              <m.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 rounded-xl border border-[#E8DFD4] bg-white shadow-lg overflow-hidden"
+              >
+                {/* Search Input */}
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-[#E8DFD4] bg-[#FFFDF7]">
+                  <FiSearch className="w-3.5 h-3.5 text-[#3A241C]/40" />
+                  <input
+                    type="text"
+                    value={areaSearch}
+                    onChange={(e) => setAreaSearch(e.target.value)}
+                    placeholder="Search area or pincode..."
+                    className="w-full bg-transparent text-xs font-semibold text-[#1A1008] placeholder:text-[#3A241C]/40 focus:outline-none"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Area List */}
+                <div className="max-h-48 overflow-y-auto">
+                  {filteredAreas.length === 0 ? (
+                    <div className="px-4 py-6 text-center">
+                      <p className="text-xs text-[#3A241C]/50">
+                        No areas found matching &ldquo;{areaSearch}&rdquo;
+                      </p>
+                    </div>
+                  ) : (
+                    filteredAreas.map((area, idx) => {
+                      const isActive = selectedArea?.areaName === area.areaName;
+                      return (
+                        <button
+                          key={`${area.pincode}-${area.areaName}-${idx}`}
+                          type="button"
+                          onClick={() =>
+                            handleAreaSelect({
+                              areaName: area.areaName,
+                              pincode: area.pincode,
+                            })
+                          }
+                          className={`
+                            w-full flex items-center justify-between px-4 py-2.5 text-left cursor-pointer transition-colors
+                            ${
+                              isActive
+                                ? "bg-[#5C1B13]/5 text-[#5C1B13]"
+                                : "hover:bg-[#FAF3EA] text-[#1A1008]"
+                            }
+                            ${idx < filteredAreas.length - 1 ? "border-b border-[#E8DFD4]/50" : ""}
+                          `}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <FiMapPin className={`w-3 h-3 ${isActive ? "text-[#5C1B13]" : "text-[#3A241C]/30"}`} />
+                            <span className="text-xs font-semibold">{area.areaName}</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-[#3A241C]/50">{area.pincode}</span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </m.div>
+            )}
+
+            {/* Selected area confirmation */}
+            {selectedArea && (
+              <m.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-200"
+              >
+                <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="text-[11px] font-semibold text-emerald-800">
+                  Selected: {selectedArea.areaName} ({selectedArea.pincode}) — Raipur
+                </span>
+              </m.div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Serviceable Area Confirmation Banner if detected/checked */}
       {serviceCheckResult?.performed && serviceCheckResult.serviceable && (

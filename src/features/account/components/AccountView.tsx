@@ -315,7 +315,11 @@ export function AccountView() {
         {/* ─── TABS NAVIGATION (Aligned with left card) ─── */}
         <div
           className={`w-full ${
-            isWideTab ? "lg:w-[70%] max-w-5xl" : "lg:w-[62%] xl:w-[58%] max-w-3xl"
+            activeTab === "subscription"
+              ? "lg:w-[calc(100%-480px)] lg:max-w-[calc(100vw-500px)] xl:max-w-4xl"
+              : isWideTab
+              ? "lg:w-[70%] max-w-5xl"
+              : "lg:w-[62%] xl:w-[58%] max-w-3xl"
           } flex items-center gap-2 overflow-x-auto scrollbar-none py-1 mb-5 transition-all duration-300 ease-out`}
         >
           {tabs.map((tab) => {
@@ -344,10 +348,14 @@ export function AccountView() {
           })}
         </div>
 
-        {/* ─── TAB CONTENT CARD (COVERS 70% ON SUBSCRIPTION/WALLET, 58% ON OTHERS, EXPOSING FARM ART ON RIGHT) ─── */}
+        {/* ─── TAB CONTENT CARD ─── */}
         <div
           className={`w-full ${
-            isWideTab ? "lg:w-[70%] max-w-5xl" : "lg:w-[62%] xl:w-[58%] max-w-3xl"
+            activeTab === "subscription"
+              ? "lg:w-[calc(100%-480px)] lg:max-w-[calc(100vw-500px)] xl:max-w-4xl"
+              : isWideTab
+              ? "lg:w-[70%] max-w-5xl"
+              : "lg:w-[62%] xl:w-[58%] max-w-3xl"
           } bg-white/95 backdrop-blur-md rounded-[32px] border border-[#E8DFD4] p-6 sm:p-8 shadow-[0_16px_44px_rgba(74,46,27,0.07)] mb-12 transition-all duration-300 ease-out`}
         >
           {/* PROFILE */}

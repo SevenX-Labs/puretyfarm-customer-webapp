@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Subscription } from "@/types/models";
-import { FiPause, FiPlay, FiShield, FiCheck, FiTruck, FiClock, FiCalendar } from "react-icons/fi";
+import { FiPause, FiPlay, FiShield, FiCheck, FiTruck, FiClock, FiCalendar, FiSliders } from "react-icons/fi";
+import { SubscriptionPanel } from "@/features/subscription";
 
 export interface SubscriptionTabProps {
   subscription: Subscription | null;
@@ -12,6 +13,9 @@ export interface SubscriptionTabProps {
   subUpdating: boolean;
   onToggleSubPause: () => void;
   onActivatePlan: (planId: "trial" | "monthly" | "single") => void;
+  isPanelOpen?: boolean;
+  onOpenPanel?: () => void;
+  onClosePanel?: () => void;
 }
 
 export function SubscriptionTab({
@@ -20,7 +24,15 @@ export function SubscriptionTab({
   subUpdating,
   onToggleSubPause,
   onActivatePlan,
+  isPanelOpen: externalIsOpen,
+  onOpenPanel,
+  onClosePanel,
 }: SubscriptionTabProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isPanelOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const handleOpenPanel = onOpenPanel || (() => setInternalIsOpen(true));
+  const handleClosePanel = onClosePanel || (() => setInternalIsOpen(false));
+
   const availablePlans = [
     {
       id: "trial" as const,
@@ -198,7 +210,7 @@ export function SubscriptionTab({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-4.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-4.5">
           {availablePlans.map((plan) => {
             const isCurrent = subscription?.planId === plan.id;
             return (
@@ -259,14 +271,25 @@ export function SubscriptionTab({
                 </div>
 
                 {/* Bottom CTA Button */}
-                <div className="pt-2">
+                <div className="pt-2 space-y-2">
+                  {plan.id === "monthly" && (
+                    <button
+                      type="button"
+                      onClick={handleOpenPanel}
+                      className="w-full min-h-[44px] py-2 px-3 rounded-xl border border-[#5C1B13]/30 bg-white hover:bg-[#FAF3EA] text-[#5C1B13] text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <FiSliders className="w-3.5 h-3.5 shrink-0" />
+                      <span>Customize Schedule</span>
+                    </button>
+                  )}
+
                   <Button
                     variant={isCurrent ? "secondary" : "primary"}
                     size="sm"
                     fullWidth
                     disabled={subUpdating || isCurrent}
                     onClick={() => onActivatePlan(plan.id)}
-                    className={`rounded-xl py-2.5 text-xs font-bold transition-all cursor-pointer ${
+                    className={`rounded-xl py-2.5 min-h-[44px] text-xs font-bold transition-all cursor-pointer ${
                       isCurrent
                         ? "bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4] cursor-default"
                         : "bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-2xs"
@@ -286,6 +309,15 @@ export function SubscriptionTab({
           })}
         </div>
       </div>
+
+      {/* Accessible Subscription Panel Dialog - when not managed as side card */}
+      {!onOpenPanel && (
+        <SubscriptionPanel
+          isOpen={isPanelOpen}
+          onClose={handleClosePanel}
+          title="Customize Milk Subscription"
+        />
+      )}
     </m.div>
   );
 }

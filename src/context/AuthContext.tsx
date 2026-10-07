@@ -9,6 +9,8 @@ export interface AuthUser {
   name: string;
   email?: string;
   avatarUrl?: string;
+  gender?: string;
+  dob?: string;
   onboardingStep?: "profile_pending" | "location_pending" | "plan_pending" | "complete";
   createdAt?: string;
 }

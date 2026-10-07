@@ -18,6 +18,8 @@ export const onboardingApi = {
     name: string;
     email: string;
     avatarUrl?: string;
+    gender?: string;
+    dob?: string;
   }): Promise<{ success: boolean; message?: string; error?: string }> {
     return apiClient.patch<{ success: boolean; message?: string; error?: string }>("/api/me", payload);
   },

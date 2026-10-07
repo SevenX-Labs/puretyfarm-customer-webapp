@@ -10,6 +10,8 @@ export interface User {
   name: string;
   email?: string;
   avatarUrl?: string; // Profile image URL or optimized data URL
+  gender?: string;
+  dob?: string;
   createdAt: string;
   updatedAt: string;
 }

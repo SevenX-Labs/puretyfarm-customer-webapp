@@ -23,6 +23,8 @@ export function useOnboardingFlow() {
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
+  const [profileGender, setProfileGender] = useState("");
+  const [profileDob, setProfileDob] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -81,6 +83,8 @@ export function useOnboardingFlow() {
     setProfileName(user.name || "");
     setProfileEmail(user.email || "");
     setProfileAvatar(user.avatarUrl || "");
+    setProfileGender(user.gender || "");
+    setProfileDob(user.dob || "");
     setAddressDetails((prev) => ({
       ...prev,
       receiverName: prev.receiverName || user.name || "",
@@ -164,6 +168,8 @@ export function useOnboardingFlow() {
         name: profileName.trim(),
         email: profileEmail.trim(),
         avatarUrl: profileAvatar,
+        gender: profileGender,
+        dob: profileDob,
       });
 
       if (!data.success) {
@@ -183,6 +189,8 @@ export function useOnboardingFlow() {
               name: profileName.trim(),
               email: profileEmail.trim(),
               avatarUrl: profileAvatar,
+              gender: profileGender,
+              dob: profileDob,
             }
           : null
       );
@@ -236,6 +244,8 @@ export function useOnboardingFlow() {
           });
 
           if (data.serviceable) {
+            setManualPincode("");
+            setManualLocality("");
             setAddressDetails((prev) => ({
               ...prev,
               locality: data.areaName || prev.locality,
@@ -439,6 +449,10 @@ export function useOnboardingFlow() {
     setProfileEmail,
     profileAvatar,
     setProfileAvatar,
+    profileGender,
+    setProfileGender,
+    profileDob,
+    setProfileDob,
     profileSaving,
     profileError,
     setProfileError,

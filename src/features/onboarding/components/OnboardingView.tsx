@@ -24,6 +24,10 @@ export function OnboardingView() {
     setProfileEmail,
     profileAvatar,
     setProfileAvatar,
+    profileGender,
+    setProfileGender,
+    profileDob,
+    setProfileDob,
     profileSaving,
     profileError,
     setProfileError,
@@ -165,11 +169,15 @@ export function OnboardingView() {
             profileName={profileName}
             profileEmail={profileEmail}
             profileAvatar={profileAvatar}
+            profileGender={profileGender}
+            profileDob={profileDob}
             profileSaving={profileSaving}
             profileError={profileError}
             onNameChange={setProfileName}
             onEmailChange={setProfileEmail}
             onAvatarChange={setProfileAvatar}
+            onGenderChange={setProfileGender}
+            onDobChange={setProfileDob}
             onProfileError={setProfileError}
             onSubmit={handleSaveProfile}
           />

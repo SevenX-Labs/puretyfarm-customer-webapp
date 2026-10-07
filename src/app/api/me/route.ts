@@ -41,6 +41,8 @@ export async function GET() {
           name: user.name,
           email: user.email,
           avatarUrl: user.avatarUrl,
+          gender: user.gender,
+          dob: user.dob,
           createdAt: user.createdAt,
         },
       },
@@ -70,7 +72,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { name, email, avatarUrl } = body;
+    const { name, email, avatarUrl, gender, dob } = body;
 
     if (name !== undefined && (typeof name !== "string" || !name.trim())) {
       return NextResponse.json(
@@ -93,6 +95,8 @@ export async function PATCH(req: NextRequest) {
       ...(name !== undefined ? { name: name.trim() } : {}),
       ...(email !== undefined ? { email: email.trim() } : {}),
       ...(avatarUrl !== undefined ? { avatarUrl } : {}),
+      ...(gender !== undefined ? { gender: typeof gender === "string" ? gender : "" } : {}),
+      ...(dob !== undefined ? { dob: typeof dob === "string" ? dob : "" } : {}),
     });
 
     if (!userRecord) {
@@ -103,6 +107,8 @@ export async function PATCH(req: NextRequest) {
         name: (name && typeof name === "string" && name.trim()) ? name.trim() : "Customer",
         email: (email && typeof email === "string") ? email.trim() : "",
         avatarUrl: typeof avatarUrl === "string" ? avatarUrl : "",
+        gender: typeof gender === "string" ? gender : undefined,
+        dob: typeof dob === "string" ? dob : undefined,
       });
     }
 

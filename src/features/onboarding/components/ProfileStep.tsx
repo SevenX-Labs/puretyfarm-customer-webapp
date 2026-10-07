@@ -11,6 +11,7 @@ import {
   FiUser,
   FiMail,
   FiArrowRight,
+  FiCalendar,
 } from "react-icons/fi";
 
 export interface ProfileStepProps {
@@ -18,28 +19,45 @@ export interface ProfileStepProps {
   profileName: string;
   profileEmail: string;
   profileAvatar: string;
+  profileGender: string;
+  profileDob: string;
   profileSaving: boolean;
   profileError: string | null;
   onNameChange: (val: string) => void;
   onEmailChange: (val: string) => void;
   onAvatarChange: (url: string) => void;
+  onGenderChange: (val: string) => void;
+  onDobChange: (val: string) => void;
   onProfileError: (msg: string | null) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
+
+const GENDER_OPTIONS = [
+  { value: "male", label: "Male", emoji: "👨" },
+  { value: "female", label: "Female", emoji: "👩" },
+  { value: "other", label: "Other", emoji: "🧑" },
+];
 
 export function ProfileStep({
   user,
   profileName,
   profileEmail,
   profileAvatar,
+  profileGender,
+  profileDob,
   profileSaving,
   profileError,
   onNameChange,
   onEmailChange,
   onAvatarChange,
+  onGenderChange,
+  onDobChange,
   onProfileError,
   onSubmit,
 }: ProfileStepProps) {
+  // Max date for DOB: today
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <m.div
       key="step1"
@@ -97,7 +115,7 @@ export function ProfileStep({
             </span>
           </div>
           <p className="text-[11px] text-[#3A241C]/50 mt-1">
-            Daily delivery SMS & morning notifications will be sent to this number.
+            Daily delivery SMS &amp; morning notifications will be sent to this number.
           </p>
         </div>
 
@@ -125,6 +143,62 @@ export function ProfileStep({
               autoFocus
             />
           </div>
+        </div>
+
+        {/* Gender Selection (Pill-style) */}
+        <div>
+          <label className="block text-xs font-bold text-[#1A1008] uppercase tracking-wider mb-2.5">
+            Gender
+          </label>
+          <div className="flex flex-wrap gap-2.5">
+            {GENDER_OPTIONS.map((opt) => {
+              const isSelected = profileGender === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => onGenderChange(opt.value)}
+                  className={`
+                    inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold
+                    transition-all duration-200 cursor-pointer border
+                    ${
+                      isSelected
+                        ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/20 scale-[1.02]"
+                        : "bg-[#FFFDF7] text-[#3A241C] border-[#E8DFD4] hover:border-[#5C1B13]/40 hover:bg-[#FAF3EA]"
+                    }
+                  `}
+                >
+                  <span className="text-sm">{opt.emoji}</span>
+                  <span>{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date of Birth */}
+        <div>
+          <label
+            htmlFor="profileDobInput"
+            className="block text-xs font-bold text-[#1A1008] uppercase tracking-wider mb-1.5"
+          >
+            Date of Birth
+          </label>
+          <div className="flex items-center rounded-2xl border border-[#E8DFD4] focus-within:border-[#5C1B13] bg-[#FFFDF7] px-4 py-3 transition-colors">
+            <FiCalendar className="w-4 h-4 text-[#3A241C]/40 mr-3 shrink-0" />
+            <input
+              id="profileDobInput"
+              type="date"
+              value={profileDob}
+              max={today}
+              onChange={(e) => onDobChange(e.target.value)}
+              className="w-full bg-transparent text-sm font-semibold text-[#1A1008] focus:outline-none cursor-pointer"
+            />
+          </div>
+          <p className="text-[11px] text-[#3A241C]/50 mt-1">
+            We may surprise you with a special birthday treat 🎂
+          </p>
         </div>
 
         {/* Email Address (Optional) */}

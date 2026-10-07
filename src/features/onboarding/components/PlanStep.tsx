@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Address } from "@/types/models";
@@ -9,7 +9,17 @@ import {
   FiMapPin,
   FiAlertCircle,
   FiArrowLeft,
+  FiSliders,
+  FiCheck,
 } from "react-icons/fi";
+import {
+  SubscriptionPanel,
+  calculateSubscriptionPricing,
+  SubscriptionDraft,
+  PricingResult,
+} from "@/features/subscription";
+
+const DRAFT_STORAGE_KEY = "pf_subscription_draft";
 
 export interface PlanStepProps {
   savedAddress: Address | null;
@@ -30,6 +40,56 @@ export function PlanStep({
   onCompletePlanSelection,
   onGoToStep,
 }: PlanStepProps) {
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [customDraft, setCustomDraft] = useState<SubscriptionDraft | null>(null);
+
+  // Load persisted draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (saved) {
+        setCustomDraft(JSON.parse(saved));
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  // Compute pricing for the custom draft if available
+  const customPricing: PricingResult | null = customDraft
+    ? calculateSubscriptionPricing(customDraft)
+    : null;
+
+  const handleConfirmSchedule = useCallback(
+    (_result: PricingResult, draft: SubscriptionDraft) => {
+      setCustomDraft(draft);
+      onSelectPlanId("monthly");
+    },
+    [onSelectPlanId]
+  );
+
+  const handleSelectAndComplete = (plan: PlanDefinition) => {
+    if (plan.id === "monthly" && customPricing && customDraft) {
+      // Provide dynamic customized monthly plan with exact pricing and breakdown
+      const customizedPlan: PlanDefinition = {
+        ...plan,
+        price: customPricing.totalPrice,
+        quantity: `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`,
+        rateText: `₹${customPricing.pricePerLitre} / delivery`,
+        orderItem: {
+          ...plan.orderItem,
+          price: customPricing.totalPrice,
+          quantity: customPricing.totalLitres,
+          unit: `${customPricing.totalLitres} Litres`,
+          name: `Custom Monthly Plan (${customPricing.breakdownText})`,
+        },
+      };
+      onCompletePlanSelection(customizedPlan);
+    } else {
+      onCompletePlanSelection(plan);
+    }
+  };
+
   return (
     <m.div
       key="step3"
@@ -71,7 +131,7 @@ export function PlanStep({
             <button
               type="button"
               onClick={() => onGoToStep(2)}
-              className="text-xs font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0"
+              className="min-h-[44px] px-2 text-xs font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0 flex items-center"
             >
               Change
             </button>
@@ -95,6 +155,11 @@ export function PlanStep({
         {PLANS.map((plan) => {
           const Icon = plan.icon;
           const isSelected = selectedPlanId === plan.id;
+          const isMonthly = plan.id === "monthly";
+          const displayPrice = isMonthly && customPricing ? customPricing.totalPrice : plan.price;
+          const displayQuantity = isMonthly && customPricing
+            ? `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`
+            : plan.quantity;
 
           return (
             <div
@@ -125,11 +190,15 @@ export function PlanStep({
                   <div className="w-10 h-10 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
                     <Icon className="w-5 h-5" />
                   </div>
-                  {plan.savingsText && (
+                  {isMonthly && customPricing ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1">
+                      <FiCheck className="w-3 h-3" /> Customized
+                    </span>
+                  ) : plan.savingsText ? (
                     <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
                       {plan.savingsText}
                     </span>
-                  )}
+                  ) : null}
                 </div>
 
                 <h3 className="text-lg font-serif font-bold text-[#1A1008] mb-1">
@@ -143,7 +212,7 @@ export function PlanStep({
                 <div className="pb-5 mb-5 border-b border-[#E8DFD4]">
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-serif font-bold text-[#5C1B13]">
-                      ₹{plan.price}
+                      ₹{displayPrice}
                     </span>
                     {plan.originalPrice && (
                       <span className="text-sm text-[#3A241C]/45 line-through">
@@ -157,7 +226,7 @@ export function PlanStep({
                     </span>
                     <span className="text-xs text-[#3A241C]/50">•</span>
                     <span className="text-xs text-[#3A241C]/65">
-                      {plan.periodLabel}
+                      {displayQuantity}
                     </span>
                   </div>
                 </div>
@@ -176,28 +245,47 @@ export function PlanStep({
                 </ul>
               </div>
 
-              {/* Action button */}
-              <Button
-                type="button"
-                variant={isSelected ? "primary" : "secondary"}
-                size="md"
-                fullWidth
-                disabled={planSubmitting}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCompletePlanSelection(plan);
-                }}
-                className="rounded-2xl py-3 text-xs font-bold shadow-md cursor-pointer"
-              >
-                {planSubmitting && selectedPlanId === plan.id ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    <span>Activating Delivery...</span>
-                  </div>
-                ) : (
-                  <span>{plan.ctaText}</span>
+              {/* Actions container */}
+              <div className="space-y-2.5">
+                {/* Customize Schedule Button for Monthly Plan */}
+                {isMonthly && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsPanelOpen(true);
+                    }}
+                    aria-label="Customize delivery frequency and quantity schedule"
+                    className="w-full min-h-[44px] py-2 px-3 rounded-xl border border-[#5C1B13]/30 bg-white hover:bg-[#FAF3EA] text-[#5C1B13] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <FiSliders className="w-3.5 h-3.5 shrink-0" />
+                    <span>{customPricing ? "Edit Custom Schedule" : "Customize Frequency & Quantity"}</span>
+                  </button>
                 )}
-              </Button>
+
+                {/* Main Action button - min 44px tap target */}
+                <Button
+                  type="button"
+                  variant={isSelected ? "primary" : "secondary"}
+                  size="md"
+                  fullWidth
+                  disabled={planSubmitting}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectAndComplete(plan);
+                  }}
+                  className="rounded-2xl min-h-[44px] py-3 text-xs font-bold shadow-md cursor-pointer"
+                >
+                  {planSubmitting && selectedPlanId === plan.id ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <span>Activating Delivery...</span>
+                    </div>
+                  ) : (
+                    <span>{plan.ctaText}</span>
+                  )}
+                </Button>
+              </div>
             </div>
           );
         })}
@@ -210,12 +298,19 @@ export function PlanStep({
           variant="secondary"
           size="sm"
           onClick={() => onGoToStep(2)}
-          className="rounded-xl px-4 py-2 text-xs font-semibold cursor-pointer"
+          className="rounded-xl min-h-[44px] px-4 py-2 text-xs font-semibold cursor-pointer"
         >
           <FiArrowLeft className="w-3.5 h-3.5 mr-1" />
           <span>Back to Location</span>
         </Button>
       </div>
+
+      {/* Accessible Subscription Panel Dialog */}
+      <SubscriptionPanel
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+        onConfirmPlan={handleConfirmSchedule}
+      />
     </m.div>
   );
 }
