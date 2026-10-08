@@ -5,7 +5,14 @@ import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Address } from "@/types/models";
 import { PLANS, PlanDefinition } from "@/features/plans";
-import { plansApi, PlanOverviewItem } from "@/features/plans/api/plansApi";
+import {
+  plansApi,
+  PlanOverviewItem,
+  MonthlyConfigResponse,
+  PlanQuote,
+  BuyOnceEligibilityResponse,
+  TrialEligibilityResponse,
+} from "@/features/plans/api/plansApi";
 import { SubscriptionPanel } from "@/features/subscription/components/SubscriptionPanel";
 import {
   PricingResult,
@@ -36,20 +43,68 @@ export function PlanStep({
 }: PlanStepProps) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [planOverviews, setPlanOverviews] = useState<PlanOverviewItem[]>([]);
+  const [monthlyConfig, setMonthlyConfig] = useState<MonthlyConfigResponse | null>(null);
+  const [buyOnceElig, setBuyOnceElig] = useState<BuyOnceEligibilityResponse | null>(null);
+  const [trialElig, setTrialElig] = useState<TrialEligibilityResponse | null>(null);
+  const [liveQuotes, setLiveQuotes] = useState<{
+    trial?: PlanQuote | null;
+    single?: PlanQuote | null;
+    monthly?: PlanQuote | null;
+  }>({});
 
-  // Load backend plan availability & eligibility
+  // Load backend plan availability, eligibility & live pricing quotes
   useEffect(() => {
-    async function fetchPlanEligibility() {
+    let isMounted = true;
+    async function fetchLivePlanData() {
       try {
-        const data = await plansApi.getPlansOverview();
-        if (data && data.plans) {
-          setPlanOverviews(data.plans);
+        const [overviewRes, monthlyRes, buyOnceRes, trialRes] = await Promise.allSettled([
+          plansApi.getPlansOverview(),
+          plansApi.getMonthlyConfig(),
+          plansApi.getBuyOnceEligibility(),
+          plansApi.getTrialEligibility(),
+        ]);
+
+        if (!isMounted) return;
+
+        let overviews: PlanOverviewItem[] = [];
+        if (overviewRes.status === "fulfilled" && overviewRes.value?.plans) {
+          overviews = overviewRes.value.plans;
+          setPlanOverviews(overviews);
         }
+        if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
+          setMonthlyConfig(monthlyRes.value);
+        }
+        if (buyOnceRes.status === "fulfilled" && buyOnceRes.value) {
+          setBuyOnceElig(buyOnceRes.value);
+        }
+        if (trialRes.status === "fulfilled" && trialRes.value) {
+          setTrialElig(trialRes.value);
+        }
+
+        const trialAvailable = overviews.find((p) => p.type === "SEVEN_DAY_TRIAL")?.available ?? true;
+        const buyOnceAvailable = overviews.find((p) => p.type === "BUY_ONCE")?.available ?? true;
+
+        const [trialQ, singleQ, monthlyQ] = await Promise.allSettled([
+          trialAvailable ? plansApi.createTrialQuote(1) : Promise.resolve(null),
+          buyOnceAvailable ? plansApi.createBuyOnceQuote(1) : Promise.resolve(null),
+          plansApi.createMonthlyQuote({ frequency: "DAILY", quantityMode: "FIXED", quantity: 1 }),
+        ]);
+
+        if (!isMounted) return;
+
+        setLiveQuotes({
+          trial: trialQ.status === "fulfilled" ? trialQ.value : null,
+          single: singleQ.status === "fulfilled" ? singleQ.value : null,
+          monthly: monthlyQ.status === "fulfilled" ? monthlyQ.value : null,
+        });
       } catch (err) {
         console.warn("Could not load plans overview:", err);
       }
     }
-    fetchPlanEligibility();
+    fetchLivePlanData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Custom schedule pricing result if user customized
@@ -90,7 +145,27 @@ export function PlanStep({
         ? "BUY_ONCE"
         : "MONTHLY";
 
-    return planOverviews.find((p) => p.type === typeKey);
+    const found = planOverviews.find((p) => p.type === typeKey);
+    if (found) return found;
+
+    if (planId === "single" && buyOnceElig) {
+      return {
+        type: "BUY_ONCE" as const,
+        available: buyOnceElig.eligible,
+        remainingUses: buyOnceElig.remainingUses,
+        usageCount: buyOnceElig.usageCount,
+        blockedReason: buyOnceElig.blockedReason,
+      };
+    }
+    if (planId === "trial" && trialElig) {
+      return {
+        type: "SEVEN_DAY_TRIAL" as const,
+        available: trialElig.eligible,
+        used: trialElig.used,
+        blockedReason: trialElig.blockedReason,
+      };
+    }
+    return undefined;
   };
 
   return (
@@ -154,10 +229,32 @@ export function PlanStep({
           const Icon = plan.icon;
           const isSelected = selectedPlanId === plan.id;
           const isMonthly = plan.id === "monthly";
-          const displayPrice = isMonthly && customPricing ? customPricing.totalPrice : plan.price;
+
+          const liveQuote =
+            plan.id === "trial"
+              ? liveQuotes.trial
+              : plan.id === "single"
+              ? liveQuotes.single
+              : liveQuotes.monthly;
+
+          const serverPrice = liveQuote ? Math.round(liveQuote.totalSellingAmount / 100) : plan.price;
+          const displayPrice = isMonthly && customPricing ? customPricing.totalPrice : serverPrice;
+
+          const serverRateText =
+            plan.id === "monthly" && monthlyConfig
+              ? `₹${Math.round(monthlyConfig.sellingPricePerLitre / 100)} / litre`
+              : liveQuote
+              ? `₹${Math.round(liveQuote.sellingPricePerLitre / 100)} / ${plan.id === "single" ? "bottle" : "litre"}`
+              : plan.rateText;
+
+          const monthlyDeliveries = liveQuotes.monthly?.deliveryOccurrences || 30;
+          const defaultMonthlyQty = `${monthlyDeliveries}L / mo`;
+
           const displayQuantity =
             isMonthly && customPricing
               ? `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`
+              : isMonthly
+              ? defaultMonthlyQty
               : plan.quantity;
 
           const eligibility = getPlanEligibility(plan.id);
@@ -242,7 +339,7 @@ export function PlanStep({
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs font-semibold text-[#1A1008]">
-                      {plan.rateText}
+                      {serverRateText}
                     </span>
                     <span className="text-xs text-[#3A241C]/50">•</span>
                     <span className="text-xs text-[#3A241C]/65">

@@ -11,7 +11,14 @@ import {
   SubscriptionDraft,
   SubscriptionCustomizationPayload,
 } from "@/features/subscription";
-import { plansApi, PlanOverviewItem } from "@/features/plans/api/plansApi";
+import {
+  plansApi,
+  PlanOverviewItem,
+  MonthlyConfigResponse,
+  PlanQuote,
+  BuyOnceEligibilityResponse,
+  TrialEligibilityResponse,
+} from "@/features/plans/api/plansApi";
 
 export interface SubscriptionTabProps {
   subscription: Subscription | null;
