@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { authApi } from "@/features/auth/api/authApi";
 import { profileApi, CustomerProfile } from "@/features/profile/api/profileApi";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
-import { CustomerUser } from "@/features/auth/types";
+import {
+  bootstrapAuthSession,
+  endAuthSession,
+  refreshSession,
+  subscribeToAuthSession,
+} from "@/lib/auth/refreshSession";
 import { User, OnboardingStatus } from "@/types/models";
 
 export interface AuthUser extends User {
@@ -16,9 +21,12 @@ export interface AuthUser extends User {
 
 interface AuthContextType {
   user: AuthUser | null;
+  status: "loading" | "authenticated" | "unauthenticated";
   loading: boolean;
+  authError: string | null;
   isLoggedIn: boolean;
   refreshUser: () => Promise<AuthUser | null>;
+  retryAuth: () => Promise<void>;
   logout: () => Promise<void>;
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
 }
@@ -83,58 +91,39 @@ function normalizeCustomerUser(
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
+  const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
 
-  const fetchFullUserProfile = async (
-    accessToken: string
-  ): Promise<AuthUser | null> => {
-    try {
-      const [authData, profileData] = await Promise.all([
-        authApi.getMe(),
-        profileApi.getProfile().catch(() => null),
-      ]);
+  const fetchFullUserProfile = useCallback(async (): Promise<AuthUser | null> => {
+    const [authData, profileData] = await Promise.all([
+      authApi.getMe(),
+      profileApi.getProfile().catch(() => null),
+    ]);
 
-      if (authData && authData.id) {
-        return normalizeCustomerUser(authData, profileData);
-      }
-      return null;
-    } catch (err: any) {
-      if (err?.status === 401 || err?.statusCode === 401) {
-        const refreshToken = tokenStorage.getRefreshToken();
-        if (refreshToken) {
-          await authApi.refreshToken(refreshToken);
-          const [authData, profileData] = await Promise.all([
-            authApi.getMe(),
-            profileApi.getProfile().catch(() => null),
-          ]);
-          if (authData && authData.id) {
-            return normalizeCustomerUser(authData, profileData);
-          }
-        }
-      }
-      throw err;
+    if (authData && authData.id) {
+      return normalizeCustomerUser(authData, profileData);
     }
-  };
+    return null;
+  }, []);
 
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
     try {
-      const accessToken = tokenStorage.getAccessToken();
+      if (!tokenStorage.getAccessToken() && tokenStorage.getRefreshToken()) {
+        await refreshSession();
+      }
 
-      if (accessToken) {
-        try {
-          const authUser = await fetchFullUserProfile(accessToken);
-          if (authUser) {
-            setUser(authUser);
-            return authUser;
-          }
-        } catch (err) {
-          console.warn("[AuthContext] Token profile error:", err);
-          tokenStorage.clearTokens();
+      if (tokenStorage.getAccessToken()) {
+        const authUser = await fetchFullUserProfile();
+        if (authUser) {
+          setUser(authUser);
+          setAuthError(null);
+          setStatus("authenticated");
+          return authUser;
         }
       }
 
-      // Fallback check to local /api/me session cookie
+      // Preserve support for the same-origin httpOnly pf_session flow.
       const res = await fetch("/api/me", {
         cache: "no-store",
         headers: { "Cache-Control": "no-cache" },
@@ -147,67 +136,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             onboardingStep: data.onboardingStep,
           });
           setUser(userWithStep);
+          setAuthError(null);
+          setStatus("authenticated");
           return userWithStep;
         }
       }
 
       setUser(null);
+      setStatus("unauthenticated");
       return null;
-    } catch {
-      setUser(null);
+    } catch (err) {
+      console.warn("[AuthContext] Could not refresh the user profile:", err);
       return null;
     } finally {
-      setLoading(false);
+      if (!tokenStorage.getRefreshToken() && !tokenStorage.getAccessToken()) {
+        setStatus("unauthenticated");
+      }
     }
-  }, []);
+  }, [fetchFullUserProfile]);
+
+  const checkSession = useCallback(async () => {
+    try {
+      const result = await bootstrapAuthSession(async () => {
+        const authUser = await fetchFullUserProfile();
+        if (!authUser) {
+          throw new Error("The authenticated customer profile was unavailable.");
+        }
+        return authUser;
+      });
+      setUser(result.value as AuthUser | null);
+      setStatus(result.status);
+      setAuthError(null);
+    } catch (err) {
+      const isRejected =
+        typeof err === "object" &&
+        err !== null &&
+        "status" in err &&
+        err.status === 401;
+      if (isRejected) {
+        setUser(null);
+        setStatus("unauthenticated");
+        setAuthError(null);
+      } else {
+        setAuthError("Can’t connect. Check your connection, then retry.");
+        setStatus("loading");
+      }
+    }
+  }, [fetchFullUserProfile]);
 
   useEffect(() => {
-    let ignore = false;
-    const checkSession = async () => {
-      try {
-        const accessToken = tokenStorage.getAccessToken();
-        if (accessToken) {
-          try {
-            const authUser = await fetchFullUserProfile(accessToken);
-            if (!ignore && authUser) {
-              setUser(authUser);
-              return;
-            }
-          } catch {
-            tokenStorage.clearTokens();
-          }
-        }
-
-        // Fallback check to /api/me session cookie
-        const res = await fetch("/api/me", {
-          cache: "no-store",
-          headers: { "Cache-Control": "no-cache" },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (!ignore && data.success && data.user) {
-            setUser(
-              normalizeCustomerUser({
-                ...data.user,
-                onboardingStep: data.onboardingStep,
-              })
-            );
-            return;
-          }
-        }
-        if (!ignore) setUser(null);
-      } catch {
-        if (!ignore) setUser(null);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    };
-
-    checkSession();
+    let mounted = true;
+    queueMicrotask(() => {
+      if (mounted) void checkSession();
+    });
     return () => {
-      ignore = true;
+      mounted = false;
     };
-  }, []);
+  }, [checkSession]);
+
+  useEffect(
+    () =>
+      subscribeToAuthSession((event) => {
+        if (event.type === "ended") {
+          setUser(null);
+          setStatus("unauthenticated");
+          setAuthError(null);
+          return;
+        }
+
+        void fetchFullUserProfile()
+          .then((authUser) => {
+            if (authUser) setUser(authUser);
+            setStatus(authUser ? "authenticated" : "unauthenticated");
+            setAuthError(null);
+          })
+          .catch((err) => {
+            console.warn("[AuthContext] Could not load the updated session:", err);
+          });
+      }),
+    [fetchFullUserProfile]
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -216,10 +224,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Logout request failed:", err);
     } finally {
-      tokenStorage.clearTokens();
-      setUser(null);
-      router.push("/");
-      router.refresh();
+      try {
+        endAuthSession();
+      } catch (err) {
+        console.error("Could not clear all local auth storage:", err);
+      } finally {
+        setUser(null);
+        setStatus("unauthenticated");
+        setAuthError(null);
+        router.push("/");
+        router.refresh();
+      }
     }
   }, [router]);
 
@@ -227,14 +242,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
-        loading,
+        status,
+        loading: status === "loading",
+        authError,
         isLoggedIn: Boolean(user),
         refreshUser,
+        retryAuth: checkSession,
         logout,
         setUser,
       }}
     >
       {children}
+      {status === "loading" && authError && (
+        <div
+          role="alert"
+          className="fixed bottom-4 left-1/2 z-[100] flex -translate-x-1/2 items-center gap-3 rounded-xl border border-[#e7d8c5] bg-[#fffdf8] px-4 py-3 text-sm text-[#24130f] shadow-lg"
+        >
+          <span>{authError}</span>
+          <button
+            type="button"
+                onClick={() => {
+                  setAuthError(null);
+                  void checkSession();
+                }}
+            className="font-semibold text-[#7a2417] underline underline-offset-2"
+          >
+            Retry
+          </button>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }

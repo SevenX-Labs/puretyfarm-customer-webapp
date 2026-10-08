@@ -2,17 +2,17 @@
 
 import React from "react";
 import { m } from "framer-motion";
-import { Button } from "@/components/ui/Button";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
-import { User } from "@/types/models";
+import type { User } from "@/types/models";
 import {
   FiAlertCircle,
-  FiPhone,
-  FiUser,
-  FiMail,
   FiArrowRight,
   FiCalendar,
+  FiMail,
+  FiPhone,
+  FiUser,
 } from "react-icons/fi";
+import { LuUserRound, LuUsersRound } from "react-icons/lu";
 
 export interface ProfileStepProps {
   user: User | null;
@@ -23,6 +23,7 @@ export interface ProfileStepProps {
   profileDob: string;
   profileSaving: boolean;
   profileError: string | null;
+  autoFocus: boolean;
   onNameChange: (val: string) => void;
   onEmailChange: (val: string) => void;
   onAvatarChange: (url: string) => void;
@@ -33,10 +34,13 @@ export interface ProfileStepProps {
 }
 
 const GENDER_OPTIONS = [
-  { value: "male", label: "Male", emoji: "👨" },
-  { value: "female", label: "Female", emoji: "👩" },
-  { value: "other", label: "Other", emoji: "🧑" },
+  { value: "male", label: "Male", icon: LuUserRound },
+  { value: "female", label: "Female", icon: FiUser },
+  { value: "other", label: "Other", icon: LuUsersRound },
 ];
+
+const fieldClassName =
+  "h-[54px] w-full rounded-[11px] border border-[#ddd2c7] bg-white px-4 text-[14px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 placeholder:text-[#9a8b80]";
 
 export function ProfileStep({
   user,
@@ -47,6 +51,7 @@ export function ProfileStep({
   profileDob,
   profileSaving,
   profileError,
+  autoFocus,
   onNameChange,
   onEmailChange,
   onAvatarChange,
@@ -55,26 +60,25 @@ export function ProfileStep({
   onProfileError,
   onSubmit,
 }: ProfileStepProps) {
-  // Max date for DOB: today
   const today = new Date().toISOString().split("T")[0];
 
   return (
-    <m.div
-      key="step1"
+    <m.section
+      aria-labelledby="profile-information-heading"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="max-w-xl mx-auto bg-white rounded-3xl border border-[#E8DFD4] p-6 sm:p-9 shadow-xs"
+      className="bg-[#fffdf8] p-5 sm:p-8 lg:p-10 xl:p-[52px]"
     >
-      <div className="mb-6">
-        <span className="inline-block px-3 py-1 rounded-full bg-[#5C1B13]/8 text-[#5C1B13] text-[11px] font-bold tracking-wide mb-2 uppercase">
-          Step 1 of 3
-        </span>
-        <h1 className="text-2xl font-serif font-bold text-[#1A1008]">
-          Complete Your Profile
+      <div className="mb-7 sm:mb-8">
+        <h1
+          id="profile-information-heading"
+          className="font-heading text-[28px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[32px]"
+        >
+          Profile Information
         </h1>
-        <p className="text-xs sm:text-sm text-[#3A241C]/70 mt-1">
-          Tell us who to address daily morning milk dispatches to.
+        <p className="mt-1.5 text-[14px] text-[#715e50] sm:text-[15px]">
+          This helps us serve you better.
         </p>
       </div>
 
@@ -82,167 +86,180 @@ export function ProfileStep({
         <div
           role="alert"
           aria-live="polite"
-          className="mb-5 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2"
+          className="mb-6 flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-[13px] text-red-700"
         >
-          <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+          <FiAlertCircle className="h-4 w-4 shrink-0" />
           <span>{profileError}</span>
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        {/* Avatar Upload with Square Crop & Resize */}
-        <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]">
+      <form onSubmit={onSubmit}>
+        <div className="mb-7">
           <AvatarUpload
             initialUrl={profileAvatar}
             name={profileName || user?.name || "Purety"}
             onUploaded={onAvatarChange}
             onError={onProfileError}
+            size="large"
+            actionLabel="Change Photo"
+            className="!flex-row !items-center !gap-5"
           />
         </div>
 
-        {/* Verified Phone (Read-Only) */}
-        <div>
-          <label className="block text-xs font-bold text-[#1A1008] uppercase tracking-wider mb-1.5">
-            Mobile Number (Verified)
-          </label>
-          <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#FBF6EE] border border-[#E8DFD4] text-xs font-mono font-semibold text-[#1A1008]">
-            <div className="flex items-center gap-2">
-              <FiPhone className="w-3.5 h-3.5 text-[#5C1B13]" />
-              <span>{user?.phone}</span>
-            </div>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-              Phone Verified ✓
-            </span>
-          </div>
-          <p className="text-[11px] text-[#3A241C]/50 mt-1">
-            Daily delivery SMS &amp; morning notifications will be sent to this number.
-          </p>
-        </div>
-
-        {/* Full Name (Required) */}
-        <div>
-          <label
-            htmlFor="profileNameInput"
-            className="block text-xs font-bold text-[#1A1008] uppercase tracking-wider mb-1.5"
-          >
-            Full Name *
-          </label>
-          <div className="flex items-center rounded-2xl border border-[#E8DFD4] focus-within:border-[#5C1B13] bg-[#FFFDF7] px-4 py-3 transition-colors">
-            <FiUser className="w-4 h-4 text-[#3A241C]/40 mr-3 shrink-0" />
-            <input
-              id="profileNameInput"
-              type="text"
-              required
-              value={profileName}
-              onChange={(e) => {
-                onNameChange(e.target.value);
-                onProfileError(null);
-              }}
-              placeholder="e.g. Anand Agrawal"
-              className="w-full bg-transparent text-sm font-semibold text-[#1A1008] focus:outline-none"
-              autoFocus
-            />
-          </div>
-        </div>
-
-        {/* Gender Selection (Pill-style) */}
-        <div>
-          <label className="block text-xs font-bold text-[#1A1008] uppercase tracking-wider mb-2.5">
-            Gender
-          </label>
-          <div className="flex flex-wrap gap-2.5">
-            {GENDER_OPTIONS.map((opt) => {
-              const isSelected = profileGender === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => onGenderChange(opt.value)}
-                  className={`
-                    inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold
-                    transition-all duration-200 cursor-pointer border
-                    ${
-                      isSelected
-                        ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-md shadow-[#5C1B13]/20 scale-[1.02]"
-                        : "bg-[#FFFDF7] text-[#3A241C] border-[#E8DFD4] hover:border-[#5C1B13]/40 hover:bg-[#FAF3EA]"
-                    }
-                  `}
-                >
-                  <span className="text-sm">{opt.emoji}</span>
-                  <span>{opt.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Date of Birth */}
-        <div>
-          <label
-            htmlFor="profileDobInput"
-            className="block text-xs font-bold text-[#1A1008] uppercase tracking-wider mb-1.5"
-          >
-            Date of Birth
-          </label>
-          <div className="flex items-center rounded-2xl border border-[#E8DFD4] focus-within:border-[#5C1B13] bg-[#FFFDF7] px-4 py-3 transition-colors">
-            <FiCalendar className="w-4 h-4 text-[#3A241C]/40 mr-3 shrink-0" />
-            <input
-              id="profileDobInput"
-              type="date"
-              value={profileDob}
-              max={today}
-              onChange={(e) => onDobChange(e.target.value)}
-              className="w-full bg-transparent text-sm font-semibold text-[#1A1008] focus:outline-none cursor-pointer"
-            />
-          </div>
-          <p className="text-[11px] text-[#3A241C]/50 mt-1">
-            We may surprise you with a special birthday treat 🎂
-          </p>
-        </div>
-
-        {/* Email Address (Optional) */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2 lg:gap-y-6">
+          <div>
             <label
-              htmlFor="profileEmailInput"
-              className="block text-xs font-bold text-[#1A1008] uppercase tracking-wider"
+              htmlFor="profileNameInput"
+              className="mb-2 block text-[13px] font-semibold text-[#24130f]"
             >
-              Email Address
+              Full Name <span className="text-[#7a2417]">*</span>
             </label>
-            <span className="text-[10px] text-[#3A241C]/55 italic">Optional (for invoices)</span>
+            <div className="relative">
+              <FiUser
+                className="pointer-events-none absolute left-4 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-[#7a2417]"
+                aria-hidden="true"
+              />
+              <input
+                id="profileNameInput"
+                type="text"
+                required
+                autoComplete="name"
+                value={profileName}
+                onChange={(event) => {
+                  onNameChange(event.target.value);
+                  onProfileError(null);
+                }}
+                placeholder="Your full name"
+                className={`${fieldClassName} pl-11`}
+                autoFocus={autoFocus}
+              />
+            </div>
           </div>
-          <div className="flex items-center rounded-2xl border border-[#E8DFD4] focus-within:border-[#5C1B13] bg-[#FFFDF7] px-4 py-3 transition-colors">
-            <FiMail className="w-4 h-4 text-[#3A241C]/40 mr-3 shrink-0" />
-            <input
-              id="profileEmailInput"
-              type="email"
-              value={profileEmail}
-              onChange={(e) => onEmailChange(e.target.value)}
-              placeholder="e.g. anand@puretyfarm.com"
-              className="w-full bg-transparent text-sm font-medium text-[#1A1008] focus:outline-none"
-            />
+
+          <div>
+            <label
+              htmlFor="profileMobileInput"
+              className="mb-2 block text-[13px] font-semibold text-[#24130f]"
+            >
+              Mobile Number <span className="text-[#7a2417]">*</span>
+            </label>
+            <div className="flex h-[54px] items-center gap-2 rounded-[11px] border border-[#ddd2c7] bg-white px-3.5">
+              <FiPhone
+                className="h-4 w-4 shrink-0 text-[#7a2417]"
+                aria-hidden="true"
+              />
+              <input
+                id="profileMobileInput"
+                type="tel"
+                value={user?.phone || ""}
+                readOnly
+                aria-readonly="true"
+                className="min-w-0 flex-1 bg-transparent text-[14px] font-medium text-[#24130f] outline-none"
+              />
+              <span className="shrink-0 rounded-full bg-[#e8f4e9] px-2.5 py-1 text-[11px] font-semibold text-[#367847]">
+                Verified ✓
+              </span>
+            </div>
           </div>
-          <p className="text-[11px] text-[#3A241C]/50 mt-1">
-            Used optionally for monthly billing summaries and tax invoices.
-          </p>
+
+          <div>
+            <label
+              htmlFor="profileDobInput"
+              className="mb-2 block text-[13px] font-semibold text-[#24130f]"
+            >
+              Date of Birth
+            </label>
+            <div className="relative">
+              <FiCalendar
+                className="pointer-events-none absolute left-4 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-[#7a2417]"
+                aria-hidden="true"
+              />
+              <input
+                id="profileDobInput"
+                type="date"
+                value={profileDob}
+                max={today}
+                onChange={(event) => onDobChange(event.target.value)}
+                className={`${fieldClassName} cursor-pointer pl-11`}
+              />
+            </div>
+          </div>
+
+          <fieldset>
+            <legend className="mb-2 block text-[13px] font-semibold text-[#24130f]">
+              Gender
+            </legend>
+            <div className="grid grid-cols-3 gap-2">
+              {GENDER_OPTIONS.map(({ value, label, icon: Icon }) => {
+                const isSelected = profileGender === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => onGenderChange(value)}
+                    className={`inline-flex h-[46px] items-center justify-center gap-1.5 rounded-[10px] border px-2 text-[12px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a2417] sm:gap-2 sm:text-[13px] ${
+                      isSelected
+                        ? "border-[#7a2417] bg-[#7a2417] text-white"
+                        : "border-[#ddd2c7] bg-white text-[#24130f] hover:border-[#a65a3a]"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <div className="lg:col-span-2">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label
+                htmlFor="profileEmailInput"
+                className="text-[13px] font-semibold text-[#24130f]"
+              >
+                Email Address
+              </label>
+              <span className="text-[11px] text-[#8b7b70]">
+                Optional (for invoices)
+              </span>
+            </div>
+            <div className="relative">
+              <FiMail
+                className="pointer-events-none absolute left-4 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-[#7a2417]"
+                aria-hidden="true"
+              />
+              <input
+                id="profileEmailInput"
+                type="email"
+                autoComplete="email"
+                value={profileEmail}
+                onChange={(event) => onEmailChange(event.target.value)}
+                placeholder="Your email address"
+                className={`${fieldClassName} pl-11`}
+              />
+            </div>
+            <p className="mt-2 text-[11px] text-[#8b7b70]">
+              Used to share your orders, billing and important updates.
+            </p>
+          </div>
         </div>
 
-        {/* Submit CTA */}
-        <div className="pt-3">
-          <Button
+        <div className="mt-7 flex justify-stretch border-t border-[#eee5db] pt-5 sm:mt-8 sm:justify-end sm:pt-6">
+          <button
             type="submit"
-            variant="primary"
-            size="md"
-            fullWidth
             disabled={profileSaving}
-            className="rounded-2xl py-3.5 text-xs font-bold shadow-md shadow-[#5C1B13]/15 flex items-center justify-center gap-2 cursor-pointer"
+            className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[11px] bg-[#7a2417] px-5 text-[13px] font-semibold text-white transition-colors hover:bg-[#5f1b12] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a2417] disabled:cursor-not-allowed disabled:opacity-60 sm:h-[58px] sm:w-[min(100%,360px)] sm:text-[14px]"
           >
-            <span>{profileSaving ? "Saving Details..." : "Continue to Delivery Location"}</span>
-            <FiArrowRight className="w-4 h-4" />
-          </Button>
+            <span>
+              {profileSaving
+                ? "Saving Details..."
+                : "Continue to Delivery Location"}
+            </span>
+            <FiArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
       </form>
-    </m.div>
+    </m.section>
   );
 }

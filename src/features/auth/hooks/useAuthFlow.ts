@@ -22,17 +22,6 @@ export function useAuthFlow() {
   const redirectUrl = getSafeRedirectUrl(searchParams.get("redirect"));
   const { isLoggedIn, user, refreshUser } = useAuth();
 
-  // If already logged in, route straight to current onboarding step or account
-  useEffect(() => {
-    if (isLoggedIn && user) {
-      if (user.onboardingStep && user.onboardingStep !== "complete") {
-        router.replace("/onboarding");
-      } else {
-        router.replace(redirectUrl === "/onboarding" ? "/account" : redirectUrl);
-      }
-    }
-  }, [isLoggedIn, user, redirectUrl, router]);
-
   const [step, setStep] = useState<AuthStep>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpValues, setOtpValues] = useState<string[]>(["", "", "", "", "", ""]);
@@ -46,6 +35,13 @@ export function useAuthFlow() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
+
+  // An existing session should continue to the account area, not restart onboarding.
+  useEffect(() => {
+    if (isLoggedIn && user && step === "phone") {
+      router.replace(redirectUrl === "/onboarding" ? "/account" : redirectUrl);
+    }
+  }, [isLoggedIn, user, step, redirectUrl, router]);
 
   // References for OTP inputs
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -192,15 +188,11 @@ export function useAuthFlow() {
         return;
       }
 
-      const updatedUser = await refreshUser();
-      const nextStep =
-        data.onboardingStep ||
-        updatedUser?.onboardingStep ||
-        (data.isNewUser ? "profile_pending" : "complete");
+      await refreshUser();
 
       setSuccessMessage("Authentication successful! Redirecting...");
       setTimeout(() => {
-        if (nextStep !== "complete") {
+        if (data.isNewUser) {
           router.replace("/onboarding");
         } else {
           router.replace(redirectUrl === "/onboarding" ? "/account" : redirectUrl);

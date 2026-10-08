@@ -98,11 +98,20 @@ export function PlanStep({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="space-y-8"
+      className="space-y-6"
     >
+      <header>
+        <h1 className="font-heading text-[28px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[32px]">
+          Select Your Milk Plan
+        </h1>
+        <p className="mt-1.5 text-[14px] text-[#715e50] sm:text-[15px]">
+          Choose the plan that works best for your home.
+        </p>
+      </header>
+
       {/* Top Delivery Address Badge */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        {savedAddress && (
+      {savedAddress && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center shrink-0">
@@ -125,8 +134,8 @@ export function PlanStep({
               Change
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {planError && (
         <div
@@ -140,7 +149,7 @@ export function PlanStep({
       )}
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {PLANS.map((plan) => {
           const Icon = plan.icon;
           const isSelected = selectedPlanId === plan.id;
@@ -314,7 +323,7 @@ export function PlanStep({
           className="rounded-xl min-h-[44px] px-4 py-2 text-xs font-semibold cursor-pointer"
         >
           <FiArrowLeft className="w-3.5 h-3.5 mr-1" />
-          <span>Back to Location</span>
+          <span>Back to Delivery Location</span>
         </Button>
       </div>
 

@@ -1,5 +1,9 @@
 import { ApiError, ApiResponse } from "@/types/api";
 import { env } from "@/lib/config/env";
+import {
+  endAuthSession,
+  retryAfterUnauthorized,
+} from "@/lib/auth/refreshSession";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
 
 export interface RequestOptions extends RequestInit {
@@ -14,19 +18,12 @@ const BACKEND_BASE_URL = (
   "https://api-puretyfarm.onrender.com"
 ).replace(/\/+$/, "");
 
-/**
- * Resolves the full URL based on configured API mode and endpoint path:
- * - Paths starting with /api/v1/ or /auth/ are routed directly to backend base URL
- * - If NEXT_PUBLIC_API_MODE is 'direct', relative paths are routed to backend base URL
- * - Otherwise relative paths remain local (Next.js API routes)
- */
 function resolveUrl(path: string): string {
   if (path.startsWith("http://") || path.startsWith("https://")) {
     return path;
   }
 
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-
   if (
     cleanPath.startsWith("/api/v1/") ||
     cleanPath.startsWith("/auth/") ||
@@ -35,187 +32,189 @@ function resolveUrl(path: string): string {
   ) {
     return `${BACKEND_BASE_URL}${cleanPath}`;
   }
-
   return cleanPath;
 }
 
-let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
-
-function onTokenRefreshed(newToken: string) {
-  refreshSubscribers.forEach((cb) => cb(newToken));
-  refreshSubscribers = [];
+function isAuthEndpoint(endpoint: string): boolean {
+  return /\/auth\/customer\/(refresh|login|verify-otp|logout)(?:\/|$)/.test(
+    endpoint
+  );
 }
 
-/**
- * Universal typed API client for PuretyFarm.
- * Handles timeouts, Bearer token injection, automatic token rotation on 401, credentials, and error normalization.
- */
+function normalizeError(data: unknown, status: number): ApiError {
+  const body = data && typeof data === "object"
+    ? (data as Record<string, unknown>)
+    : {};
+  const messageValue = body.error || body.message;
+  const message = Array.isArray(messageValue)
+    ? messageValue.join(", ")
+    : typeof messageValue === "string"
+      ? messageValue
+      : `Request failed with status ${status}`;
+
+  return new ApiError(
+    message,
+    status,
+    typeof body.code === "string" ? body.code : undefined,
+    data
+  );
+}
+
+async function parseResponse<T>(response: Response): Promise<T> {
+  const data = (await response.json().catch(() => ({}))) as ApiResponse<T>;
+  if (!response.ok) throw normalizeError(data, response.status);
+  return data as T;
+}
+
 export async function apiClient<T = unknown>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { timeoutMs = 15000, params, headers, skipAuth = false, ...customConfig } = options;
+  const {
+    timeoutMs = 15000,
+    params,
+    headers,
+    skipAuth = false,
+    signal: callerSignal,
+    ...customConfig
+  } = options;
 
   let url = resolveUrl(endpoint);
-
-  // Append query parameters if present
   if (params) {
     const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, val]) => {
-      if (val !== undefined) {
-        searchParams.append(key, String(val));
-      }
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) searchParams.append(key, String(value));
     });
     const queryString = searchParams.toString();
-    if (queryString) {
-      url += (url.includes("?") ? "&" : "?") + queryString;
+    if (queryString) url += (url.includes("?") ? "&" : "?") + queryString;
+  }
+
+  const requestOnce = async (accessToken?: string | null) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const abortFromCaller = () => controller.abort();
+    callerSignal?.addEventListener("abort", abortFromCaller);
+
+    const requestHeaders = new Headers(headers);
+    requestHeaders.set("Accept", "application/json");
+    if (
+      customConfig.body &&
+      !(typeof FormData !== "undefined" && customConfig.body instanceof FormData) &&
+      !requestHeaders.has("Content-Type")
+    ) {
+      requestHeaders.set("Content-Type", "application/json");
     }
-  }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  const defaultHeaders: Record<string, string> = {
-    Accept: "application/json",
-  };
-
-  // If request has a body and it is not FormData, set Content-Type to JSON
-  if (customConfig.body && !(customConfig.body instanceof FormData)) {
-    defaultHeaders["Content-Type"] = "application/json";
-  }
-
-  // Automatically attach Bearer token from tokenStorage if available and not skipped
-  if (!skipAuth && typeof window !== "undefined") {
-    const token = tokenStorage.getAccessToken();
-    if (token) {
-      defaultHeaders["Authorization"] = `Bearer ${token}`;
+    const token = accessToken === undefined
+      ? tokenStorage.getAccessToken()
+      : accessToken;
+    if (!skipAuth && token) {
+      requestHeaders.set("Authorization", `Bearer ${token}`);
     }
-  }
 
-  const config: RequestInit = {
-    ...customConfig,
-    headers: {
-      ...defaultHeaders,
-      ...(headers as Record<string, string>),
-    },
-    credentials: "include", // Supports first-party cookies and cross-origin with CORS
-    signal: controller.signal,
-  };
-
-  try {
-    const response = await fetch(url, config);
-    clearTimeout(timeoutId);
-
-    // If 401 Unauthorized occurs on an authenticated request and we have a refreshToken, attempt refresh once
-    const isAuthEndpoint =
-      endpoint.includes("/refresh") ||
-      endpoint.includes("/login") ||
-      endpoint.includes("/verify-otp");
-
-    if (response.status === 401 && !isAuthEndpoint && typeof window !== "undefined") {
-      const refreshToken = tokenStorage.getRefreshToken();
-      if (refreshToken && !isRefreshing) {
-        isRefreshing = true;
-        try {
-          const refreshRes = await fetch(`${BACKEND_BASE_URL}/api/v1/auth/customer/refresh`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-            body: JSON.stringify({ refreshToken }),
-          });
-
-          if (refreshRes.ok) {
-            const refreshData = await refreshRes.json();
-            if (refreshData.accessToken && refreshData.refreshToken) {
-              tokenStorage.setTokens({
-                accessToken: refreshData.accessToken,
-                refreshToken: refreshData.refreshToken,
-              });
-              onTokenRefreshed(refreshData.accessToken);
-              isRefreshing = false;
-
-              // Retry original request with new access token
-              return apiClient<T>(endpoint, {
-                ...options,
-                headers: {
-                  ...headers,
-                  Authorization: `Bearer ${refreshData.accessToken}`,
-                },
-              });
-            }
-          }
-        } catch (refreshErr) {
-          console.error("Token refresh failed:", refreshErr);
-        } finally {
-          isRefreshing = false;
-        }
-
-        // If refresh failed, clear tokens
-        tokenStorage.clearTokens();
+    try {
+      return await fetch(url, {
+        ...customConfig,
+        headers: requestHeaders,
+        credentials: "include",
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new ApiError(
+          "Request timeout. Please check your connection and try again.",
+          408,
+          "TIMEOUT"
+        );
       }
-    }
-
-    // Parse JSON safely
-    const data = (await response.json().catch(() => ({}))) as ApiResponse<T>;
-
-    if (!response.ok) {
-      const errorMessage =
-        (data && typeof data.error === "string" ? data.error : null) ||
-        (data && typeof data.message === "string" ? data.message : null) ||
-        (data && Array.isArray((data as any).message) ? (data as any).message.join(", ") : null) ||
-        `Request failed with status ${response.status}`;
-
       throw new ApiError(
-        errorMessage,
-        response.status,
-        typeof data.code === "string" ? data.code : undefined,
-        data
+        error instanceof Error
+          ? error.message
+          : "A network error occurred. Please try again.",
+        500,
+        "NETWORK_ERROR"
       );
+    } finally {
+      clearTimeout(timeoutId);
+      callerSignal?.removeEventListener("abort", abortFromCaller);
+    }
+  };
+
+  let response = await requestOnce();
+  if (
+    response.status === 401 &&
+    !skipAuth &&
+    !isAuthEndpoint(endpoint) &&
+    typeof window !== "undefined"
+  ) {
+    try {
+      response = await retryAfterUnauthorized((accessToken) =>
+        requestOnce(accessToken)
+      );
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        error.code === "NO_REFRESH_TOKEN"
+      ) {
+        endAuthSession();
+      }
+      throw error;
     }
 
-    return data as T;
-  } catch (err: unknown) {
-    clearTimeout(timeoutId);
-
-    if (err instanceof ApiError) {
-      throw err;
+    if (response.status === 401) {
+      endAuthSession();
     }
-
-    if (err instanceof Error && err.name === "AbortError") {
-      throw new ApiError("Request timeout. Please check your connection and try again.", 408, "TIMEOUT");
-    }
-
-    const message = err instanceof Error ? err.message : "A network error occurred. Please try again.";
-    throw new ApiError(message, 500, "NETWORK_ERROR");
   }
+
+  return parseResponse<T>(response);
 }
 
-// Attach HTTP method convenience helpers directly to apiClient
 apiClient.get = <T = unknown>(endpoint: string, options?: RequestOptions) =>
   apiClient<T>(endpoint, { ...options, method: "GET" });
 
-apiClient.post = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+apiClient.post = <T = unknown>(
+  endpoint: string,
+  body?: unknown,
+  options?: RequestOptions
+) =>
   apiClient<T>(endpoint, {
     ...options,
     method: "POST",
-    body: body instanceof FormData ? body : JSON.stringify(body),
+    body:
+      typeof FormData !== "undefined" && body instanceof FormData
+        ? body
+        : JSON.stringify(body),
   });
 
-apiClient.patch = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+apiClient.patch = <T = unknown>(
+  endpoint: string,
+  body?: unknown,
+  options?: RequestOptions
+) =>
   apiClient<T>(endpoint, {
     ...options,
     method: "PATCH",
-    body: body instanceof FormData ? body : JSON.stringify(body),
+    body:
+      typeof FormData !== "undefined" && body instanceof FormData
+        ? body
+        : JSON.stringify(body),
   });
 
-apiClient.put = <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
+apiClient.put = <T = unknown>(
+  endpoint: string,
+  body?: unknown,
+  options?: RequestOptions
+) =>
   apiClient<T>(endpoint, {
     ...options,
     method: "PUT",
-    body: body instanceof FormData ? body : JSON.stringify(body),
+    body:
+      typeof FormData !== "undefined" && body instanceof FormData
+        ? body
+        : JSON.stringify(body),
   });
 
 apiClient.delete = <T = unknown>(endpoint: string, options?: RequestOptions) =>

@@ -12,6 +12,8 @@ export interface AvatarUploadProps {
   onUploaded: (url: string) => void;
   onError?: (error: string) => void;
   className?: string;
+  size?: "default" | "large";
+  actionLabel?: string;
 }
 
 export function AvatarUpload({
@@ -20,6 +22,8 @@ export function AvatarUpload({
   onUploaded,
   onError,
   className = "",
+  size = "default",
+  actionLabel,
 }: AvatarUploadProps) {
   const { refreshUser, setUser } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string>(initialUrl);
@@ -265,7 +269,7 @@ export function AvatarUpload({
       <div className="relative group shrink-0">
         <div
           className={`
-            w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-[#E8DFD4] 
+            ${size === "large" ? "w-28 h-28 sm:w-32 sm:h-32" : "w-24 h-24 sm:w-28 sm:h-28"} rounded-full border-2 border-[#E8DFD4] 
             overflow-hidden shadow-sm flex items-center justify-center
             bg-gradient-to-br from-[#FAF3EA] to-[#F3E7D7] transition-all
             ${uploading ? "opacity-60" : "group-hover:border-[#5C1B13]"}
@@ -311,7 +315,7 @@ export function AvatarUpload({
         <div>
           <h4 className="text-sm font-bold text-[#1A1008]">Profile Picture</h4>
           <p className="text-[11px] text-[#3A241C]/65">
-            JPG, PNG or WebP · Max 3 MB · Square auto-cropped
+          JPG, PNG or WebP · Max 3 MB · Square image
           </p>
         </div>
 
@@ -320,10 +324,10 @@ export function AvatarUpload({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#E8DFD4] hover:border-[#5C1B13]/40 text-xs font-semibold text-[#1A1008] hover:text-[#5C1B13] transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E8DFD4] bg-white px-3.5 py-2 text-xs font-semibold text-[#1A1008] shadow-2xs transition-colors hover:border-[#5C1B13]/40 hover:text-[#5C1B13] cursor-pointer"
           >
             <FiUpload className="w-3.5 h-3.5" />
-            <span>{avatarUrl ? "Replace Photo" : "Upload Photo"}</span>
+            <span>{actionLabel || (avatarUrl ? "Replace Photo" : "Upload Photo")}</span>
           </button>
 
           {avatarUrl && (

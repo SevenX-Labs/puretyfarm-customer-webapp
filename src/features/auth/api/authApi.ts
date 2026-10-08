@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import { refreshSession } from "@/lib/auth/refreshSession";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
 import {
   SendOtpRequest,
@@ -84,7 +85,8 @@ export const authApi = {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
         user: data.user,
-        isNewUser: !data.user?.emailVerified && !data.user?.email,
+        isNewUser: data.isNewUser === true,
+        onboardingStep: data.onboardingStep || data.user?.onboardingStep,
       };
     } catch (err: any) {
       const errorMsg =
@@ -112,21 +114,15 @@ export const authApi = {
     if (!token) {
       throw new Error("No refresh token available");
     }
-
-    const data = await apiClient.post<RefreshTokenResponse>(
-      "/api/v1/auth/customer/refresh",
-      { refreshToken: token },
-      { skipAuth: true }
-    );
-
-    if (data.accessToken && data.refreshToken) {
-      tokenStorage.setTokens({
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-      });
+    if (token !== tokenStorage.getRefreshToken()) {
+      throw new Error("The supplied refresh token is no longer current.");
     }
-
-    return data;
+    await refreshSession();
+    return {
+      success: true,
+      accessToken: tokenStorage.getAccessToken() || "",
+      refreshToken: tokenStorage.getRefreshToken() || "",
+    };
   },
 
   /**

@@ -4,14 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import {
+  FiArrowLeft,
   FiMapPin,
   FiNavigation,
   FiCheckCircle,
   FiAlertCircle,
   FiArrowRight,
   FiRefreshCw,
-  FiHome,
-  FiLayers,
 } from "react-icons/fi";
 import {
   locationApi,
@@ -24,13 +23,11 @@ import { User } from "@/types/models";
 
 export interface LocationStepProps {
   user: User | null;
+  onBack: () => void;
   onAddressSaved: () => void;
 }
 
-export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
-  // Mode: "gps" | "manual"
-  const [selectionMode, setSelectionMode] = useState<"gps" | "manual">("gps");
-
+export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps) {
   // GPS State
   const [gpsDetecting, setGpsDetecting] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
@@ -271,7 +268,6 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
   const isAreaServiceable = Boolean(selectedStateId && selectedCityId && selectedAreaId);
 
   // Selected State/City/Area names for badges
-  const selectedStateName = states.find((s) => s.id === selectedStateId)?.name || detectedLocation?.state || "";
   const selectedCityName = cities.find((c) => c.id === selectedCityId)?.name || detectedLocation?.city || "";
   const selectedAreaObj = areas.find((a) => a.id === selectedAreaId);
   const selectedAreaName = selectedAreaObj?.name || detectedLocation?.area || "";
@@ -325,118 +321,88 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="space-y-6"
+      className="space-y-5"
     >
-      {/* ─── SECTION 1: SELECTION MODE SWITCHER ─── */}
-      <div className="bg-[#FAF6F0] p-1.5 rounded-2xl border border-[#E8DFD4] flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => setSelectionMode("gps")}
-          className={`
-            flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer
-            ${
-              selectionMode === "gps"
-                ? "bg-white text-[#5C1B13] shadow-sm border border-[#E8DFD4]"
-                : "text-[#6B584C] hover:text-[#1A1008]"
-            }
-          `}
-        >
-          <FiNavigation className="w-3.5 h-3.5" />
-          <span>Use Current Location (GPS)</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setSelectionMode("manual")}
-          className={`
-            flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer
-            ${
-              selectionMode === "manual"
-                ? "bg-white text-[#5C1B13] shadow-sm border border-[#E8DFD4]"
-                : "text-[#6B584C] hover:text-[#1A1008]"
-            }
-          `}
-        >
-          <FiLayers className="w-3.5 h-3.5" />
-          <span>Select State / City / Area</span>
-        </button>
-      </div>
-
-      {/* ─── MODE A: GPS LOCATION DETECTION ─── */}
-      {selectionMode === "gps" && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-[#1A1008] flex items-center gap-1.5">
-                <FiMapPin className="w-4 h-4 text-[#5C1B13]" />
-                <span>GPS Serviceability Check</span>
-              </h3>
-              <p className="text-xs text-[#6B584C] mt-0.5">
-                Detect your device coordinates to confirm morning cold-chain delivery.
-              </p>
-            </div>
-
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={handleDetectGps}
-              disabled={gpsDetecting}
-              className="rounded-xl px-4 py-2.5 text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 shrink-0 cursor-pointer shadow-xs"
-            >
-              {gpsDetecting ? (
-                <>
-                  <FiRefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Detecting GPS...</span>
-                </>
-              ) : (
-                <>
-                  <FiNavigation className="w-3.5 h-3.5" />
-                  <span>{detectedLocation ? "Re-detect GPS" : "Detect Location"}</span>
-                </>
-              )}
-            </Button>
-          </div>
-
-          {gpsError && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
-              <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
-              <span>{gpsError}</span>
-            </div>
-          )}
-
-          {detectedLocation && (
-            <div className="p-3.5 rounded-xl bg-[#FAF6F0] border border-[#E8DFD4] text-xs space-y-1">
-              <div className="flex items-center justify-between font-semibold text-[#1A1008]">
-                <span>Detected Address:</span>
-                <span className="font-mono text-[11px] text-[#5C1B13]">{detectedLocation.pincode}</span>
-              </div>
-              <p className="text-[#6B584C] text-[11px] leading-relaxed">
-                {detectedLocation.formattedAddress}
-              </p>
-            </div>
-          )}
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="font-heading text-[28px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[32px]">
+            Delivery Location
+          </h1>
+          <p className="mt-1.5 text-[14px] text-[#715e50] sm:text-[15px]">
+            Choose where you&apos;d like your fresh milk delivered.
+          </p>
         </div>
-      )}
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex min-h-10 w-fit items-center gap-1.5 text-[13px] font-semibold text-[#7a2417] transition-colors hover:text-[#5f1b12]"
+        >
+          <FiArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Back to Profile
+        </button>
+      </header>
 
-      {/* ─── MODE B: STATE -> CITY -> AREA SELECTOR (ALWAYS VISIBLE OR WHEN MANUAL) ─── */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs space-y-4">
-        <h3 className="text-sm font-bold text-[#1A1008] flex items-center gap-1.5">
-          <FiLayers className="w-4 h-4 text-[#8C603D]" />
-          <span>Active Service Delivery Hub</span>
-        </h3>
+      <section className="space-y-5 rounded-2xl border border-[#e8dfd4] bg-white p-4 sm:p-5">
+        <div className="flex flex-col items-center gap-3 sm:flex-row">
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={handleDetectGps}
+            disabled={gpsDetecting}
+            className="min-h-11 w-full rounded-xl bg-[#7a2417] px-4 text-xs font-bold text-white shadow-xs hover:bg-[#5f1b12] sm:w-auto"
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              {gpsDetecting ? (
+                <FiRefreshCw className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <FiNavigation className="h-3.5 w-3.5" />
+              )}
+              {gpsDetecting ? "Detecting Location..." : "Use Current Location"}
+            </span>
+          </Button>
+          <span className="text-[11px] font-medium text-[#8b7b70]">or select manually</span>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {gpsError && (
+          <div
+            role="alert"
+            className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+          >
+            <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+            <span>{gpsError}</span>
+          </div>
+        )}
+
+        {detectedLocation && (
+          <div className="rounded-xl bg-[#faf6f0] px-3.5 py-3 text-xs">
+            <div className="flex items-center justify-between gap-3 font-semibold text-[#24130f]">
+              <span>Detected location</span>
+              <span className="font-mono text-[11px] text-[#7a2417]">
+                {detectedLocation.pincode}
+              </span>
+            </div>
+            <p className="mt-1 text-[11px] leading-relaxed text-[#715e50]">
+              {detectedLocation.formattedAddress}
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {/* State Selector */}
           <div>
-            <label className="block text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider mb-1">
-              1. State *
+            <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+              State <span className="text-[#7a2417]">*</span>
             </label>
             <select
               value={selectedStateId}
-              onChange={(e) => setSelectedStateId(e.target.value)}
+              onChange={(e) => {
+                setSelectedStateId(e.target.value);
+                setGpsError(null);
+                setSaveError(null);
+              }}
               disabled={loadingStates}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer"
+              className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
             >
               <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
               {states.map((s) => (
@@ -449,14 +415,18 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
 
           {/* City Selector */}
           <div>
-            <label className="block text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider mb-1">
-              2. City *
+            <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+              City <span className="text-[#7a2417]">*</span>
             </label>
             <select
               value={selectedCityId}
-              onChange={(e) => setSelectedCityId(e.target.value)}
+              onChange={(e) => {
+                setSelectedCityId(e.target.value);
+                setGpsError(null);
+                setSaveError(null);
+              }}
               disabled={!selectedStateId || loadingCities}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer disabled:opacity-50"
+              className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
             >
               <option value="">
                 {loadingCities
@@ -475,14 +445,18 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
 
           {/* Area / Hub Selector */}
           <div>
-            <label className="block text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider mb-1">
-              3. Delivery Hub / Area *
+            <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+              Delivery Area / Hub <span className="text-[#7a2417]">*</span>
             </label>
             <select
               value={selectedAreaId}
-              onChange={(e) => handleAreaSelect(e.target.value)}
+              onChange={(e) => {
+                handleAreaSelect(e.target.value);
+                setGpsError(null);
+                setSaveError(null);
+              }}
               disabled={!selectedCityId || loadingAreas}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer disabled:opacity-50"
+              className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
             >
               <option value="">
                 {loadingAreas
@@ -500,23 +474,33 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
           </div>
         </div>
 
-        {/* Confirmed Serviceable Badge */}
-        {isAreaServiceable && (
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-medium">
-              <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div
+          role="status"
+          aria-live="polite"
+          className={`flex items-center gap-2 rounded-xl border px-3.5 py-3 text-[12px] ${
+            isAreaServiceable
+              ? "border-[#cce3cf] bg-[#f0f8f0] text-[#326d3c]"
+              : "border-[#e8dfd4] bg-[#faf6f0] text-[#715e50]"
+          }`}
+        >
+          {isAreaServiceable ? (
+            <>
+              <FiCheckCircle className="h-4 w-4 shrink-0 text-[#39834a]" />
               <span>
-                Serviceable Hub: <strong>{selectedAreaName}, {selectedCityName} ({activePincode})</strong>
+                Delivery available in {selectedAreaName}, {selectedCityName}
+                {activePincode ? ` (${activePincode})` : ""}.
               </span>
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-              Daily Delivery Active
-            </span>
-          </div>
-        )}
-      </div>
+            </>
+          ) : (
+            <>
+              <FiMapPin className="h-4 w-4 shrink-0 text-[#7a2417]" />
+              <span>Select a delivery area to check availability.</span>
+            </>
+          )}
+        </div>
+      </section>
 
-      {/* ─── SECTION 2: MANUAL ADDRESS DETAILS FORM (ENABLED ONCE SERVICEABLE) ─── */}
+      {/* Address details are collected after selecting an active delivery area. */}
       <AnimatePresence>
         {isAreaServiceable ? (
           <m.form
@@ -524,29 +508,27 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             onSubmit={handleSaveAddress}
-            className="p-4 sm:p-6 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs space-y-4"
+            className="space-y-4 rounded-2xl border border-[#e8dfd4] bg-white p-4 sm:p-5"
           >
-            <div className="pb-1 border-b border-[#E8DFD4]/60">
-              <h3 className="text-sm font-bold text-[#1A1008] flex items-center gap-1.5">
-                <FiHome className="w-4 h-4 text-[#5C1B13]" />
-                <span>Enter Street &amp; House Details</span>
-              </h3>
-              <p className="text-xs text-[#6B584C]">
-                Provide your exact door details for sunrise cold-chain delivery before 10 AM.
+            <div className="border-b border-[#e8dfd4]/60 pb-2">
+              <h2 className="text-sm font-bold text-[#24130f]">
+                Delivery Address Details
+              </h2>
+              <p className="mt-0.5 text-xs text-[#715e50]">
+                Add your house and street details for accurate delivery.
               </p>
             </div>
 
             {saveError && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
-                <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
+              <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
                 <span>{saveError}</span>
               </div>
             )}
 
-            {/* Flat / House Number & Building Name */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
                   Flat / House / Unit Number *
                 </label>
                 <input
@@ -555,12 +537,11 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
                   value={houseNumber}
                   onChange={(e) => setHouseNumber(e.target.value)}
                   placeholder="e.g. Flat 402, Building A"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
-
               <div>
-                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
                   Building / Society / Apartment
                 </label>
                 <input
@@ -568,59 +549,35 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
                   value={buildingName}
                   onChange={(e) => setBuildingName(e.target.value)}
                   placeholder="e.g. Green Acres Residency"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
-            </div>
-
-            {/* Street & Landmark */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
                   Street / Road Name
                 </label>
                 <input
                   type="text"
                   value={streetName}
                   onChange={(e) => setStreetName(e.target.value)}
-                  placeholder="e.g. Hill Road, Main Market Lane"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                  placeholder="e.g. Main Market Lane"
+                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
-
               <div>
-                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
                   Landmark (Optional)
                 </label>
                 <input
                   type="text"
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
-                  placeholder="e.g. Near Mehboob Studio"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-medium text-[#1A1008] focus:outline-none"
+                  placeholder="e.g. Near the market"
+                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
-            </div>
-
-            {/* Contact Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div>
-                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
-                  Address Label
-                </label>
-                <select
-                  value={addressType}
-                  onChange={(e) => setAddressType(e.target.value as "Home" | "Work" | "Other")}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none cursor-pointer"
-                >
-                  <option value="Home">Home</option>
-                  <option value="Work">Work</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
                   Receiver Name *
                 </label>
                 <input
@@ -629,12 +586,11 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Full name of receiver"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-semibold text-[#1A1008] focus:outline-none"
+                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
-
               <div>
-                <label className="block text-[11px] font-bold text-[#1A1008] uppercase tracking-wider mb-1">
+                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
                   Mobile Number *
                 </label>
                 <input
@@ -643,28 +599,46 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder="+919876543210"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#E8DFD4] focus:border-[#5C1B13] bg-[#FFFDF7] text-xs font-mono font-semibold text-[#1A1008] focus:outline-none"
+                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                  Address Label
+                </label>
+                <select
+                  value={addressType}
+                  onChange={(e) =>
+                    setAddressType(e.target.value as "Home" | "Work" | "Other")
+                  }
+                  className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                >
+                  <option value="Home">Home</option>
+                  <option value="Work">Work</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="border-t border-[#eee5db] pt-4">
               <Button
                 type="submit"
                 variant="primary"
                 size="md"
                 fullWidth
                 disabled={savingAddress}
-                className="rounded-2xl py-3.5 text-xs font-bold shadow-md shadow-[#5C1B13]/15 flex items-center justify-center gap-2 cursor-pointer bg-[#5C1B13] hover:bg-[#48150f] text-white"
+                className="min-h-12 w-full rounded-xl bg-[#7a2417] py-3 text-[13px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] sm:ml-auto sm:w-[min(100%,360px)]"
               >
-                <span>{savingAddress ? "Saving Address..." : "Save Delivery Address & Continue"}</span>
-                <FiArrowRight className="w-4 h-4" />
+                <span>
+                  {savingAddress ? "Saving Address..." : "Continue to Select Plan"}
+                </span>
+                <FiArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </m.form>
         ) : (
-          <div className="p-4 rounded-2xl bg-[#FAF6F0] border border-dashed border-[#E8DFD4] text-center text-xs text-[#8C7A6B]">
-            Please detect your location or select your State, City, and Delivery Hub above to unlock the address form.
+          <div className="rounded-xl border border-dashed border-[#ddd2c7] px-4 py-3 text-center text-[12px] text-[#715e50]">
+            Select a delivery area to confirm availability and enter your address.
           </div>
         )}
       </AnimatePresence>

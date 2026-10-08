@@ -25,7 +25,7 @@ import { FaWhatsapp } from "react-icons/fa";
 
 import { MAIN_NAV_LINKS as NAV_LINKS } from "@/content/navigation";
 
-export function Navbar() {
+export function Navbar({ variant = "default" }: { variant?: "default" | "auth" }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { isLoggedIn, user } = useAuth();
@@ -67,11 +67,15 @@ export function Navbar() {
   return (
     <nav
       aria-label="Main Navigation"
-      className="fixed top-2 sm:top-4 left-0 right-0 z-50 px-3 sm:px-6 pointer-events-none transition-all duration-300"
+      className={`fixed top-2 sm:top-4 left-0 right-0 z-50 pointer-events-none transition-all duration-300 ${
+        variant === "auth" ? "px-2 sm:px-6" : "px-3 sm:px-6"
+      }`}
     >
       {/* ─── FLOATING ROUNDED PILL CONTAINER ─── */}
       <div
-        className={`pointer-events-auto mx-auto max-w-6xl rounded-full transition-all duration-300 ${isScrolled
+        className={`pointer-events-auto mx-auto ${
+          variant === "auth" ? "w-full max-w-[1240px]" : "max-w-6xl"
+        } rounded-full transition-all duration-300 ${isScrolled
             ? "bg-white/95 shadow-[0_12px_36px_rgba(26,16,8,0.08)] border border-[#E5DACD] py-1.5 sm:py-2 px-3 sm:px-5 scale-[0.99]"
             : "bg-white shadow-[0_8px_28px_rgba(26,16,8,0.06)] border border-[#ECE2D8] py-2 sm:py-2.5 px-3.5 sm:px-6"
           } backdrop-blur-xl`}
@@ -93,7 +97,9 @@ export function Navbar() {
               <m.div key={link.label} whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}>
                 <Link
                   href={link.href}
-                  className="px-3.5 py-1.5 rounded-full text-[13.5px] font-medium text-[#2A1E17] hover:text-[#541711] hover:bg-[#541711]/5 transition-all duration-180 block"
+                  className={`block rounded-full px-3.5 py-1.5 font-medium text-[#2A1E17] transition-all duration-180 hover:bg-[#541711]/5 hover:text-[#541711] ${
+                    variant === "auth" ? "text-[12px] xl:px-4" : "text-[13.5px]"
+                  }`}
                 >
                   {link.label}
                 </Link>
