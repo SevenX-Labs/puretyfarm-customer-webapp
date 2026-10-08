@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 import { profileApi } from "@/features/profile/api/profileApi";
 import { locationApi } from "@/features/location/api/locationApi";
+import { ordersApi } from "@/features/orders";
 import {
   OrdersResponse,
   OrderResponse,
@@ -12,11 +13,68 @@ import {
 
 export const accountApi = {
   async getOrders(): Promise<OrdersResponse> {
+    try {
+      const res = await ordersApi.listOrders();
+      if (res && Array.isArray(res.data)) {
+        return {
+          success: true,
+          orders: res.data as any,
+        };
+      }
+    } catch (err) {
+      console.warn("Direct /api/v1/customer/orders fetch failed, attempting fallback:", err);
+    }
     return apiClient.get<OrdersResponse>("/api/orders");
   },
 
+  async getOrder(id: string) {
+    try {
+      const order = await ordersApi.getOrder(id);
+      if (order) {
+        return { success: true, order };
+      }
+    } catch (err) {
+      console.warn("Direct order get failed, fallback to local:", err);
+    }
+    return apiClient.get<{ success: boolean; order?: any }>(`/api/orders/${id}`);
+  },
+
   async createOrder(orderPayload: unknown): Promise<OrderResponse> {
+    // If payload has planDeliveryId & addressId, send to backend API
+    const p = orderPayload as Record<string, any>;
+    if (p && p.planDeliveryId && p.addressId) {
+      try {
+        const res = await ordersApi.createOrder({
+          planDeliveryId: p.planDeliveryId,
+          addressId: p.addressId,
+        });
+        return {
+          success: res.success,
+          order: res.order as any,
+          message: res.message,
+        };
+      } catch (err: any) {
+        return {
+          success: false,
+          order: {} as any,
+          error: err?.message || "Failed to create order.",
+        };
+      }
+    }
+
     return apiClient.post<OrderResponse>("/api/orders", orderPayload);
+  },
+
+  async reorder(orderId: string, addressId?: string) {
+    return ordersApi.reorder(orderId, { addressId });
+  },
+
+  async getInvoice(orderId: string) {
+    return ordersApi.getInvoice(orderId);
+  },
+
+  async payOrder(orderId: string, paymentMethod: "WALLET" = "WALLET") {
+    return ordersApi.payOrder(orderId, { paymentMethod });
   },
 
   async getAddresses(): Promise<AddressesResponse> {

@@ -35,39 +35,76 @@ export interface Address {
 }
 
 export type OrderStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "PROCESSING"
+  | "OUT_FOR_DELIVERY"
+  | "DELIVERED"
+  | "CANCELLED"
+  | "FAILED"
   | "Placed"
   | "Confirmed"
   | "Out for delivery"
   | "Delivered"
   | "Cancelled";
 
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED";
+
 export interface OrderItem {
-  id: string;
-  name: string;
+  id?: string;
+  name?: string;
+  productNameSnapshot?: string;
   quantity: number;
-  price: number;
-  unit: string;
+  price?: number;
+  unit?: string;
+  unitPricePaise?: number;
+  discountPaise?: number;
+  taxPaise?: number;
+  totalPaise?: number;
+}
+
+export interface AddressSnapshot {
+  fullName?: string;
+  phone?: string;
+  mobile?: string;
+  alternatePhone?: string;
+  houseNumber?: string;
+  buildingName?: string;
+  streetName?: string;
+  street?: string;
+  locality?: string;
+  landmark?: string;
+  city?: string;
+  pincode?: string;
+  addressType?: string;
 }
 
 export interface Order {
   id: string;
-  userId: string;
+  userId?: string;
+  orderNumber?: string;
+  planType?: "BUY_ONCE" | "SEVEN_DAY_TRIAL" | "MONTHLY" | string;
   items: OrderItem[];
-  totalAmount: number;
+  totalAmount?: number;
+  subtotalPaise?: number;
+  discountPaise?: number;
+  taxPaise?: number;
+  deliveryFeePaise?: number;
+  totalPaise?: number;
   status: OrderStatus;
-  deliveryAddress: {
-    fullName: string;
-    phone: string;
-    alternatePhone?: string;
-    street: string;
-    locality: string;
-    city: string;
-    pincode: string;
-    addressType?: string;
-  };
+  paymentStatus?: PaymentStatus | string;
+  deliveryAddress?: AddressSnapshot;
+  addressSnapshot?: AddressSnapshot;
   deliveryDate?: string;
+  deliveryStartTime?: string;
+  deliveryEndTime?: string;
+  invoice?: {
+    invoiceNumber: string;
+    issuedAt: string;
+  };
+  reorderedFromOrderId?: string | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface Subscription {

@@ -52,6 +52,10 @@ export function AccountView() {
     selectedOrder,
     setSelectedOrder,
     handlePlaceSampleOrder,
+    handleReorder,
+    handlePayOrder,
+    handleGetInvoice,
+    orderActionLoading,
     addresses,
     addressesLoading,
     showAddressModal,
@@ -419,6 +423,10 @@ export function AccountView() {
                 selectedOrder={selectedOrder}
                 onSelectOrder={setSelectedOrder}
                 onPlaceSampleOrder={handlePlaceSampleOrder}
+                onReorder={handleReorder}
+                onPayOrder={handlePayOrder}
+                onGetInvoice={handleGetInvoice}
+                orderActionLoading={orderActionLoading}
               />
             )}
 

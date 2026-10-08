@@ -22,7 +22,19 @@ export function useAccountData() {
 
   const queryTab = searchParams.get("tab") as AccountTab | null;
   const [activeTab, setActiveTab] = useState<AccountTab>(() => {
-    if (queryTab && ["profile", "orders", "addresses", "subscription", "wallet", "preferences", "security", "activity"].includes(queryTab)) {
+    if (
+      queryTab &&
+      [
+        "profile",
+        "orders",
+        "addresses",
+        "subscription",
+        "wallet",
+        "preferences",
+        "security",
+        "activity",
+      ].includes(queryTab)
+    ) {
       return queryTab;
     }
     return "profile";
@@ -30,7 +42,19 @@ export function useAccountData() {
 
   useEffect(() => {
     const tab = searchParams.get("tab") as AccountTab | null;
-    if (tab && ["profile", "orders", "addresses", "subscription", "wallet", "preferences", "security", "activity"].includes(tab)) {
+    if (
+      tab &&
+      [
+        "profile",
+        "orders",
+        "addresses",
+        "subscription",
+        "wallet",
+        "preferences",
+        "security",
+        "activity",
+      ].includes(tab)
+    ) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -49,6 +73,7 @@ export function useAccountData() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderActionLoading, setOrderActionLoading] = useState(false);
 
   // Addresses State
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -251,24 +276,25 @@ export function useAccountData() {
               }
             : null
         );
-        await refreshUser();
-        setIsEditingProfile(false);
-        setProfileMsg({ type: "success", text: "Profile updated successfully!" });
-        setTimeout(() => setProfileMsg(null), 3500);
+        setProfileMsg({ type: "success", text: "Profile updated successfully." });
+        setTimeout(() => {
+          setIsEditingProfile(false);
+          setProfileMsg(null);
+        }, 1200);
       }
-    } catch {
-      setProfileMsg({ type: "error", text: "Network error saving profile." });
+    } catch (err: any) {
+      setProfileMsg({ type: "error", text: err.message || "An unexpected error occurred." });
     } finally {
       setProfileSaving(false);
     }
   };
 
-  // Open Address Modal
+  // Address Modal handlers
   const handleOpenAddAddress = () => {
     setEditingAddress(null);
     setAddressForm({
       fullName: user?.name || "",
-      phone: user?.phone?.replace("+91", "") || "",
+      phone: user?.phone || "",
       street: "",
       locality: "",
       landmark: "",
@@ -283,7 +309,7 @@ export function useAccountData() {
     setEditingAddress(addr);
     setAddressForm({
       fullName: addr.fullName,
-      phone: addr.phone.replace("+91", ""),
+      phone: addr.phone,
       street: addr.street,
       locality: addr.locality,
       landmark: addr.landmark || "",
@@ -294,21 +320,27 @@ export function useAccountData() {
     setShowAddressModal(true);
   };
 
-  // Save Address
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddressSaving(true);
 
     try {
-      const data = editingAddress
-        ? await accountApi.updateAddress(editingAddress.id, addressForm)
-        : await accountApi.createAddress(addressForm);
-
-      if (data.success) {
-        await fetchAddresses();
-        setShowAddressModal(false);
+      if (editingAddress) {
+        const res = await accountApi.updateAddress(editingAddress.id, addressForm);
+        if (res.success) {
+          setShowAddressModal(false);
+          await fetchAddresses();
+        } else {
+          alert(res.error || "Failed to update address.");
+        }
       } else {
-        alert(data.error || "Failed to save address.");
+        const res = await accountApi.createAddress(addressForm);
+        if (res.success) {
+          setShowAddressModal(false);
+          await fetchAddresses();
+        } else {
+          alert(res.error || "Failed to add address.");
+        }
       }
     } catch (err) {
       console.error(err);
@@ -318,10 +350,8 @@ export function useAccountData() {
     }
   };
 
-  // Delete Address
   const handleDeleteAddress = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this address?")) return;
-
+    if (!confirm("Are you sure you want to remove this delivery address?")) return;
     try {
       const res = await accountApi.deleteAddress(id);
       if (res.success) {
@@ -332,7 +362,6 @@ export function useAccountData() {
     }
   };
 
-  // Set Default Address
   const handleSetDefaultAddress = async (addr: Address) => {
     try {
       const res = await accountApi.updateAddress(addr.id, { isDefault: true });
@@ -401,17 +430,102 @@ export function useAccountData() {
           };
 
     try {
+      // 1. Try server plan quote & confirmation for single/trial
+      let quote;
+      if (planType === "trial") {
+        quote = await plansApi.createTrialQuote(1).catch(() => null);
+      } else {
+        quote = await plansApi.createBuyOnceQuote(1).catch(() => null);
+      }
+
+      if (quote?.quoteId) {
+        try {
+          await plansApi.confirmPlanQuote({
+            quoteId: quote.quoteId,
+            paymentMethod: "WALLET",
+          });
+        } catch (cErr: any) {
+          await plansApi.confirmPlanQuote({
+            quoteId: quote.quoteId,
+            paymentMethod: "CASH",
+          }).catch(() => {});
+        }
+      }
+
       const data = await accountApi.createOrder(orderPayload);
       if (data.success) {
         await fetchOrders();
         setActiveTab("orders");
-        setSelectedOrder(data.order);
+        if (data.order) {
+          setSelectedOrder(data.order);
+        }
       } else {
         alert(data.error || "Failed to place order.");
       }
     } catch (err) {
       console.error(err);
       alert("Error placing order. Please try again.");
+    }
+  };
+
+  // Reorder a delivered order
+  const handleReorder = async (orderId: string, addressId?: string) => {
+    setOrderActionLoading(true);
+    try {
+      const selectedAddr = addressId || (addresses.find((a) => a.isDefault) || addresses[0])?.id;
+      const res = await accountApi.reorder(orderId, selectedAddr);
+      if (res && res.success) {
+        await fetchOrders();
+        if (res.order) {
+          setSelectedOrder(res.order);
+        }
+        alert(res.message || "Reorder placed successfully!");
+      } else {
+        alert("Failed to reorder. Please try again.");
+      }
+    } catch (err: any) {
+      console.error("Reorder failed:", err);
+      alert(err?.message || "Reorder failed. Order must be DELIVERED to reorder.");
+    } finally {
+      setOrderActionLoading(false);
+    }
+  };
+
+  // Pay for a pending order with Wallet
+  const handlePayOrder = async (orderId: string) => {
+    setOrderActionLoading(true);
+    try {
+      const res = await accountApi.payOrder(orderId, "WALLET");
+      if (res && res.success) {
+        await fetchOrders();
+        if (selectedOrder && selectedOrder.id === orderId) {
+          setSelectedOrder({
+            ...selectedOrder,
+            status: "CONFIRMED",
+            paymentStatus: "PAID",
+          });
+        }
+        window.dispatchEvent(new Event("wallet_update"));
+        alert("Order payment completed successfully with your wallet!");
+      } else {
+        alert(res?.message || "Payment failed.");
+      }
+    } catch (err: any) {
+      console.error("Payment failed:", err);
+      const msg = err?.data?.error || err?.message || "Payment failed. Please check your wallet balance.";
+      alert(msg);
+    } finally {
+      setOrderActionLoading(false);
+    }
+  };
+
+  // Get Invoice
+  const handleGetInvoice = async (orderId: string) => {
+    try {
+      return await accountApi.getInvoice(orderId);
+    } catch (err: any) {
+      console.error("Invoice fetch failed:", err);
+      return null;
     }
   };
 
@@ -493,7 +607,11 @@ export function useAccountData() {
   // Activate Plan (uses customized plan details if user previously customized monthly plan)
   const handleActivatePlan = async (planId: "trial" | "monthly" | "single") => {
     setSubUpdating(true);
-    const defaultMonthly = { name: "Monthly Subscription", price: 2250, dailyQuantity: "1L Daily (30L / mo)" };
+    const defaultMonthly = {
+      name: "Monthly Subscription",
+      price: 2250,
+      dailyQuantity: "1L Daily (30L / mo)",
+    };
     const monthlyDetails = customPlan
       ? {
           name: "Monthly Subscription",
@@ -516,11 +634,13 @@ export function useAccountData() {
       } else if (planId === "single") {
         quote = await plansApi.createBuyOnceQuote(1).catch(() => null);
       } else {
-        quote = await plansApi.createMonthlyQuote({
-          frequency: "DAILY",
-          quantityMode: "FIXED",
-          quantity: 1,
-        }).catch(() => null);
+        quote = await plansApi
+          .createMonthlyQuote({
+            frequency: "DAILY",
+            quantityMode: "FIXED",
+            quantity: 1,
+          })
+          .catch(() => null);
       }
 
       // 2. Confirm quote via WALLET or CASH
@@ -531,11 +651,16 @@ export function useAccountData() {
             paymentMethod: "WALLET",
           });
         } catch (confirmErr: any) {
-          if (confirmErr?.data?.error === "INSUFFICIENT_WALLET_BALANCE" || confirmErr?.status === 400) {
-            await plansApi.confirmPlanQuote({
-              quoteId: quote.quoteId,
-              paymentMethod: "CASH",
-            }).catch(() => {});
+          if (
+            confirmErr?.data?.error === "INSUFFICIENT_WALLET_BALANCE" ||
+            confirmErr?.status === 400
+          ) {
+            await plansApi
+              .confirmPlanQuote({
+                quoteId: quote.quoteId,
+                paymentMethod: "CASH",
+              })
+              .catch(() => {});
           }
         }
       }
@@ -581,6 +706,10 @@ export function useAccountData() {
     selectedOrder,
     setSelectedOrder,
     handlePlaceSampleOrder,
+    handleReorder,
+    handlePayOrder,
+    handleGetInvoice,
+    orderActionLoading,
     addresses,
     addressesLoading,
     showAddressModal,
