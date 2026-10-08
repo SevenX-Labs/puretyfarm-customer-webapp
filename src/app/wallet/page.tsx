@@ -1,12 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
 import { paymentsApi, PaymentRecord } from "@/features/payments";
+import {
+  walletApi,
+  CustomerWallet,
+  WalletTransaction,
+  WalletCreditRequest,
+} from "@/features/wallet";
 import {
   FiArrowLeft,
   FiPlusCircle,
@@ -27,6 +33,7 @@ function WalletContent() {
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
 
+  const [wallet, setWallet] = useState<CustomerWallet | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "CASH">("ONLINE");
@@ -37,8 +44,41 @@ function WalletContent() {
   } | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [livePayments, setLivePayments] = useState<PaymentRecord[]>([]);
+  const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
+  const [creditRequests, setCreditRequests] = useState<WalletCreditRequest[]>([]);
 
-  // Load wallet balance from storage & listen for updates
+  // Fetch Wallet & Ledger from Server API
+  const fetchWalletData = useCallback(async () => {
+    if (!user) return;
+    try {
+      const [walletRes, txRes, crRes] = await Promise.all([
+        walletApi.getWallet().catch(() => null),
+        walletApi.getTransactions({ limit: 15 }).catch(() => null),
+        walletApi.getCreditRequests({ limit: 5 }).catch(() => null),
+      ]);
+
+      if (walletRes && walletRes.balancePaise !== undefined) {
+        setWallet(walletRes);
+        const rubBalance = walletRes.balancePaise / 100;
+        setBalance(rubBalance);
+        try {
+          localStorage.setItem(`pf_wallet_${user.id}`, rubBalance.toString());
+        } catch {}
+      }
+
+      if (txRes && Array.isArray(txRes.data)) {
+        setWalletTransactions(txRes.data);
+      }
+
+      if (crRes && Array.isArray(crRes.data)) {
+        setCreditRequests(crRes.data);
+      }
+    } catch (err) {
+      console.warn("Wallet fetch error:", err);
+    }
+  }, [user]);
+
+  // Load wallet balance from storage & sync
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/auth?redirect=/wallet");
@@ -46,13 +86,16 @@ function WalletContent() {
     }
 
     if (user) {
+      fetchWalletData();
+
       const syncBal = () => {
+        fetchWalletData();
         try {
           const saved = localStorage.getItem(`pf_wallet_${user.id}`);
           if (saved) {
             setBalance(parseFloat(saved) || 0);
           } else {
-            setBalance(255); // Welcome starter promotional balance
+            setBalance(255);
           }
         } catch {
           setBalance(255);
@@ -67,7 +110,7 @@ function WalletContent() {
         window.removeEventListener("wallet_update", syncBal);
       };
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, fetchWalletData]);
 
   // Check URL params for txnid verification from PayU
   useEffect(() => {
@@ -90,6 +133,7 @@ function WalletContent() {
                 `Payment of ₹${amt} verified! Wallet credited successfully.`
               );
             }
+            fetchWalletData();
             window.dispatchEvent(new Event("wallet_update"));
           } else if (
             res.payment.status === "FAILED" ||
@@ -106,7 +150,7 @@ function WalletContent() {
           console.warn("Wallet verify error:", err);
         });
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, fetchWalletData]);
 
   // Load live payments history
   useEffect(() => {
@@ -147,6 +191,7 @@ function WalletContent() {
           res.message ||
             `Cash collection of ₹${amount} requested. Your wallet will be credited after admin confirmation.`
         );
+        fetchWalletData();
       }
     } catch (err: any) {
       console.warn("Live payment note, applying local balance:", err);
@@ -202,6 +247,11 @@ function WalletContent() {
     );
   }
 
+  const pendingCreditRequest = creditRequests.find((cr) => cr.status === "PENDING");
+  const refundRequest = creditRequests.find(
+    (cr) => cr.status === "REJECTED" && cr.refundStatus && cr.refundStatus !== "NOT_REQUIRED"
+  );
+
   return (
     <div className="min-h-screen bg-[#FFFDF7] flex flex-col justify-between selection:bg-[#5C1B13]/10 selection:text-[#5C1B13]">
       {/* ─── HEADER ─── */}
@@ -221,6 +271,38 @@ function WalletContent() {
 
       {/* ─── MAIN CONTENT ─── */}
       <main className="max-w-4xl w-full mx-auto p-4 sm:p-8 space-y-6 flex-1">
+        {/* Pending credit request notice */}
+        {pendingCreditRequest && (
+          <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sky-950 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
+            <FiClock className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">
+                Top-up Request Pending (₹{(pendingCreditRequest.amountPaise / 100).toFixed(0)})
+              </p>
+              <p className="text-xs text-sky-800 mt-0.5">
+                Your top-up has been received and is being verified by our depot team.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Refund Status notice */}
+        {refundRequest && (
+          <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 text-purple-950 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
+            <FiShield className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">
+                Refund Status: {refundRequest.refundStatus === "REFUND_PENDING" ? "Processing Refund" : "Refund Settled"} (₹{(refundRequest.amountPaise / 100).toFixed(0)})
+              </p>
+              <p className="text-xs text-purple-800 mt-0.5">
+                {refundRequest.refundStatus === "REFUND_PENDING"
+                  ? "Refund requested to your original source account via PayU."
+                  : "Refund confirmed and processed to your source account."}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Success message banner */}
         {rechargeSuccess && (
           <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
@@ -403,7 +485,48 @@ function WalletContent() {
               Recent Wallet Activity
             </h4>
             <div className="divide-y divide-[#E8DFD4]/70 text-xs max-h-56 overflow-y-auto">
-              {livePayments.length > 0 &&
+              {walletTransactions.length > 0 ? (
+                walletTransactions.map((tx) => (
+                  <div key={tx.id} className="py-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          tx.type === "CREDIT"
+                            ? "bg-emerald-50 text-emerald-600"
+                            : "bg-[#FAF3EA] text-[#5C1B13]"
+                        }`}
+                      >
+                        {tx.type === "CREDIT" ? (
+                          <FiArrowDownLeft className="w-3.5 h-3.5" />
+                        ) : (
+                          <FiArrowUpRight className="w-3.5 h-3.5" />
+                        )}
+                      </span>
+                      <div>
+                        <p className="font-bold text-[#1A1008]">
+                          {tx.description || (tx.type === "CREDIT" ? "Wallet Credit" : "Order Payment")}
+                        </p>
+                        <p className="text-[10px] text-[#8C7A6B]">
+                          {tx.referenceType || "LEDGER"} •{" "}
+                          {new Date(tx.createdAt).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`font-mono font-bold ${
+                        tx.type === "CREDIT" ? "text-emerald-700" : "text-[#5C1B13]"
+                      }`}
+                    >
+                      {tx.type === "CREDIT"
+                        ? `+₹${(tx.amountPaise / 100).toFixed(2)}`
+                        : `-₹${(tx.amountPaise / 100).toFixed(2)}`}
+                    </span>
+                  </div>
+                ))
+              ) : livePayments.length > 0 ? (
                 livePayments.map((p) => (
                   <div key={p.id} className="py-2.5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -437,20 +560,21 @@ function WalletContent() {
                       +₹{(p.amountPaise / 100).toFixed(2)}
                     </span>
                   </div>
-                ))}
-
-              <div className="py-2.5 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <FiArrowDownLeft className="w-3.5 h-3.5" />
-                  </span>
-                  <div>
-                    <p className="font-bold text-[#1A1008]">Promotional Starter Credit</p>
-                    <p className="text-[10px] text-[#8C7A6B]">Account creation bonus</p>
+                ))
+              ) : (
+                <div className="py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <FiArrowDownLeft className="w-3.5 h-3.5" />
+                    </span>
+                    <div>
+                      <p className="font-bold text-[#1A1008]">Promotional Starter Credit</p>
+                      <p className="text-[10px] text-[#8C7A6B]">Account creation bonus</p>
+                    </div>
                   </div>
+                  <span className="font-mono font-bold text-emerald-700">+₹255.00</span>
                 </div>
-                <span className="font-mono font-bold text-emerald-700">+₹255.00</span>
-              </div>
+              )}
             </div>
           </div>
 

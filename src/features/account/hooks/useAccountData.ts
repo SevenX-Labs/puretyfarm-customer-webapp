@@ -7,6 +7,12 @@ import { Address, Order, Subscription } from "@/types/models";
 import { accountApi } from "../api/accountApi";
 import { plansApi } from "@/features/plans/api/plansApi";
 import { paymentsApi, VerifyPaymentResponse, PaymentRecord } from "@/features/payments";
+import {
+  walletApi,
+  CustomerWallet,
+  WalletTransaction,
+  WalletCreditRequest,
+} from "@/features/wallet";
 import { AccountTab, AddressFormData } from "../types";
 import {
   PricingResult,
@@ -99,6 +105,7 @@ export function useAccountData() {
   const [subUpdating, setSubUpdating] = useState(false);
 
   // Wallet State
+  const [wallet, setWallet] = useState<CustomerWallet | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(255);
   const [walletLoading, setWalletLoading] = useState<boolean>(true);
   const [walletRecharging, setWalletRecharging] = useState<boolean>(false);
@@ -110,26 +117,57 @@ export function useAccountData() {
   } | null>(null);
   const [walletPaymentStatus, setWalletPaymentStatus] = useState<VerifyPaymentResponse | null>(null);
   const [livePayments, setLivePayments] = useState<PaymentRecord[]>([]);
+  const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
+  const [creditRequests, setCreditRequests] = useState<WalletCreditRequest[]>([]);
 
-  // Sync wallet balance from localStorage & custom events
+  // Fetch Wallet & Transactions from Server API
+  const fetchWalletData = useCallback(async () => {
+    if (!user) return;
+    try {
+      const [walletRes, txRes, crRes] = await Promise.all([
+        walletApi.getWallet().catch(() => null),
+        walletApi.getTransactions({ limit: 20 }).catch(() => null),
+        walletApi.getCreditRequests({ limit: 10 }).catch(() => null),
+      ]);
+
+      if (walletRes && walletRes.balancePaise !== undefined) {
+        setWallet(walletRes);
+        const rubBalance = walletRes.balancePaise / 100;
+        setWalletBalance(rubBalance);
+        try {
+          localStorage.setItem(`pf_wallet_${user.id}`, rubBalance.toString());
+        } catch {}
+      }
+
+      if (txRes && Array.isArray(txRes.data)) {
+        setWalletTransactions(txRes.data);
+      }
+
+      if (crRes && Array.isArray(crRes.data)) {
+        setCreditRequests(crRes.data);
+      }
+    } catch (err) {
+      console.warn("Wallet fetch error, using local fallback:", err);
+    } finally {
+      setWalletLoading(false);
+    }
+  }, [user]);
+
+  // Sync wallet balance on mount and custom events
   useEffect(() => {
     if (!user) return;
+
+    fetchWalletData();
+
     const syncBalance = () => {
+      fetchWalletData();
       try {
         const saved = localStorage.getItem(`pf_wallet_${user.id}`);
         if (saved !== null) {
           setWalletBalance(parseFloat(saved) || 0);
-        } else {
-          setWalletBalance(255);
         }
-      } catch {
-        setWalletBalance(255);
-      } finally {
-        setWalletLoading(false);
-      }
+      } catch {}
     };
-
-    syncBalance();
 
     window.addEventListener("storage", syncBalance);
     window.addEventListener("wallet_update", syncBalance);
@@ -137,7 +175,7 @@ export function useAccountData() {
       window.removeEventListener("storage", syncBalance);
       window.removeEventListener("wallet_update", syncBalance);
     };
-  }, [user]);
+  }, [user, fetchWalletData]);
 
   // Check & verify any return txnid from PayU
   useEffect(() => {
@@ -158,6 +196,7 @@ export function useAccountData() {
                 `Payment of ₹${amt} verified! Wallet credited successfully.`
               );
             }
+            fetchWalletData();
             window.dispatchEvent(new Event("wallet_update"));
           } else if (
             res.payment.status === "FAILED" ||
@@ -175,7 +214,7 @@ export function useAccountData() {
           console.warn("Automatic payment verification on return:", err);
         });
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, fetchWalletData]);
 
   // Load live payments history
   useEffect(() => {
@@ -217,6 +256,7 @@ export function useAccountData() {
           res.message ||
             `Cash collection of ₹${amount} requested. Your wallet will be credited once confirmed by admin.`
         );
+        fetchWalletData();
       }
     } catch (err: any) {
       console.warn("Live payment creation notice, running local ledger:", err);
@@ -559,6 +599,7 @@ export function useAccountData() {
       const data = await accountApi.createOrder(orderPayload);
       if (data.success) {
         await fetchOrders();
+        fetchWalletData();
         setActiveTab("orders");
         if (data.order) {
           setSelectedOrder(data.order);
@@ -580,6 +621,7 @@ export function useAccountData() {
       const res = await accountApi.reorder(orderId, selectedAddr);
       if (res && res.success) {
         await fetchOrders();
+        fetchWalletData();
         if (res.order) {
           setSelectedOrder(res.order);
         }
@@ -602,6 +644,7 @@ export function useAccountData() {
       const res = await accountApi.payOrder(orderId, "WALLET");
       if (res && res.success) {
         await fetchOrders();
+        fetchWalletData();
         if (selectedOrder && selectedOrder.id === orderId) {
           setSelectedOrder({
             ...selectedOrder,
@@ -837,6 +880,7 @@ export function useAccountData() {
     handleActivatePlan,
     customPlan,
     handleApplyCustomSchedule,
+    wallet,
     walletBalance,
     walletLoading,
     walletRecharging,
@@ -844,6 +888,9 @@ export function useAccountData() {
     walletPaymentError,
     walletPaymentStatus,
     livePayments,
+    walletTransactions,
+    creditRequests,
+    fetchWalletData,
     handleRechargeWallet,
     handleRetryPayment,
   };

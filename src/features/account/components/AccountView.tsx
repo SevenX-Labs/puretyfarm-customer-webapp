@@ -76,6 +76,7 @@ export function AccountView() {
     handleActivatePlan,
     customPlan,
     handleApplyCustomSchedule,
+    wallet,
     walletBalance,
     walletLoading,
     walletRecharging,
@@ -83,6 +84,8 @@ export function AccountView() {
     walletPaymentError,
     walletPaymentStatus,
     livePayments,
+    walletTransactions,
+    creditRequests,
     handleRechargeWallet,
     handleRetryPayment,
   } = useAccountData();
@@ -454,6 +457,7 @@ export function AccountView() {
 
             {activeTab === "wallet" && (
               <WalletTab
+                wallet={wallet}
                 balance={walletBalance}
                 walletLoading={walletLoading}
                 walletRecharging={walletRecharging}
@@ -461,6 +465,8 @@ export function AccountView() {
                 walletPaymentError={walletPaymentError}
                 walletPaymentStatus={walletPaymentStatus}
                 livePayments={livePayments}
+                walletTransactions={walletTransactions}
+                creditRequests={creditRequests}
                 onRecharge={handleRechargeWallet}
                 onRetryPayment={handleRetryPayment}
                 userId={user?.id}

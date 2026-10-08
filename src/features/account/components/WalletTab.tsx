@@ -5,6 +5,11 @@ import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { PaymentRecord, VerifyPaymentResponse } from "@/features/payments";
 import {
+  CustomerWallet,
+  WalletTransaction,
+  WalletCreditRequest,
+} from "@/features/wallet";
+import {
   FiCheckCircle,
   FiClock,
   FiInfo,
@@ -20,6 +25,7 @@ import {
 import { LuWallet } from "react-icons/lu";
 
 export interface WalletTabProps {
+  wallet?: CustomerWallet | null;
   balance: number;
   walletLoading: boolean;
   walletRecharging: boolean;
@@ -31,6 +37,8 @@ export interface WalletTabProps {
   } | null;
   walletPaymentStatus?: VerifyPaymentResponse | null;
   livePayments?: PaymentRecord[];
+  walletTransactions?: WalletTransaction[];
+  creditRequests?: WalletCreditRequest[];
   onRecharge: (amount: number, method?: "ONLINE" | "CASH") => void;
   onRetryPayment?: (transactionId: string) => Promise<void>;
   userId?: string;
@@ -46,6 +54,7 @@ interface LocalTransaction {
 }
 
 export function WalletTab({
+  wallet,
   balance,
   walletLoading,
   walletRecharging,
@@ -53,22 +62,24 @@ export function WalletTab({
   walletPaymentError,
   walletPaymentStatus,
   livePayments = [],
+  walletTransactions = [],
+  creditRequests = [],
   onRecharge,
   onRetryPayment,
   userId = "default",
 }: WalletTabProps) {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "CASH">("ONLINE");
-  const [transactions, setTransactions] = useState<LocalTransaction[]>([]);
+  const [localTransactions, setLocalTransactions] = useState<LocalTransaction[]>([]);
 
-  // Load local wallet transactions
+  // Load local wallet transactions fallback
   useEffect(() => {
     try {
       const stored = localStorage.getItem(`pf_wallet_tx_${userId}`);
       if (stored) {
-        setTransactions(JSON.parse(stored));
+        setLocalTransactions(JSON.parse(stored));
       } else {
-        setTransactions([
+        setLocalTransactions([
           {
             id: "tx_init_1",
             type: "credit",
@@ -117,6 +128,11 @@ export function WalletTab({
     }
   };
 
+  const pendingCreditRequest = creditRequests.find((cr) => cr.status === "PENDING");
+  const refundRequest = creditRequests.find(
+    (cr) => cr.status === "REJECTED" && cr.refundStatus && cr.refundStatus !== "NOT_REQUIRED"
+  );
+
   return (
     <m.div
       initial={{ opacity: 0, y: 8 }}
@@ -135,12 +151,51 @@ export function WalletTab({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Active Auto-Deduct</span>
-          </span>
+          {wallet?.autoCreditEnabled ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Instant Auto-Credit Active</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#FAF3EA] text-[#5C1B13] border border-[#E8DFD4]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#5C1B13]" />
+              <span>Standard Verified Wallet</span>
+            </span>
+          )}
         </div>
       </div>
+
+      {/* ─── PENDING CREDIT REQUEST BANNER ─── */}
+      {pendingCreditRequest && (
+        <div className="p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sky-950 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
+          <FiClock className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold">
+              Top-up Request Pending (₹{(pendingCreditRequest.amountPaise / 100).toFixed(0)})
+            </p>
+            <p className="text-xs text-sky-800 mt-0.5">
+              Your top-up has been received and is being verified by our depot team. Your wallet balance will be updated automatically upon approval.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ─── REFUND STATUS BANNER ─── */}
+      {refundRequest && (
+        <div className="p-4 rounded-2xl bg-purple-50 border border-purple-200 text-purple-950 text-xs sm:text-sm flex items-start gap-3 shadow-2xs">
+          <FiShield className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold">
+              Refund Status: {refundRequest.refundStatus === "REFUND_PENDING" ? "Processing Refund" : "Refund Completed"} (₹{(refundRequest.amountPaise / 100).toFixed(0)})
+            </p>
+            <p className="text-xs text-purple-800 mt-0.5">
+              {refundRequest.refundStatus === "REFUND_PENDING"
+                ? "Our automated system is processing your refund back to your original payment method."
+                : "The refund has been confirmed and settled back to your source account."}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ─── SUCCESS / NOTIFICATION BANNER ─── */}
       <AnimatePresence>
@@ -372,14 +427,60 @@ export function WalletTab({
           <div className="flex items-center justify-between pb-2 border-b border-[#E8DFD4]">
             <h4 className="text-sm font-serif font-bold text-[#1A1008] flex items-center gap-2">
               <FiClock className="w-4 h-4 text-[#5C1B13]" />
-              <span>Recent Wallet & Payment Activity</span>
+              <span>Immutable Ledger & Activity</span>
             </h4>
-            <span className="text-[10px] text-[#8C7A6B] font-mono">Live Sync</span>
+            <span className="text-[10px] text-[#8C7A6B] font-mono">Real-time Ledger</span>
           </div>
 
           <div className="divide-y divide-[#E8DFD4]/70 max-h-60 overflow-y-auto scrollbar-thin pr-1">
-            {/* Live Gateway Payments if available */}
-            {livePayments.length > 0 &&
+            {/* Server Ledger Transactions if available */}
+            {walletTransactions.length > 0 ? (
+              walletTransactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="py-2.5 flex items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                        tx.type === "CREDIT"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-[#FAF3EA] text-[#5C1B13]"
+                      }`}
+                    >
+                      {tx.type === "CREDIT" ? (
+                        <FiArrowDownLeft className="w-4 h-4" />
+                      ) : (
+                        <FiArrowUpRight className="w-4 h-4" />
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-[#1A1008] truncate">
+                        {tx.description ||
+                          (tx.type === "CREDIT" ? "Wallet Credit" : "Order Payment")}
+                      </p>
+                      <p className="text-[10px] text-[#8C7A6B] truncate">
+                        {tx.referenceType || "LEDGER"} •{" "}
+                        {new Date(tx.createdAt).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`font-mono font-bold shrink-0 ${
+                      tx.type === "CREDIT" ? "text-emerald-700" : "text-[#5C1B13]"
+                    }`}
+                  >
+                    {tx.type === "CREDIT"
+                      ? `+₹${(tx.amountPaise / 100).toFixed(2)}`
+                      : `-₹${(tx.amountPaise / 100).toFixed(2)}`}
+                  </span>
+                </div>
+              ))
+            ) : livePayments.length > 0 ? (
               livePayments.map((pay) => (
                 <div
                   key={pay.id}
@@ -428,47 +529,47 @@ export function WalletTab({
                     +₹{(pay.amountPaise / 100).toFixed(2)}
                   </span>
                 </div>
-              ))}
+              ))
+            ) : (
+              localTransactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  className="py-2.5 flex items-center justify-between gap-3 text-xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                        tx.type === "credit"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-[#FAF3EA] text-[#5C1B13]"
+                      }`}
+                    >
+                      {tx.type === "credit" ? (
+                        <FiArrowDownLeft className="w-4 h-4" />
+                      ) : (
+                        <FiArrowUpRight className="w-4 h-4" />
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-[#1A1008] truncate">{tx.title}</p>
+                      <p className="text-[10px] text-[#8C7A6B] truncate">
+                        {tx.description} • {tx.date}
+                      </p>
+                    </div>
+                  </div>
 
-            {/* Local transactions */}
-            {transactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="py-2.5 flex items-center justify-between gap-3 text-xs"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
                   <span
-                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                      tx.type === "credit"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-[#FAF3EA] text-[#5C1B13]"
+                    className={`font-mono font-bold shrink-0 ${
+                      tx.type === "credit" ? "text-emerald-700" : "text-[#5C1B13]"
                     }`}
                   >
-                    {tx.type === "credit" ? (
-                      <FiArrowDownLeft className="w-4 h-4" />
-                    ) : (
-                      <FiArrowUpRight className="w-4 h-4" />
-                    )}
+                    {tx.type === "credit"
+                      ? `+₹${tx.amount.toFixed(2)}`
+                      : `-₹${tx.amount.toFixed(2)}`}
                   </span>
-                  <div className="min-w-0">
-                    <p className="font-bold text-[#1A1008] truncate">{tx.title}</p>
-                    <p className="text-[10px] text-[#8C7A6B] truncate">
-                      {tx.description} • {tx.date}
-                    </p>
-                  </div>
                 </div>
-
-                <span
-                  className={`font-mono font-bold shrink-0 ${
-                    tx.type === "credit" ? "text-emerald-700" : "text-[#5C1B13]"
-                  }`}
-                >
-                  {tx.type === "credit"
-                    ? `+₹${tx.amount.toFixed(2)}`
-                    : `-₹${tx.amount.toFixed(2)}`}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
