@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Plus_Jakarta_Sans, Caveat } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans, Caveat, Manrope, DM_Serif_Display } from "next/font/google";
 import { ENV } from "@/config/env";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { AuthProvider } from "@/context/AuthContext";
@@ -25,6 +25,22 @@ const scriptFont = Caveat({
   subsets: ["latin"],
   display: "swap",
   preload: false,
+});
+
+const pfUiFont = Manrope({
+  variable: "--font-pf-ui",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const pfDisplayFont = DM_Serif_Display({
+  variable: "--font-pf-display",
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+  weight: ["400"],
 });
 
 export const viewport: Viewport = {
@@ -193,7 +209,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${headingFont.variable} ${bodyFont.variable} ${scriptFont.variable} h-full antialiased`}
+      className={`${headingFont.variable} ${bodyFont.variable} ${scriptFont.variable} ${pfUiFont.variable} ${pfDisplayFont.variable} h-full antialiased`}
     >
       <head>
         <script

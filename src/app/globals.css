@@ -8,6 +8,43 @@
   --text-secondary: #3A241C;
   --border-warm: #E8DFD4;
   --cream: #FBF6EE;
+
+  /* PuretyFarm authenticated-app design tokens */
+  --pf-brown: #7A2417;
+  --pf-brown-hover: #641C12;
+  --pf-dark: #24130F;
+  --pf-deep: #4A1B12;
+  --pf-cocoa: #A66A4E;
+
+  --pf-yellow: #F8E94E;
+  --pf-yellow-soft: rgba(248, 233, 78, 0.28);
+
+  --pf-page: #F7E8CF;
+  --pf-surface: #FFFDF8;
+  --pf-surface-soft: #FBF1E2;
+  --pf-beige: #E9D5B8;
+  --pf-sand: #D9BE99;
+
+  --pf-text: #24130F;
+  --pf-text-secondary: #715E50;
+  --pf-text-muted: #9A8A7E;
+  --pf-text-disabled: #B7AAA0;
+
+  --pf-border: #E3D5C5;
+  --pf-border-strong: #D5C3B0;
+  --pf-focus: #7A2417;
+  --pf-focus-ring: rgba(122, 36, 23, 0.12);
+
+  --pf-success: #2F7D4A;
+  --pf-success-bg: #E8F4EA;
+  --pf-warning: #A66A16;
+  --pf-warning-bg: #FFF3D6;
+  --pf-error: #B33A2B;
+  --pf-error-bg: #FCEAE7;
+
+  --pf-shadow-sm: 0 2px 8px rgba(36, 19, 15, 0.05);
+  --pf-shadow-card: 0 8px 30px rgba(36, 19, 15, 0.06);
+  --pf-shadow-lg: 0 16px 50px rgba(36, 19, 15, 0.08);
 }
 
 @theme {
@@ -21,6 +58,34 @@
   --color-brand-border: #E8DFD4;
   --color-brand-charcoal: #1A1008;
   --color-brand-espresso: #3A241C;
+
+  /* PuretyFarm tokens as Tailwind v4 colors */
+  --color-pf-brown: #7A2417;
+  --color-pf-brown-hover: #641C12;
+  --color-pf-dark: #24130F;
+  --color-pf-deep: #4A1B12;
+  --color-pf-cocoa: #A66A4E;
+  --color-pf-yellow: #F8E94E;
+  --color-pf-page: #F7E8CF;
+  --color-pf-surface: #FFFDF8;
+  --color-pf-surface-soft: #FBF1E2;
+  --color-pf-beige: #E9D5B8;
+  --color-pf-sand: #D9BE99;
+  --color-pf-text: #24130F;
+  --color-pf-text-secondary: #715E50;
+  --color-pf-text-muted: #9A8A7E;
+  --color-pf-text-disabled: #B7AAA0;
+  --color-pf-border: #E3D5C5;
+  --color-pf-border-strong: #D5C3B0;
+  --color-pf-success: #2F7D4A;
+  --color-pf-success-bg: #E8F4EA;
+  --color-pf-warning: #A66A16;
+  --color-pf-warning-bg: #FFF3D6;
+  --color-pf-error: #B33A2B;
+  --color-pf-error-bg: #FCEAE7;
+
+  --font-pf-ui: var(--font-pf-ui), "Manrope", Inter, system-ui, sans-serif;
+  --font-pf-display: var(--font-pf-display), "DM Serif Display", Georgia, serif;
 }
 
 @theme inline {
@@ -261,6 +326,74 @@ html.lenis {
 
 .animate-thread-flow {
   animation: thread-flow 4s linear infinite;
+}
+
+/* ============================================================ */
+/* PuretyFarm authenticated-app utilities                         */
+/* ============================================================ */
+
+.pf-app {
+  background: var(--pf-page);
+  color: var(--pf-text);
+  font-family: var(--font-pf-ui), "Manrope", Inter, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+}
+
+.pf-app button,
+.pf-app input,
+.pf-app select,
+.pf-app textarea {
+  font-family: inherit;
+}
+
+/* Page fade-in used by the (app) layout */
+@keyframes pf-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pf-page-in {
+  animation: pf-page-in 220ms ease-out both;
+}
+
+/* Skeleton shimmer */
+@keyframes pf-skeleton {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.pf-skeleton {
+  background: linear-gradient(
+    90deg,
+    #EBDCC8 0%,
+    #F4E7D3 50%,
+    #EBDCC8 100%
+  );
+  background-size: 200% 100%;
+  animation: pf-skeleton 1.6s linear infinite;
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-skeleton {
+    animation: none;
+  }
+  .pf-page-in {
+    animation: none;
+  }
+}
+
+/* Primary button focus ring */
+.pf-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--pf-focus-ring);
+  border-color: var(--pf-focus);
 }
 
 /* Print Optimization for Legal Documents */

@@ -33,11 +33,7 @@ export function Navbar({ variant = "default" }: { variant?: "default" | "auth" }
 
   const handleAccountClick = () => {
     if (isLoggedIn) {
-      if (user?.onboardingStep && user.onboardingStep !== "complete") {
-        router.push("/onboarding");
-      } else {
-        router.push("/account");
-      }
+      router.push("/account");
     } else {
       router.push("/auth?redirect=/account");
     }
