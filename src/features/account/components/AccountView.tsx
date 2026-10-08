@@ -80,7 +80,11 @@ export function AccountView() {
     walletLoading,
     walletRecharging,
     walletSuccessMsg,
+    walletPaymentError,
+    walletPaymentStatus,
+    livePayments,
     handleRechargeWallet,
+    handleRetryPayment,
   } = useAccountData();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -450,12 +454,16 @@ export function AccountView() {
 
             {activeTab === "wallet" && (
               <WalletTab
-                user={user}
-                walletBalance={walletBalance}
+                balance={walletBalance}
                 walletLoading={walletLoading}
                 walletRecharging={walletRecharging}
                 walletSuccessMsg={walletSuccessMsg}
+                walletPaymentError={walletPaymentError}
+                walletPaymentStatus={walletPaymentStatus}
+                livePayments={livePayments}
                 onRecharge={handleRechargeWallet}
+                onRetryPayment={handleRetryPayment}
+                userId={user?.id}
               />
             )}
           </div>

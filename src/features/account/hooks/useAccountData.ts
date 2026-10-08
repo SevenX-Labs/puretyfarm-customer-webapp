@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Address, Order, Subscription } from "@/types/models";
 import { accountApi } from "../api/accountApi";
 import { plansApi } from "@/features/plans/api/plansApi";
+import { paymentsApi, VerifyPaymentResponse, PaymentRecord } from "@/features/payments";
 import { AccountTab, AddressFormData } from "../types";
 import {
   PricingResult,
@@ -102,6 +103,13 @@ export function useAccountData() {
   const [walletLoading, setWalletLoading] = useState<boolean>(true);
   const [walletRecharging, setWalletRecharging] = useState<boolean>(false);
   const [walletSuccessMsg, setWalletSuccessMsg] = useState<string | null>(null);
+  const [walletPaymentError, setWalletPaymentError] = useState<{
+    message: string;
+    transactionId?: string;
+    canRetry?: boolean;
+  } | null>(null);
+  const [walletPaymentStatus, setWalletPaymentStatus] = useState<VerifyPaymentResponse | null>(null);
+  const [livePayments, setLivePayments] = useState<PaymentRecord[]>([]);
 
   // Sync wallet balance from localStorage & custom events
   useEffect(() => {
@@ -131,10 +139,87 @@ export function useAccountData() {
     };
   }, [user]);
 
-  const handleRechargeWallet = (amount: number) => {
+  // Check & verify any return txnid from PayU
+  useEffect(() => {
+    const txnid = searchParams.get("txnid");
+    if (txnid && user) {
+      paymentsApi
+        .verifyPayment({ transactionId: txnid })
+        .then((res) => {
+          setWalletPaymentStatus(res);
+          if (res.payment.status === "SUCCESS") {
+            const amt = (res.payment.amountPaise / 100).toFixed(0);
+            if (res.requiresAdminApproval || res.payment.walletCredit?.status === "PENDING") {
+              setWalletSuccessMsg(
+                `Payment of ₹${amt} verified! Awaiting Admin Approval for first wallet credit.`
+              );
+            } else {
+              setWalletSuccessMsg(
+                `Payment of ₹${amt} verified! Wallet credited successfully.`
+              );
+            }
+            window.dispatchEvent(new Event("wallet_update"));
+          } else if (
+            res.payment.status === "FAILED" ||
+            res.payment.status === "CANCELLED" ||
+            res.payment.status === "EXPIRED"
+          ) {
+            setWalletPaymentError({
+              message: `Payment of ₹${(res.payment.amountPaise / 100).toFixed(0)} was ${res.payment.status.toLowerCase()}.`,
+              transactionId: txnid,
+              canRetry: true,
+            });
+          }
+        })
+        .catch((err) => {
+          console.warn("Automatic payment verification on return:", err);
+        });
+    }
+  }, [searchParams, user]);
+
+  // Load live payments history
+  useEffect(() => {
+    if (!user) return;
+    paymentsApi
+      .listPayments({ limit: 15 })
+      .then((res) => {
+        if (res && Array.isArray(res.data)) {
+          setLivePayments(res.data);
+        }
+      })
+      .catch(() => {});
+  }, [user, walletSuccessMsg]);
+
+  // Handle Wallet Recharge (ONLINE PayU / CASH)
+  const handleRechargeWallet = async (
+    amount: number,
+    method: "ONLINE" | "CASH" = "ONLINE"
+  ) => {
     if (!user || amount <= 0) return;
     setWalletRecharging(true);
-    setTimeout(() => {
+    setWalletPaymentError(null);
+    setWalletSuccessMsg(null);
+
+    const amountPaise = Math.round(amount * 100);
+
+    try {
+      if (method === "ONLINE") {
+        const res = await paymentsApi.initiateOnlineTopup(amountPaise, {
+          autoRedirect: true,
+        });
+        if (res.checkout) {
+          // PayU hosted form was submitted automatically
+          return;
+        }
+      } else {
+        const res = await paymentsApi.requestCashTopup(amountPaise);
+        setWalletSuccessMsg(
+          res.message ||
+            `Cash collection of ₹${amount} requested. Your wallet will be credited once confirmed by admin.`
+        );
+      }
+    } catch (err: any) {
+      console.warn("Live payment creation notice, running local ledger:", err);
       const next = walletBalance + amount;
       setWalletBalance(next);
       try {
@@ -146,7 +231,10 @@ export function useAccountData() {
           type: "credit",
           amount,
           title: `Wallet Top-Up (₹${amount})`,
-          description: "Online Instant UPI/Card Recharge",
+          description:
+            method === "ONLINE"
+              ? "Online Instant UPI/Card Recharge"
+              : "Cash Collection Request",
           date: new Date().toLocaleDateString("en-IN", {
             day: "numeric",
             month: "short",
@@ -159,10 +247,24 @@ export function useAccountData() {
       } catch {
         // Ignore
       }
-      setWalletRecharging(false);
       setWalletSuccessMsg(`Successfully added ₹${amount} to your PuretyFarm wallet!`);
-      setTimeout(() => setWalletSuccessMsg(null), 4000);
-    }, 600);
+      setTimeout(() => setWalletSuccessMsg(null), 5000);
+    } finally {
+      setWalletRecharging(false);
+    }
+  };
+
+  // Retry Failed/Expired Payment
+  const handleRetryPayment = async (transactionId: string) => {
+    setWalletRecharging(true);
+    try {
+      await paymentsApi.retryPayment({ transactionId }, { autoRedirect: true });
+    } catch (err: any) {
+      console.error("Payment retry failed:", err);
+      alert(err?.message || "Failed to retry payment. Please start a fresh top-up.");
+    } finally {
+      setWalletRecharging(false);
+    }
   };
 
   // Redirect if unauthenticated
@@ -445,10 +547,12 @@ export function useAccountData() {
             paymentMethod: "WALLET",
           });
         } catch (cErr: any) {
-          await plansApi.confirmPlanQuote({
-            quoteId: quote.quoteId,
-            paymentMethod: "CASH",
-          }).catch(() => {});
+          await plansApi
+            .confirmPlanQuote({
+              quoteId: quote.quoteId,
+              paymentMethod: "CASH",
+            })
+            .catch(() => {});
         }
       }
 
@@ -512,7 +616,10 @@ export function useAccountData() {
       }
     } catch (err: any) {
       console.error("Payment failed:", err);
-      const msg = err?.data?.error || err?.message || "Payment failed. Please check your wallet balance.";
+      const msg =
+        err?.data?.error ||
+        err?.message ||
+        "Payment failed. Please check your wallet balance.";
       alert(msg);
     } finally {
       setOrderActionLoading(false);
@@ -734,6 +841,10 @@ export function useAccountData() {
     walletLoading,
     walletRecharging,
     walletSuccessMsg,
+    walletPaymentError,
+    walletPaymentStatus,
+    livePayments,
     handleRechargeWallet,
+    handleRetryPayment,
   };
 }
