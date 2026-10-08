@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import {
@@ -66,6 +66,10 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
   // Coordinates from GPS if available
   const [coords, setCoords] = useState<{ lat?: number; lng?: number }>({});
 
+  // Guard flag: when true, the cascading useEffects for cities/areas skip
+  // their automatic resets so the GPS handler can set everything atomically.
+  const gpsPopulatingRef = useRef(false);
+
   // 1. Initial load of States Catalog
   useEffect(() => {
     async function loadStates() {
@@ -87,6 +91,9 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
 
   // 2. Load Cities when State changes
   useEffect(() => {
+    // Skip if GPS handler is populating — it manages cities/areas itself
+    if (gpsPopulatingRef.current) return;
+
     if (!selectedStateId) {
       setCities([]);
       setSelectedCityId("");
@@ -114,6 +121,9 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
 
   // 3. Load Areas when City changes
   useEffect(() => {
+    // Skip if GPS handler is populating — it manages cities/areas itself
+    if (gpsPopulatingRef.current) return;
+
     if (!selectedCityId) {
       setAreas([]);
       setSelectedAreaId("");
@@ -166,40 +176,77 @@ export function LocationStep({ user, onAddressSaved }: LocationStepProps) {
           const res = await locationApi.detectLocation({ latitude: lat, longitude: lng });
           setDetectedLocation(res);
 
-          // Try to match detected state, city, and area with active catalog
-          const allStates = states.length > 0 ? states : await locationApi.getStates();
-          const matchedState = allStates.find(
-            (s) => s.name.toLowerCase() === res.state.toLowerCase()
-          ) || allStates[0];
+          // Prevent cascading useEffects from resetting our selections
+          gpsPopulatingRef.current = true;
 
-          if (matchedState) {
-            setSelectedStateId(matchedState.id);
-            const cityList = await locationApi.getCities(matchedState.id);
-            setCities(cityList);
+          try {
+            // Try to match detected state, city, and area with active catalog
+            const allStates = states.length > 0 ? states : await locationApi.getStates();
+            if (!states.length && allStates.length) setStates(allStates);
 
-            const matchedCity = cityList.find(
-              (c) => c.name.toLowerCase() === res.city.toLowerCase()
-            ) || cityList[0];
+            const matchedState = allStates.find(
+              (s) => s.name.toLowerCase() === res.state.toLowerCase()
+            );
 
-            if (matchedCity) {
-              setSelectedCityId(matchedCity.id);
-              const areaList = await locationApi.getAreas(matchedCity.id);
-              setAreas(areaList);
+            if (matchedState) {
+              setSelectedStateId(matchedState.id);
+              const cityList = await locationApi.getCities(matchedState.id);
+              setCities(cityList);
 
-              const matchedArea =
-                areaList.find((a) => a.pincode === res.pincode) ||
-                areaList.find(
-                  (a) =>
-                    a.name.toLowerCase().includes(res.area.toLowerCase()) ||
-                    res.area.toLowerCase().includes(a.name.toLowerCase())
-                ) ||
-                areaList[0];
+              const matchedCity = cityList.find(
+                (c) => c.name.toLowerCase() === res.city.toLowerCase()
+              );
 
-              if (matchedArea) {
-                setSelectedAreaId(matchedArea.id);
-                setSelectedAreaPincode(matchedArea.pincode || res.pincode);
+              if (matchedCity) {
+                setSelectedCityId(matchedCity.id);
+                const areaList = await locationApi.getAreas(matchedCity.id);
+                setAreas(areaList);
+
+                const matchedArea =
+                  areaList.find((a) => a.pincode === res.pincode) ||
+                  areaList.find(
+                    (a) =>
+                      a.name.toLowerCase().includes(res.area.toLowerCase()) ||
+                      res.area.toLowerCase().includes(a.name.toLowerCase())
+                  );
+
+                if (matchedArea) {
+                  setSelectedAreaId(matchedArea.id);
+                  setSelectedAreaPincode(matchedArea.pincode || res.pincode);
+                } else {
+                  // No area match — clear area so user picks manually
+                  setSelectedAreaId("");
+                  setSelectedAreaPincode("");
+                  setGpsError(
+                    `Your detected area "${res.area}" is not yet in our delivery catalog. Please select your Delivery Hub manually below.`
+                  );
+                }
+              } else {
+                // No city match — clear city & area so user picks manually
+                setSelectedCityId("");
+                setSelectedAreaId("");
+                setSelectedAreaPincode("");
+                setGpsError(
+                  `Your detected city "${res.city}" is not yet in our delivery catalog. Please select your City and Delivery Hub manually below.`
+                );
               }
+            } else {
+              // No state match — clear everything so user picks manually
+              setSelectedStateId("");
+              setSelectedCityId("");
+              setSelectedAreaId("");
+              setSelectedAreaPincode("");
+              setGpsError(
+                `Your detected state "${res.state}" is not yet in our delivery catalog. Please select your State, City, and Delivery Hub manually below.`
+              );
             }
+          } finally {
+            // Release the guard so manual dropdown changes work normally again.
+            // Use setTimeout to let React flush the state updates before
+            // re-enabling the useEffects.
+            setTimeout(() => {
+              gpsPopulatingRef.current = false;
+            }, 0);
           }
         } catch (err: any) {
           const errorMsg =
