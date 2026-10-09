@@ -19,6 +19,7 @@ import {
   FiLock,
 } from "react-icons/fi";
 import { LuWallet, LuBanknote, LuSparkles } from "react-icons/lu";
+import { EmailVerificationModal } from "@/components/pf/EmailVerificationModal";
 
 export interface PaymentStepProps {
   quote: PlanQuote | null;
@@ -58,6 +59,7 @@ export function PaymentStep({
   onBackToPlans,
 }: PaymentStepProps) {
   const [method, setMethod] = useState<Method>("WALLET");
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   if (!quote) {
     return (
@@ -283,13 +285,24 @@ export function PaymentStep({
           </div>
         )}
 
-        {paymentError && (
+        {paymentError && (method === "WALLET" || !(paymentError.toLowerCase().includes("email") || paymentError.toLowerCase().includes("gateway") || paymentError.toLowerCase().includes("wallet") || paymentError.toLowerCase().includes("insufficient") || paymentError.toLowerCase().includes("recharge"))) && (
           <div
             role="alert"
             className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50/90 p-3 text-xs text-red-700 shadow-2xs"
           >
             <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
-            <span className="leading-relaxed">{paymentError}</span>
+            <div className="flex-1 space-y-1.5">
+              <span className="leading-relaxed block">{paymentError}</span>
+              {paymentError.toLowerCase().includes("email") && (
+                <button
+                  type="button"
+                  onClick={() => setIsEmailModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#5C1B13] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#48150F] transition-colors cursor-pointer"
+                >
+                  <span>Verify Email Address Now</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -545,6 +558,19 @@ export function PaymentStep({
           )}
         </AnimatePresence>
       </div>
+
+      <EmailVerificationModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        onSuccess={async () => {
+          setIsEmailModalOpen(false);
+          await onReloadWallet();
+          onPayOnline();
+        }}
+        title="Verify Email for Online Payment"
+        description="PhonePe requires a verified email address on your account to proceed with online payment."
+        successMessage="Email verified successfully! Resuming payment..."
+      />
 
       {/* Footer Trust & Guarantee */}
       <footer className="pt-2 border-t border-[#E8DFD4]/80 flex items-center justify-between text-[10.5px] text-[#715E50] flex-wrap gap-2">

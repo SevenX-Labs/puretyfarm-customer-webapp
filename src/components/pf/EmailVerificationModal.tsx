@@ -13,6 +13,7 @@ export interface EmailVerificationModalProps {
   initialEmail?: string;
   title?: string;
   description?: string;
+  successMessage?: string;
 }
 
 export function EmailVerificationModal({
@@ -22,6 +23,7 @@ export function EmailVerificationModal({
   initialEmail = "",
   title = "Email Required for Online Payment",
   description = "Online payment gateways require a verified email address to generate transaction receipts and delivery invoices.",
+  successMessage = "Email verified successfully!",
 }: EmailVerificationModalProps) {
   const { user, refreshUser } = useAuth();
   const [step, setStep] = useState<"email" | "otp">("email");
@@ -163,7 +165,7 @@ export function EmailVerificationModal({
       });
 
       if (res && res.success) {
-        setSuccessMsg("Email verified successfully! Resuming payment...");
+        setSuccessMsg(successMessage || "Email verified successfully!");
         await refreshUser().catch(() => {});
         setTimeout(() => {
           onSuccess(email.trim().toLowerCase());

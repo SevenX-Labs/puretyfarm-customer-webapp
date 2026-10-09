@@ -60,12 +60,32 @@ export function ProfileStep({
 }: ProfileStepProps) {
   const today = new Date().toISOString().split("T")[0];
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [justVerifiedEmail, setJustVerifiedEmail] = useState<string | null>(null);
 
   const isEmailVerified = Boolean(
-    user?.email &&
-    (user as any)?.emailVerified &&
-    user.email.toLowerCase() === profileEmail.trim().toLowerCase()
+    (justVerifiedEmail && justVerifiedEmail.toLowerCase() === profileEmail.trim().toLowerCase()) ||
+    (user?.email &&
+      (user as any)?.emailVerified &&
+      user.email.toLowerCase() === profileEmail.trim().toLowerCase())
   );
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileEmail.trim()) {
+      onProfileError("Please enter your email address to continue.");
+      return;
+    }
+    if (!isValidEmail(profileEmail)) {
+      onProfileError("Please enter a valid email address (e.g. name@domain.com).");
+      return;
+    }
+    if (!isEmailVerified) {
+      onProfileError("Please verify your email address to continue.");
+      setIsEmailModalOpen(true);
+      return;
+    }
+    onSubmit(e);
+  };
 
   const isValidEmail = (emailStr: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr.trim());
@@ -82,7 +102,7 @@ export function ProfileStep({
       transition={{ duration: 0.18, ease: "easeOut" }}
       className="h-full flex flex-col justify-between"
     >
-      <form onSubmit={onSubmit} className="h-full flex flex-col justify-between">
+      <form onSubmit={handleFormSubmit} className="h-full flex flex-col justify-between">
         <div>
           <div className="mb-2.5 sm:mb-3">
             <h1
@@ -251,6 +271,7 @@ export function ProfileStep({
                   value={profileEmail}
                   onChange={(event) => {
                     onEmailChange(event.target.value);
+                    setJustVerifiedEmail(null);
                     onProfileError(null);
                   }}
                   placeholder="Enter your email address"
@@ -264,7 +285,10 @@ export function ProfileStep({
                     </span>
                     <button
                       type="button"
-                      onClick={() => onEmailChange("")}
+                      onClick={() => {
+                        onEmailChange("");
+                        setJustVerifiedEmail(null);
+                      }}
                       className="text-[10.5px] text-[#7a2417] hover:underline font-semibold cursor-pointer"
                     >
                       Change
@@ -313,6 +337,7 @@ export function ProfileStep({
         isOpen={isEmailModalOpen}
         onClose={() => setIsEmailModalOpen(false)}
         onSuccess={async (verifiedEmail) => {
+          setJustVerifiedEmail(verifiedEmail);
           onEmailChange(verifiedEmail);
           setIsEmailModalOpen(false);
           onProfileError(null);
@@ -323,6 +348,7 @@ export function ProfileStep({
         initialEmail={profileEmail.trim()}
         title="Verify Your Email Address"
         description="We will send a 6-digit verification code to confirm your email address."
+        successMessage="Email verified successfully!"
       />
     </m.section>
   );
