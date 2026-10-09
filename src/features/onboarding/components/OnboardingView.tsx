@@ -102,17 +102,17 @@ export function OnboardingView() {
   }
 
   return (
-    <div className="relative min-h-screen w-screen overflow-x-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center py-2 sm:py-4">
-      <main className="mx-auto w-full max-w-5xl px-3 sm:px-4 h-full max-h-[96vh] flex flex-col justify-center">
+    <div className="relative min-h-screen w-screen overflow-x-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center py-2 sm:py-3">
+      <main className="mx-auto w-full max-w-5xl px-2.5 sm:px-4 h-full max-h-[96vh] flex flex-col justify-center">
         <section
           aria-label="Account setup and subscription workflow"
-          className="relative flex flex-col md:flex-row h-full max-h-[720px] w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-lg overflow-hidden"
+          className="relative flex flex-col md:flex-row h-full max-h-[640px] lg:max-h-[660px] w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-lg overflow-hidden"
         >
           {/* Left Sidebar */}
-          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-5 md:w-[260px] lg:w-[290px] shrink-0 text-white">
-            <div className="space-y-2.5 md:space-y-4">
+          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-4.5 md:w-[240px] lg:w-[270px] shrink-0 text-white">
+            <div className="space-y-2 md:space-y-3.5">
               <div className="flex items-center justify-between">
-                <div className="relative h-6 w-20 sm:h-7 sm:w-24">
+                <div className="relative h-6 w-20 sm:h-6.5 sm:w-22">
                   <Image
                     src="/newimge/logo-removebg-preview.png"
                     alt="Purety Farm Logo"
@@ -121,13 +121,13 @@ export function OnboardingView() {
                     priority
                   />
                 </div>
-                <span className="rounded-full bg-white/15 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase text-white/90">
+                <span className="rounded-full bg-white/15 px-2 py-0.5 text-[9px] sm:text-[9.5px] font-bold tracking-wide uppercase text-white/90">
                   Step {currentStep} of 4
                 </span>
               </div>
 
               <div className="space-y-0.5">
-                <h2 className="font-serif text-sm sm:text-base font-bold text-white md:text-lg">
+                <h2 className="font-serif text-sm sm:text-base font-bold text-white md:text-[17px]">
                   {currentStep === 1
                     ? "Welcome to Purety"
                     : currentStep === 2
@@ -136,7 +136,7 @@ export function OnboardingView() {
                     ? "Delivery Address"
                     : "Select Your Plan"}
                 </h2>
-                <p className="hidden md:block text-[10px] lg:text-[11px] text-white/80 leading-snug">
+                <p className="hidden md:block text-[9.5px] lg:text-[10.5px] text-white/80 leading-snug">
                   {currentStep === 1
                     ? "Set up your profile to start receiving fresh farm-to-table A2 milk daily."
                     : currentStep === 2
@@ -148,8 +148,8 @@ export function OnboardingView() {
               </div>
 
               {/* Progress Steps List */}
-              <nav aria-label="Onboarding Steps" className="pt-1 md:pt-2">
-                <ol className="flex flex-row md:flex-col gap-1.5 md:gap-2">
+              <nav aria-label="Onboarding Steps" className="pt-0.5 md:pt-1.5">
+                <ol className="flex flex-row md:flex-col gap-1 md:gap-1.5">
                   {stepsList.map((step) => {
                     const isCurrent = currentStep === step.num;
                     const isComplete = currentStep > step.num;
@@ -163,11 +163,11 @@ export function OnboardingView() {
                         {step.num < 4 && (
                           <>
                             <span
-                              className="absolute left-3.5 top-6 hidden h-4.5 w-px bg-white/25 md:block lg:left-3.5 lg:h-5"
+                              className="absolute left-3 top-5.5 hidden h-4 w-px bg-white/25 md:block lg:left-3 lg:h-4.5"
                               aria-hidden="true"
                             />
                             <span
-                              className="absolute left-[26px] right-0 top-3 h-px bg-white/25 md:hidden"
+                              className="absolute left-[24px] right-0 top-3 h-px bg-white/25 md:hidden"
                               aria-hidden="true"
                             />
                           </>
@@ -182,7 +182,7 @@ export function OnboardingView() {
                           className="relative z-10 flex w-full items-start gap-1.5 text-left disabled:cursor-not-allowed md:gap-2 cursor-pointer"
                         >
                           <span
-                            className={`flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border text-[9.5px] font-semibold transition-colors duration-200 sm:h-7 sm:w-7 sm:text-[10px] ${
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[9px] font-semibold transition-colors duration-200 sm:h-6.5 sm:w-6.5 sm:text-[9.5px] ${
                               isCurrent
                                 ? "border-[#f8e94e] bg-[#f8e94e] text-[#6f2115]"
                                 : isComplete
@@ -191,16 +191,16 @@ export function OnboardingView() {
                             }`}
                           >
                             {isComplete ? (
-                              <FiCheck className="h-3 w-3" aria-hidden="true" />
+                              <FiCheck className="h-2.5 w-2.5" aria-hidden="true" />
                             ) : (
                               `0${step.num}`
                             )}
                           </span>
                           <span className="hidden min-w-0 pt-0.5 md:block">
-                            <span className="block text-[11px] font-semibold text-white lg:text-[11.5px]">
+                            <span className="block text-[10.5px] font-semibold text-white lg:text-[11px]">
                               {step.title}
                             </span>
-                            <span className="block text-[9px] leading-snug text-white/70 lg:text-[9.5px]">
+                            <span className="block text-[8.5px] leading-tight text-white/70 lg:text-[9px]">
                               {step.desc}
                             </span>
                           </span>
@@ -213,14 +213,14 @@ export function OnboardingView() {
               </nav>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 pt-2.5 border-t border-white/15 text-[10px] text-white/75">
+            <div className="hidden md:flex items-center gap-1.5 pt-2 border-t border-white/15 text-[9.5px] text-white/75">
               <span className="h-1.5 w-1.5 rounded-full bg-[#f8e94e] shrink-0" />
               <span>Purety Farm Fresh Daily A2 Milk</span>
             </div>
           </aside>
 
           {/* Right Content Panel */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden">
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden p-3 sm:p-4 lg:p-4.5">
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div
@@ -229,7 +229,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-10"
+                  className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
                 >
                   <ProfileStep
                     user={user}
@@ -259,7 +259,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-10"
+                  className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
                 >
                   <ServiceAreaStep
                     selectedStateId={selectedStateId}
@@ -290,7 +290,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-10"
+                  className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
                 >
                   <AddressDetailsStep
                     user={user}
@@ -314,7 +314,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-16"
+                  className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
                 >
                   <PlanStep
                     savedAddress={savedAddress}

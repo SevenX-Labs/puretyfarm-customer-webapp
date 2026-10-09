@@ -170,45 +170,47 @@ export function PlanStep({
 
   return (
     <m.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="space-y-3.5 sm:space-y-4"
+      transition={{ duration: 0.2 }}
+      className="flex flex-col justify-between h-full space-y-2.5 sm:space-y-3"
     >
-      <header>
-        <h1 className="font-heading text-[22px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[26px]">
-          Select Your Milk Plan
-        </h1>
-        <p className="mt-1 text-[13px] text-[#715e50] sm:text-[14px]">
-          Choose the plan that works best for your home.
-        </p>
+      {/* Header with Back Navigation */}
+      <header className="flex items-start justify-between gap-2 shrink-0">
+        <div>
+          <h1 className="font-serif text-base sm:text-lg lg:text-xl font-bold text-[#24130f]">
+            Select Your Milk Plan
+          </h1>
+          <p className="text-[11px] sm:text-xs text-[#715e50]">
+            Choose the plan that works best for your home.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onGoToStep(3)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-[#7a2417] hover:bg-[#7a2417]/10 transition-colors cursor-pointer"
+        >
+          <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Back to Address</span>
+        </button>
       </header>
 
       {/* Top Delivery Address Badge */}
       {savedAddress && (
-        <div className="p-3 sm:p-3.5 rounded-xl bg-white border border-[#E8DFD4] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center shrink-0">
-                <FiMapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[#1A1008]">
-                  Delivering to: {savedAddress.street}
-                </p>
-                <p className="text-[11px] text-[#3A241C]/65">
-                  {savedAddress.locality}, Raipur ({savedAddress.pincode})
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => onGoToStep(3)}
-              className="min-h-[44px] px-2 text-xs font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0 flex items-center"
-            >
-              Change
-            </button>
+        <div className="rounded-lg bg-white border border-[#E8DFD4] px-2.5 py-1.5 shadow-2xs flex items-center justify-between gap-2 text-[11px] sm:text-xs text-[#3A241C] shrink-0">
+          <div className="flex items-center gap-1.5 truncate">
+            <FiMapPin className="h-3.5 w-3.5 text-[#5C1B13] shrink-0" />
+            <span className="truncate">
+              Delivering to: <strong>{savedAddress.street}</strong>, {savedAddress.locality} ({savedAddress.pincode})
+            </span>
           </div>
+          <button
+            type="button"
+            onClick={() => onGoToStep(3)}
+            className="font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0 text-[10.5px] sm:text-[11px]"
+          >
+            Change
+          </button>
         </div>
       )}
 
@@ -216,15 +218,15 @@ export function PlanStep({
         <div
           role="alert"
           aria-live="polite"
-          className="p-4 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2"
+          className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2 shrink-0"
         >
-          <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+          <FiAlertCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />
           <span>{planError}</span>
         </div>
       )}
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 gap-3.5 sm:gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-3 flex-1">
         {PLANS.map((plan) => {
           const Icon = plan.icon;
           const isSelected = selectedPlanId === plan.id;
@@ -242,9 +244,9 @@ export function PlanStep({
 
           const serverRateText =
             plan.id === "monthly" && monthlyConfig
-              ? `₹${Math.round(monthlyConfig.sellingPricePerLitre / 100)} / litre`
+              ? `₹${Math.round(monthlyConfig.sellingPricePerLitre / 100)} / L`
               : liveQuote
-              ? `₹${Math.round(liveQuote.sellingPricePerLitre / 100)} / ${plan.id === "single" ? "bottle" : "litre"}`
+              ? `₹${Math.round(liveQuote.sellingPricePerLitre / 100)} / ${plan.id === "single" ? "bottle" : "L"}`
               : plan.rateText;
 
           const monthlyDeliveries = liveQuotes.monthly?.deliveryOccurrences || 30;
@@ -252,7 +254,7 @@ export function PlanStep({
 
           const displayQuantity =
             isMonthly && customPricing
-              ? `${customPricing.totalLitres}L / mo (${customPricing.breakdownText})`
+              ? `${customPricing.totalLitres}L / mo`
               : isMonthly
               ? defaultMonthlyQty
               : plan.quantity;
@@ -265,97 +267,97 @@ export function PlanStep({
               key={plan.id}
               onClick={() => !isBlocked && onSelectPlanId(plan.id)}
               className={`
-                relative rounded-2xl border-2 transition-all p-4 sm:p-4.5 lg:p-5 flex flex-col justify-between
+                relative rounded-xl border-2 transition-all p-2.5 sm:p-3 lg:p-3.5 flex flex-col justify-between
                 bg-gradient-to-b ${plan.gradient}
                 ${
                   isBlocked
                     ? "opacity-60 grayscale-[30%] cursor-not-allowed border-[#E8DFD4]"
                     : isSelected
-                    ? "border-[#5C1B13] ring-4 ring-[#5C1B13]/10 shadow-xl shadow-[#5C1B13]/15 -translate-y-1 cursor-pointer"
-                    : "border-[#E8DFD4] hover:border-[#5C1B13]/40 shadow-xs cursor-pointer"
+                    ? "border-[#5C1B13] ring-2 ring-[#5C1B13]/15 shadow-md shadow-[#5C1B13]/10 cursor-pointer"
+                    : "border-[#E8DFD4] hover:border-[#5C1B13]/40 shadow-2xs cursor-pointer"
                 }
               `}
             >
               {/* Top badge */}
               {plan.badge && !isBlocked && (
-                <div className="absolute -top-3 left-6">
-                  <span className="px-3 py-1 rounded-full bg-[#5C1B13] text-white text-[10px] font-bold tracking-wider uppercase shadow-sm">
+                <div className="absolute -top-2.5 left-4">
+                  <span className="px-2 py-0.5 rounded-full bg-[#5C1B13] text-white text-[9px] font-bold tracking-wider uppercase shadow-xs">
                     {plan.badge}
                   </span>
                 </div>
               )}
 
               {isBlocked && (
-                <div className="absolute -top-3 left-6">
-                  <span className="px-3 py-1 rounded-full bg-stone-700 text-white text-[10px] font-bold tracking-wider uppercase shadow-sm">
+                <div className="absolute -top-2.5 left-4">
+                  <span className="px-2 py-0.5 rounded-full bg-stone-700 text-white text-[9px] font-bold tracking-wider uppercase shadow-xs">
                     {eligibility?.blockedReason === "BUY_ONCE_ALREADY_USED"
-                      ? "Buy Once Used"
+                      ? "Used"
                       : eligibility?.blockedReason === "TRIAL_ALREADY_USED"
-                      ? "Trial Already Used"
-                      : "Plan Unavailable"}
+                      ? "Trial Used"
+                      : "Unavailable"}
                   </span>
                 </div>
               )}
 
               <div>
                 {/* Plan header */}
-                <div className="flex items-center justify-between mb-2.5 mt-0.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
-                    <Icon className="w-5 h-5" />
+                <div className="flex items-center justify-between mb-1.5 mt-0.5">
+                  <div className="w-6 h-6 rounded-lg bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
+                    <Icon className="w-3.5 h-3.5" />
                   </div>
                   {isMonthly && customPricing ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1">
-                      <FiCheck className="w-3 h-3" /> Customized
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                      <FiCheck className="w-2.5 h-2.5" /> Customized
                     </span>
                   ) : eligibility?.remainingUses !== undefined ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
-                      {eligibility.remainingUses} Uses Left
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
+                      {eligibility.remainingUses} Left
                     </span>
                   ) : plan.savingsText ? (
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
                       {plan.savingsText}
                     </span>
                   ) : null}
                 </div>
 
-                <h3 className="text-lg font-serif font-bold text-[#1A1008] mb-1">
+                <h3 className="text-sm sm:text-[15px] font-serif font-bold text-[#1A1008] leading-tight mb-0.5">
                   {plan.name}
                 </h3>
-                <p className="text-[11px] sm:text-xs text-[#3A241C]/70 mb-2.5 min-h-[28px]">
+                <p className="text-[10px] sm:text-[10.5px] text-[#3A241C]/70 leading-snug line-clamp-2 min-h-[26px]">
                   {plan.description}
                 </p>
 
                 {/* Pricing block */}
-                <div className="pb-3 mb-3 border-b border-[#E8DFD4]">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-serif font-bold text-[#5C1B13]">
+                <div className="py-1.5 my-1.5 border-y border-[#E8DFD4]/70">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xl sm:text-2xl font-serif font-bold text-[#5C1B13]">
                       ₹{displayPrice}
                     </span>
                     {plan.originalPrice && (
-                      <span className="text-sm text-[#3A241C]/45 line-through">
+                      <span className="text-[11px] text-[#3A241C]/45 line-through">
                         ₹{plan.originalPrice}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs font-semibold text-[#1A1008]">
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[10.5px] font-semibold text-[#1A1008]">
                       {serverRateText}
                     </span>
-                    <span className="text-xs text-[#3A241C]/50">•</span>
-                    <span className="text-xs text-[#3A241C]/65">
+                    <span className="text-[10.5px] text-[#3A241C]/50">•</span>
+                    <span className="text-[10.5px] text-[#3A241C]/65">
                       {displayQuantity}
                     </span>
                   </div>
                 </div>
 
                 {/* Features list */}
-                <ul className="space-y-1.5 mb-3.5 text-[11px] sm:text-xs text-[#3A241C]/80">
-                  {plan.features.map((feat, idx) => {
+                <ul className="space-y-1 mb-2 text-[10px] sm:text-[10.5px] text-[#3A241C]/80">
+                  {plan.features.slice(0, 4).map((feat, idx) => {
                     const FeatIcon = feat.icon;
                     return (
-                      <li key={idx} className="flex items-center gap-2">
-                        <FeatIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>{feat.text}</span>
+                      <li key={idx} className="flex items-center gap-1.5 truncate">
+                        <FeatIcon className="w-3 h-3 text-emerald-600 shrink-0" />
+                        <span className="truncate">{feat.text}</span>
                       </li>
                     );
                   })}
@@ -363,7 +365,7 @@ export function PlanStep({
               </div>
 
               {/* Actions container */}
-              <div className="space-y-2">
+              <div className="space-y-1.5 mt-1">
                 {/* Customize Schedule Button for Monthly Plan */}
                 {isMonthly && (
                   <button
@@ -373,10 +375,10 @@ export function PlanStep({
                       setIsPanelOpen(true);
                     }}
                     aria-label="Customize delivery frequency and quantity schedule"
-                    className="w-full min-h-[36px] sm:min-h-[38px] py-1.5 px-3 rounded-xl border border-[#5C1B13]/30 bg-white hover:bg-[#FAF3EA] text-[#5C1B13] text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                    className="w-full h-7 sm:h-7.5 px-2 rounded-lg border border-[#5C1B13]/30 bg-white hover:bg-[#FAF3EA] text-[#5C1B13] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-2xs"
                   >
-                    <FiSliders className="w-3.5 h-3.5 shrink-0" />
-                    <span>{customPricing ? "Edit Custom Schedule" : "Customize Frequency & Quantity"}</span>
+                    <FiSliders className="w-3 h-3 shrink-0" />
+                    <span>{customPricing ? "Edit Schedule" : "Customize Schedule"}</span>
                   </button>
                 )}
 
@@ -384,19 +386,19 @@ export function PlanStep({
                 <Button
                   type="button"
                   variant={isSelected ? "primary" : "secondary"}
-                  size="md"
+                  size="sm"
                   fullWidth
                   disabled={planSubmitting || isBlocked}
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!isBlocked) handleSelectAndComplete(plan);
                   }}
-                  className="rounded-xl min-h-[38px] sm:min-h-[40px] py-2 text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
+                  className="rounded-lg h-8 sm:h-8.5 lg:h-9 text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {planSubmitting && selectedPlanId === plan.id ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      <span>Activating Delivery...</span>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      <span>Activating...</span>
                     </div>
                   ) : isBlocked ? (
                     <span>Unavailable</span>
@@ -408,20 +410,6 @@ export function PlanStep({
             </div>
           );
         })}
-      </div>
-
-      {/* Back button */}
-      <div className="flex justify-between items-center pt-2">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => onGoToStep(3)}
-          className="rounded-xl min-h-[44px] px-4 py-2 text-xs font-semibold cursor-pointer"
-        >
-          <FiArrowLeft className="w-3.5 h-3.5 mr-1" />
-          <span>Back to Delivery Address</span>
-        </Button>
       </div>
 
       {/* Subscription Panel Dialog */}
