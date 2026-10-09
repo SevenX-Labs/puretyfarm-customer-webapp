@@ -6,18 +6,14 @@ import { Button } from "@/components/ui/Button";
 import {
   FiArrowLeft,
   FiMapPin,
-  FiNavigation,
   FiCheckCircle,
-  FiAlertCircle,
   FiArrowRight,
-  FiRefreshCw,
 } from "react-icons/fi";
 import {
   locationApi,
   StateItem,
   CityItem,
   AreaItem,
-  DetectLocationResponse,
 } from "@/features/location/api/locationApi";
 
 export interface ServiceAreaStepProps {
@@ -45,11 +41,6 @@ export function ServiceAreaStep({
   onBack,
   onContinue,
 }: ServiceAreaStepProps) {
-  // GPS State
-  const [gpsDetecting, setGpsDetecting] = useState(false);
-  const [gpsError, setGpsError] = useState<string | null>(null);
-  const [detectedLocation, setDetectedLocation] = useState<DetectLocationResponse | null>(null);
-
   // Server-Side Location Catalog State
   const [states, setStates] = useState<StateItem[]>([]);
   const [cities, setCities] = useState<CityItem[]>([]);
@@ -58,225 +49,120 @@ export function ServiceAreaStep({
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingAreas, setLoadingAreas] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Guard flag for GPS auto-population
-  const gpsPopulatingRef = useRef(false);
-
-  // 1. Initial load of States from Server
+  // Initial load of States from puretyfarm-server
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
     async function loadStates() {
       setLoadingStates(true);
+      setLoadError(null);
       try {
         const stateList = await locationApi.getStates();
-        if (mounted) {
-          setStates(Array.isArray(stateList) ? stateList : []);
+        if (isMounted) {
+          setStates(stateList);
+          // If only 1 state available (e.g. Chhattisgarh), auto-select it
+          if (stateList.length === 1 && !selectedStateId) {
+            onStateChange(stateList[0].id);
+          }
         }
-      } catch (err) {
-        console.warn("Failed to load states from server:", err);
+      } catch (err: unknown) {
+        if (isMounted) {
+          const msg = err instanceof Error ? err.message : "Failed to load states";
+          setLoadError(msg);
+        }
       } finally {
-        if (mounted) setLoadingStates(false);
+        if (isMounted) setLoadingStates(false);
       }
     }
     loadStates();
     return () => {
-      mounted = false;
+      isMounted = false;
     };
-  }, []);
+  }, [selectedStateId, onStateChange]);
 
-  // 2. Load Cities when State changes
+  // Load Cities whenever State changes
   useEffect(() => {
-    if (gpsPopulatingRef.current) return;
-
     if (!selectedStateId) {
       setCities([]);
       return;
     }
-
-    let mounted = true;
+    let isMounted = true;
     async function loadCities() {
       setLoadingCities(true);
       try {
         const cityList = await locationApi.getCities(selectedStateId);
-        if (mounted) {
-          setCities(Array.isArray(cityList) ? cityList : []);
+        if (isMounted) {
+          setCities(cityList);
+          // If only 1 city available (e.g. Raipur), auto-select it
+          if (cityList.length === 1 && !selectedCityId) {
+            onCityChange(cityList[0].id, cityList[0].name);
+          }
         }
-      } catch (err) {
-        console.warn("Failed to load cities for state:", err);
+      } catch (err: unknown) {
+        if (isMounted) {
+          console.error("Error loading cities:", err);
+        }
       } finally {
-        if (mounted) setLoadingCities(false);
+        if (isMounted) setLoadingCities(false);
       }
     }
     loadCities();
     return () => {
-      mounted = false;
+      isMounted = false;
     };
-  }, [selectedStateId]);
+  }, [selectedStateId, selectedCityId, onCityChange]);
 
-  // 3. Load Areas when City changes
+  // Load Areas/Hubs whenever City changes
   useEffect(() => {
-    if (gpsPopulatingRef.current) return;
-
     if (!selectedCityId) {
       setAreas([]);
       return;
     }
-
-    let mounted = true;
+    let isMounted = true;
     async function loadAreas() {
       setLoadingAreas(true);
       try {
         const areaList = await locationApi.getAreas(selectedCityId);
-        if (mounted) {
-          setAreas(Array.isArray(areaList) ? areaList : []);
+        if (isMounted) {
+          setAreas(areaList);
         }
-      } catch (err) {
-        console.warn("Failed to load areas for city:", err);
+      } catch (err: unknown) {
+        if (isMounted) {
+          console.error("Error loading areas:", err);
+        }
       } finally {
-        if (mounted) setLoadingAreas(false);
+        if (isMounted) setLoadingAreas(false);
       }
     }
     loadAreas();
     return () => {
-      mounted = false;
+      isMounted = false;
     };
   }, [selectedCityId]);
 
-  // Handle Area Selection change
+  // Handle Area Selection
   const handleAreaSelect = (areaId: string) => {
-    const chosen = areas.find((a) => a.id === areaId);
-    onAreaChange(areaId, chosen?.pincode || "", chosen?.name || "");
-  };
-
-  // ─── GPS Auto-Detection Handler ───
-  const handleDetectGps = () => {
-    if (typeof window === "undefined" || !navigator.geolocation) {
-      setGpsError("Geolocation is not supported by your device browser.");
-      setDetectedLocation(null);
-      return;
+    const selected = areas.find((a) => a.id === areaId);
+    if (selected) {
+      onAreaChange(selected.id, selected.pincode || "", selected.name);
+    } else {
+      onAreaChange("", "", "");
     }
-
-    setGpsDetecting(true);
-    setGpsError(null);
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        onCoordsChange({ lat, lng });
-
-        try {
-          const res = await locationApi.detectLocation({ latitude: lat, longitude: lng });
-
-          if (!res || !res.state) {
-            throw new Error("Location coordinates could not be resolved.");
-          }
-
-          setDetectedLocation(res);
-          gpsPopulatingRef.current = true;
-
-          try {
-            const allStates = states.length > 0 ? states : await locationApi.getStates();
-            if (!states.length && allStates.length) setStates(allStates);
-
-            const matchedState = allStates.find(
-              (s) =>
-                s.name.toLowerCase() === res.state.toLowerCase() ||
-                res.state.toLowerCase().includes(s.name.toLowerCase()) ||
-                s.name.toLowerCase().includes(res.state.toLowerCase())
-            );
-
-            if (matchedState) {
-              onStateChange(matchedState.id);
-              const cityList = await locationApi.getCities(matchedState.id);
-              setCities(cityList);
-
-              const matchedCity = cityList.find(
-                (c) =>
-                  c.name.toLowerCase() === res.city.toLowerCase() ||
-                  res.city.toLowerCase().includes(c.name.toLowerCase()) ||
-                  c.name.toLowerCase().includes(res.city.toLowerCase())
-              );
-
-              if (matchedCity) {
-                onCityChange(matchedCity.id, matchedCity.name);
-                const areaList = await locationApi.getAreas(matchedCity.id);
-                setAreas(areaList);
-
-                const matchedArea =
-                  areaList.find((a) => a.pincode && res.pincode && a.pincode === res.pincode) ||
-                  areaList.find(
-                    (a) =>
-                      a.name.toLowerCase().includes(res.area.toLowerCase()) ||
-                      res.area.toLowerCase().includes(a.name.toLowerCase())
-                  );
-
-                if (matchedArea) {
-                  onAreaChange(matchedArea.id, matchedArea.pincode || res.pincode, matchedArea.name);
-                } else {
-                  onAreaChange("", "", "");
-                  setGpsError(
-                    `Detected location: ${res.city}, ${res.state}. Please select your specific Delivery Hub below.`
-                  );
-                }
-              } else {
-                onCityChange("", "");
-                onAreaChange("", "", "");
-                setGpsError(
-                  `Detected city "${res.city}" is not yet serviceable. Please choose an available city below.`
-                );
-              }
-            } else {
-              onStateChange("");
-              onCityChange("", "");
-              onAreaChange("", "", "");
-              setGpsError(
-                `Detected state "${res.state}" is not yet serviceable. Please select from available states below.`
-              );
-            }
-          } finally {
-            setTimeout(() => {
-              gpsPopulatingRef.current = false;
-            }, 50);
-          }
-        } catch {
-          setDetectedLocation(null);
-          setGpsError("Could not auto-detect location. Please select your State, City, and Delivery Hub from the dropdowns below.");
-        } finally {
-          setGpsDetecting(false);
-        }
-      },
-      (err) => {
-        setGpsDetecting(false);
-        setDetectedLocation(null);
-        if (err.code === err.PERMISSION_DENIED) {
-          setGpsError("Location permission was denied. Please select your State and City manually below.");
-        } else {
-          setGpsError("Could not retrieve GPS coordinates. Please select your State, City, and Delivery Hub manually below.");
-        }
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
   };
 
   const selectedStateObj = states.find((s) => s.id === selectedStateId);
   const selectedCityObj = cities.find((c) => c.id === selectedCityId);
   const selectedAreaObj = areas.find((a) => a.id === selectedAreaId);
 
-  const isAreaServiceable = Boolean(
-    selectedStateId &&
-    selectedCityId &&
-    selectedAreaId &&
-    selectedAreaObj
-  );
-
-  const selectedStateName = selectedStateObj?.name || "";
-  const selectedCityName = selectedCityObj?.name || "";
   const selectedAreaName = selectedAreaObj?.name || "";
-  const activePincode = selectedAreaObj?.pincode || selectedAreaPincode || "";
+  const selectedCityName = selectedCityObj?.name || "";
+  const activePincode = selectedAreaPincode || selectedAreaObj?.pincode || "";
+  const isAreaServiceable = Boolean(selectedAreaId && selectedCityId && selectedStateId);
 
   return (
     <m.section
+      key="service-area-step"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
@@ -290,7 +176,7 @@ export function ServiceAreaStep({
               Choose Service Area
             </h1>
             <p className="mt-0.5 text-xs text-[#715e50] sm:text-[13px]">
-              Select where you want your fresh morning milk delivered.
+              Select your State, City, and Delivery Hub for morning milk delivery.
             </p>
           </div>
           <button
@@ -303,51 +189,13 @@ export function ServiceAreaStep({
           </button>
         </header>
 
-        <div className="space-y-3 rounded-xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4.5 shadow-2xs">
-          <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={handleDetectGps}
-              disabled={gpsDetecting}
-              className="min-h-9 sm:min-h-10 w-full rounded-xl bg-[#7a2417] px-4 text-xs font-bold text-white shadow-xs hover:bg-[#5f1b12] sm:w-auto cursor-pointer"
-            >
-              <span className="inline-flex items-center justify-center gap-2">
-                {gpsDetecting ? (
-                  <FiRefreshCw className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <FiNavigation className="h-3.5 w-3.5" />
-                )}
-                {gpsDetecting ? "Detecting Location..." : "Use Current Location"}
-              </span>
-            </Button>
-            <span className="text-[11px] font-medium text-[#8b7b70]">or select manually below</span>
-          </div>
-
-          {gpsError && (
+        <div className="space-y-3.5 rounded-xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4.5 shadow-2xs">
+          {loadError && (
             <div
               role="alert"
-              className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[11.5px] text-amber-800"
+              className="rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800"
             >
-              <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
-              <span>{gpsError}</span>
-            </div>
-          )}
-
-          {detectedLocation && (
-            <div className="rounded-xl bg-[#faf6f0] px-3.5 py-2.5 text-xs border border-[#e8dfd4]">
-              <div className="flex items-center justify-between gap-3 font-semibold text-[#24130f]">
-                <span>Detected location</span>
-                {detectedLocation.pincode ? (
-                  <span className="font-mono text-[11px] text-[#7a2417]">
-                    {detectedLocation.pincode}
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-0.5 text-[11px] leading-relaxed text-[#715e50]">
-                {detectedLocation.formattedAddress}
-              </p>
+              {loadError}
             </div>
           )}
 
@@ -363,7 +211,6 @@ export function ServiceAreaStep({
                   onStateChange(e.target.value);
                   onCityChange("", "");
                   onAreaChange("", "", "");
-                  setGpsError(null);
                 }}
                 disabled={loadingStates}
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
@@ -388,7 +235,6 @@ export function ServiceAreaStep({
                   const chosenCity = cities.find((c) => c.id === e.target.value);
                   onCityChange(e.target.value, chosenCity?.name || "");
                   onAreaChange("", "", "");
-                  setGpsError(null);
                 }}
                 disabled={!selectedStateId || loadingCities}
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
@@ -417,7 +263,6 @@ export function ServiceAreaStep({
                 value={selectedAreaId}
                 onChange={(e) => {
                   handleAreaSelect(e.target.value);
-                  setGpsError(null);
                 }}
                 disabled={!selectedCityId || loadingAreas}
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
