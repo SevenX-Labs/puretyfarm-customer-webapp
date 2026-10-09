@@ -50,7 +50,9 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
   const [day2Litres, setDay2Litres] = useState<number>(DEFAULT_DRAFT.day2Litres);
 
   const [serverQuote, setServerQuote] = useState<PlanQuote | null>(null);
-  const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(true);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -93,27 +95,31 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
   useEffect(() => {
     if (!hasLoadedDraft) return;
     try {
-      const draft: SubscriptionDraft = {
+      const draft = {
         frequency,
         mode,
         fixedLitres,
         day1Litres,
         day2Litres,
+        lastQuotedPrice: serverQuote ? Math.round(serverQuote.totalSellingAmount / 100) : undefined,
+        lastQuotedLitres: serverQuote ? serverQuote.totalLitres : undefined,
+        lastDeliveries: serverQuote ? serverQuote.deliveryOccurrences : undefined,
         updatedAt: new Date().toISOString(),
       };
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch {
       // Storage quota or restriction
     }
-  }, [hasLoadedDraft, frequency, mode, fixedLitres, day1Litres, day2Litres]);
+  }, [hasLoadedDraft, frequency, mode, fixedLitres, day1Litres, day2Litres, serverQuote]);
 
   // 3. Fetch server-calculated monthly quote asynchronously (debounced).
-  //    Invalidate stale quote immediately so the UI never shows an old amount
-  //    as if it is current while a new quote is loading.
+  //    Invalidate stale quote immediately and mark loading so UI never presents
+  //    an old quote as current while a new selection is in flight.
   useEffect(() => {
     if (!hasLoadedDraft) return;
 
-    setServerQuote(null);
+    setIsQuoteLoading(true);
+    setQuoteError(null);
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -122,7 +128,6 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     const requestId = ++quoteRequestIdRef.current;
 
     debounceTimerRef.current = setTimeout(async () => {
-      setIsQuoteLoading(true);
       try {
         const backendFreq = frequency === "daily" ? "DAILY" : "ALTERNATE_DAYS";
         const backendMode = mode === "fixed" ? "FIXED" : "ALTERNATING";
@@ -135,14 +140,23 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
           quantityB: mode === "pattern" ? day2Litres : undefined,
         });
 
+        // Race protection: ignore responses for superseded requests
         if (requestId !== quoteRequestIdRef.current) return;
 
         if (quote && quote.quoteId) {
           setServerQuote(quote);
+          setQuoteError(null);
+        } else {
+          setQuoteError("Unable to calculate subscription quote.");
         }
-      } catch (err) {
+      } catch (err: unknown) {
         if (requestId !== quoteRequestIdRef.current) return;
         console.warn("Could not fetch server-side monthly quote:", err);
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "Could not calculate quote. Please check connection.";
+        setQuoteError(msg);
       } finally {
         if (requestId === quoteRequestIdRef.current) {
           setIsQuoteLoading(false);
@@ -155,9 +169,9 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [hasLoadedDraft, frequency, mode, fixedLitres, day1Litres, day2Litres]);
+  }, [hasLoadedDraft, frequency, mode, fixedLitres, day1Litres, day2Litres, retryTrigger]);
 
-  // 4. Compute derived pricing result (with server quote overrides if available)
+  // 4. Compute derived pricing result (with server quote overrides)
   const pricingResult = useMemo<PricingResult>(() => {
     const local = calculateSubscriptionPricing({
       frequency,
@@ -175,7 +189,7 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
         serverQuote.deliveryOccurrences,
         fixedLitres,
         qtyA,
-        qtyB,
+        qtyB
       );
 
       return {
@@ -187,11 +201,15 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
         breakdownText: bd.breakdownText,
         oddDeliveriesCount: bd.oddDeliveriesCount,
         evenDeliveriesCount: bd.evenDeliveriesCount,
+        isValid: local.isValid && !quoteError,
       };
     }
 
-    return local;
-  }, [frequency, mode, fixedLitres, day1Litres, day2Litres, serverQuote]);
+    return {
+      ...local,
+      isValid: false,
+    };
+  }, [frequency, mode, fixedLitres, day1Litres, day2Litres, serverQuote, quoteError]);
 
   // 5. Compute first 4 delivery dates preview
   const schedulePreview = useMemo<DeliveryDatePreviewItem[]>(() => {
@@ -205,38 +223,82 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     );
   }, [frequency, mode, fixedLitres, day1Litres, day2Litres, startDate]);
 
+  // Synchronous invalidation helper: immediately activates loading state on user action
+  const markQuotePending = useCallback(() => {
+    setIsQuoteLoading(true);
+    setQuoteError(null);
+    setSubmitError(null);
+    setIsSuccess(false);
+  }, []);
+
   // 6. Safe setters enforcing MIN_LITRES (1) and MAX_LITRES (5)
-  const handleSetFrequency = useCallback((freq: DeliveryFrequency) => {
-    setFrequency(freq);
-    setSubmitError(null);
-    setIsSuccess(false);
-  }, []);
+  const handleSetFrequency = useCallback(
+    (freq: DeliveryFrequency) => {
+      setFrequency((prev) => {
+        if (prev !== freq) {
+          markQuotePending();
+        }
+        return freq;
+      });
+    },
+    [markQuotePending]
+  );
 
-  const handleSetMode = useCallback((m: DeliveryMode) => {
-    setMode(m);
-    setSubmitError(null);
-    setIsSuccess(false);
-  }, []);
+  const handleSetMode = useCallback(
+    (m: DeliveryMode) => {
+      setMode((prev) => {
+        if (prev !== m) {
+          markQuotePending();
+        }
+        return m;
+      });
+    },
+    [markQuotePending]
+  );
 
-  const handleSetFixedLitres = useCallback((qty: number) => {
-    const check = sanitizeLitres(qty, 1);
-    setFixedLitres(check.clamped);
-    setSubmitError(null);
-    setIsSuccess(false);
-  }, []);
+  const handleSetFixedLitres = useCallback(
+    (qty: number) => {
+      const check = sanitizeLitres(qty, 1);
+      setFixedLitres((prev) => {
+        if (prev !== check.clamped) {
+          markQuotePending();
+        }
+        return check.clamped;
+      });
+    },
+    [markQuotePending]
+  );
 
-  const handleSetDay1Litres = useCallback((qty: number) => {
-    const check = sanitizeLitres(qty, 1);
-    setDay1Litres(check.clamped);
-    setSubmitError(null);
-    setIsSuccess(false);
-  }, []);
+  const handleSetDay1Litres = useCallback(
+    (qty: number) => {
+      const check = sanitizeLitres(qty, 1);
+      setDay1Litres((prev) => {
+        if (prev !== check.clamped) {
+          markQuotePending();
+        }
+        return check.clamped;
+      });
+    },
+    [markQuotePending]
+  );
 
-  const handleSetDay2Litres = useCallback((qty: number) => {
-    const check = sanitizeLitres(qty, 2);
-    setDay2Litres(check.clamped);
-    setSubmitError(null);
-    setIsSuccess(false);
+  const handleSetDay2Litres = useCallback(
+    (qty: number) => {
+      const check = sanitizeLitres(qty, 2);
+      setDay2Litres((prev) => {
+        if (prev !== check.clamped) {
+          markQuotePending();
+        }
+        return check.clamped;
+      });
+    },
+    [markQuotePending]
+  );
+
+  const retryQuote = useCallback(() => {
+    setIsQuoteLoading(true);
+    setQuoteError(null);
+    setRetryTrigger((prev) => prev + 1);
   }, []);
 
   const resetSuccess = useCallback(() => {
@@ -245,7 +307,7 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
 
   // 7. Submit handler with server quote confirmation and double-submit guard
   const handleConfirmSubscription = useCallback(async () => {
-    if (isSubmitting) return; // Guard against double submission
+    if (isSubmitting || isQuoteLoading || !serverQuote || !pricingResult.isValid) return;
 
     setIsSubmitting(true);
     setSubmitError(null);
@@ -271,24 +333,6 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     };
 
     try {
-      // Customizing a schedule only configures parameters and computes a live
-      // pricing preview — it must NEVER confirm or book orders on the backend.
-      // Order confirmation happens exclusively in Step 5 (Payment) via
-      // useOnboardingFlow once the customer picks Wallet, Online, or Cash.
-      //
-      // Ensure a pricing quote exists (for preview only), but do not confirm it.
-      if (!serverQuote) {
-        await plansApi.createMonthlyQuote({
-          frequency: frequency === "daily" ? "DAILY" : "ALTERNATE_DAYS",
-          quantityMode: mode === "fixed" ? "FIXED" : "ALTERNATING",
-          quantity: mode === "fixed" ? fixedLitres : undefined,
-          quantityA: mode === "pattern" ? day1Litres : undefined,
-          quantityB: mode === "pattern" ? day2Litres : undefined,
-        }).then((quote) => {
-          if (quote?.quoteId) setServerQuote(quote);
-        }).catch(() => null);
-      }
-
       if (onConfirm) {
         await onConfirm(pricingResult, currentDraft, payload);
       } else if (mockSubmission) {
@@ -304,13 +348,14 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     }
   }, [
     isSubmitting,
+    isQuoteLoading,
+    serverQuote,
+    pricingResult,
     frequency,
     mode,
     fixedLitres,
     day1Litres,
     day2Litres,
-    pricingResult,
-    serverQuote,
     onConfirm,
     mockSubmission,
   ]);
@@ -325,6 +370,8 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     schedulePreview,
     serverQuote,
     isQuoteLoading,
+    quoteError,
+    retryQuote,
     isSubmitting,
     submitError,
     isSuccess,

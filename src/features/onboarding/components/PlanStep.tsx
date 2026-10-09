@@ -19,7 +19,7 @@ import {
   SubscriptionDraft,
   SubscriptionCustomizationPayload,
 } from "@/features/subscription/types";
-import { calculateSubscriptionPricing } from "@/features/subscription/pricing";
+import { calculateSubscriptionPricing, buildBreakdown } from "@/features/subscription/pricing";
 import { FiCheck, FiArrowLeft, FiMapPin, FiSliders, FiAlertCircle } from "react-icons/fi";
 
 export interface PlanStepProps {
@@ -170,7 +170,6 @@ export function PlanStep({
         });
 
         if (draft && mq) {
-          const { buildBreakdown } = await import("@/features/subscription/pricing");
           const bd = buildBreakdown(
             draft.mode === "pattern" ? "pattern" : "fixed",
             mq.deliveryOccurrences,
@@ -178,8 +177,12 @@ export function PlanStep({
             draft.mode === "pattern" ? (draft.day1Litres || 1) : (draft.fixedLitres || 1),
             draft.mode === "pattern" ? (draft.day2Litres || 2) : (draft.fixedLitres || 1),
           );
-          setCustomPricing((prev) => prev ? {
-            ...prev,
+          setCustomPricing({
+            frequency: (draft.frequency as "daily" | "alternate") || "daily",
+            mode: (draft.mode as "fixed" | "pattern") || "fixed",
+            fixedLitres: draft.fixedLitres || 1,
+            day1Litres: draft.day1Litres || 1,
+            day2Litres: draft.day2Litres || 2,
             totalDeliveries: mq.deliveryOccurrences,
             totalLitres: mq.totalLitres,
             pricePerLitre: Math.round(mq.sellingPricePerLitre / 100),
@@ -187,7 +190,8 @@ export function PlanStep({
             breakdownText: bd.breakdownText,
             oddDeliveriesCount: bd.oddDeliveriesCount,
             evenDeliveriesCount: bd.evenDeliveriesCount,
-          } : prev);
+            isValid: true,
+          });
         }
       } catch (err) {
         console.warn("Could not load plans overview:", err);
@@ -212,7 +216,30 @@ export function PlanStep({
         localStorage.getItem("pf_subscription_draft");
       if (stored) {
         const parsed = JSON.parse(stored);
-        return calculateSubscriptionPricing(parsed);
+        if (parsed.lastQuotedPrice && parsed.lastDeliveries) {
+          const bd = buildBreakdown(
+            parsed.mode === "pattern" ? "pattern" : "fixed",
+            parsed.lastDeliveries,
+            parsed.fixedLitres || 1,
+            parsed.mode === "pattern" ? (parsed.day1Litres || 1) : (parsed.fixedLitres || 1),
+            parsed.mode === "pattern" ? (parsed.day2Litres || 2) : (parsed.fixedLitres || 1),
+          );
+          return {
+            frequency: parsed.frequency || "daily",
+            mode: parsed.mode || "fixed",
+            fixedLitres: parsed.fixedLitres || 1,
+            day1Litres: parsed.day1Litres || 1,
+            day2Litres: parsed.day2Litres || 2,
+            totalDeliveries: parsed.lastDeliveries,
+            totalLitres: parsed.lastQuotedLitres || bd.totalLitres,
+            pricePerLitre: 75,
+            totalPrice: parsed.lastQuotedPrice,
+            breakdownText: bd.breakdownText,
+            oddDeliveriesCount: bd.oddDeliveriesCount,
+            evenDeliveriesCount: bd.evenDeliveriesCount,
+            isValid: true,
+          };
+        }
       }
     } catch {}
     return null;
@@ -226,6 +253,12 @@ export function PlanStep({
     setCustomPricing(result);
     try {
       localStorage.setItem("pf_subscription_draft", JSON.stringify(draft));
+      localStorage.setItem("pf_subscription_draft_v2", JSON.stringify({
+        ...draft,
+        lastQuotedPrice: result.totalPrice,
+        lastQuotedLitres: result.totalLitres,
+        lastDeliveries: result.totalDeliveries,
+      }));
     } catch {}
 
     try {
@@ -547,6 +580,8 @@ export function PlanStep({
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
         onConfirmPlan={handleConfirmSchedule}
+        deliveryStartTime={plansOverview.find((p) => p.type === "MONTHLY")?.deliveryStartTime}
+        deliveryEndTime={plansOverview.find((p) => p.type === "MONTHLY")?.deliveryEndTime}
       />
     </m.div>
   );

@@ -26,6 +26,20 @@ export interface SubscriptionPanelProps {
   title?: string;
   startDate?: Date | string;
   inline?: boolean;
+  deliveryWindow?: string;
+  deliveryStartTime?: string | null;
+  deliveryEndTime?: string | null;
+}
+
+function formatTimeSlot(time?: string | null): string {
+  if (!time) return "";
+  const [hours, minutes] = time.split(":");
+  let h = parseInt(hours, 10);
+  const m = minutes || "00";
+  if (isNaN(h)) return time;
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
 }
 
 export function SubscriptionPanel({
@@ -35,6 +49,9 @@ export function SubscriptionPanel({
   title = "Customize Milk Delivery Schedule",
   startDate,
   inline = false,
+  deliveryWindow,
+  deliveryStartTime,
+  deliveryEndTime,
 }: SubscriptionPanelProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
@@ -42,6 +59,12 @@ export function SubscriptionPanel({
 
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const resolvedDeliveryWindow =
+    deliveryWindow ||
+    (deliveryStartTime && deliveryEndTime
+      ? `${formatTimeSlot(deliveryStartTime)} – ${formatTimeSlot(deliveryEndTime)}`
+      : "6:00 AM – 11:00 AM");
 
   useEffect(() => {
     setMounted(true);
@@ -63,6 +86,8 @@ export function SubscriptionPanel({
     schedulePreview,
     serverQuote,
     isQuoteLoading,
+    quoteError,
+    retryQuote,
     isSubmitting,
     submitError,
     isSuccess,
@@ -86,24 +111,19 @@ export function SubscriptionPanel({
     startDate,
   });
 
-  // Return focus on close & Body scroll lock (mobile only)
+  // Lock body scroll on ALL screen sizes when open to avoid background scroll bleeding
   useEffect(() => {
     if (!isOpen) return;
 
     resetSuccess();
     previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
-    let didLockScroll = false;
-    let originalOverflow = "";
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      didLockScroll = true;
-    }
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     const timer = setTimeout(() => {
       const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-        "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex=\"0\"]:not([disabled])"
+        "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]:not([disabled])"
       );
       if (focusable && focusable.length > 0) {
         focusable[0].focus();
@@ -112,9 +132,7 @@ export function SubscriptionPanel({
 
     return () => {
       clearTimeout(timer);
-      if (typeof window !== "undefined" && didLockScroll) {
-        document.body.style.overflow = originalOverflow;
-      }
+      document.body.style.overflow = originalOverflow;
       if (
         previouslyFocusedElement.current &&
         typeof previouslyFocusedElement.current.focus === "function"
@@ -138,7 +156,7 @@ export function SubscriptionPanel({
       if (!dialogRef.current) return;
       const focusables = Array.from(
         dialogRef.current.querySelectorAll<HTMLElement>(
-          "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex=\"0\"]:not([disabled])"
+          "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]:not([disabled])"
         )
       );
 
@@ -191,7 +209,7 @@ export function SubscriptionPanel({
             aria-label="Close schedule customization"
             className="w-10 h-10 rounded-xl border border-[#E8DFD4] flex items-center justify-center text-[#1A1008] hover:bg-[#FAF3EA] transition-colors cursor-pointer shrink-0 disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[#5C1B13]"
           >
-            <FiX className="w-4 h-4" />
+            <FiX className="w-5 h-5" />
           </button>
         </div>
 
@@ -266,6 +284,9 @@ export function SubscriptionPanel({
           result={pricingResult}
           schedulePreview={schedulePreview}
           isQuoteLoading={isQuoteLoading}
+          quoteError={quoteError}
+          onRetryQuote={retryQuote}
+          deliveryWindow={resolvedDeliveryWindow}
         />
 
         {/* Error Alert if any */}
@@ -287,7 +308,7 @@ export function SubscriptionPanel({
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-stretch justify-end pointer-events-auto">
+        <div className="fixed inset-0 z-50 flex items-stretch justify-end pointer-events-auto overflow-hidden">
           {/* Backdrop overlay */}
           <m.div
             initial={{ opacity: 0 }}
@@ -315,7 +336,7 @@ export function SubscriptionPanel({
               relative z-50 bg-white border-[#E8DFD4] shadow-2xl flex flex-col outline-none
               ${
                 isMobile
-                  ? "bottom-0 left-0 right-0 w-full max-h-[92vh] h-auto rounded-t-3xl border-t mt-auto overflow-hidden"
+                  ? "bottom-0 left-0 right-0 w-full h-[92vh] max-h-[92vh] rounded-t-3xl border-t mt-auto overflow-hidden"
                   : "top-0 right-0 bottom-0 h-screen max-h-screen w-[500px] max-w-[100vw] border-l overflow-hidden"
               }
             `}
@@ -346,10 +367,10 @@ export function SubscriptionPanel({
               </button>
             </div>
 
-            {/* Scrollable Body - Smooth mouse wheel scroll with custom scrollbar */}
+            {/* Scrollable Body - Smooth mouse wheel scroll with custom scrollbar and generous bottom padding */}
             <div 
               tabIndex={0}
-              className="px-5 py-5 sm:px-6 sm:py-6 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-6 overscroll-contain focus:outline-none"
+              className="px-5 py-5 sm:px-6 sm:py-6 pb-12 sm:pb-14 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-6 overscroll-contain focus:outline-none"
               style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
             >
               {/* 1. Delivery Frequency */}
@@ -423,6 +444,9 @@ export function SubscriptionPanel({
                 result={pricingResult}
                 schedulePreview={schedulePreview}
                 isQuoteLoading={isQuoteLoading}
+                quoteError={quoteError}
+                onRetryQuote={retryQuote}
+                deliveryWindow={resolvedDeliveryWindow}
               />
 
               {/* Error Alert if any */}
@@ -443,9 +467,13 @@ export function SubscriptionPanel({
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#715E50] block">
                   Monthly Plan Total
                 </span>
-                <span className="text-2xl sm:text-[26px] font-black text-[#5C1B13] tabular-nums leading-none block mt-1">
-                  ₹{pricingResult.totalPrice.toLocaleString("en-IN")}
-                </span>
+                {isQuoteLoading ? (
+                  <div className="h-7 w-24 bg-[#E8DFD4]/70 animate-pulse rounded-md mt-1" />
+                ) : (
+                  <span className="text-2xl sm:text-[26px] font-black text-[#5C1B13] tabular-nums leading-none block mt-1">
+                    ₹{pricingResult.totalPrice.toLocaleString("en-IN")}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2.5">
@@ -461,15 +489,19 @@ export function SubscriptionPanel({
                 <button
                   type="button"
                   onClick={confirmSubscription}
-                  disabled={isSubmitting || !pricingResult.isValid}
-                  aria-label={`Confirm and apply schedule for ₹${pricingResult.totalPrice.toLocaleString("en-IN")}`}
+                  disabled={isSubmitting || isQuoteLoading || !pricingResult.isValid || !serverQuote || Boolean(quoteError)}
+                  aria-label={
+                    isQuoteLoading
+                      ? "Calculating quote"
+                      : `Confirm and apply schedule for ₹${pricingResult.totalPrice.toLocaleString("en-IN")}`
+                  }
                   className={`
                     min-h-[44px] px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all
                     flex items-center justify-center gap-2 cursor-pointer shadow-sm
                     ${
                       isSuccess
                         ? "bg-emerald-700"
-                        : isSubmitting || !pricingResult.isValid
+                        : isSubmitting || isQuoteLoading || !pricingResult.isValid || !serverQuote || Boolean(quoteError)
                         ? "bg-[#5C1B13]/70 cursor-not-allowed"
                         : "bg-[#5C1B13] hover:bg-[#48150f] active:scale-[0.99]"
                     }
@@ -479,6 +511,11 @@ export function SubscriptionPanel({
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Saving...</span>
+                    </>
+                  ) : isQuoteLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Updating Quote...</span>
                     </>
                   ) : isSuccess ? (
                     <>
