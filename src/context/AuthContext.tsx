@@ -125,64 +125,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Preserve support for the same-origin httpOnly pf_session flow.
-      const res = await fetch("/api/me", {
-        cache: "no-store",
-        headers: { "Cache-Control": "no-cache" },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.user) {
-          const userWithStep: AuthUser = normalizeCustomerUser({
-            ...data.user,
-            onboardingStep: data.onboardingStep,
-          });
-          setUser(userWithStep);
-          setAuthError(null);
-          setStatus("authenticated");
-          return userWithStep;
-        }
-      }
-
       setUser(null);
       setStatus("unauthenticated");
       return null;
     } catch (err) {
       console.warn("[AuthContext] Could not refresh the user profile:", err);
+      setUser(null);
+      setStatus("unauthenticated");
       return null;
-    } finally {
-      if (!tokenStorage.getRefreshToken() && !tokenStorage.getAccessToken()) {
-        setStatus("unauthenticated");
-      }
     }
   }, [fetchFullUserProfile]);
 
   const checkSession = useCallback(async () => {
     try {
-      const result = await bootstrapAuthSession(async () => {
-        const authUser = await fetchFullUserProfile();
-        if (!authUser) {
-          throw new Error("The authenticated customer profile was unavailable.");
+      // 1. First attempt bootstrap via refresh token if present
+      if (tokenStorage.getRefreshToken()) {
+        try {
+          const result = await bootstrapAuthSession(async () => {
+            const authUser = await fetchFullUserProfile();
+            if (!authUser) {
+              throw new Error("The authenticated customer profile was unavailable.");
+            }
+            return authUser;
+          });
+          if (result.status === "authenticated" && result.value) {
+            setUser(result.value as AuthUser);
+            setStatus("authenticated");
+            setAuthError(null);
+            return;
+          }
+        } catch {
+          // Token bootstrap failed or expired; fall through to next checks
         }
-        return authUser;
-      });
-      setUser(result.value as AuthUser | null);
-      setStatus(result.status);
+      }
+
+      // 2. Check if accessToken is in storage
+      if (tokenStorage.getAccessToken()) {
+        try {
+          const authUser = await fetchFullUserProfile();
+          if (authUser) {
+            setUser(authUser);
+            setStatus("authenticated");
+            setAuthError(null);
+            return;
+          }
+        } catch {}
+      }
+
+      // If backend JWT tokens are not available, user is not authenticated.
+      // Clean up any stale cookies.
+      if (typeof window !== "undefined") {
+        fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+      }
+      tokenStorage.clearTokens();
+      setUser(null);
+      setStatus("unauthenticated");
       setAuthError(null);
     } catch (err) {
-      const isRejected =
-        typeof err === "object" &&
-        err !== null &&
-        "status" in err &&
-        err.status === 401;
-      if (isRejected) {
-        setUser(null);
-        setStatus("unauthenticated");
-        setAuthError(null);
-      } else {
-        setAuthError("Can’t connect. Check your connection, then retry.");
-        setStatus("loading");
-      }
+      setUser(null);
+      setStatus("unauthenticated");
+      setAuthError(null);
     }
   }, [fetchFullUserProfile]);
 

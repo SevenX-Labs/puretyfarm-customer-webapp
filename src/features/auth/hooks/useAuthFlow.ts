@@ -12,7 +12,7 @@ export function useAuthFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/dashboard";
-  const { isLoggedIn, user, refreshUser } = useAuth();
+  const { isLoggedIn, user, status, refreshUser } = useAuth();
 
   const [step, setStep] = useState<AuthStep>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -26,22 +26,26 @@ export function useAuthFlow() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // Route existing sessions: if onboarding is incomplete, go to onboarding; else account.
+  // Prefetch destinations for instant routing
   useEffect(() => {
-    if (isLoggedIn && user && step === "phone") {
-      const isProfileIncomplete =
-        user.onboardingStep === "profile_pending" ||
-        !user.name ||
-        user.name.trim() === "" ||
-        user.name.startsWith("Customer (");
+    router.prefetch("/account");
+    router.prefetch("/onboarding?step=1");
+  }, [router]);
 
-      if (isProfileIncomplete) {
+  // Route existing sessions: only after session is confirmed authenticated
+  useEffect(() => {
+    if (status === "authenticated" && user && step === "phone") {
+      const isNewUserWithoutName =
+        user.onboardingStep === "profile_pending" && (!user.name || user.name.trim() === "");
+
+      if (isNewUserWithoutName) {
         router.replace("/onboarding?step=1");
       } else {
-        router.replace(redirectUrl === "/onboarding" ? "/account" : redirectUrl);
+        const dest = redirectUrl && redirectUrl !== "/onboarding" && redirectUrl !== "/auth" ? redirectUrl : "/account";
+        router.replace(dest);
       }
     }
-  }, [isLoggedIn, user, step, redirectUrl, router]);
+  }, [status, user, step, redirectUrl, router]);
 
   // References for OTP inputs
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -141,34 +145,19 @@ export function useAuthFlow() {
 
       const refreshedUser = await refreshUser();
 
-      const profile = await profileApi.getProfile().catch(() => null);
-      const addresses = await locationApi.getAddresses().catch(() => []);
-      const subRes = await fetch("/api/subscription").then((r) => r.json()).catch(() => null);
-      const hasSubscription = Boolean(subRes?.subscription);
-
-      const isProfileComplete = Boolean(
-        (profile && profile.firstName && !profile.firstName.startsWith("Customer (")) ||
-        (refreshedUser && refreshedUser.name && !refreshedUser.name.startsWith("Customer (") && refreshedUser.name.trim() !== "")
+      const isNewUserWithoutName = Boolean(
+        data.isNewUser &&
+        (!refreshedUser?.name || refreshedUser.name.startsWith("Customer (") || refreshedUser.name.trim() === "")
       );
-      const hasAddress = Array.isArray(addresses) && addresses.length > 0;
-      const hasPlan = hasSubscription || refreshedUser?.onboardingStep === "complete";
+
+      const targetUrl = isNewUserWithoutName
+        ? "/onboarding?step=1"
+        : redirectUrl && redirectUrl !== "/onboarding" && redirectUrl !== "/auth"
+        ? redirectUrl
+        : "/account";
 
       setSuccessMessage("Authentication successful! Redirecting...");
-      setTimeout(() => {
-        if (!isProfileComplete) {
-          // Incomplete profile -> onboarding step 1 (profile details)
-          router.replace("/onboarding?step=1");
-        } else if (!hasAddress) {
-          // Profile exists, but no address -> onboarding step 2 (delivery location)
-          router.replace("/onboarding?step=2");
-        } else if (!hasPlan) {
-          // Address exists, but no plan -> onboarding step 3 (plan selection)
-          router.replace("/onboarding?step=3");
-        } else {
-          // Existing active customer -> route to account page!
-          router.replace(redirectUrl && redirectUrl !== "/onboarding" ? redirectUrl : "/account");
-        }
-      }, 400);
+      router.replace(targetUrl);
     } catch (err: unknown) {
       const errorMsg =
         err instanceof Error ? err.message : "Verification failed. Please check your connection.";

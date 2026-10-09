@@ -241,6 +241,9 @@ export function subscribeToAuthSession(listener: SessionListener): () => void {
 export function endAuthSession(): void {
   try {
     tokenStorage.clearTokens();
+    if (typeof window !== "undefined") {
+      fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    }
   } finally {
     broadcastSessionEvent({ type: "ended" });
   }

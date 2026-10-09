@@ -14,11 +14,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (status === "unauthenticated") {
       const path =
         typeof window !== "undefined" ? window.location.pathname : "/dashboard";
-      router.replace(`/auth?redirect=${encodeURIComponent(path)}`);
-    } else if (status === "authenticated" && user?.onboardingStep && user.onboardingStep !== "complete") {
-      router.replace("/onboarding");
+      if (!path.startsWith("/auth")) {
+        router.replace(`/auth?redirect=${encodeURIComponent(path)}`);
+      }
     }
-  }, [status, user?.onboardingStep, router]);
+  }, [status, router]);
 
   if (status === "loading") {
     return (

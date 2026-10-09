@@ -77,7 +77,23 @@ export function AccountLandingView() {
     };
   }, []);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <CustomerHeader title="Account" subtitle="Manage your profile, delivery, and preferences." />
+        <div className="grid lg:grid-cols-[1fr_360px] gap-6 animate-pulse">
+          <div className="space-y-6">
+            <div className="h-44 rounded-3xl bg-[#FAF8F5] border border-[#E8DFD4]" />
+            <div className="h-32 rounded-3xl bg-[#FAF8F5] border border-[#E8DFD4]" />
+            <div className="h-32 rounded-3xl bg-[#FAF8F5] border border-[#E8DFD4]" />
+          </div>
+          <div className="space-y-6">
+            <div className="h-40 rounded-3xl bg-[#FAF8F5] border border-[#E8DFD4]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const latestOrder = orders.length > 0 ? orders[0] : null;
 

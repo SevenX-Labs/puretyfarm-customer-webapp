@@ -111,15 +111,29 @@ export function useOnboardingFlow() {
         setSelectedCityName(defaultServiceable.city || "Raipur");
       }
 
-      // Determine step based on profile and address existence
-      const hasProfile = user.onboardingStep !== "profile_pending" && user.name && !user.name.startsWith("Customer (");
-      const hasAddress = addresses && addresses.length > 0;
+      // Determine if user is already an existing user
+      const hasProfile = Boolean(
+        user.name &&
+        !user.name.startsWith("Customer (") &&
+        user.name.trim() !== "" &&
+        user.onboardingStep !== "profile_pending"
+      );
+      const hasAddress = Boolean(addresses && addresses.length > 0);
       const requestedStep = searchParams.get("step");
+
+      // If user already exists (profile exists and has address or complete status), route directly to account page
+      if (hasProfile && (hasAddress || user.onboardingStep === "complete")) {
+        if (!requestedStep || requestedStep === "1" || requestedStep === "2") {
+          router.replace("/account");
+          return;
+        }
+      }
 
       if (!hasProfile) {
         setMaxAllowedStep(1);
         setCurrentStep(1);
       } else if (!hasAddress) {
+        // Profile exists, prompt for delivery address if explicitly on onboarding
         setMaxAllowedStep(2);
         setCurrentStep(2);
       } else {
