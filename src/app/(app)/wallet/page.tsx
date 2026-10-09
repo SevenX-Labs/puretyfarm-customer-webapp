@@ -641,77 +641,20 @@ function WalletContent() {
           </div>
         </div>
 
-        {/* ─── 2. TOP-UP WALLET HUB ─── */}
-        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-4.5 sm:p-7 shadow-2xs space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-[#1A1008] flex items-center gap-2">
-                <FiPlusCircle className="w-5 h-5 text-[#5C1B13]" />
-                <span>Top-up Wallet</span>
-              </h3>
-              <p className="text-xs text-[#6B584C] mt-0.5">
-                Recharge prepaid credit for effortless sunrise milk orders with zero interruptions.
-              </p>
-            </div>
-
-            {/* Top-up Method Switcher */}
-            <div className="inline-flex flex-wrap rounded-2xl bg-[#FAF3EA] p-1 border border-[#E8DFD4] gap-1 self-start md:self-auto">
-              <button
-                type="button"
-                onClick={() => setRechargeMethod("ONLINE")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  rechargeMethod === "ONLINE"
-                    ? "bg-[#5C1B13] text-white shadow-xs"
-                    : "text-[#6B584C] hover:text-[#1A1008]"
-                }`}
-              >
-                <FiCreditCard className="w-3.5 h-3.5" />
-                <span>PayU Online</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRechargeMethod("CASH")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  rechargeMethod === "CASH"
-                    ? "bg-[#5C1B13] text-white shadow-xs"
-                    : "text-[#6B584C] hover:text-[#1A1008]"
-                }`}
-              >
-                <FiDollarSign className="w-3.5 h-3.5" />
-                <span>Doorstep Cash</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRechargeMethod("DIRECT_REQUEST")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  rechargeMethod === "DIRECT_REQUEST"
-                    ? "bg-[#5C1B13] text-white shadow-xs"
-                    : "text-[#6B584C] hover:text-[#1A1008]"
-                }`}
-              >
-                <FiSend className="w-3.5 h-3.5" />
-                <span>Credit Request</span>
-              </button>
-            </div>
+        {/* ─── 2. ADD TO WALLET MODULE ─── */}
+        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-4 sm:p-6 shadow-2xs space-y-4">
+          <div className="pb-1 border-b border-[#E8DFD4]/80">
+            <h3 className="text-sm sm:text-base font-bold text-[#1A1008] flex items-center gap-2">
+              <FiPlusCircle className="w-4.5 h-4.5 text-[#5C1B13]" />
+              <span>Add to Wallet</span>
+            </h3>
+            <p className="text-[11px] sm:text-xs text-[#6B584C] mt-0.5">
+              Instant recharge for daily farm-fresh deliveries.
+            </p>
           </div>
 
-          {/* Method Explainer Hint */}
-          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4]/80 text-xs text-[#6B584C] flex items-center gap-2.5">
-            <FiInfo className="w-4 h-4 text-[#5C1B13] shrink-0" />
-            <span>
-              {rechargeMethod === "ONLINE" &&
-                "Instant gateway via PayU (UPI, Cards, NetBanking). Fully encrypted."}
-              {rechargeMethod === "CASH" &&
-                "Delivery agent collects cash at your doorstep. Admin credits wallet after verification."}
-              {rechargeMethod === "DIRECT_REQUEST" &&
-                "Submits a direct unverified credit request (UUID Idempotent) for manual depot review."}
-            </span>
-          </div>
-
-          {/* Preset Recharge Amount Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Preset Recharge Amount Cards (Compact & Mobile-Responsive) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             {[
               { amount: 500, label: "Starter", desc: "6 Bottles" },
               { amount: 1000, label: "Popular", desc: "12 Bottles + 5% Bonus" },
@@ -725,18 +668,18 @@ function WalletContent() {
                   type="button"
                   disabled={isProcessing}
                   onClick={() => handlePresetSelect(preset.amount)}
-                  className={`p-4 rounded-2xl border transition-all text-left cursor-pointer group disabled:opacity-50 relative ${
+                  className={`p-2.5 sm:p-3 rounded-2xl border transition-all text-left cursor-pointer group disabled:opacity-50 relative ${
                     isSelected
                       ? "border-[#5C1B13] bg-[#FAF3EA] ring-2 ring-[#5C1B13]/10"
                       : "border-[#E8DFD4] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] hover:border-[#D5C7B8]"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-base sm:text-lg font-extrabold font-mono text-[#1A1008] group-hover:text-[#5C1B13]">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm sm:text-base font-bold font-mono text-[#1A1008] group-hover:text-[#5C1B13]">
                       ₹{preset.amount}
                     </span>
                     <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      className={`text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full border ${
                         isSelected
                           ? "bg-[#5C1B13] text-white border-[#5C1B13]"
                           : "bg-white text-[#5C1B13] border-[#E8DFD4]"
@@ -745,7 +688,7 @@ function WalletContent() {
                       {preset.label}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#6B584C] font-medium leading-tight">
+                  <p className="text-[10px] sm:text-[11px] text-[#6B584C] font-medium leading-tight truncate">
                     {preset.desc}
                   </p>
                 </button>
@@ -753,11 +696,11 @@ function WalletContent() {
             })}
           </div>
 
-          {/* Custom Amount Form */}
-          <form onSubmit={handleSubmitTopup} className="space-y-4 pt-1">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {/* Custom Amount Form (Short & Compact) */}
+          <form onSubmit={handleSubmitTopup} className="space-y-3 pt-0.5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
               <div className="relative flex-1">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-[#6B584C]">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-[#6B584C]">
                   ₹
                 </span>
                 <input
@@ -767,14 +710,9 @@ function WalletContent() {
                   step="1"
                   value={customAmount}
                   onChange={(e) => handleCustomAmountChange(e.target.value)}
-                  placeholder="Enter custom amount (₹1 – ₹10,000)"
-                  className="w-full pl-8 pr-28 py-3 rounded-2xl border border-[#D5C7B8] focus:border-[#5C1B13] focus:ring-2 focus:ring-[#5C1B13]/15 bg-white text-sm font-semibold text-[#1A1008] placeholder:text-[#8C7A6B]/60 focus:outline-none transition-all"
+                  placeholder="Custom amount"
+                  className="w-full pl-7 pr-4 py-2.5 sm:py-3 rounded-2xl border border-[#D5C7B8] focus:border-[#5C1B13] focus:ring-2 focus:ring-[#5C1B13]/15 bg-white text-xs sm:text-sm font-semibold text-[#1A1008] placeholder:text-[#8C7A6B]/60 focus:outline-none transition-all"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-mono font-medium text-[#8C7A6B]">
-                  {customAmount && !isNaN(parseFloat(customAmount))
-                    ? `${Math.round(parseFloat(customAmount) * 100).toLocaleString("en-IN")} paise`
-                    : "0 paise"}
-                </span>
               </div>
 
               <Button
@@ -787,7 +725,7 @@ function WalletContent() {
                   parseFloat(customAmount) < 1 ||
                   parseFloat(customAmount) > 10000
                 }
-                className="rounded-2xl px-6 py-3 text-xs sm:text-sm font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all"
+                className="rounded-2xl px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all shrink-0 whitespace-nowrap"
               >
                 {isProcessing ? (
                   <>
