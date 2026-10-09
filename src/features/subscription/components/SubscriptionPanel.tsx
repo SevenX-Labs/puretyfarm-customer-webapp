@@ -84,14 +84,13 @@ export function SubscriptionPanel({
     startDate,
   });
 
-  // 1. Return focus on close & Body scroll lock (mobile only) & Save initial focus
+  // Return focus on close & Body scroll lock (mobile only)
   useEffect(() => {
     if (!isOpen) return;
 
     resetSuccess();
     previouslyFocusedElement.current = document.activeElement as HTMLElement;
 
-    // Body scroll lock on mobile only (<768px)
     let didLockScroll = false;
     let originalOverflow = "";
     if (typeof window !== "undefined" && window.innerWidth < 768) {
@@ -100,10 +99,9 @@ export function SubscriptionPanel({
       didLockScroll = true;
     }
 
-    // Set initial focus inside dialog
     const timer = setTimeout(() => {
       const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]:not([disabled])'
+        "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex=\"0\"]:not([disabled])"
       );
       if (focusable && focusable.length > 0) {
         focusable[0].focus();
@@ -124,7 +122,7 @@ export function SubscriptionPanel({
     };
   }, [isOpen, resetSuccess]);
 
-  // 2. Focus Trap & Escape key listener
+  // Focus Trap & Escape key listener
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.stopPropagation();
@@ -138,7 +136,7 @@ export function SubscriptionPanel({
       if (!dialogRef.current) return;
       const focusables = Array.from(
         dialogRef.current.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]:not([disabled])'
+          "button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex=\"0\"]:not([disabled])"
         )
       );
 
@@ -168,10 +166,10 @@ export function SubscriptionPanel({
         ref={dialogRef}
         role="region"
         aria-label={title}
-        className="w-full flex flex-col space-y-5"
+        className="w-full flex flex-col space-y-6"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-[#E8DFD4] gap-3">
+        <div className="flex items-center justify-between pb-4 border-b border-[#E8DFD4] gap-3">
           <div className="min-w-0">
             <span className="text-[10px] font-bold text-[#5C1B13] uppercase tracking-wider block">
               PuretyFarm Schedule Customization
@@ -261,7 +259,7 @@ export function SubscriptionPanel({
           )}
         </div>
 
-        {/* 4. Pricing Summary & 4-Delivery Date Preview */}
+        {/* 4. Pricing Summary */}
         <PricingSummary
           result={pricingResult}
           schedulePreview={schedulePreview}
@@ -277,63 +275,6 @@ export function SubscriptionPanel({
             <span>{submitError}</span>
           </div>
         )}
-
-        {/* Footer with Total and Primary CTA */}
-        <div className="pt-4 border-t border-[#E8DFD4] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="min-w-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A241C]/70 block">
-              30-Day Plan Total
-            </span>
-            <span className="text-xl sm:text-2xl font-serif font-extrabold text-[#5C1B13] font-mono leading-none block mt-0.5">
-              ₹{pricingResult.totalPrice.toLocaleString("en-IN")}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#E8DFD4] text-xs font-bold text-[#3A241C] hover:bg-[#FAF3EA] transition-colors cursor-pointer disabled:opacity-50"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="button"
-              onClick={confirmSubscription}
-              disabled={isSubmitting || !pricingResult.isValid}
-              aria-label={`Confirm and apply schedule for ₹${pricingResult.totalPrice.toLocaleString("en-IN")}`}
-              className={`
-                min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all
-                flex items-center justify-center gap-2 cursor-pointer shadow-sm
-                ${
-                  isSuccess
-                    ? "bg-emerald-700"
-                    : isSubmitting || !pricingResult.isValid
-                    ? "bg-[#5C1B13]/70 cursor-not-allowed"
-                    : "bg-[#5C1B13] hover:bg-[#48150f] active:scale-[0.99]"
-                }
-              `}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : isSuccess ? (
-                <>
-                  <FiCheck className="w-4 h-4 stroke-[3]" />
-                  <span>Schedule Saved!</span>
-                </>
-              ) : (
-                <span>
-                  Apply (₹{pricingResult.totalPrice.toLocaleString("en-IN")})
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
       </div>
     );
   }
@@ -343,100 +284,75 @@ export function SubscriptionPanel({
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden pointer-events-none">
-          {/* Backdrop: translucent on mobile/tablet (<1024px), transparent on desktop (>=1024px)
-              Ensures the subscription card on desktop remains completely unobstructed */}
+        <div className="fixed inset-0 z-50 flex items-stretch justify-end pointer-events-auto">
+          {/* Backdrop overlay */}
           <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
-            onClick={() => {
-              if (!isSubmitting) onClose();
-            }}
+            onClick={() => !isSubmitting && onClose()}
+            className="fixed inset-0 bg-black/45 backdrop-blur-xs transition-opacity"
             aria-hidden="true"
-            className="fixed inset-0 z-40 bg-black/40 lg:bg-transparent pointer-events-auto transition-colors cursor-default"
           />
 
-          {/* Right-docked drawer on desktop (w-[460px]), bottom-sheet on mobile (<768px) */}
+          {/* Drawer Panel Container */}
           <m.div
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="subscription-panel-title"
+            tabIndex={-1}
             onKeyDown={handleKeyDown}
-            initial={
-              shouldReduceMotion
-                ? { opacity: 0 }
-                : isMobile
-                ? { y: "100%", opacity: 1 }
-                : { x: "100%", opacity: 1 }
-            }
-            animate={
-              shouldReduceMotion
-                ? { opacity: 1 }
-                : isMobile
-                ? { y: 0, opacity: 1 }
-                : { x: 0, opacity: 1 }
-            }
-            exit={
-              shouldReduceMotion
-                ? { opacity: 0 }
-                : isMobile
-                ? { y: "100%", opacity: 1 }
-                : { x: "100%", opacity: 1 }
-            }
-            transition={
-              shouldReduceMotion
-                ? { duration: 0.15 }
-                : { type: "spring", damping: 28, stiffness: 260 }
-            }
+            initial={{ x: isMobile ? 0 : "100%", y: isMobile ? "100%" : 0, opacity: shouldReduceMotion ? 1 : 0.5 }}
+            animate={{ x: 0, y: 0, opacity: 1 }}
+            exit={{ x: isMobile ? 0 : "100%", y: isMobile ? "100%" : 0, opacity: shouldReduceMotion ? 0 : 0.5 }}
+            transition={{ type: "spring", damping: 28, stiffness: 280, mass: 0.8 }}
             className={`
-              fixed z-50 pointer-events-auto bg-white border-[#E8DFD4] shadow-2xl flex flex-col outline-none
+              relative z-50 bg-white border-[#E8DFD4] shadow-2xl flex flex-col outline-none
               ${
-                /* Mobile: Bottom-sheet style; Desktop: Right-docked full height drawer */
                 isMobile
-                  ? "bottom-0 left-0 right-0 max-h-[92vh] rounded-t-3xl border-t"
-                  : "top-0 right-0 bottom-0 h-full w-[460px] max-w-[100vw] border-l"
+                  ? "bottom-0 left-0 right-0 w-full max-h-[92vh] rounded-t-3xl border-t mt-auto"
+                  : "top-0 right-0 bottom-0 h-full w-[500px] max-w-[100vw] border-l"
               }
             `}
           >
             {/* Header - Sticky */}
-            <div className="p-4 sm:p-5 border-b border-[#E8DFD4] flex items-center justify-between gap-3 bg-[#FFFDF7] shrink-0">
+            <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-[#E8DFD4] flex items-center justify-between gap-3 bg-[#FFFDF7] shrink-0">
               <div className="min-w-0">
                 <span className="text-[10px] font-bold text-[#5C1B13] uppercase tracking-wider block">
                   PuretyFarm Schedule Customization
                 </span>
                 <h2
                   id="subscription-panel-title"
-                  className="text-base sm:text-lg font-serif font-bold text-[#1A1008] truncate"
+                  className="text-base sm:text-lg font-serif font-bold text-[#1A1008] truncate mt-0.5"
                 >
                   {title}
                 </h2>
               </div>
 
-              {/* Close Button - min 44x44px tap target */}
+              {/* Close Button */}
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
                 aria-label="Close subscription customize panel"
-                className="w-11 h-11 rounded-xl border border-[#E8DFD4] flex items-center justify-center text-[#1A1008] hover:bg-[#FAF3EA] transition-colors cursor-pointer shrink-0 disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[#5C1B13]"
+                className="w-10 h-10 rounded-xl border border-[#E8DFD4] flex items-center justify-center text-[#1A1008] hover:bg-[#FAF3EA] transition-colors cursor-pointer shrink-0 disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[#5C1B13]"
               >
                 <FiX className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Scrollable Body */}
-            <div className="p-4 sm:p-5 overflow-y-auto space-y-5 flex-1 overscroll-contain">
-              {/* 1. Delivery Frequency (Every day vs Alternate days) */}
+            {/* Scrollable Body - Smooth mouse wheel scroll with custom scrollbar */}
+            <div className="px-5 py-5 sm:px-6 sm:py-6 overflow-y-auto custom-scrollbar space-y-6 flex-1 overscroll-contain">
+              {/* 1. Delivery Frequency */}
               <FrequencyRadioGroup
                 value={frequency}
                 onChange={setFrequency}
                 disabled={isSubmitting}
               />
 
-              {/* 2. Quantity Pattern Mode (Fixed vs Day 1 -> Day 2) */}
+              {/* 2. Quantity Pattern Mode */}
               <ModeSegmentedControl
                 value={mode}
                 onChange={setMode}
@@ -465,7 +381,7 @@ export function SubscriptionPanel({
                     disabled={isSubmitting}
                   />
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <QuantityStepper
                       label="Day 1 Delivery"
                       sublabel={
@@ -495,7 +411,7 @@ export function SubscriptionPanel({
                 )}
               </div>
 
-              {/* 4. Pricing Summary & 4-Delivery Date Preview */}
+              {/* 4. Pricing Summary & Delivery Date Preview */}
               <PricingSummary
                 result={pricingResult}
                 schedulePreview={schedulePreview}
@@ -513,23 +429,23 @@ export function SubscriptionPanel({
               )}
             </div>
 
-            {/* Sticky Footer with Total and Primary CTA - Never scrolls away */}
-            <div className="p-3.5 sm:p-5 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-lg">
+            {/* Sticky Footer */}
+            <div className="px-5 py-4 sm:px-6 sm:py-4 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
               <div className="min-w-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A241C]/70 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#715E50] block">
                   30-Day Plan Total
                 </span>
-                <span className="text-xl sm:text-2xl font-serif font-extrabold text-[#5C1B13] font-mono leading-none block mt-0.5">
+                <span className="text-2xl sm:text-[26px] font-black text-[#5C1B13] tabular-nums leading-none block mt-1">
                   ₹{pricingResult.totalPrice.toLocaleString("en-IN")}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={onClose}
                   disabled={isSubmitting}
-                  className="min-h-[44px] px-3.5 py-2 rounded-xl border border-[#E8DFD4] text-xs font-bold text-[#3A241C] hover:bg-[#FAF3EA] transition-colors cursor-pointer disabled:opacity-50"
+                  className="min-h-[44px] px-4 py-2 rounded-xl border border-[#E8DFD4] text-xs font-bold text-[#3A241C] hover:bg-[#FAF3EA] transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -540,7 +456,7 @@ export function SubscriptionPanel({
                   disabled={isSubmitting || !pricingResult.isValid}
                   aria-label={`Confirm and apply schedule for ₹${pricingResult.totalPrice.toLocaleString("en-IN")}`}
                   className={`
-                    min-h-[44px] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all
+                    min-h-[44px] px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all
                     flex items-center justify-center gap-2 cursor-pointer shadow-sm
                     ${
                       isSuccess

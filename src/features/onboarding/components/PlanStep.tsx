@@ -301,6 +301,14 @@ export function PlanStep({
             const serverPrice = liveQuote ? Math.round(liveQuote.totalSellingAmount / 100) : plan.price;
             const displayPrice = isMonthly && customPricing ? customPricing.totalPrice : serverPrice;
 
+            const displayOriginalPrice = liveQuote && liveQuote.totalActualAmount > liveQuote.totalSellingAmount
+              ? Math.round(liveQuote.totalActualAmount / 100)
+              : plan.originalPrice;
+
+            const displaySavingsText = liveQuote && liveQuote.discountAmount > 0
+              ? `Save ₹${Math.round(liveQuote.discountAmount / 100)}`
+              : plan.savingsText;
+
             const serverRateText =
               plan.id === "monthly" && monthlyConfig
                 ? `₹${Math.round(monthlyConfig.sellingPricePerLitre / 100)} / L`
@@ -372,9 +380,9 @@ export function PlanStep({
                       <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
                         {eligibility.remainingUses} Left
                       </span>
-                    ) : plan.savingsText ? (
+                    ) : displaySavingsText ? (
                       <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        {plan.savingsText}
+                        {displaySavingsText}
                       </span>
                     ) : null}
                   </div>
@@ -392,9 +400,9 @@ export function PlanStep({
                       <span className="text-xl sm:text-2xl font-serif font-bold text-[#5C1B13]">
                         ₹{displayPrice}
                       </span>
-                      {plan.originalPrice && (
+                      {displayOriginalPrice && (
                         <span className="text-[11px] text-[#3A241C]/45 line-through">
-                          ₹{plan.originalPrice}
+                          ₹{displayOriginalPrice}
                         </span>
                       )}
                     </div>

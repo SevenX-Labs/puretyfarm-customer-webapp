@@ -4,39 +4,30 @@ import React, { useRef, KeyboardEvent } from "react";
 import { DeliveryFrequency } from "../types";
 import { FiSun, FiCalendar, FiCheck } from "react-icons/fi";
 
-interface FrequencyOption {
-  id: DeliveryFrequency;
-  title: string;
-  badge: string;
-  description: string;
-  scheduleText: string;
-  icon: typeof FiSun;
-}
-
-const FREQUENCY_OPTIONS: FrequencyOption[] = [
-  {
-    id: "daily",
-    title: "Every day",
-    badge: "Daily Dawn",
-    description: "Chilled bottle delivered every morning before 10 AM.",
-    scheduleText: "30 deliveries per 30-day cycle",
-    icon: FiSun,
-  },
-  {
-    id: "alternate",
-    title: "Alternate days",
-    badge: "Every 2nd Day",
-    description: "Chilled bottle delivered every alternate morning.",
-    scheduleText: "15 deliveries per 30-day cycle",
-    icon: FiCalendar,
-  },
-];
-
 interface FrequencyRadioGroupProps {
   value: DeliveryFrequency;
   onChange: (value: DeliveryFrequency) => void;
   disabled?: boolean;
 }
+
+const FREQUENCY_OPTIONS = [
+  {
+    id: "daily" as const,
+    title: "Every day",
+    badge: "DAILY",
+    scheduleText: "30 deliveries per 30-day cycle",
+    description: "Chilled bottle delivered every morning before 10 AM.",
+    icon: FiSun,
+  },
+  {
+    id: "alternate" as const,
+    title: "Alternate days",
+    badge: "ALTERNATE",
+    scheduleText: "15 deliveries per 30-day cycle",
+    description: "Chilled bottle delivered every alternate morning.",
+    icon: FiCalendar,
+  },
+];
 
 export function FrequencyRadioGroup({
   value,
@@ -55,12 +46,6 @@ export function FrequencyRadioGroup({
     } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
       e.preventDefault();
       nextIndex = (currentIndex - 1 + FREQUENCY_OPTIONS.length) % FREQUENCY_OPTIONS.length;
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      nextIndex = 0;
-    } else if (e.key === "End") {
-      e.preventDefault();
-      nextIndex = FREQUENCY_OPTIONS.length - 1;
     } else if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
       onChange(FREQUENCY_OPTIONS[currentIndex].id);
@@ -74,7 +59,7 @@ export function FrequencyRadioGroup({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <label
         id="frequency-radiogroup-label"
         className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block"
@@ -111,13 +96,13 @@ export function FrequencyRadioGroup({
                 ${
                   isSelected
                     ? "bg-[#FAF3EA] border-[#5C1B13] shadow-sm shadow-[#5C1B13]/10"
-                    : "bg-[#FFFDF7] border-[#E8DFD4] hover:border-[#5C1B13]/40"
+                    : "bg-[#FFFDF7] border-[#E8DFD4] hover:border-[#5C1B13]/40 hover:bg-[#FAF8F5]"
                 }
                 ${disabled ? "opacity-60 cursor-not-allowed" : ""}
               `}
             >
               {/* Top row: Icon, Badge, Radio dot */}
-              <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="flex items-center justify-between gap-2 mb-2.5">
                 <div
                   className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                     isSelected ? "bg-[#5C1B13] text-white" : "bg-[#5C1B13]/10 text-[#5C1B13]"
@@ -126,12 +111,12 @@ export function FrequencyRadioGroup({
                   <Icon className="w-4 h-4" />
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider whitespace-nowrap ${
                       isSelected
                         ? "bg-[#5C1B13] text-white"
-                        : "bg-white border border-[#E8DFD4] text-[#3A241C]"
+                        : "bg-white border border-[#E8DFD4] text-[#715E50]"
                     }`}
                   >
                     {opt.badge}
@@ -140,7 +125,7 @@ export function FrequencyRadioGroup({
                     className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
                       isSelected
                         ? "border-[#5C1B13] bg-[#5C1B13] text-white"
-                        : "border-[#E8DFD4] bg-white"
+                        : "border-[#D8C7B5] bg-white"
                     }`}
                   >
                     {isSelected && <FiCheck className="w-2.5 h-2.5 stroke-[3]" />}
@@ -153,10 +138,10 @@ export function FrequencyRadioGroup({
                 <p className="text-sm font-bold text-[#1A1008] leading-tight">
                   {opt.title}
                 </p>
-                <p className="text-xs font-semibold text-[#5C1B13] mt-0.5">
+                <p className="text-xs font-semibold text-[#5C1B13] mt-1">
                   {opt.scheduleText}
                 </p>
-                <p className="text-[11px] text-[#3A241C]/70 mt-1 leading-snug">
+                <p className="text-[11.5px] text-[#715E50] mt-1 leading-snug">
                   {opt.description}
                 </p>
               </div>

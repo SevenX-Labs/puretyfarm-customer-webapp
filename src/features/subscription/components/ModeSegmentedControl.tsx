@@ -61,7 +61,7 @@ export function ModeSegmentedControl({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <label
         id="mode-segmented-label"
         className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block"
@@ -92,8 +92,8 @@ export function ModeSegmentedControl({
               onClick={() => onChange(opt.id)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={`
-                min-h-[44px] px-3.5 py-2.5 rounded-xl text-left transition-all cursor-pointer outline-none
-                flex items-center gap-2.5 select-none
+                min-h-[46px] px-3.5 py-2.5 rounded-xl text-left transition-all cursor-pointer outline-none
+                flex items-center gap-3 select-none
                 focus-visible:ring-2 focus-visible:ring-[#5C1B13] focus-visible:ring-offset-2
                 ${
                   isSelected
@@ -104,20 +104,20 @@ export function ModeSegmentedControl({
               `}
             >
               <div
-                className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                   isSelected ? "bg-white/20 text-white" : "bg-[#5C1B13]/10 text-[#5C1B13]"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4" />
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold leading-tight truncate">
+                <p className="text-xs font-bold leading-tight">
                   {opt.label}
                 </p>
                 <p
-                  className={`text-[10px] leading-snug truncate ${
-                    isSelected ? "text-white/80" : "text-[#3A241C]/65"
+                  className={`text-[10.5px] leading-snug mt-0.5 ${
+                    isSelected ? "text-white/80" : "text-[#715E50]"
                   }`}
                 >
                   {opt.sublabel}
