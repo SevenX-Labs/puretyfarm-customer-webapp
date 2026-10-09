@@ -71,10 +71,26 @@ export function useAccountData() {
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
+  const [profileDob, setProfileDob] = useState("");
+  const [profileGender, setProfileGender] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(
     null
   );
+
+  // Sync profile fields from user & handle ?edit=true param
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name || "");
+      setProfileEmail(user.email || "");
+      setProfileAvatar(user.avatarUrl || "");
+      setProfileDob(user.dob ? user.dob.split("T")[0] : "");
+      setProfileGender(user.gender ? user.gender.toLowerCase() : "female");
+      if (searchParams.get("edit") === "true") {
+        setIsEditingProfile(true);
+      }
+    }
+  }, [user, searchParams]);
 
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -322,6 +338,8 @@ export function useAccountData() {
     setProfileName(user?.name || "");
     setProfileEmail(user?.email || "");
     setProfileAvatar(user?.avatarUrl || "");
+    setProfileDob(user?.dob ? user.dob.split("T")[0] : "");
+    setProfileGender(user?.gender ? user.gender.toLowerCase() : "female");
     setIsEditingProfile(true);
   };
 
@@ -407,6 +425,8 @@ export function useAccountData() {
         name: profileName.trim(),
         email: profileEmail.trim(),
         avatarUrl: profileAvatar,
+        gender: profileGender,
+        dob: profileDob || undefined,
       });
 
       if (!data.success) {
@@ -419,9 +439,12 @@ export function useAccountData() {
                 name: profileName.trim(),
                 email: profileEmail.trim(),
                 avatarUrl: profileAvatar,
+                gender: profileGender,
+                dob: profileDob || prev.dob,
               }
             : null
         );
+        await refreshUser().catch(() => {});
         setProfileMsg({ type: "success", text: "Profile updated successfully." });
         setTimeout(() => {
           setIsEditingProfile(false);
@@ -850,6 +873,10 @@ export function useAccountData() {
     setProfileEmail,
     profileAvatar,
     setProfileAvatar,
+    profileDob,
+    setProfileDob,
+    profileGender,
+    setProfileGender,
     profileSaving,
     profileMsg,
     setProfileMsg,

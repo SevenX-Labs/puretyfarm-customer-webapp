@@ -8,3 +8,4 @@ export * from "./components/AddressesTab";
 export * from "./components/AddressModal";
 export * from "./components/SubscriptionTab";
 export * from "./components/AccountView";
+export * from "./components/EditProfileModal";

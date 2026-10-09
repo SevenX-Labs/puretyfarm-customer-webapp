@@ -129,7 +129,12 @@ export function AccountLandingView() {
                   )}
                 </div>
               </div>
-              <PfButton href="/account-settings?tab=profile" variant="secondary" size="sm" className="w-full sm:w-auto mt-2 sm:mt-0">
+              <PfButton
+                href="/account-settings?tab=profile&edit=true"
+                variant="secondary"
+                size="sm"
+                className="w-full sm:w-auto mt-2 sm:mt-0 cursor-pointer"
+              >
                 Edit profile
               </PfButton>
             </div>

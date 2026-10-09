@@ -15,6 +15,8 @@ import {
   FiX,
   FiSave,
   FiAlertCircle,
+  FiCalendar,
+  FiLock,
 } from "react-icons/fi";
 
 export interface ProfileTabProps {
@@ -23,6 +25,8 @@ export interface ProfileTabProps {
   profileName: string;
   profileEmail: string;
   profileAvatar: string;
+  profileDob: string;
+  profileGender: string;
   profileSaving: boolean;
   profileMsg: { type: "success" | "error"; text: string } | null;
   onStartEdit: () => void;
@@ -30,9 +34,18 @@ export interface ProfileTabProps {
   onNameChange: (val: string) => void;
   onEmailChange: (val: string) => void;
   onAvatarChange: (url: string) => void;
+  onDobChange: (val: string) => void;
+  onGenderChange: (val: string) => void;
   onProfileError: (msg: string) => void;
   onSaveProfile: (e: React.FormEvent) => void;
+  onVerifyEmail?: () => void;
 }
+
+const GENDER_OPTIONS = [
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
+  { value: "other", label: "Other" },
+];
 
 export function ProfileTab({
   user,
@@ -40,6 +53,8 @@ export function ProfileTab({
   profileName,
   profileEmail,
   profileAvatar,
+  profileDob,
+  profileGender,
   profileSaving,
   profileMsg,
   onStartEdit,
@@ -47,21 +62,48 @@ export function ProfileTab({
   onNameChange,
   onEmailChange,
   onAvatarChange,
+  onDobChange,
+  onGenderChange,
   onProfileError,
   onSaveProfile,
+  onVerifyEmail,
 }: ProfileTabProps) {
-  const initials = (user.name || "MU")
+  const userInitials = (user.name || "Customer")
     .split(/\s+/)
     .map((n) => n[0])
+    .filter(Boolean)
     .slice(0, 2)
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "PF";
 
-  const formattedPhone = user.phone
-    ? user.phone.startsWith("+91")
-      ? user.phone
-      : `+91${user.phone}`
-    : "+919082873561";
+  const rawPhone = user.phone || (user as any).mobile || "";
+  const formattedPhone = rawPhone
+    ? rawPhone.startsWith("+91")
+      ? rawPhone
+      : `+91${rawPhone}`
+    : "—";
+
+  const formattedDob = user.dob
+    ? (() => {
+        try {
+          const d = new Date(user.dob);
+          if (isNaN(d.getTime())) return user.dob;
+          return d.toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          });
+        } catch {
+          return user.dob;
+        }
+      })()
+    : "Not added";
+
+  const formattedGender = user.gender
+    ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1).toLowerCase()
+    : "Not specified";
+
+  const isEmailVerified = Boolean((user as any).emailVerified);
 
   return (
     <div className="w-full">
@@ -69,10 +111,12 @@ export function ProfileTab({
       <div className="flex items-center justify-between pb-5 border-b border-[#E8DFD4] mb-6">
         <div>
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1A1008]">
-            Personal Information
+            {isEditingProfile ? "Update Profile" : "Personal Information"}
           </h2>
           <p className="text-xs sm:text-sm text-[#6B584C] mt-0.5">
-            Your verified PuretyFarm customer profile and sunrise delivery details.
+            {isEditingProfile
+              ? "Update your name, email, date of birth, and gender."
+              : "Your verified PuretyFarm customer profile and account details."}
           </p>
         </div>
 
@@ -80,7 +124,7 @@ export function ProfileTab({
           <button
             type="button"
             onClick={onStartEdit}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FAF3EA] hover:bg-[#5C1B13] hover:text-white border border-[#E8DFD4] text-[#5C1B13] text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#FAF3EA] hover:bg-[#5C1B13] hover:text-white border border-[#E8DFD4] text-[#5C1B13] text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
             <FiEdit3 className="w-3.5 h-3.5" />
             <span>Edit Profile</span>
@@ -89,7 +133,8 @@ export function ProfileTab({
           <button
             type="button"
             onClick={onCancelEdit}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#E8DFD4] hover:bg-[#FAF6F0] text-[#6B584C] text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+            disabled={profileSaving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-[#E8DFD4] hover:bg-[#FAF6F0] text-[#6B584C] text-xs font-semibold transition-all cursor-pointer shadow-2xs disabled:opacity-50"
           >
             <FiX className="w-3.5 h-3.5" />
             <span>Cancel</span>
@@ -100,124 +145,169 @@ export function ProfileTab({
       {/* Status toast message */}
       {profileMsg && (
         <div
-          className={`mb-5 p-3.5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 ${
+          role="alert"
+          className={`mb-6 p-4 rounded-2xl flex items-center gap-3 text-xs sm:text-sm transition-all ${
             profileMsg.type === "success"
-              ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
-              : "bg-red-50 text-red-900 border border-red-200"
+              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+              : "bg-rose-50 text-[#5C1B13] border border-rose-200"
           }`}
         >
           {profileMsg.type === "success" ? (
-            <FiCheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <FiCheckCircle className="w-4 h-4 shrink-0 text-emerald-600" />
           ) : (
-            <FiAlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <FiAlertCircle className="w-4 h-4 shrink-0 text-[#5C1B13]" />
           )}
-          <span>{profileMsg.text}</span>
+          <span className="font-medium">{profileMsg.text}</span>
         </div>
       )}
 
-      {/* ─── READ MODE (EXACT DESIGN MATCH) ─── */}
       {!isEditingProfile ? (
-        <div className="space-y-3.5">
-          {/* Member Card Header Row */}
-          <div className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="w-16 h-16 rounded-full bg-[#FAF3EA] border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] font-serif font-bold text-xl shrink-0 overflow-hidden shadow-xs">
-              {user.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.avatarUrl}
-                  alt={user.name || "Customer"}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span>{initials}</span>
-              )}
+        /* ─── VIEW MODE ─── */
+        <div className="space-y-4">
+          {/* Main Profile Info Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#FAF6F0]/70 border border-[#E8DFD4] gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-[#FAF3EA] border-2 border-[#E8DFD4] flex items-center justify-center shrink-0 shadow-xs">
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name || "Profile"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xl font-bold font-serif text-[#5C1B13]">
+                    {userInitials}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-xl font-bold text-[#1A1008] truncate">
+                  {user.name || "Customer"}
+                </h3>
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF1E2] text-[#5C1B13] border border-[#E8DFD4]">
+                    PuretyFarm Customer
+                  </span>
+                  {isEmailVerified && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      <FiCheckCircle className="w-2.5 h-2.5" /> Email Verified
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-[#1A1008]">
-                {user.name || "manthan utekar"}
-              </h3>
-              <p className="text-xs text-[#6B584C] mt-0.5 font-medium">
-                FarmFresh Milk Subscriber • Raipur Dawn Cold-Chain
+            <button
+              type="button"
+              onClick={onStartEdit}
+              className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#D5C7B8] bg-white text-xs font-bold text-[#5C1B13] hover:bg-[#FAF6F0] transition-colors cursor-pointer shadow-2xs"
+            >
+              <FiEdit2 className="w-3 h-3" />
+              <span>Edit Details</span>
+            </button>
+          </div>
+
+          {/* Details Grid */}
+          <div className="grid sm:grid-cols-2 gap-3.5 pt-2">
+            {/* Mobile Number */}
+            <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1">
+                  <FiPhone className="w-3 h-3 text-[#8C603D]" /> Mobile Number
+                </span>
+                <span className="text-[10px] font-bold uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <FiLock className="w-2.5 h-2.5" /> Verified
+                </span>
+              </div>
+              <div className="font-mono font-bold text-sm sm:text-base text-[#1A1008]">
+                {formattedPhone}
+              </div>
+              <p className="text-[11px] text-[#8C7A6B] mt-1">
+                Linked to OTP authentication.
               </p>
             </div>
-          </div>
 
-          {/* Row 1: Mobile Number */}
-          <div className="flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
-                <FiPhone className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
-                  MOBILE NUMBER
+            {/* Email Address */}
+            <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1">
+                  <FiMail className="w-3 h-3 text-[#8C603D]" /> Email Address
                 </span>
-                <span className="text-sm sm:text-base font-bold text-[#1A1008] font-mono mt-0.5 block">
-                  {formattedPhone}
-                </span>
+                {isEmailVerified ? (
+                  <span className="text-[10px] font-bold uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    Verified
+                  </span>
+                ) : user.email ? (
+                  <button
+                    type="button"
+                    onClick={onVerifyEmail || onStartEdit}
+                    className="text-[10px] font-bold uppercase text-[#5C1B13] hover:underline cursor-pointer"
+                  >
+                    Verify
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onStartEdit}
+                    className="text-[10px] font-bold uppercase text-[#5C1B13] hover:underline cursor-pointer"
+                  >
+                    Add
+                  </button>
+                )}
               </div>
+              <div className="font-semibold text-sm sm:text-base text-[#1A1008] break-all">
+                {user.email || "Not added"}
+              </div>
+              <p className="text-[11px] text-[#8C7A6B] mt-1">
+                For receipts, bills, and monthly invoices.
+              </p>
             </div>
 
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-              <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Verified</span>
-            </span>
-          </div>
-
-          {/* Row 2: Full Name */}
-          <div className="flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
-                <FiUser className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
-                  FULL NAME
+            {/* Date of Birth */}
+            <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1">
+                  <FiCalendar className="w-3 h-3 text-[#8C603D]" /> Date of Birth
                 </span>
-                <span className="text-sm sm:text-base font-bold text-[#1A1008] mt-0.5 block">
-                  {user.name || "manthan utekar"}
-                </span>
+                <button
+                  type="button"
+                  onClick={onStartEdit}
+                  className="text-[#8C7A6B] hover:text-[#5C1B13] transition-colors cursor-pointer"
+                  title="Edit Date of Birth"
+                >
+                  <FiEdit2 className="w-3 h-3" />
+                </button>
               </div>
+              <div className="font-semibold text-sm sm:text-base text-[#1A1008]">
+                {formattedDob}
+              </div>
+              <p className="text-[11px] text-[#8C7A6B] mt-1">
+                Used for birthday special farm perks.
+              </p>
             </div>
 
-            <button
-              type="button"
-              onClick={onStartEdit}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#8C7A6B] hover:text-[#5C1B13] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
-              title="Edit Name"
-              aria-label="Edit Full Name"
-            >
-              <FiEdit2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Row 3: Email Address */}
-          <div className="flex items-center justify-between p-4 sm:p-4.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
-            <div className="flex items-center gap-3.5">
-              <div className="w-9 h-9 rounded-xl bg-[#FAF3EA] flex items-center justify-center text-[#8C603D] shrink-0 border border-[#E8DFD4]/60">
-                <FiMail className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
-                  EMAIL ADDRESS
+            {/* Gender */}
+            <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80 shadow-2xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1">
+                  <FiShield className="w-3 h-3 text-[#8C603D]" /> Gender
                 </span>
-                <span className="text-sm sm:text-base font-semibold text-[#1A1008] mt-0.5 block break-all">
-                  {user.email || "manthanut27@gmail.com"}
-                </span>
+                <button
+                  type="button"
+                  onClick={onStartEdit}
+                  className="text-[#8C7A6B] hover:text-[#5C1B13] transition-colors cursor-pointer"
+                  title="Edit Gender"
+                >
+                  <FiEdit2 className="w-3 h-3" />
+                </button>
               </div>
+              <div className="font-semibold text-sm sm:text-base text-[#1A1008]">
+                {formattedGender}
+              </div>
+              <p className="text-[11px] text-[#8C7A6B] mt-1">
+                Personalized customer profile preferences.
+              </p>
             </div>
-
-            <button
-              type="button"
-              onClick={onStartEdit}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[#8C7A6B] hover:text-[#5C1B13] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
-              title="Edit Email"
-              aria-label="Edit Email Address"
-            >
-              <FiEdit2 className="w-3.5 h-3.5" />
-            </button>
           </div>
 
           {/* Bottom Quote Banner */}
@@ -249,7 +339,7 @@ export function ProfileTab({
         /* ─── EDIT MODE FORM ─── */
         <form onSubmit={onSaveProfile} className="space-y-5">
           {/* Avatar Upload */}
-          <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4]">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4]">
             <span className="text-[11px] font-bold text-[#8C7A6B] uppercase tracking-wider block mb-2">
               Update Profile Photo
             </span>
@@ -267,8 +357,8 @@ export function ProfileTab({
               <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider">
                 Mobile Number (Verified)
               </span>
-              <span className="text-[10px] font-bold uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                Locked
+              <span className="text-[10px] font-bold uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                <FiLock className="w-2.5 h-2.5" /> Locked
               </span>
             </div>
             <div className="flex items-center gap-2 font-mono font-bold text-sm text-[#1A1008]">
@@ -276,7 +366,7 @@ export function ProfileTab({
               <span>{formattedPhone}</span>
             </div>
             <p className="text-[11px] text-[#8C7A6B] mt-1.5 flex items-center gap-1">
-              <FiShield className="w-3 h-3 text-[#5C1B13]" /> Authentication phone is locked to your account.
+              <FiShield className="w-3 h-3 text-[#5C1B13]" /> Phone is linked to OTP authentication and cannot be changed here.
             </p>
           </div>
 
@@ -296,7 +386,8 @@ export function ProfileTab({
                 required
                 value={profileName}
                 onChange={(e) => onNameChange(e.target.value)}
-                placeholder="e.g. manthan utekar"
+                placeholder="e.g. SevenX Labs"
+                disabled={profileSaving}
                 className="w-full bg-transparent text-sm font-semibold text-[#1A1008] focus:outline-none"
               />
             </div>
@@ -304,12 +395,27 @@ export function ProfileTab({
 
           {/* Edit Email Address */}
           <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80">
-            <label
-              htmlFor="profile-email-input"
-              className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block mb-1.5"
-            >
-              Email Address
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                htmlFor="profile-email-input"
+                className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block"
+              >
+                Email Address
+              </label>
+              {isEmailVerified ? (
+                <span className="text-[10px] font-bold uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <FiCheckCircle className="w-2.5 h-2.5" /> Verified
+                </span>
+              ) : profileEmail.trim() ? (
+                <button
+                  type="button"
+                  onClick={onVerifyEmail}
+                  className="text-[11px] font-bold text-[#5C1B13] hover:underline cursor-pointer"
+                >
+                  Verify Email
+                </button>
+              ) : null}
+            </div>
             <div className="flex items-center rounded-xl border border-[#D5C7B8] focus-within:border-[#5C1B13] focus-within:ring-2 focus-within:ring-[#5C1B13]/10 bg-white px-3.5 py-2.5 transition-all">
               <FiMail className="w-4 h-4 text-[#8C7A6B] mr-2.5 shrink-0" />
               <input
@@ -317,24 +423,77 @@ export function ProfileTab({
                 type="email"
                 value={profileEmail}
                 onChange={(e) => onEmailChange(e.target.value)}
-                placeholder="e.g. manthanut27@gmail.com"
+                placeholder="e.g. contact@puretyfarm.com"
+                disabled={profileSaving}
                 className="w-full bg-transparent text-sm font-semibold text-[#1A1008] focus:outline-none"
               />
             </div>
             <p className="text-[11px] text-[#8C7A6B] mt-1.5">
-              Used for morning dispatch confirmations and monthly invoices.
+              Required for online payment receipts and monthly invoice records.
             </p>
           </div>
 
+          {/* Date of Birth & Gender Grid */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            {/* Date of Birth */}
+            <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80">
+              <label
+                htmlFor="profile-dob-input"
+                className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block mb-1.5"
+              >
+                Date of Birth
+              </label>
+              <div className="flex items-center rounded-xl border border-[#D5C7B8] focus-within:border-[#5C1B13] focus-within:ring-2 focus-within:ring-[#5C1B13]/10 bg-white px-3.5 py-2.5 transition-all">
+                <FiCalendar className="w-4 h-4 text-[#8C7A6B] mr-2.5 shrink-0" />
+                <input
+                  id="profile-dob-input"
+                  type="date"
+                  value={profileDob}
+                  max={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => onDobChange(e.target.value)}
+                  disabled={profileSaving}
+                  className="w-full bg-transparent text-sm font-semibold text-[#1A1008] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Gender Selector */}
+            <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80">
+              <label className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block mb-2">
+                Gender
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {GENDER_OPTIONS.map((opt) => {
+                  const isSelected = profileGender === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={profileSaving}
+                      onClick={() => onGenderChange(opt.value)}
+                      className={`py-2 px-1.5 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer disabled:opacity-50 ${
+                        isSelected
+                          ? "border-[#5C1B13] bg-[#FAF1E2] text-[#5C1B13] shadow-xs"
+                          : "border-[#E8DFD4] bg-white text-[#6B584C] hover:bg-[#FAF6F0]"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E8DFD4]">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={onCancelEdit}
               disabled={profileSaving}
-              className="rounded-xl px-5 py-2.5 text-xs font-semibold border-[#E8DFD4] bg-white text-[#6B584C] hover:bg-[#FAF6F0] cursor-pointer"
+              className="rounded-xl px-5 py-2.5 text-xs font-semibold border-[#E8DFD4] bg-white text-[#6B584C] hover:bg-[#FAF6F0] cursor-pointer disabled:opacity-50"
             >
               Cancel
             </Button>
@@ -343,7 +502,7 @@ export function ProfileTab({
               variant="primary"
               size="sm"
               disabled={profileSaving}
-              className="rounded-xl px-6 py-2.5 text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 cursor-pointer shadow-sm"
+              className="rounded-xl px-6 py-2.5 text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
             >
               <FiSave className="w-3.5 h-3.5" />
               <span>{profileSaving ? "Saving..." : "Save Changes"}</span>

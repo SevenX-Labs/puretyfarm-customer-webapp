@@ -43,6 +43,10 @@ export function AccountView() {
     setProfileEmail,
     profileAvatar,
     setProfileAvatar,
+    profileDob,
+    setProfileDob,
+    profileGender,
+    setProfileGender,
     profileSaving,
     profileMsg,
     setProfileMsg,
@@ -410,20 +414,27 @@ export function AccountView() {
                 profileName={profileName}
                 profileEmail={profileEmail}
                 profileAvatar={profileAvatar}
+                profileDob={profileDob}
+                profileGender={profileGender}
                 profileSaving={profileSaving}
                 profileMsg={profileMsg}
                 onStartEdit={handleStartEditProfile}
                 onCancelEdit={() => {
                   setIsEditingProfile(false);
-                  setProfileName(user.name || "");
-                  setProfileEmail(user.email || "");
-                  setProfileAvatar(user.avatarUrl || "");
+                  setProfileName(user?.name || "");
+                  setProfileEmail(user?.email || "");
+                  setProfileAvatar(user?.avatarUrl || "");
+                  setProfileDob(user?.dob ? user.dob.split("T")[0] : "");
+                  setProfileGender(user?.gender ? user.gender.toLowerCase() : "female");
                 }}
                 onNameChange={setProfileName}
                 onEmailChange={setProfileEmail}
                 onAvatarChange={setProfileAvatar}
+                onDobChange={setProfileDob}
+                onGenderChange={setProfileGender}
                 onProfileError={(msg) => setProfileMsg({ type: "error", text: msg })}
                 onSaveProfile={handleSaveProfile}
+                onVerifyEmail={() => setShowEmailModal(true)}
               />
             )}
 
