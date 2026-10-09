@@ -312,8 +312,8 @@ export function SubscriptionPanel({
               relative z-50 bg-white border-[#E8DFD4] shadow-2xl flex flex-col outline-none
               ${
                 isMobile
-                  ? "bottom-0 left-0 right-0 w-full max-h-[92vh] rounded-t-3xl border-t mt-auto"
-                  : "top-0 right-0 bottom-0 h-full w-[500px] max-w-[100vw] border-l"
+                  ? "bottom-0 left-0 right-0 w-full max-h-[92vh] h-auto rounded-t-3xl border-t mt-auto overflow-hidden"
+                  : "top-0 right-0 bottom-0 h-screen max-h-screen w-[500px] max-w-[100vw] border-l overflow-hidden"
               }
             `}
           >
@@ -344,7 +344,11 @@ export function SubscriptionPanel({
             </div>
 
             {/* Scrollable Body - Smooth mouse wheel scroll with custom scrollbar */}
-            <div className="px-5 py-5 sm:px-6 sm:py-6 overflow-y-auto custom-scrollbar space-y-6 flex-1 overscroll-contain">
+            <div 
+              tabIndex={0}
+              className="px-5 py-5 sm:px-6 sm:py-6 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-6 overscroll-contain focus:outline-none"
+              style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+            >
               {/* 1. Delivery Frequency */}
               <FrequencyRadioGroup
                 value={frequency}
