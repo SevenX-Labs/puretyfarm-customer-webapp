@@ -96,15 +96,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const fetchFullUserProfile = useCallback(async (): Promise<AuthUser | null> => {
-    const [authData, profileData] = await Promise.all([
-      authApi.getMe(),
-      profileApi.getProfile().catch(() => null),
-    ]);
+    const authData = await authApi.getMe();
+    if (!authData || !authData.id) return null;
 
-    if (authData && authData.id) {
-      return normalizeCustomerUser(authData, profileData);
+    let profileData: CustomerProfile | null = null;
+    try {
+      profileData = await profileApi.getProfile();
+    } catch {
+      profileData = null;
     }
-    return null;
+
+    return normalizeCustomerUser(authData, profileData);
   }, []);
 
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {

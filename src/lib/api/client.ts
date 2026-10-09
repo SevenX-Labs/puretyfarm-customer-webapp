@@ -157,15 +157,12 @@ export async function apiClient<T = unknown>(
         typeof error === "object" &&
         error !== null &&
         "code" in error &&
-        error.code === "NO_REFRESH_TOKEN"
+        (error.code === "NO_REFRESH_TOKEN" ||
+          error.code === "REFRESH_TOKEN_REJECTED")
       ) {
         endAuthSession();
       }
       throw error;
-    }
-
-    if (response.status === 401) {
-      endAuthSession();
     }
   }
 
