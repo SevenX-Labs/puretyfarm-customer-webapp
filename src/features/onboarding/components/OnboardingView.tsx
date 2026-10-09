@@ -137,6 +137,7 @@ export function OnboardingView() {
                     src="/newimge/logo-removebg-preview.png"
                     alt="Purety Farm Logo"
                     fill
+                    sizes="(max-width: 640px) 80px, 88px"
                     className="object-contain object-left brightness-0 invert"
                     priority
                   />

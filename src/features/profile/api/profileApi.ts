@@ -95,8 +95,11 @@ export const profileApi = {
     };
 
     try {
-      return await this.createProfile(dto);
+      return await this.updateProfile(dto);
     } catch (err: any) {
+      if (err?.status === 404 || err?.statusCode === 404) {
+        return await this.createProfile(dto);
+      }
       if (err?.status === 409 || err?.statusCode === 409) {
         return await this.updateProfile(dto);
       }

@@ -317,10 +317,12 @@ export function useOnboardingFlow() {
         paymentMethod: "WALLET",
       });
 
-      await onboardingApi.completePlanSelection({
-        planId: pendingPlan.id,
-        addressId: savedAddress?.id || "",
-      });
+      try {
+        await onboardingApi.completePlanSelection({
+          planId: pendingPlan.id,
+          addressId: savedAddress?.id || "",
+        });
+      } catch {}
 
       await refreshUser();
       router.replace("/account?welcome=1");
@@ -371,10 +373,12 @@ export function useOnboardingFlow() {
         paymentMethod: "CASH",
       });
 
-      await onboardingApi.completePlanSelection({
-        planId: pendingPlan.id,
-        addressId: savedAddress?.id || "",
-      });
+      try {
+        await onboardingApi.completePlanSelection({
+          planId: pendingPlan.id,
+          addressId: savedAddress?.id || "",
+        });
+      } catch {}
 
       await refreshUser();
       router.replace("/account?welcome=1");

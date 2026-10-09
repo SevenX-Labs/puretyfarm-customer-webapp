@@ -1,6 +1,6 @@
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { User } from "../db/types";
 
 export const SESSION_COOKIE_NAME = "pf_session";
@@ -63,11 +63,21 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
 }
 
 /**
- * Cookie options conforming strictly to security requirements:
- * httpOnly: true
- * secure: true in production
- * sameSite: "lax"
- * maxAge: 30 days
+ * Decodes bearer token payload without throwing
+ */
+function decodeBearerPayload(token: string): any {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const json = Buffer.from(parts[1], "base64url").toString("utf-8");
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cookie options conforming strictly to security requirements
  */
 export function getSessionCookieOptions() {
   const isProd = process.env.NODE_ENV === "production";
@@ -83,13 +93,38 @@ export function getSessionCookieOptions() {
 
 /**
  * Server-side helper to read the current session from Next.js headers/cookies
+ * Supports both internal pf_session cookies and Authorization: Bearer tokens
  */
 export async function getCurrentSession(): Promise<SessionPayload | null> {
   try {
+    // 1. Check HTTP-only cookie
     const cookieStore = await cookies();
     const cookie = cookieStore.get(SESSION_COOKIE_NAME);
-    if (!cookie?.value) return null;
-    return await verifySessionToken(cookie.value);
+    if (cookie?.value) {
+      const verified = await verifySessionToken(cookie.value);
+      if (verified) return verified;
+    }
+
+    // 2. Fall back to Authorization: Bearer <token> header
+    const headerList = await headers();
+    const authHeader = headerList.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const bearerToken = authHeader.slice(7).trim();
+      const verified = await verifySessionToken(bearerToken);
+      if (verified) return verified;
+
+      // Also support NestJS JWT format (where userId is in 'sub')
+      const payload = decodeBearerPayload(bearerToken);
+      if (payload && (payload.sub || payload.userId)) {
+        return {
+          userId: String(payload.sub || payload.userId),
+          phone: String(payload.phone || payload.mobile || ""),
+          name: String(payload.name || "Customer"),
+        };
+      }
+    }
+
+    return null;
   } catch {
     return null;
   }
