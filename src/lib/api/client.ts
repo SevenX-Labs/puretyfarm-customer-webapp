@@ -24,14 +24,13 @@ function resolveUrl(path: string): string {
   }
 
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  if (
-    cleanPath.startsWith("/api/v1/") ||
-    cleanPath.startsWith("/auth/") ||
-    cleanPath.includes("/auth/customer") ||
-    env.NEXT_PUBLIC_API_MODE === "direct"
-  ) {
+
+  // If in direct API mode or server-side execution, use full backend URL
+  if (typeof window === "undefined" || env.NEXT_PUBLIC_API_MODE === "direct") {
     return `${BACKEND_BASE_URL}${cleanPath}`;
   }
+
+  // In browser with proxy mode (default), use same-origin relative URL
   return cleanPath;
 }
 
