@@ -13,6 +13,7 @@ import {
   User,
   CircleHelp,
   LogOut,
+  Wallet,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { LogoutConfirmDialog } from "../LogoutConfirmDialog";
@@ -21,6 +22,7 @@ const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
   { label: "Orders", href: "/orders", icon: Receipt },
   { label: "Milk Plan", href: "/plan", icon: Milk },
+  { label: "Wallet", href: "/wallet", icon: Wallet },
   { label: "Products", href: "/products", icon: ShoppingBag },
   { label: "Delivery", href: "/delivery", icon: Truck },
   { label: "Account", href: "/account", icon: User },

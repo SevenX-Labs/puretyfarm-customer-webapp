@@ -106,7 +106,7 @@ export function useAccountData() {
 
   // Wallet State
   const [wallet, setWallet] = useState<CustomerWallet | null>(null);
-  const [walletBalance, setWalletBalance] = useState<number>(255);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [walletLoading, setWalletLoading] = useState<boolean>(true);
   const [walletRecharging, setWalletRecharging] = useState<boolean>(false);
   const [walletSuccessMsg, setWalletSuccessMsg] = useState<string | null>(null);

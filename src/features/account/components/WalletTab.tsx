@@ -442,15 +442,22 @@ export function WalletTab({
                     </div>
                   </div>
 
-                  <span
-                    className={`font-mono font-bold shrink-0 ${
-                      tx.type === "CREDIT" ? "text-emerald-700" : "text-[#5C1B13]"
-                    }`}
-                  >
-                    {tx.type === "CREDIT"
-                      ? `+₹${(tx.amountPaise / 100).toFixed(2)}`
-                      : `-₹${(tx.amountPaise / 100).toFixed(2)}`}
-                  </span>
+                  <div className="text-right shrink-0">
+                    <span
+                      className={`font-mono font-bold block ${
+                        tx.type === "CREDIT" ? "text-emerald-700" : "text-[#5C1B13]"
+                      }`}
+                    >
+                      {tx.type === "CREDIT"
+                        ? `+₹${(tx.amountPaise / 100).toFixed(2)}`
+                        : `-₹${(tx.amountPaise / 100).toFixed(2)}`}
+                    </span>
+                    {typeof tx.balanceAfterPaise === "number" && (
+                      <span className="text-[10px] text-[#8C7A6B] font-mono block">
+                        Bal: ₹{(tx.balanceAfterPaise / 100).toFixed(2)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))
             ) : livePayments.length > 0 ? (

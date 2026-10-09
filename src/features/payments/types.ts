@@ -14,7 +14,11 @@ export type PaymentPurpose = "ORDER" | "WALLET_TOPUP";
 
 export type WalletCreditStatus = "PENDING" | "COMPLETED" | "REJECTED" | "CANCELLED";
 
-export type RefundStatus = "NOT_REQUIRED" | "REFUND_PENDING" | "REFUNDED";
+export type RefundStatus =
+  | "NOT_REQUIRED"
+  | "REFUND_PENDING"
+  | "REFUNDED"
+  | "REFUND_FAILED";
 
 export interface PayUCheckoutFields {
   key: string;
