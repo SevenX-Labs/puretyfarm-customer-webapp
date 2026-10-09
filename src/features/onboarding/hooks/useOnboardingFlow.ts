@@ -183,6 +183,22 @@ export function useOnboardingFlow() {
       return;
     }
 
+    const cleanEmail = profileEmail.trim();
+    if (!cleanEmail) {
+      setProfileError("Please enter your email address to continue.");
+      return;
+    }
+
+    const isEmailVerified = Boolean(
+      user?.email &&
+      (user as any)?.emailVerified &&
+      user.email.toLowerCase() === cleanEmail.toLowerCase()
+    );
+    if (!isEmailVerified) {
+      setProfileError("Please verify your email address to continue.");
+      return;
+    }
+
     setProfileSaving(true);
     setProfileError(null);
 
@@ -429,7 +445,18 @@ export function useOnboardingFlow() {
       await recordAndRedirectConfirmedOrder("CASH", confirmRes);
     } catch (err: any) {
       const msg = err?.data?.message || err?.message || "Cash request could not be registered.";
-      setPaymentError(Array.isArray(msg) ? msg.join(", ") : String(msg));
+      const strMsg = Array.isArray(msg) ? msg.join(", ") : String(msg);
+      if (strMsg.includes("Quote is no longer pending")) {
+        await recordAndRedirectConfirmedOrder("CASH", {
+          selectionId: "",
+          quoteId: pendingQuote.quoteId,
+          plan: pendingPlan.name,
+          status: "PENDING_PAYMENT",
+          paymentMethod: "CASH",
+        });
+        return;
+      }
+      setPaymentError(strMsg);
     } finally {
       setPaymentSubmitting(false);
     }
@@ -445,6 +472,7 @@ export function useOnboardingFlow() {
 
   return {
     user,
+    refreshUser,
     authLoading,
     initialLoading,
     currentStep,

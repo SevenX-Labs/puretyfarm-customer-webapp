@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { EmailVerificationModal } from "@/components/pf/EmailVerificationModal";
 import { m } from "framer-motion";
 import {
   FiUser,
@@ -22,6 +23,7 @@ export interface ProfileStepProps {
   user: User | null;
   profileName: string;
   profileEmail: string;
+  onEmailVerified?: (email: string) => Promise<void> | void;
   profileAvatar: string;
   profileGender: string;
   profileDob: string;
@@ -53,9 +55,21 @@ export function ProfileStep({
   onGenderChange,
   onDobChange,
   onProfileError,
+  onEmailVerified,
   onSubmit,
 }: ProfileStepProps) {
   const today = new Date().toISOString().split("T")[0];
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+
+  const isEmailVerified = Boolean(
+    user?.email &&
+    (user as any)?.emailVerified &&
+    user.email.toLowerCase() === profileEmail.trim().toLowerCase()
+  );
+
+  const isValidEmail = (emailStr: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr.trim());
+  };
 
   const fieldClassName =
     "h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50";
@@ -218,30 +232,64 @@ export function ProfileStep({
                   htmlFor="profileEmailInput"
                   className="text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]"
                 >
-                  Email Address
+                  Email Address <span className="text-[#7a2417]">*</span>
                 </label>
                 <span className="text-[10px] text-[#8b7b70]">
-                  Optional (for invoices)
+                  Required for billing & payments
                 </span>
               </div>
-              <div className="relative">
+              <div className="flex h-9.5 sm:h-10 lg:h-[42px] items-center gap-2 rounded-xl border border-[#ddd2c7] bg-white px-3 focus-within:border-[#7a2417]">
                 <FiMail
-                  className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#7a2417]"
+                  className="h-3.5 w-3.5 shrink-0 text-[#7a2417]"
                   aria-hidden="true"
                 />
                 <input
                   id="profileEmailInput"
                   type="email"
                   autoComplete="email"
+                  required
                   value={profileEmail}
-                  onChange={(event) => onEmailChange(event.target.value)}
-                  placeholder="Your email address"
-                  className={`${fieldClassName} pl-9`}
+                  onChange={(event) => {
+                    onEmailChange(event.target.value);
+                    onProfileError(null);
+                  }}
+                  placeholder="Enter your email address"
+                  readOnly={isEmailVerified}
+                  className="min-w-0 flex-1 bg-transparent text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none"
                 />
+                {isEmailVerified ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="rounded-full bg-[#e8f4e9] px-2 py-0.5 text-[10px] font-semibold text-[#367847]">
+                      Verified ✓
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onEmailChange("")}
+                      className="text-[10.5px] text-[#7a2417] hover:underline font-semibold cursor-pointer"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!isValidEmail(profileEmail)}
+                    onClick={() => setIsEmailModalOpen(true)}
+                    className="shrink-0 rounded-lg bg-[#7a2417] px-2.5 py-1 text-[11px] font-semibold text-white shadow-2xs hover:bg-[#5f1b12] disabled:cursor-not-allowed disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    Verify Email
+                  </button>
+                )}
               </div>
-              <p className="mt-0.5 text-[10px] text-[#8b7b70]">
-                Used to share your orders, billing and important updates.
-              </p>
+              {isEmailVerified ? (
+                <p className="mt-0.5 text-[10px] text-[#367847] font-medium">
+                  ✓ Email verified. Used for payment receipts and subscription invoices.
+                </p>
+              ) : (
+                <p className="mt-0.5 text-[10px] text-[#7a2417]">
+                  Click &ldquo;Verify Email&rdquo; to confirm your email before continuing.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -261,6 +309,21 @@ export function ProfileStep({
           </button>
         </div>
       </form>
+      <EmailVerificationModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        onSuccess={async (verifiedEmail) => {
+          onEmailChange(verifiedEmail);
+          setIsEmailModalOpen(false);
+          onProfileError(null);
+          if (onEmailVerified) {
+            await onEmailVerified(verifiedEmail);
+          }
+        }}
+        initialEmail={profileEmail.trim()}
+        title="Verify Your Email Address"
+        description="We will send a 6-digit verification code to confirm your email address."
+      />
     </m.section>
   );
 }

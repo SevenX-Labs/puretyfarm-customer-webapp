@@ -15,6 +15,7 @@ import { OnboardingSidebar } from "./OnboardingSidebar";
 export function OnboardingView() {
   const {
     user,
+    refreshUser,
     authLoading,
     initialLoading,
     currentStep,
@@ -136,6 +137,10 @@ export function OnboardingView() {
                     onGenderChange={setProfileGender}
                     onDobChange={setProfileDob}
                     onProfileError={setProfileError}
+                    onEmailVerified={async (email) => {
+                      setProfileEmail(email);
+                      await refreshUser();
+                    }}
                     onSubmit={handleSaveProfile}
                   />
                 </m.div>
