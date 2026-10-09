@@ -438,3 +438,21 @@ body:has(.pf-app) {
   scrollbar-width: thin;
   scrollbar-color: #d5c3b0 transparent;
 }
+
+/* Global pointer cursor for all buttons, clickable triggers, selects, and interactive items */
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+select,
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+input:disabled,
+select:disabled {
+  cursor: not-allowed !important;
+}
