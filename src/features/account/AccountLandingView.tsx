@@ -481,9 +481,9 @@ export function AccountLandingView() {
 
             {loadingPlan ? (
               <PfCard padding="md">
-                <div className="animate-pulse space-y-2">
-                  <div className="h-4 w-48 bg-[var(--pf-surface-soft)] rounded" />
-                  <div className="h-3 w-32 bg-[var(--pf-surface-soft)] rounded" />
+                <div className="flex items-center gap-3 py-4 px-2 text-xs font-semibold text-[var(--pf-text-secondary)]">
+                  <div className="w-4 h-4 rounded-full border-2 border-[var(--pf-brown)] border-t-transparent animate-spin" />
+                  <span>Loading live milk plan & schedule...</span>
                 </div>
               </PfCard>
             ) : subscription ? (

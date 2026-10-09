@@ -71,15 +71,18 @@ export function PlanView() {
   const [modalError, setModalError] = useState<string | null>(null);
   const [modalSuccess, setModalSuccess] = useState<string | null>(null);
 
+  const [monthlyConfig, setMonthlyConfig] = useState<any>(null);
+
   const loadData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     setError(null);
 
     try {
-      const [manageRes, overviewRes] = await Promise.allSettled([
+      const [manageRes, overviewRes, monthlyRes] = await Promise.allSettled([
         manageDeliveryApi.getManageDelivery(),
         plansApi.getPlansOverview(),
+        plansApi.getMonthlyConfig(),
       ]);
 
       if (manageRes.status === "fulfilled" && manageRes.value?.activePlan) {
@@ -92,6 +95,10 @@ export function PlanView() {
         setPlansOverview(overviewRes.value.plans);
       } else {
         setPlansOverview([]);
+      }
+
+      if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
+        setMonthlyConfig(monthlyRes.value);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load plan details";
@@ -1000,21 +1007,60 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 
 function PlanSkeleton() {
   return (
-    <div className="space-y-10">
-      <PfCard padding="lg">
-        <PfSkeleton height={14} width={100} />
-        <PfSkeleton className="mt-3" height={36} width="50%" />
-        <PfSkeleton className="mt-2" height={16} width="35%" />
-        <div className="mt-6 grid sm:grid-cols-3 gap-5 pt-6 border-t border-[var(--pf-border)]">
-          <PfSkeleton height={40} />
-          <PfSkeleton height={40} />
-          <PfSkeleton height={40} />
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Loading banner with brand spinner */}
+      <div className="flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-[var(--pf-surface)] border border-[var(--pf-border)] text-xs sm:text-sm font-semibold text-[var(--pf-text-secondary)] shadow-sm">
+        <div className="w-5 h-5 rounded-full border-2 border-[var(--pf-brown)] border-t-transparent animate-spin" />
+        <span>Fetching your live milk plan & subscription schedule from server...</span>
+      </div>
+
+      {/* Main Active Plan Skeleton Hero Card */}
+      <PfCard padding="lg" elevated>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="w-24 h-4 rounded-full bg-[var(--pf-surface-soft)] animate-pulse" />
+            <div className="w-16 h-4 rounded-full bg-[var(--pf-surface-soft)] animate-pulse" />
+          </div>
+          <div className="w-3/5 h-8 rounded-xl bg-[var(--pf-surface-soft)] animate-pulse" />
+          <div className="w-2/5 h-4 rounded-lg bg-[var(--pf-surface-soft)] animate-pulse" />
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-[var(--pf-border)]">
+            <div className="space-y-2">
+              <div className="w-20 h-3 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+              <div className="w-28 h-6 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <div className="w-24 h-3 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+              <div className="w-32 h-6 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+            </div>
+            <div className="space-y-2">
+              <div className="w-28 h-3 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+              <div className="w-36 h-6 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+            </div>
+          </div>
         </div>
       </PfCard>
-      <div className="grid md:grid-cols-3 gap-5">
-        <PfCard padding="md"><PfSkeleton height={180} /></PfCard>
-        <PfCard padding="md"><PfSkeleton height={180} /></PfCard>
-        <PfCard padding="md"><PfSkeleton height={180} /></PfCard>
+
+      {/* 3 Change Plan Cards Skeleton */}
+      <div className="space-y-4">
+        <div className="w-36 h-6 rounded-lg bg-[var(--pf-surface-soft)] animate-pulse" />
+        <div className="grid md:grid-cols-3 gap-5">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-3xl p-6 bg-[var(--pf-surface)] border border-[var(--pf-border)] space-y-4 shadow-sm">
+              <div className="flex justify-between items-center">
+                <div className="w-24 h-4 rounded-full bg-[var(--pf-surface-soft)] animate-pulse" />
+                <div className="w-12 h-4 rounded-full bg-[var(--pf-surface-soft)] animate-pulse" />
+              </div>
+              <div className="w-3/4 h-6 rounded-lg bg-[var(--pf-surface-soft)] animate-pulse" />
+              <div className="w-1/2 h-7 rounded-lg bg-[var(--pf-surface-soft)] animate-pulse" />
+              <div className="space-y-2 pt-2">
+                <div className="w-full h-3.5 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+                <div className="w-5/6 h-3.5 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+                <div className="w-4/5 h-3.5 rounded bg-[var(--pf-surface-soft)] animate-pulse" />
+              </div>
+              <div className="w-full h-10 rounded-2xl bg-[var(--pf-surface-soft)] animate-pulse mt-4" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
