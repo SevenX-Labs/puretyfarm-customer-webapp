@@ -11,7 +11,7 @@ import {
   WalletTransactionType,
   WalletCreditRequestStatus,
 } from "@/features/wallet";
-import { paymentsApi, PaymentRecord } from "@/features/payments";
+import { paymentsApi, PaymentRecord, PaymentStatus } from "@/features/payments";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { Button } from "@/components/ui/Button";
 import {
@@ -66,7 +66,19 @@ function WalletContent() {
   } | null>(null);
 
   // ─── TABS & LEDGER STATES ───
-  const [activeTab, setActiveTab] = useState<"TRANSACTIONS" | "REQUESTS">("TRANSACTIONS");
+  const [activeTab, setActiveTab] = useState<"TRANSACTIONS" | "PAYMENTS" | "REQUESTS">("TRANSACTIONS");
+
+  // Payments History State (6.4)
+  const [paymentsList, setPaymentsList] = useState<PaymentRecord[]>([]);
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<"ALL" | PaymentStatus>("ALL");
+  const [paymentPage, setPaymentPage] = useState<number>(1);
+  const [paymentPagination, setPaymentPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
+  const [paymentLoading, setPaymentLoading] = useState<boolean>(false);
 
   // Transactions Ledger State (7.3)
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
@@ -141,6 +153,30 @@ function WalletContent() {
     [user, txPage, txTypeFilter]
   );
 
+  // 6.4 GET /api/v1/customer/payments
+  const fetchPayments = useCallback(
+    async (page = paymentPage, status = paymentStatusFilter) => {
+      if (!user) return;
+      setPaymentLoading(true);
+      try {
+        const res = await paymentsApi.listPayments({
+          page,
+          limit: 10,
+          status: status === "ALL" ? undefined : status,
+        });
+        setPaymentsList(res.data || []);
+        if (res.pagination) {
+          setPaymentPagination(res.pagination);
+        }
+      } catch (err) {
+        console.warn("Error fetching payments:", err);
+      } finally {
+        setPaymentLoading(false);
+      }
+    },
+    [user, paymentPage, paymentStatusFilter]
+  );
+
   // 7.4 GET /api/v1/customer/wallet/credit-requests
   const fetchCreditRequests = useCallback(
     async (page = reqPage, status = reqStatusFilter) => {
@@ -171,10 +207,11 @@ function WalletContent() {
     await Promise.all([
       fetchWallet(),
       fetchTransactions(txPage, txTypeFilter),
+      fetchPayments(paymentPage, paymentStatusFilter),
       fetchCreditRequests(reqPage, reqStatusFilter),
     ]);
     setIsRefreshing(false);
-  }, [fetchWallet, fetchTransactions, fetchCreditRequests, txPage, txTypeFilter, reqPage, reqStatusFilter]);
+  }, [fetchWallet, fetchTransactions, fetchPayments, fetchCreditRequests, txPage, txTypeFilter, paymentPage, paymentStatusFilter, reqPage, reqStatusFilter]);
 
   // ══════════════════════════════════════════════════════════════════
   //  LIFECYCLE & PAYU RETURN HANDLING
@@ -188,11 +225,13 @@ function WalletContent() {
     if (user) {
       fetchWallet();
       fetchTransactions(1, txTypeFilter);
+      fetchPayments(1, paymentStatusFilter);
       fetchCreditRequests(1, reqStatusFilter);
 
       const handleWalletUpdate = () => {
         fetchWallet();
         fetchTransactions(1, txTypeFilter);
+        fetchPayments(1, paymentStatusFilter);
         fetchCreditRequests(1, reqStatusFilter);
       };
 
@@ -788,7 +827,7 @@ function WalletContent() {
               </p>
             </div>
 
-            <div className="inline-flex rounded-xl bg-[#FAF3EA] p-1 border border-[#E8DFD4] shrink-0 self-start sm:self-auto">
+            <div className="inline-flex rounded-xl bg-[#FAF3EA] p-1 border border-[#E8DFD4] shrink-0 self-start sm:self-auto flex-wrap gap-1">
               <button
                 type="button"
                 onClick={() => setActiveTab("TRANSACTIONS")}
@@ -798,12 +837,30 @@ function WalletContent() {
                     : "text-[#6B584C] hover:text-[#1A1008]"
                 }`}
               >
-                Transactions Ledger ({txPagination.total})
+                Ledger ({txPagination.total})
               </button>
 
               <button
                 type="button"
-                onClick={() => setActiveTab("REQUESTS")}
+                onClick={() => {
+                  setActiveTab("PAYMENTS");
+                  fetchPayments(1, paymentStatusFilter);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "PAYMENTS"
+                    ? "bg-[#5C1B13] text-white shadow-xs"
+                    : "text-[#6B584C] hover:text-[#1A1008]"
+                }`}
+              >
+                Payments ({paymentPagination.total})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("REQUESTS");
+                  fetchCreditRequests(1, reqStatusFilter);
+                }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === "REQUESTS"
                     ? "bg-[#5C1B13] text-white shadow-xs"
@@ -968,7 +1025,239 @@ function WalletContent() {
             </div>
           )}
 
-          {/* ─── TAB 2: CREDIT REQUESTS HISTORY (7.4) ─── */}
+          {/* ─── TAB 2: PAYMENTS HISTORY (6.4 & 6.5) ─── */}
+          {activeTab === "PAYMENTS" && (
+            <div className="space-y-4">
+              {/* Status Filter Pills */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-[#8C7A6B] font-medium mr-1">Status:</span>
+                  {(
+                    [
+                      "ALL",
+                      "SUCCESS",
+                      "PENDING",
+                      "FAILED",
+                      "REFUNDED",
+                      "CANCELLED",
+                      "EXPIRED",
+                    ] as const
+                  ).map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      onClick={() => {
+                        setPaymentStatusFilter(st);
+                        setPaymentPage(1);
+                        fetchPayments(1, st);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                        paymentStatusFilter === st
+                          ? "bg-[#5C1B13] text-white"
+                          : "bg-[#FAF8F5] text-[#6B584C] hover:bg-[#FAF3EA] border border-[#E8DFD4]"
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+
+                <span className="text-[11px] text-[#8C7A6B] font-mono">
+                  Showing {paymentsList.length} of {paymentPagination.total}
+                </span>
+              </div>
+
+              {/* Payments List */}
+              {paymentLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-2 text-xs text-[#8C7A6B]">
+                  <FiRefreshCw className="w-5 h-5 animate-spin text-[#5C1B13]" />
+                  <span>Loading payment records...</span>
+                </div>
+              ) : paymentsList.length > 0 ? (
+                <div className="divide-y divide-[#E8DFD4]/70 border border-[#E8DFD4] rounded-2xl overflow-hidden bg-white">
+                  {paymentsList.map((pay) => {
+                    const isSuccess = pay.status === "SUCCESS";
+                    const isPending =
+                      pay.status === "PENDING" || pay.status === "PROCESSING";
+                    const isFailed =
+                      pay.status === "FAILED" ||
+                      pay.status === "CANCELLED" ||
+                      pay.status === "EXPIRED";
+                    const isRefund =
+                      pay.status === "REFUND_PENDING" ||
+                      pay.status === "REFUNDED";
+
+                    const statusTone = isSuccess
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : isPending
+                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                      : isRefund
+                      ? "bg-sky-50 text-sky-800 border-sky-200"
+                      : "bg-rose-50 text-rose-800 border-rose-200";
+
+                    return (
+                      <div
+                        key={pay.id}
+                        className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAF8F5]/50 transition-colors"
+                      >
+                        <div className="space-y-1.5 min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-[#1A1008] text-xs sm:text-sm">
+                              {pay.paymentMethod === "ONLINE"
+                                ? "PayU Hosted Checkout"
+                                : "Doorstep Cash"}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusTone}`}
+                            >
+                              {pay.status}
+                            </span>
+                            {pay.purpose && (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FAF3EA] text-[#6B584C] border border-[#E8DFD4]">
+                                {pay.purpose === "WALLET_TOPUP"
+                                  ? "Wallet Top-up"
+                                  : "Order Payment"}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#8C7A6B]">
+                            <span className="font-mono font-medium text-[#1A1008]">
+                              {pay.transactionId}
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {new Date(pay.createdAt).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                            {pay.completedAt && (
+                              <>
+                                <span>•</span>
+                                <span className="text-emerald-700 font-medium">
+                                  Completed:{" "}
+                                  {new Date(pay.completedAt).toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                  })}
+                                </span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Enriched Credit Request Info */}
+                          {pay.walletCredit && (
+                            <div className="text-[11px] text-[#6B584C] flex flex-wrap items-center gap-2 pt-0.5">
+                              <span>
+                                <strong>Credit Status:</strong>{" "}
+                                <span
+                                  className={
+                                    pay.walletCredit.status === "COMPLETED"
+                                      ? "text-emerald-700 font-bold"
+                                      : pay.walletCredit.status === "PENDING"
+                                      ? "text-amber-800 font-bold"
+                                      : "text-rose-700 font-bold"
+                                  }
+                                >
+                                  {pay.walletCredit.status}
+                                </span>
+                              </span>
+                              {pay.walletCredit.autoApproved && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
+                                  Auto-Approved
+                                </span>
+                              )}
+                              {pay.walletCredit.refundStatus &&
+                                pay.walletCredit.refundStatus !== "NOT_REQUIRED" && (
+                                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-sky-100 text-sky-800">
+                                    Refund: {pay.walletCredit.refundStatus}
+                                  </span>
+                                )}
+                            </div>
+                          )}
+
+                          {/* Failure info */}
+                          {pay.failureMessage && (
+                            <p className="text-xs text-rose-700 pt-0.5">
+                              {pay.failureMessage}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Amount & Actions */}
+                        <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0">
+                          <span className="font-mono font-bold text-sm text-[#1A1008]">
+                            ₹{(pay.amountPaise / 100).toFixed(2)}
+                          </span>
+
+                          {/* Retry Button for Failed/Expired Online Payments */}
+                          {isFailed && pay.paymentMethod === "ONLINE" && (
+                            <button
+                              type="button"
+                              onClick={() => handleRetryPayment(pay.transactionId)}
+                              className="px-2.5 py-1 rounded-lg bg-[#5C1B13] text-white text-[11px] font-bold hover:bg-[#48150f] transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                            >
+                              <FiRefreshCw className="w-3 h-3" />
+                              <span>Retry</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-12 text-center text-xs text-[#8C7A6B] border border-dashed border-[#E8DFD4] rounded-2xl">
+                  No payment records found.
+                </div>
+              )}
+
+              {/* Pagination Controls */}
+              {paymentPagination.totalPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <button
+                    type="button"
+                    disabled={paymentPage <= 1 || paymentLoading}
+                    onClick={() => {
+                      const next = paymentPage - 1;
+                      setPaymentPage(next);
+                      fetchPayments(next, paymentStatusFilter);
+                    }}
+                    className="px-3 py-1.5 rounded-xl border border-[#E8DFD4] text-xs font-semibold text-[#6B584C] hover:bg-[#FAF3EA] disabled:opacity-40 cursor-pointer flex items-center gap-1"
+                  >
+                    <FiChevronLeft className="w-3.5 h-3.5" />
+                    <span>Previous</span>
+                  </button>
+
+                  <span className="text-xs text-[#8C7A6B] font-medium">
+                    Page {paymentPage} of {paymentPagination.totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={
+                      paymentPage >= paymentPagination.totalPages ||
+                      paymentLoading
+                    }
+                    onClick={() => {
+                      const next = paymentPage + 1;
+                      setPaymentPage(next);
+                      fetchPayments(next, paymentStatusFilter);
+                    }}
+                    className="px-3 py-1.5 rounded-xl border border-[#E8DFD4] text-xs font-semibold text-[#6B584C] hover:bg-[#FAF3EA] disabled:opacity-40 cursor-pointer flex items-center gap-1"
+                  >
+                    <span>Next</span>
+                    <FiChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ─── TAB 3: CREDIT REQUESTS HISTORY (7.4) ─── */}
           {activeTab === "REQUESTS" && (
             <div className="space-y-4">
               {/* Status Filter Pills */}
