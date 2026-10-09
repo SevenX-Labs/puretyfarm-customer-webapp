@@ -2,17 +2,21 @@
 
 import React from "react";
 import { m } from "framer-motion";
-import { AvatarUpload } from "@/components/ui/AvatarUpload";
-import type { User } from "@/types/models";
 import {
-  FiAlertCircle,
-  FiArrowRight,
-  FiCalendar,
-  FiMail,
-  FiPhone,
   FiUser,
+  FiPhone,
+  FiMail,
+  FiCalendar,
+  FiArrowRight,
+  FiAlertCircle,
 } from "react-icons/fi";
-import { LuUserRound, LuUsersRound } from "react-icons/lu";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
+import { User } from "@/types/models";
+const GENDER_OPTIONS = [
+  { value: "male", label: "Male", icon: FiUser },
+  { value: "female", label: "Female", icon: FiUser },
+  { value: "other", label: "Other", icon: FiUser },
+];
 
 export interface ProfileStepProps {
   user: User | null;
@@ -23,24 +27,15 @@ export interface ProfileStepProps {
   profileDob: string;
   profileSaving: boolean;
   profileError: string | null;
-  autoFocus: boolean;
-  onNameChange: (val: string) => void;
-  onEmailChange: (val: string) => void;
+  autoFocus?: boolean;
+  onNameChange: (value: string) => void;
+  onEmailChange: (value: string) => void;
   onAvatarChange: (url: string) => void;
-  onGenderChange: (val: string) => void;
-  onDobChange: (val: string) => void;
-  onProfileError: (msg: string | null) => void;
+  onGenderChange: (value: string) => void;
+  onDobChange: (value: string) => void;
+  onProfileError: (error: string | null) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
-
-const GENDER_OPTIONS = [
-  { value: "male", label: "Male", icon: LuUserRound },
-  { value: "female", label: "Female", icon: FiUser },
-  { value: "other", label: "Other", icon: LuUsersRound },
-];
-
-const fieldClassName =
-  "h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 placeholder:text-[#9a8b80]";
 
 export function ProfileStep({
   user,
@@ -51,7 +46,7 @@ export function ProfileStep({
   profileDob,
   profileSaving,
   profileError,
-  autoFocus,
+  autoFocus = false,
   onNameChange,
   onEmailChange,
   onAvatarChange,
@@ -62,39 +57,42 @@ export function ProfileStep({
 }: ProfileStepProps) {
   const today = new Date().toISOString().split("T")[0];
 
+  const fieldClassName =
+    "h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50";
+
   return (
     <m.section
-      aria-labelledby="profile-information-heading"
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      className="bg-[#fffdf8] p-3.5 sm:p-5 lg:p-6 xl:p-7 flex flex-col justify-between h-full min-h-0"
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className="h-full flex flex-col justify-between"
     >
-      <div>
-        <div className="mb-2 sm:mb-3">
-          <h1
-            id="profile-information-heading"
-            className="font-heading text-[20px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[23px] lg:text-[25px]"
-          >
-            Profile Information
-          </h1>
-          <p className="mt-0.5 text-[12px] text-[#715e50] sm:text-[13px]">
-            This helps us serve you better.
-          </p>
-        </div>
-
-        {profileError && (
-          <div
-            role="alert"
-            aria-live="polite"
-            className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-[12px] text-red-700"
-          >
-            <FiAlertCircle className="h-4 w-4 shrink-0" />
-            <span>{profileError}</span>
+      <form onSubmit={onSubmit} className="h-full flex flex-col justify-between">
+        <div>
+          <div className="mb-2.5 sm:mb-3">
+            <h1
+              id="profileHeading"
+              className="font-serif text-lg sm:text-xl font-bold text-[#24130f] lg:text-[22px]"
+            >
+              Profile Information
+            </h1>
+            <p className="mt-0.5 text-[12px] text-[#715e50] sm:text-[13px]">
+              This helps us serve you better.
+            </p>
           </div>
-        )}
 
-        <form id="onboardingProfileForm" onSubmit={onSubmit}>
+          {profileError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-[12px] text-red-700"
+            >
+              <FiAlertCircle className="h-4 w-4 shrink-0" />
+              <span>{profileError}</span>
+            </div>
+          )}
+
           <div className="mb-2.5 sm:mb-3">
             <AvatarUpload
               initialUrl={profileAvatar}
@@ -130,7 +128,8 @@ export function ProfileStep({
                     onNameChange(event.target.value);
                     onProfileError(null);
                   }}
-                  placeholder="Enter your full name" minLength={2}
+                  placeholder="Enter your full name"
+                  minLength={2}
                   className={`${fieldClassName} pl-9`}
                   autoFocus={autoFocus}
                 />
@@ -199,7 +198,7 @@ export function ProfileStep({
                       type="button"
                       aria-pressed={isSelected}
                       onClick={() => onGenderChange(value)}
-                      className={`inline-flex h-9.5 sm:h-10 lg:h-[42px] items-center justify-center gap-1.5 rounded-xl border px-1.5 text-[11.5px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a2417] sm:text-[12px] ${
+                      className={`inline-flex h-9.5 sm:h-10 lg:h-[42px] items-center justify-center gap-1.5 rounded-xl border px-1.5 text-[11.5px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a2417] sm:text-[12px] cursor-pointer ${
                         isSelected
                           ? "border-[#7a2417] bg-[#7a2417] text-white"
                           : "border-[#ddd2c7] bg-white text-[#24130f] hover:border-[#a65a3a]"
@@ -245,24 +244,23 @@ export function ProfileStep({
               </p>
             </div>
           </div>
-        </form>
-      </div>
+        </div>
 
-      <div className="mt-2.5 flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:mt-3 sm:justify-end sm:pt-3">
-        <button
-          type="submit"
-          form="onboardingProfileForm"
-          disabled={profileSaving}
-          className="inline-flex h-9.5 sm:h-10 lg:h-[42px] w-full items-center justify-center gap-2 rounded-xl bg-[#7a2417] px-5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#5f1b12] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a2417] disabled:cursor-not-allowed disabled:opacity-60 sm:w-[min(100%,300px)] sm:text-[13px] shadow-sm cursor-pointer"
-        >
-          <span>
-            {profileSaving
-              ? "Saving Details..."
-              : "Continue to Delivery Location"}
-          </span>
-          <FiArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-        </button>
-      </div>
+        <div className="mt-2.5 flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:mt-3 sm:justify-end sm:pt-3">
+          <button
+            type="submit"
+            disabled={profileSaving}
+            className="inline-flex h-9.5 sm:h-10 lg:h-[42px] w-full items-center justify-center gap-2 rounded-xl bg-[#7a2417] px-5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#5f1b12] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7a2417] disabled:cursor-not-allowed disabled:opacity-60 sm:w-[min(100%,300px)] sm:text-[13px] shadow-sm cursor-pointer"
+          >
+            <span>
+              {profileSaving
+                ? "Saving Details..."
+                : "Continue to Delivery Location"}
+            </span>
+            <FiArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        </div>
+      </form>
     </m.section>
   );
 }

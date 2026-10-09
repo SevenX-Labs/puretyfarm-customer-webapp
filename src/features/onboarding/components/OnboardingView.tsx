@@ -123,13 +123,13 @@ export function OnboardingView() {
 
   return (
     <div className="relative min-h-screen w-screen overflow-x-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center py-2 sm:py-3">
-      <main className="mx-auto w-full max-w-5xl px-2.5 sm:px-4 h-full max-h-[96vh] flex flex-col justify-center">
+      <main className="mx-auto w-full max-w-5xl px-2.5 sm:px-4 flex flex-col justify-center items-center">
         <section
           aria-label="Account setup and subscription workflow"
-          className="relative flex flex-col md:flex-row h-full max-h-[640px] lg:max-h-[660px] w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-lg overflow-hidden"
+          className="relative flex flex-col md:flex-row w-full h-[580px] sm:h-[600px] lg:h-[620px] max-h-[94vh] rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl overflow-hidden"
         >
-          {/* Left Sidebar */}
-          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-4.5 md:w-[240px] lg:w-[270px] shrink-0 text-white">
+          {/* Left Sidebar - Exact Same Fixed Size Across All 5 Steps */}
+          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-4.5 md:w-[250px] lg:w-[280px] shrink-0 text-white h-full">
             <div className="space-y-2 md:space-y-3.5">
               <div className="flex items-center justify-between">
                 <div className="relative h-6 w-20 sm:h-6.5 sm:w-22">
@@ -156,7 +156,7 @@ export function OnboardingView() {
                     ? "Delivery Address"
                     : currentStep === 4
                     ? "Select Your Plan"
-                    : "Pay for your plan"}
+                    : "Payment & Activation"}
                 </h2>
                 <p className="hidden md:block text-[9.5px] lg:text-[10.5px] text-white/80 leading-snug">
                   {currentStep === 1
@@ -167,12 +167,12 @@ export function OnboardingView() {
                     ? "Provide your exact flat, building, and receiver details."
                     : currentStep === 4
                     ? "Choose the milk plan that best fits your family's morning routine."
-                    : "Pay via wallet, add money online, or opt for cash on delivery."}
+                    : "Complete payment via wallet or cash to activate morning milk delivery."}
                 </p>
               </div>
 
               {/* Progress Steps List */}
-              <nav aria-label="Onboarding Steps" className="pt-0.5 md:pt-1.5">
+              <nav aria-label="Onboarding Steps" className="pt-0.5 md:pt-1">
                 <ol className="flex flex-row md:flex-col gap-1 md:gap-1.5">
                   {stepsList.map((step) => {
                     const isCurrent = currentStep === step.num;
@@ -187,7 +187,7 @@ export function OnboardingView() {
                         {step.num < 5 && (
                           <>
                             <span
-                              className="absolute left-3 top-5.5 hidden h-4 w-px bg-white/25 md:block lg:left-3 lg:h-4.5"
+                              className="absolute left-3 top-5 hidden h-3.5 w-px bg-white/25 md:block lg:left-3 lg:h-4"
                               aria-hidden="true"
                             />
                             <span
@@ -243,8 +243,8 @@ export function OnboardingView() {
             </div>
           </aside>
 
-          {/* Right Content Panel */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden p-3 sm:p-4 lg:p-4.5">
+          {/* Right Content Panel - Smooth transition only within right side */}
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden p-3.5 sm:p-4.5 lg:p-5 h-full">
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { PlanDefinition } from "@/features/plans";
@@ -10,8 +10,8 @@ import {
   FiAlertCircle,
   FiCheckCircle,
   FiClock,
-  FiCreditCard,
   FiDollarSign,
+  FiPlusCircle,
   FiRefreshCw,
 } from "react-icons/fi";
 import { LuWallet } from "react-icons/lu";
@@ -32,6 +32,8 @@ export interface PaymentStepProps {
   onBackToPlans: () => void;
 }
 
+type Method = "WALLET" | "CASH";
+
 function paise(amount: number): string {
   return `₹${(amount / 100).toFixed(2)}`;
 }
@@ -51,6 +53,8 @@ export function PaymentStep({
   onPayCash,
   onBackToPlans,
 }: PaymentStepProps) {
+  const [method, setMethod] = useState<Method>("WALLET");
+
   if (!quote) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
@@ -74,6 +78,8 @@ export function PaymentStep({
   const totalPaise = quote.totalSellingAmount;
   const sufficient = walletBalancePaise >= totalPaise;
   const shortfallPaise = Math.max(totalPaise - walletBalancePaise, 0);
+  // Backend minimum top-up is ₹100 (10000 paise)
+  const topupPaise = Math.max(shortfallPaise, 10000);
   const isFirstTopup = !walletAutoCredit;
 
   return (
@@ -90,8 +96,8 @@ export function PaymentStep({
             Pay for your plan
           </h1>
           <p className="text-[11px] text-[#715e50] sm:text-xs">
-            Choose how you want to pay. First online top-ups wait for a quick
-            admin check before the wallet is credited.
+            Choose Wallet or Cash. If your wallet is short, add money online —
+            your plan is paid from the wallet right after.
           </p>
         </div>
         <button
@@ -104,7 +110,7 @@ export function PaymentStep({
         </button>
       </header>
 
-      {/* Summary card */}
+      {/* Plan summary */}
       <div className="rounded-2xl border border-[#E8DFD4] bg-white p-3.5 shadow-2xs">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -129,37 +135,32 @@ export function PaymentStep({
         </div>
       </div>
 
-      {/* Wallet status */}
-      <div className="rounded-2xl border border-[#E8DFD4] bg-[#FAF8F5] p-3.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="rounded-xl bg-[#5C1B13]/10 p-2 text-[#5C1B13]">
-              <LuWallet className="h-3.5 w-3.5" />
-            </span>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#8C7A6B]">
-                Your wallet
-              </p>
-              <p className="font-mono text-base font-bold text-[#1A1008]">
-                {walletLoading ? "..." : paise(walletBalancePaise)}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onReloadWallet}
-            disabled={walletLoading}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5C1B13] hover:underline cursor-pointer disabled:opacity-60"
-          >
-            <FiRefreshCw className={`h-3 w-3 ${walletLoading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
-          </button>
-        </div>
-        {!sufficient && (
-          <p className="mt-2 text-[11px] text-[#715e50]">
-            You need {paise(shortfallPaise)} more to cover this plan from wallet.
-          </p>
-        )}
+      {/* Method toggle: Wallet | Cash */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => setMethod("WALLET")}
+          className={`flex items-center justify-center gap-1.5 rounded-xl border-2 px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+            method === "WALLET"
+              ? "border-[#5C1B13] bg-[#5C1B13] text-white"
+              : "border-[#E8DFD4] bg-white text-[#1A1008] hover:border-[#5C1B13]/40"
+          }`}
+        >
+          <LuWallet className="h-3.5 w-3.5" />
+          <span>Wallet</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMethod("CASH")}
+          className={`flex items-center justify-center gap-1.5 rounded-xl border-2 px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+            method === "CASH"
+              ? "border-[#5C1B13] bg-[#5C1B13] text-white"
+              : "border-[#E8DFD4] bg-white text-[#1A1008] hover:border-[#5C1B13]/40"
+          }`}
+        >
+          <FiDollarSign className="h-3.5 w-3.5" />
+          <span>Cash on delivery</span>
+        </button>
       </div>
 
       {paymentNotice && (
@@ -182,93 +183,136 @@ export function PaymentStep({
         </div>
       )}
 
-      {/* Payment options */}
-      <div className="flex flex-col gap-2.5">
-        {/* Option 1: Pay from wallet */}
-        <button
-          type="button"
-          disabled={paymentSubmitting || !sufficient}
-          onClick={onPayFromWallet}
-          className={`flex items-center justify-between gap-3 rounded-2xl border-2 p-3.5 text-left transition-all cursor-pointer disabled:cursor-not-allowed ${
-            sufficient
-              ? "border-[#5C1B13] bg-[#5C1B13] text-white hover:bg-[#48150f]"
-              : "border-[#E8DFD4] bg-white text-[#1A1008] opacity-60"
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <span
-              className={`rounded-xl p-2 ${
-                sufficient ? "bg-white/15 text-white" : "bg-[#FAF3EA] text-[#5C1B13]"
-              }`}
+      {/* WALLET METHOD PANEL */}
+      {method === "WALLET" && (
+        <div className="flex flex-col gap-2.5">
+          {/* Wallet balance */}
+          <div className="rounded-2xl border border-[#E8DFD4] bg-[#FAF8F5] p-3.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="rounded-xl bg-[#5C1B13]/10 p-2 text-[#5C1B13]">
+                  <LuWallet className="h-3.5 w-3.5" />
+                </span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#8C7A6B]">
+                    Your wallet balance
+                  </p>
+                  <p className="font-mono text-base font-bold text-[#1A1008]">
+                    {walletLoading ? "..." : paise(walletBalancePaise)}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onReloadWallet}
+                disabled={walletLoading}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5C1B13] hover:underline cursor-pointer disabled:opacity-60"
+              >
+                <FiRefreshCw
+                  className={`h-3 w-3 ${walletLoading ? "animate-spin" : ""}`}
+                />
+                <span>Refresh</span>
+              </button>
+            </div>
+            {!sufficient && (
+              <p className="mt-2 text-[11px] text-[#715e50]">
+                You need <strong>{paise(shortfallPaise)}</strong> more. Add it
+                online below and the plan is auto-paid from your wallet.
+              </p>
+            )}
+          </div>
+
+          {/* Conditional action: Pay OR Add Money */}
+          {sufficient ? (
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              disabled={paymentSubmitting}
+              onClick={onPayFromWallet}
+              className="h-11 w-full rounded-xl bg-[#5C1B13] text-xs font-bold text-white hover:bg-[#48150f] cursor-pointer disabled:opacity-60"
             >
-              <FiCheckCircle className="h-4 w-4" />
-            </span>
-            <div>
-              <p className="text-xs font-bold">Pay from wallet</p>
-              <p className={`text-[10.5px] ${sufficient ? "text-white/80" : "text-[#715e50]"}`}>
-                {sufficient
-                  ? `Deducts ${paise(totalPaise)} and starts deliveries immediately.`
-                  : "Not enough balance — top up first below."}
-              </p>
-            </div>
-          </div>
-          <span className="font-mono text-sm font-bold">{paise(totalPaise)}</span>
-        </button>
+              <div className="flex items-center justify-center gap-2">
+                <FiCheckCircle className="h-4 w-4" />
+                <span>
+                  {paymentSubmitting
+                    ? "Confirming..."
+                    : `Pay ${paise(totalPaise)} from Wallet`}
+                </span>
+              </div>
+            </Button>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                disabled={paymentSubmitting}
+                onClick={onPayOnline}
+                className="h-11 w-full rounded-xl bg-[#5C1B13] text-xs font-bold text-white hover:bg-[#48150f] cursor-pointer disabled:opacity-60"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <FiPlusCircle className="h-4 w-4" />
+                  <span>
+                    {paymentSubmitting
+                      ? "Redirecting to PayU..."
+                      : `Add ${paise(topupPaise)} via PayU`}
+                  </span>
+                </div>
+              </Button>
 
-        {/* Option 2: Pay online (top up wallet via PayU) */}
-        <button
-          type="button"
-          disabled={paymentSubmitting}
-          onClick={onPayOnline}
-          className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#E8DFD4] bg-white p-3.5 text-left text-[#1A1008] hover:border-[#5C1B13]/40 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="rounded-xl bg-[#FAF3EA] p-2 text-[#5C1B13]">
-              <FiCreditCard className="h-4 w-4" />
-            </span>
-            <div>
-              <p className="text-xs font-bold">
-                {sufficient ? "Add more money (optional)" : "Pay online via PayU"}
-              </p>
-              <p className="text-[10.5px] text-[#715e50]">
-                {isFirstTopup
-                  ? "First top-up is reviewed by admin. You will see ‘Payment Successful · Wallet Credit Pending Admin Approval’; the plan activates automatically once approved."
-                  : "Verified top-ups credit your wallet instantly, then your plan is paid from it."}
-              </p>
-            </div>
-          </div>
-          <span className="font-mono text-sm font-bold">
-            {sufficient ? paise(10000) : paise(Math.max(shortfallPaise, 10000))}
-          </span>
-        </button>
+              <div className="rounded-xl border border-[#E8DFD4] bg-white p-3 text-[11px] leading-snug text-[#715e50]">
+                <p className="font-semibold text-[#1A1008]">What happens next</p>
+                <ol className="mt-1 list-decimal space-y-0.5 pl-4">
+                  <li>You pay {paise(topupPaise)} on PayU and return here.</li>
+                  <li>
+                    {isFirstTopup ? (
+                      <>
+                        First top-up: you&apos;ll see <em>&ldquo;Payment Successful · Wallet
+                        Credit Pending Admin Approval&rdquo;</em>. Once admin
+                        approves, your wallet is credited and the plan is paid
+                        automatically.
+                      </>
+                    ) : (
+                      <>
+                        Wallet credits instantly, then {paise(totalPaise)} is
+                        debited for your plan.
+                      </>
+                    )}
+                  </li>
+                </ol>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
-        {/* Option 3: Cash on delivery */}
-        <button
-          type="button"
-          disabled={paymentSubmitting}
-          onClick={onPayCash}
-          className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#E8DFD4] bg-white p-3.5 text-left text-[#1A1008] hover:border-[#5C1B13]/40 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <div className="flex items-center gap-2.5">
-            <span className="rounded-xl bg-[#FAF3EA] p-2 text-[#5C1B13]">
+      {/* CASH METHOD PANEL */}
+      {method === "CASH" && (
+        <div className="flex flex-col gap-2.5">
+          <div className="rounded-2xl border border-[#E8DFD4] bg-[#FAF8F5] p-3.5 text-[11.5px] text-[#3A241C]/85">
+            Our delivery partner collects <strong>{paise(totalPaise)}</strong> in
+            cash. Your deliveries start as soon as the admin confirms the
+            collection.
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            size="md"
+            disabled={paymentSubmitting}
+            onClick={onPayCash}
+            className="h-11 w-full rounded-xl bg-[#5C1B13] text-xs font-bold text-white hover:bg-[#48150f] cursor-pointer disabled:opacity-60"
+          >
+            <div className="flex items-center justify-center gap-2">
               <FiDollarSign className="h-4 w-4" />
-            </span>
-            <div>
-              <p className="text-xs font-bold">Pay cash on delivery</p>
-              <p className="text-[10.5px] text-[#715e50]">
-                Our partner collects {paise(totalPaise)} in cash. Deliveries start
-                once the admin confirms the collection.
-              </p>
+              <span>
+                {paymentSubmitting
+                  ? "Requesting..."
+                  : `Confirm Cash on Delivery (${paise(totalPaise)})`}
+              </span>
             </div>
-          </div>
-          <span className="font-mono text-sm font-bold">{paise(totalPaise)}</span>
-        </button>
-      </div>
-
-      {paymentSubmitting && (
-        <p className="text-center text-[11px] font-semibold text-[#715e50]">
-          Processing...
-        </p>
+          </Button>
+        </div>
       )}
     </m.section>
   );

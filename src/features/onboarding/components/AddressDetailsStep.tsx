@@ -11,7 +11,7 @@ import {
   FiArrowRight,
   FiLogIn,
 } from "react-icons/fi";
-import { locationApi } from "@/features/location/api/locationApi";
+import { locationApi, CustomerAddress } from "@/features/location/api/locationApi";
 import { User } from "@/types/models";
 
 export interface AddressDetailsStepProps {
@@ -24,7 +24,7 @@ export interface AddressDetailsStepProps {
   selectedPincode: string;
   coords: { lat?: number; lng?: number };
   onBack: () => void;
-  onAddressSaved: () => void;
+  onAddressSaved: (createdAddress?: CustomerAddress) => void;
 }
 
 export function AddressDetailsStep({
@@ -84,7 +84,7 @@ export function AddressDetailsStep({
     setIsSessionExpired(false);
 
     try {
-      await locationApi.createAddress({
+      const created = await locationApi.createAddress({
         fullName: fullName.trim(),
         mobile: mobile.trim(),
         houseNumber: houseNumber.trim(),
@@ -99,7 +99,7 @@ export function AddressDetailsStep({
         longitude: coords.lng,
       });
 
-      onAddressSaved();
+      onAddressSaved(created);
     } catch (err: any) {
       const status = err?.status || err?.statusCode;
       const rawMsg = err?.data?.message || err?.message || "";
@@ -123,77 +123,76 @@ export function AddressDetailsStep({
 
   return (
     <m.section
-      aria-labelledby="address-details-heading"
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      transition={{ duration: 0.18 }}
-      className="flex flex-col justify-between"
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
+      className="h-full flex flex-col justify-between"
     >
-      <div>
-        <header className="mb-2.5 sm:mb-3 flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1
-              id="address-details-heading"
-              className="font-heading text-[20px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[23px] lg:text-[25px]"
-            >
-              Delivery Address
-            </h1>
-            <p className="mt-0.5 text-[12px] text-[#715e50] sm:text-[13px]">
-              Add your exact house and street details for daily morning delivery.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex min-h-8 w-fit items-center gap-1.5 text-[12px] font-semibold text-[#7a2417] transition-colors hover:text-[#5f1b12] cursor-pointer"
-          >
-            <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            Back to Service Area
-          </button>
-        </header>
-
-        {/* Selected Hub Summary Pill */}
-        <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-[#cce3cf] bg-[#f0f8f0] px-3.5 py-2 text-xs text-[#326d3c]">
-          <div className="flex items-center gap-2">
-            <FiMapPin className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
-            <span>
-              Delivering to Hub: <strong>{selectedAreaName || "Star Colony"}</strong>, {selectedCityName || "Dombivali"}
-              {selectedPincode ? ` (${selectedPincode})` : ""}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-[11px] font-bold text-[#7a2417] underline underline-offset-2 hover:text-[#5f1b12] cursor-pointer shrink-0"
-          >
-            Change Hub
-          </button>
-        </div>
-
-        {saveError && (
-          <div className="mb-3 flex items-start justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-            <div className="flex items-start gap-2">
-              <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
-              <span>{saveError}</span>
-            </div>
-            {isSessionExpired && (
-              <button
-                type="button"
-                onClick={() => router.push("/auth?redirect=/onboarding?step=3")}
-                className="inline-flex shrink-0 items-center gap-1 font-bold text-[#7a2417] underline hover:text-[#5f1b12] cursor-pointer"
-              >
-                <FiLogIn className="h-3.5 w-3.5" />
-                <span>Log In</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        <form id="addressDetailsForm" onSubmit={handleSaveAddress}>
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <form onSubmit={handleSaveAddress} className="h-full flex flex-col justify-between">
+        <div>
+          <header className="mb-2.5 flex items-start justify-between gap-2 sm:mb-3">
             <div>
-              <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
+              <h1
+                id="addressHeading"
+                className="font-serif text-lg sm:text-xl font-bold text-[#24130f] lg:text-[22px]"
+              >
+                Delivery Address
+              </h1>
+              <p className="mt-0.5 text-[11px] text-[#715e50] sm:text-[12px]">
+                Add your exact house and street details for daily morning delivery.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex min-h-7 w-fit items-center gap-1.5 text-[11.5px] font-semibold text-[#7a2417] transition-colors hover:text-[#5f1b12] cursor-pointer"
+            >
+              <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+              Back to Service Area
+            </button>
+          </header>
+
+          {/* Selected Hub Summary Pill */}
+          <div className="mb-2.5 flex items-center justify-between gap-3 rounded-xl border border-[#cce3cf] bg-[#f0f8f0] px-3 py-1.5 text-xs text-[#326d3c]">
+            <div className="flex items-center gap-2">
+              <FiMapPin className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
+              <span>
+                Delivering to Hub: <strong>{selectedAreaName || "Star Colony"}</strong>, {selectedCityName || "Dombivali"}
+                {selectedPincode ? ` (${selectedPincode})` : ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-[11px] font-bold text-[#7a2417] underline underline-offset-2 hover:text-[#5f1b12] cursor-pointer shrink-0"
+            >
+              Change Hub
+            </button>
+          </div>
+
+          {saveError && (
+            <div className="mb-2.5 flex items-start justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
+              <div className="flex items-start gap-2">
+                <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
+                <span>{saveError}</span>
+              </div>
+              {isSessionExpired && (
+                <button
+                  type="button"
+                  onClick={() => router.push("/auth?redirect=/onboarding?step=3")}
+                  className="inline-flex shrink-0 items-center gap-1 font-bold text-[#7a2417] underline hover:text-[#5f1b12] cursor-pointer"
+                >
+                  <FiLogIn className="h-3.5 w-3.5" />
+                  <span>Log In</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
                 Flat / House / Unit Number <span className="text-[#7a2417]">*</span>
               </label>
               <input
@@ -201,13 +200,13 @@ export function AddressDetailsStep({
                 required
                 value={houseNumber}
                 onChange={(e) => setHouseNumber(e.target.value)}
-                placeholder="e.g. 202"
-                className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                placeholder="e.g. 203"
+                className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 autoFocus
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
+              <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
                 Building / Society / Apartment
               </label>
               <input
@@ -215,35 +214,35 @@ export function AddressDetailsStep({
                 value={buildingName}
                 onChange={(e) => setBuildingName(e.target.value)}
                 placeholder="e.g. Sunita apt"
-                className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
+              <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
                 Street / Road Name
               </label>
               <input
                 type="text"
                 value={streetName}
                 onChange={(e) => setStreetName(e.target.value)}
-                placeholder="e.g. gupta road"
-                className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                placeholder="e.g. sabe rd"
+                className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
+              <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
                 Landmark (Optional)
               </label>
               <input
                 type="text"
                 value={landmark}
                 onChange={(e) => setLandmark(e.target.value)}
-                placeholder="e.g. opp. sai baba mandir"
-                className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                placeholder="e.g. opp. school"
+                className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
+              <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
                 Receiver Name <span className="text-[#7a2417]">*</span>
               </label>
               <input
@@ -252,11 +251,11 @@ export function AddressDetailsStep({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Full name of receiver"
-                className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
+              <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
                 Mobile Number <span className="text-[#7a2417]">*</span>
               </label>
               <input
@@ -264,12 +263,12 @@ export function AddressDetailsStep({
                 required
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder="8652601566"
-                className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                placeholder="+918652601566"
+                className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
+              <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
                 Address Label
               </label>
               <select
@@ -277,7 +276,7 @@ export function AddressDetailsStep({
                 onChange={(e) =>
                   setAddressType(e.target.value as "Home" | "Work" | "Other")
                 }
-                className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                className="h-9 sm:h-9.5 lg:h-[38px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               >
                 <option value="Home">Home</option>
                 <option value="Work">Work</option>
@@ -285,24 +284,23 @@ export function AddressDetailsStep({
               </select>
             </div>
           </div>
-        </form>
-      </div>
+        </div>
 
-      <div className="mt-3 flex justify-stretch border-t border-[#eee5db] pt-3 sm:justify-end">
-        <Button
-          type="submit"
-          form="addressDetailsForm"
-          variant="primary"
-          size="md"
-          disabled={savingAddress}
-          className="min-h-9.5 sm:min-h-10 lg:h-[42px] w-full rounded-xl bg-[#7a2417] py-2.5 text-[12.5px] sm:text-[13px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] sm:w-[min(100%,300px)] cursor-pointer"
-        >
-          <span>
-            {savingAddress ? "Saving Address..." : "Continue to Select Plan"}
-          </span>
-          <FiArrowRight className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+        <div className="mt-2 flex justify-stretch border-t border-[#eee5db] pt-2 sm:justify-end">
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            disabled={savingAddress}
+            className="min-h-9 sm:min-h-9.5 lg:h-[40px] w-full rounded-xl bg-[#7a2417] py-2 text-[12px] sm:text-[12.5px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] sm:w-[min(100%,300px)] cursor-pointer"
+          >
+            <span>
+              {savingAddress ? "Saving Address..." : "Continue to Select Plan"}
+            </span>
+            <FiArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </form>
     </m.section>
   );
 }
