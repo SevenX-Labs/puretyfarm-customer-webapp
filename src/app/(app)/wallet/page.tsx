@@ -30,7 +30,7 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiInfo,
-  FiCheck,
+  FiCheck, FiX,
   FiXCircle,
   FiHelpCircle,
 } from "react-icons/fi";
@@ -54,6 +54,7 @@ function WalletContent() {
   const [selectedPreset, setSelectedPreset] = useState<number | null>(1000);
   const [customAmount, setCustomAmount] = useState<string>("1000");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [showTopupModal, setShowTopupModal] = useState<boolean>(false);
 
   // ─── STATUS & ERROR BANNERS ───
   const [successBanner, setSuccessBanner] = useState<{
@@ -364,6 +365,7 @@ function WalletContent() {
       } else if (rechargeMethod === "CASH") {
         // Doorstep Cash Collection Flow
         const res = await paymentsApi.requestCashTopup(amountPaise);
+        setShowTopupModal(false);
         setSuccessBanner({
           title: "Cash Collection Requested",
           message:
@@ -697,7 +699,18 @@ function WalletContent() {
           </div>
 
           {/* Custom Amount Form (Short & Compact) */}
-          <form onSubmit={handleSubmitTopup} className="space-y-3 pt-0.5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const num = parseFloat(customAmount);
+              if (isNaN(num) || num < 1 || num > 10000) {
+                setErrorBanner({ message: "Please enter a valid amount between ₹1 and ₹10,000." });
+                return;
+              }
+              setShowTopupModal(true);
+            }}
+            className="space-y-3 pt-0.5"
+          >
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
               <div className="relative flex-1">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-[#6B584C]">
@@ -710,7 +723,7 @@ function WalletContent() {
                   step="1"
                   value={customAmount}
                   onChange={(e) => handleCustomAmountChange(e.target.value)}
-                  placeholder="Custom amount"
+                  placeholder="Custom amount (₹1 – ₹10,000)"
                   className="w-full pl-7 pr-4 py-2.5 sm:py-3 rounded-2xl border border-[#D5C7B8] focus:border-[#5C1B13] focus:ring-2 focus:ring-[#5C1B13]/15 bg-white text-xs sm:text-sm font-semibold text-[#1A1008] placeholder:text-[#8C7A6B]/60 focus:outline-none transition-all"
                 />
               </div>
@@ -720,24 +733,14 @@ function WalletContent() {
                 size="md"
                 type="submit"
                 disabled={
-                  isProcessing ||
                   !customAmount ||
                   parseFloat(customAmount) < 1 ||
                   parseFloat(customAmount) > 10000
                 }
                 className="rounded-2xl px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all shrink-0 whitespace-nowrap"
               >
-                {isProcessing ? (
-                  <>
-                    <FiRefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <FiCreditCard className="w-4 h-4" />
-                    <span>Pay Online ₹{customAmount || 0}</span>
-                  </>
-                )}
+                <FiPlusCircle className="w-4 h-4" />
+                <span>Add ₹{customAmount || 0} to Wallet</span>
               </Button>
             </div>
           </form>
@@ -1361,6 +1364,169 @@ function WalletContent() {
           )}
         </div>
 
+        {/* ─── 4. TOP-UP CHECKOUT MODAL ─── */}
+        {showTopupModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="w-full max-w-md bg-white rounded-3xl border border-[#E8DFD4] shadow-2xl p-5 sm:p-6 space-y-5 animate-in zoom-in-95 duration-200">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-[#E8DFD4]">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-9 h-9 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
+                    <LuWallet className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-[#1A1008]">
+                      Top-up Wallet
+                    </h3>
+                    <p className="text-[11px] text-[#8C7A6B]">
+                      Choose payment method to complete recharge
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowTopupModal(false)}
+                  className="w-8 h-8 rounded-full border border-[#E8DFD4] text-[#6B584C] hover:bg-[#FAF3EA] flex items-center justify-center cursor-pointer transition-colors"
+                >
+                  <FiX className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Top-up Amount Summary Card */}
+              <div className="bg-[#FAF8F5] rounded-2xl border border-[#E8DFD4] p-4 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#8C7A6B]">
+                    Recharge Amount
+                  </span>
+                  <p className="text-2xl font-black font-mono text-[#5C1B13]">
+                    ₹{parseFloat(customAmount || "0").toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-mono font-medium text-[#8C7A6B] block">
+                    {Math.round(parseFloat(customAmount || "0") * 100).toLocaleString("en-IN")} paise
+                  </span>
+                  <span className="text-[11px] text-emerald-700 font-bold flex items-center justify-end gap-1 mt-0.5">
+                    <FiCheckCircle className="w-3.5 h-3.5" />
+                    <span>100% Refundable</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Method Selector */}
+              <div className="space-y-2.5">
+                <label className="text-xs font-bold text-[#1A1008] block">
+                  Select Payment Method:
+                </label>
+
+                {/* Online Method */}
+                <button
+                  type="button"
+                  onClick={() => setRechargeMethod("ONLINE")}
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                    rechargeMethod === "ONLINE"
+                      ? "border-[#5C1B13] bg-[#FAF3EA] ring-2 ring-[#5C1B13]/10"
+                      : "border-[#E8DFD4] bg-white hover:bg-[#FAF8F5]"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                      rechargeMethod === "ONLINE"
+                        ? "border-[#5C1B13] bg-[#5C1B13] text-white"
+                        : "border-[#D5C7B8] bg-white"
+                    }`}
+                  >
+                    {rechargeMethod === "ONLINE" && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-[#1A1008] flex items-center gap-1.5">
+                        <FiCreditCard className="w-4 h-4 text-[#5C1B13]" />
+                        <span>Online Payment</span>
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Instant Credit
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#6B584C] mt-0.5">
+                      UPI (Google Pay, PhonePe, Paytm), Cards & NetBanking via gateway.
+                    </p>
+                  </div>
+                </button>
+
+                {/* Cash Method */}
+                <button
+                  type="button"
+                  onClick={() => setRechargeMethod("CASH")}
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
+                    rechargeMethod === "CASH"
+                      ? "border-[#5C1B13] bg-[#FAF3EA] ring-2 ring-[#5C1B13]/10"
+                      : "border-[#E8DFD4] bg-white hover:bg-[#FAF8F5]"
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
+                      rechargeMethod === "CASH"
+                        ? "border-[#5C1B13] bg-[#5C1B13] text-white"
+                        : "border-[#D5C7B8] bg-white"
+                    }`}
+                  >
+                    {rechargeMethod === "CASH" && <div className="w-2 h-2 rounded-full bg-white" />}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-[#1A1008] flex items-center gap-1.5">
+                        <FiDollarSign className="w-4 h-4 text-emerald-700" />
+                        <span>Doorstep Cash Collection</span>
+                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FAF3EA] text-[#6B584C] border border-[#E8DFD4]">
+                        Depot Approval
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#6B584C] mt-0.5">
+                      Hand cash to our delivery partner during sunrise delivery.
+                    </p>
+                  </div>
+                </button>
+              </div>
+
+              {/* Modal Action CTA */}
+              <div className="pt-2">
+                <Button
+                  variant="primary"
+                  size="md"
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={handleSubmitTopup}
+                  className="w-full py-3.5 rounded-2xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all disabled:opacity-60"
+                >
+                  {isProcessing ? (
+                    <>
+                      <FiRefreshCw className="w-4 h-4 animate-spin" />
+                      <span>{rechargeMethod === "ONLINE" ? "Redirecting to Payment Gateway..." : "Requesting Cash Pickup..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      {rechargeMethod === "ONLINE" ? (
+                        <>
+                          <FiCreditCard className="w-4 h-4" />
+                          <span>Pay Online ₹{customAmount || 0}</span>
+                        </>
+                      ) : (
+                        <>
+                          <FiDollarSign className="w-4 h-4" />
+                          <span>Confirm Cash Collection (₹{customAmount || 0})</span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </>
