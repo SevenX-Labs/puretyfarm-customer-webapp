@@ -33,7 +33,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [detectedLocation, setDetectedLocation] = useState<DetectLocationResponse | null>(null);
 
-  // Hierarchy Catalog State
+  // Dynamic Server-Side Hierarchy Catalog State
   const [states, setStates] = useState<StateItem[]>([]);
   const [cities, setCities] = useState<CityItem[]>([]);
   const [areas, setAreas] = useState<AreaItem[]>([]);
@@ -52,7 +52,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
   const [buildingName, setBuildingName] = useState("");
   const [streetName, setStreetName] = useState("");
   const [landmark, setLandmark] = useState("");
-  const [fullName, setFullName] = useState(user?.name || "");
+  const defaultReceiverName =
+    user?.name && !user.name.startsWith("Customer (") && user.name.toLowerCase() !== "customer"
+      ? user.name
+      : "";
+  const [fullName, setFullName] = useState(defaultReceiverName);
   const [mobile, setMobile] = useState(user?.phone || "");
   const [addressType, setAddressType] = useState<"Home" | "Work" | "Other">("Home");
 
@@ -67,18 +71,15 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
   // their automatic resets so the GPS handler can set everything atomically.
   const gpsPopulatingRef = useRef(false);
 
-  // 1. Initial load of States Catalog
+  // 1. Initial load of States from Server
   useEffect(() => {
     async function loadStates() {
       setLoadingStates(true);
       try {
         const stateList = await locationApi.getStates();
-        setStates(stateList);
-        if (stateList.length === 1) {
-          setSelectedStateId(stateList[0].id);
-        }
-      } catch (err) {
-        console.warn("Failed to load states:", err);
+        setStates(Array.isArray(stateList) ? stateList : []);
+      } catch (err: any) {
+        console.warn("Failed to load states from server:", err);
       } finally {
         setLoadingStates(false);
       }
@@ -88,12 +89,14 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
 
   // 2. Load Cities when State changes
   useEffect(() => {
-    // Skip if GPS handler is populating — it manages cities/areas itself
     if (gpsPopulatingRef.current) return;
 
     if (!selectedStateId) {
       setCities([]);
       setSelectedCityId("");
+      setAreas([]);
+      setSelectedAreaId("");
+      setSelectedAreaPincode("");
       return;
     }
 
@@ -101,14 +104,13 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
       setLoadingCities(true);
       try {
         const cityList = await locationApi.getCities(selectedStateId);
-        setCities(cityList);
-        if (cityList.length === 1) {
-          setSelectedCityId(cityList[0].id);
-        } else {
-          setSelectedCityId("");
-        }
-      } catch (err) {
-        console.warn("Failed to load cities:", err);
+        setCities(Array.isArray(cityList) ? cityList : []);
+        setSelectedCityId("");
+        setAreas([]);
+        setSelectedAreaId("");
+        setSelectedAreaPincode("");
+      } catch (err: any) {
+        console.warn("Failed to load cities for state:", err);
       } finally {
         setLoadingCities(false);
       }
@@ -118,7 +120,6 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
 
   // 3. Load Areas when City changes
   useEffect(() => {
-    // Skip if GPS handler is populating — it manages cities/areas itself
     if (gpsPopulatingRef.current) return;
 
     if (!selectedCityId) {
@@ -132,11 +133,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
       setLoadingAreas(true);
       try {
         const areaList = await locationApi.getAreas(selectedCityId);
-        setAreas(areaList);
+        setAreas(Array.isArray(areaList) ? areaList : []);
         setSelectedAreaId("");
         setSelectedAreaPincode("");
-      } catch (err) {
-        console.warn("Failed to load areas:", err);
+      } catch (err: any) {
+        console.warn("Failed to load areas for city:", err);
       } finally {
         setLoadingAreas(false);
       }
@@ -156,7 +157,8 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
   // ─── GPS Auto-Detection Handler ───
   const handleDetectGps = () => {
     if (typeof window === "undefined" || !navigator.geolocation) {
-      setGpsError("Geolocation is not supported by your browser.");
+      setGpsError("Geolocation is not supported by your device browser.");
+      setDetectedLocation(null);
       return;
     }
 
@@ -171,13 +173,18 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
 
         try {
           const res = await locationApi.detectLocation({ latitude: lat, longitude: lng });
+          
+          if (!res || !res.state) {
+            throw new Error("Location coordinates could not be resolved.");
+          }
+
           setDetectedLocation(res);
 
           // Prevent cascading useEffects from resetting our selections
           gpsPopulatingRef.current = true;
 
           try {
-            // Try to match detected state, city, and area with active catalog
+            // Match with active server catalog
             const allStates = states.length > 0 ? states : await locationApi.getStates();
             if (!states.length && allStates.length) setStates(allStates);
 
@@ -211,54 +218,48 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   setSelectedAreaId(matchedArea.id);
                   setSelectedAreaPincode(matchedArea.pincode || res.pincode);
                 } else {
-                  // No area match — clear area so user picks manually
                   setSelectedAreaId("");
                   setSelectedAreaPincode("");
                   setGpsError(
-                    `Your detected area "${res.area}" is not yet in our delivery catalog. Please select your Delivery Hub manually below.`
+                    `Detected area "${res.area}" is not in our serviceable list. Please select your Delivery Hub manually below.`
                   );
                 }
               } else {
-                // No city match — clear city & area so user picks manually
                 setSelectedCityId("");
                 setSelectedAreaId("");
                 setSelectedAreaPincode("");
                 setGpsError(
-                  `Your detected city "${res.city}" is not yet in our delivery catalog. Please select your City and Delivery Hub manually below.`
+                  `Detected city "${res.city}" is not yet serviceable. Please choose from available cities below.`
                 );
               }
             } else {
-              // No state match — clear everything so user picks manually
               setSelectedStateId("");
               setSelectedCityId("");
               setSelectedAreaId("");
               setSelectedAreaPincode("");
               setGpsError(
-                `Your detected state "${res.state}" is not yet in our delivery catalog. Please select your State, City, and Delivery Hub manually below.`
+                `Detected state "${res.state}" is not yet serviceable. Please select from available states below.`
               );
             }
           } finally {
-            // Release the guard so manual dropdown changes work normally again.
-            // Use setTimeout to let React flush the state updates before
-            // re-enabling the useEffects.
             setTimeout(() => {
               gpsPopulatingRef.current = false;
             }, 0);
           }
-        } catch (err: any) {
-          const errorMsg =
-            err?.data?.message || err?.message || "Location detection failed. Please select your area manually.";
-          setGpsError(Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg));
+        } catch {
+          setDetectedLocation(null);
+          setGpsError("Could not auto-detect location. Please select your State, City, and Delivery Hub from the dropdowns below.");
         } finally {
           setGpsDetecting(false);
         }
       },
       (err) => {
         setGpsDetecting(false);
+        setDetectedLocation(null);
         if (err.code === err.PERMISSION_DENIED) {
-          setGpsError("Location access was denied. Please select your state and city below.");
+          setGpsError("Location permission was denied. Please select your State and City manually below.");
         } else {
-          setGpsError("Could not retrieve GPS coordinates. Please select manually below.");
+          setGpsError("Could not retrieve GPS coordinates. Please select your State, City, and Delivery Hub manually below.");
         }
       },
       { timeout: 10000, enableHighAccuracy: true }
@@ -268,6 +269,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
   const isAreaServiceable = Boolean(selectedStateId && selectedCityId && selectedAreaId);
 
   // Selected State/City/Area names for badges
+  const selectedStateName = states.find((s) => s.id === selectedStateId)?.name || detectedLocation?.state || "";
   const selectedCityName = cities.find((c) => c.id === selectedCityId)?.name || detectedLocation?.city || "";
   const selectedAreaObj = areas.find((a) => a.id === selectedAreaId);
   const selectedAreaName = selectedAreaObj?.name || detectedLocation?.area || "";
@@ -278,7 +280,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
     e.preventDefault();
 
     if (!selectedStateId || !selectedCityId || !selectedAreaId) {
-      setSaveError("Please select a serviceable State, City, and Delivery Area first.");
+      setSaveError("Please select a State, City, and Delivery Hub first.");
       return;
     }
 
@@ -318,39 +320,39 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
 
   return (
     <m.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
+      transition={{ duration: 0.25 }}
       className="space-y-3.5 sm:space-y-4"
     >
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-heading text-[22px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[26px]">
+          <h1 className="font-heading text-[20px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[23px] lg:text-[25px]">
             Delivery Location
           </h1>
-          <p className="mt-1 text-[13px] text-[#715e50] sm:text-[14px]">
+          <p className="mt-0.5 text-[12px] text-[#715e50] sm:text-[13px]">
             Choose where you&apos;d like your fresh milk delivered.
           </p>
         </div>
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex min-h-10 w-fit items-center gap-1.5 text-[13px] font-semibold text-[#7a2417] transition-colors hover:text-[#5f1b12]"
+          className="inline-flex min-h-8 w-fit items-center gap-1.5 text-[12px] font-semibold text-[#7a2417] transition-colors hover:text-[#5f1b12] cursor-pointer"
         >
-          <FiArrowLeft className="h-4 w-4" aria-hidden="true" />
+          <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           Back to Profile
         </button>
       </header>
 
-      <section className="space-y-3.5 rounded-xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4.5">
-        <div className="flex flex-col items-center gap-3 sm:flex-row">
+      <section className="space-y-3 rounded-xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4.5">
+        <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center">
           <Button
             type="button"
             variant="primary"
             size="sm"
             onClick={handleDetectGps}
             disabled={gpsDetecting}
-            className="min-h-10 sm:min-h-11 w-full rounded-xl bg-[#7a2417] px-4 text-xs font-bold text-white shadow-xs hover:bg-[#5f1b12] sm:w-auto"
+            className="min-h-9 sm:min-h-10 w-full rounded-xl bg-[#7a2417] px-4 text-xs font-bold text-white shadow-xs hover:bg-[#5f1b12] sm:w-auto cursor-pointer"
           >
             <span className="inline-flex items-center justify-center gap-2">
               {gpsDetecting ? (
@@ -361,37 +363,37 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
               {gpsDetecting ? "Detecting Location..." : "Use Current Location"}
             </span>
           </Button>
-          <span className="text-[11px] font-medium text-[#8b7b70]">or select manually</span>
+          <span className="text-[11px] font-medium text-[#8b7b70]">or select manually below</span>
         </div>
 
         {gpsError && (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[11.5px] text-amber-800"
           >
-            <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+            <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
             <span>{gpsError}</span>
           </div>
         )}
 
         {detectedLocation && (
-          <div className="rounded-xl bg-[#faf6f0] px-3.5 py-3 text-xs">
+          <div className="rounded-xl bg-[#faf6f0] px-3.5 py-2.5 text-xs border border-[#e8dfd4]">
             <div className="flex items-center justify-between gap-3 font-semibold text-[#24130f]">
               <span>Detected location</span>
               <span className="font-mono text-[11px] text-[#7a2417]">
                 {detectedLocation.pincode}
               </span>
             </div>
-            <p className="mt-1 text-[11px] leading-relaxed text-[#715e50]">
+            <p className="mt-0.5 text-[11px] leading-relaxed text-[#715e50]">
               {detectedLocation.formattedAddress}
             </p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3">
           {/* State Selector */}
           <div>
-            <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+            <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
               State <span className="text-[#7a2417]">*</span>
             </label>
             <select
@@ -402,7 +404,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                 setSaveError(null);
               }}
               disabled={loadingStates}
-              className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+              className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
             >
               <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
               {states.map((s) => (
@@ -415,7 +417,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
 
           {/* City Selector */}
           <div>
-            <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+            <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
               City <span className="text-[#7a2417]">*</span>
             </label>
             <select
@@ -426,7 +428,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                 setSaveError(null);
               }}
               disabled={!selectedStateId || loadingCities}
-              className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
+              className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
             >
               <option value="">
                 {loadingCities
@@ -445,7 +447,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
 
           {/* Area / Hub Selector */}
           <div>
-            <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+            <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
               Delivery Area / Hub <span className="text-[#7a2417]">*</span>
             </label>
             <select
@@ -456,18 +458,18 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                 setSaveError(null);
               }}
               disabled={!selectedCityId || loadingAreas}
-              className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
+              className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
             >
               <option value="">
                 {loadingAreas
                   ? "Loading areas..."
                   : !selectedCityId
                   ? "Choose city first"
-                  : "Select Area / Hub"}
+                  : "Select Delivery Area / Hub"}
               </option>
               {areas.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.name} ({a.pincode})
+                  {a.name} {a.pincode ? `(${a.pincode})` : ""}
                 </option>
               ))}
             </select>
@@ -477,7 +479,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
         <div
           role="status"
           aria-live="polite"
-          className={`flex items-center gap-2 rounded-xl border px-3.5 py-3 text-[12px] ${
+          className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-[11.5px] sm:text-[12px] ${
             isAreaServiceable
               ? "border-[#cce3cf] bg-[#f0f8f0] text-[#326d3c]"
               : "border-[#e8dfd4] bg-[#faf6f0] text-[#715e50]"
@@ -485,7 +487,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
         >
           {isAreaServiceable ? (
             <>
-              <FiCheckCircle className="h-4 w-4 shrink-0 text-[#39834a]" />
+              <FiCheckCircle className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
               <span>
                 Delivery available in {selectedAreaName}, {selectedCityName}
                 {activePincode ? ` (${activePincode})` : ""}.
@@ -493,14 +495,18 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
             </>
           ) : (
             <>
-              <FiMapPin className="h-4 w-4 shrink-0 text-[#7a2417]" />
-              <span>Select a delivery area to check availability.</span>
+              <FiMapPin className="h-3.5 w-3.5 shrink-0 text-[#7a2417]" />
+              <span>
+                {selectedStateId && selectedCityId
+                  ? "Please select your Delivery Area / Hub to confirm service availability."
+                  : "Select your State, City, and Delivery Area to check availability."}
+              </span>
             </>
           )}
         </div>
       </section>
 
-      {/* Address details are collected after selecting an active delivery area. */}
+      {/* Address details are collected after selecting an active delivery area */}
       <AnimatePresence>
         {isAreaServiceable ? (
           <m.form
@@ -510,25 +516,25 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
             onSubmit={handleSaveAddress}
             className="space-y-3 rounded-xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4.5"
           >
-            <div className="border-b border-[#e8dfd4]/60 pb-2">
-              <h2 className="text-sm font-bold text-[#24130f]">
+            <div className="border-b border-[#e8dfd4]/60 pb-1.5">
+              <h2 className="text-[13px] sm:text-sm font-bold text-[#24130f]">
                 Delivery Address Details
               </h2>
-              <p className="mt-0.5 text-xs text-[#715e50]">
-                Add your house and street details for accurate delivery.
+              <p className="text-[11px] sm:text-xs text-[#715e50]">
+                Add your house and street details for morning dispatch.
               </p>
             </div>
 
             {saveError && (
-              <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-                <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
+              <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
+                <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
                 <span>{saveError}</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
                   Flat / House / Unit Number *
                 </label>
                 <input
@@ -537,11 +543,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={houseNumber}
                   onChange={(e) => setHouseNumber(e.target.value)}
                   placeholder="e.g. Flat 402, Building A"
-                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
                   Building / Society / Apartment
                 </label>
                 <input
@@ -549,11 +555,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={buildingName}
                   onChange={(e) => setBuildingName(e.target.value)}
                   placeholder="e.g. Green Acres Residency"
-                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
                   Street / Road Name
                 </label>
                 <input
@@ -561,11 +567,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={streetName}
                   onChange={(e) => setStreetName(e.target.value)}
                   placeholder="e.g. Main Market Lane"
-                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
                   Landmark (Optional)
                 </label>
                 <input
@@ -573,11 +579,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
                   placeholder="e.g. Near the market"
-                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
                   Receiver Name *
                 </label>
                 <input
@@ -586,11 +592,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Full name of receiver"
-                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
                   Mobile Number *
                 </label>
                 <input
@@ -599,11 +605,11 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder="+919876543210"
-                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]">
                   Address Label
                 </label>
                 <select
@@ -611,7 +617,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   onChange={(e) =>
                     setAddressType(e.target.value as "Home" | "Work" | "Other")
                   }
-                  className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 >
                   <option value="Home">Home</option>
                   <option value="Work">Work</option>
@@ -620,14 +626,14 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
               </div>
             </div>
 
-            <div className="border-t border-[#eee5db] pt-4">
+            <div className="border-t border-[#eee5db] pt-3">
               <Button
                 type="submit"
                 variant="primary"
                 size="md"
                 fullWidth
                 disabled={savingAddress}
-                className="min-h-11 sm:min-h-12 w-full rounded-xl bg-[#7a2417] py-2.5 sm:py-3 text-[13px] sm:text-[14px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] sm:ml-auto sm:w-[min(100%,320px)]"
+                className="min-h-10 sm:min-h-11 w-full rounded-xl bg-[#7a2417] py-2.5 text-[13px] sm:text-[14px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] sm:ml-auto sm:w-[min(100%,300px)] cursor-pointer"
               >
                 <span>
                   {savingAddress ? "Saving Address..." : "Continue to Select Plan"}
@@ -637,8 +643,8 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
             </div>
           </m.form>
         ) : (
-          <div className="rounded-xl border border-dashed border-[#ddd2c7] px-4 py-3 text-center text-[12px] text-[#715e50]">
-            Select a delivery area to confirm availability and enter your address.
+          <div className="rounded-xl border border-dashed border-[#ddd2c7] px-4 py-2.5 text-center text-[11.5px] sm:text-[12px] text-[#715e50]">
+            Select your State, City, and Delivery Hub from the dropdowns above to confirm service availability and enter your address.
           </div>
         )}
       </AnimatePresence>

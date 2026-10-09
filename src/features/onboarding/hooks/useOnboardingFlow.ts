@@ -49,8 +49,10 @@ export function useOnboardingFlow() {
       return;
     }
 
-    // Prefill profile fields
-    setProfileName(user.name || "");
+    // Prefill profile fields (do not autofill placeholder names like "Customer (1566)")
+    const rawName = user.name || "";
+    const isPlaceholder = !rawName || rawName.startsWith("Customer (") || rawName.toLowerCase() === "customer";
+    setProfileName(isPlaceholder ? "" : rawName);
     setProfileEmail(user.email || "");
     setProfileAvatar(user.avatarUrl || "");
     setProfileGender(user.gender || "");
@@ -122,8 +124,13 @@ export function useOnboardingFlow() {
   // ─── STEP 1 HANDLER: Save Profile ───
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profileName.trim()) {
-      setProfileError("Please enter your full name.");
+    const cleanName = profileName.trim();
+    if (!cleanName || cleanName.startsWith("Customer (") || cleanName.toLowerCase() === "customer") {
+      setProfileError("Please enter your actual full name to continue.");
+      return;
+    }
+    if (cleanName.length < 2) {
+      setProfileError("Full name must be at least 2 characters long.");
       return;
     }
 

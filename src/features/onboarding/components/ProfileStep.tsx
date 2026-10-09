@@ -130,7 +130,7 @@ export function ProfileStep({
                     onNameChange(event.target.value);
                     onProfileError(null);
                   }}
-                  placeholder="Your full name"
+                  placeholder="Enter your full name" minLength={2}
                   className={`${fieldClassName} pl-9`}
                   autoFocus={autoFocus}
                 />
