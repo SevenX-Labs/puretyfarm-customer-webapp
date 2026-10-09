@@ -13,6 +13,7 @@ export function useAuthFlow() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/dashboard";
   const { isLoggedIn, user, status, refreshUser } = useAuth();
+  const authStatus = status;
 
   const [step, setStep] = useState<AuthStep>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -80,6 +81,10 @@ export function useAuthFlow() {
   // Step 1: Send OTP
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (isLoggedIn) {
+      router.replace("/account");
+      return;
+    }
     if (phoneNumber.length !== 10) {
       setErrorMessage("Please enter a valid 10-digit Indian mobile number.");
       return;
@@ -120,6 +125,10 @@ export function useAuthFlow() {
 
   // Step 2: Auto-verify function
   const triggerVerifyOtp = async (codeToVerify?: string) => {
+    if (isLoggedIn) {
+      router.replace("/account");
+      return;
+    }
     if (isSubmittingRef.current) return;
     const code = (codeToVerify || otpValues.join("")).trim();
     if (code.length !== 6) {
@@ -249,6 +258,10 @@ export function useAuthFlow() {
   // Step 3: Complete Onboarding Profile
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoggedIn && user?.onboardingStep !== "profile_pending") {
+      router.replace("/account");
+      return;
+    }
     if (!name.trim()) {
       setErrorMessage("Please enter your full name.");
       return;
@@ -305,5 +318,6 @@ export function useAuthFlow() {
     handleOtpPaste,
     handleVerifyOtp,
     handleSaveProfile,
+    authStatus,
   };
 }

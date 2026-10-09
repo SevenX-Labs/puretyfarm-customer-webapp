@@ -53,7 +53,16 @@ export function AuthView() {
     handleOtpPaste,
     handleVerifyOtp,
     handleSaveProfile,
+    authStatus,
   } = useAuthFlow();
+
+  if (authStatus === "loading" || authStatus === "authenticated") {
+    return (
+      <main className="min-h-svh flex items-center justify-center bg-[#f3dfc0]">
+        <div className="w-8 h-8 rounded-full border-2 border-[#5C1B13] border-t-transparent animate-spin" />
+      </main>
+    );
+  }
 
   const heading =
     step === "otp"

@@ -236,7 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         setStatus("unauthenticated");
         setAuthError(null);
-        router.push("/");
+        router.push("/login");
         router.refresh();
       }
     }

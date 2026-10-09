@@ -14,8 +14,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (status === "unauthenticated") {
       const path =
         typeof window !== "undefined" ? window.location.pathname : "/dashboard";
-      if (!path.startsWith("/auth")) {
-        router.replace(`/auth?redirect=${encodeURIComponent(path)}`);
+      if (!path.startsWith("/login") && !path.startsWith("/auth")) {
+        router.replace(`/login?redirect=${encodeURIComponent(path)}`);
       }
     }
   }, [status, router]);

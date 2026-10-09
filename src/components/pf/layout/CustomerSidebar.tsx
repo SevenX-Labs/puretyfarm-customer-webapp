@@ -39,7 +39,7 @@ export function CustomerSidebar() {
     setIsLoggingOut(true);
     try {
       await logout();
-      router.replace("/");
+      router.replace("/login");
     } finally {
       setIsLoggingOut(false);
       setShowLogoutDialog(false);

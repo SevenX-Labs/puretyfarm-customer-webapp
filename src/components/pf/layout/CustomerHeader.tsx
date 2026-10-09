@@ -48,7 +48,7 @@ export function CustomerHeader({
     setIsLoggingOut(true);
     try {
       await logout();
-      router.replace("/");
+      router.replace("/login");
     } finally {
       setIsLoggingOut(false);
       setShowLogoutDialog(false);
@@ -129,10 +129,11 @@ export function CustomerHeader({
                 <MenuItem href="/faq" icon={<CircleHelp size={15} strokeWidth={1.75} />}>
                   Help
                 </MenuItem>
-                <button
-                  type="button"
+                <a
+                  href="/login"
                   role="menuitem"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     setOpen(false);
                     setShowLogoutDialog(true);
                   }}
@@ -140,7 +141,7 @@ export function CustomerHeader({
                 >
                   <LogOut size={15} strokeWidth={1.75} />
                   Sign out
-                </button>
+                </a>
               </div>
             )}
           </div>
