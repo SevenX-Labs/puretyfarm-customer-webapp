@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { AnimatePresence, m } from "framer-motion";
 import { FiCheck } from "react-icons/fi";
 import { useOnboardingFlow } from "../hooks/useOnboardingFlow";
@@ -11,6 +10,7 @@ import { AddressDetailsStep } from "./AddressDetailsStep";
 import { PlanStep } from "./PlanStep";
 import { PaymentStep } from "./PaymentStep";
 import { StepKey } from "../types";
+import { OnboardingSidebar } from "./OnboardingSidebar";
 
 export function OnboardingView() {
   const {
@@ -80,33 +80,6 @@ export function OnboardingView() {
     return Math.abs(currentStep - step) <= 1;
   };
 
-  const stepsList: { num: StepKey; title: string; desc: string }[] = [
-    {
-      num: 1,
-      title: "Profile Details",
-      desc: "Tell us about yourself",
-    },
-    {
-      num: 2,
-      title: "Service Area",
-      desc: "Choose delivery area",
-    },
-    {
-      num: 3,
-      title: "Delivery Address",
-      desc: "Enter house & street",
-    },
-    {
-      num: 4,
-      title: "Select Plan",
-      desc: "Start receiving milk",
-    },
-    {
-      num: 5,
-      title: "Payment",
-      desc: "Pay via wallet or cash",
-    },
-  ];
 
   if (authLoading || initialLoading) {
     return (
@@ -128,121 +101,12 @@ export function OnboardingView() {
           aria-label="Account setup and subscription workflow"
           className="relative flex flex-col md:flex-row w-full min-h-[560px] md:h-[600px] lg:h-[620px] md:max-h-[94vh] rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl overflow-hidden"
         >
-          {/* Left Sidebar - Exact Same Fixed Size Across All 5 Steps */}
-          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-4.5 md:w-[250px] lg:w-[280px] shrink-0 text-white h-auto md:h-full">
-            <div className="space-y-2 md:space-y-3.5">
-              <div className="flex items-center justify-between">
-                <div className="relative h-6 w-20 sm:h-6.5 sm:w-22">
-                  <Image
-                    src="/newimge/logo-removebg-preview.png"
-                    alt="Purety Farm Logo"
-                    fill
-                    sizes="(max-width: 640px) 80px, 88px"
-                    className="object-contain object-left brightness-0 invert"
-                    priority
-                  />
-                </div>
-                <span className="rounded-full bg-white/15 px-2 py-0.5 text-[9px] sm:text-[9.5px] font-bold tracking-wide uppercase text-white/90">
-                  Step {currentStep} of 5
-                </span>
-              </div>
-
-              <div className="space-y-0.5">
-                <h2 className="font-serif text-sm sm:text-base font-bold text-white md:text-[17px]">
-                  {currentStep === 1
-                    ? "Welcome to Purety"
-                    : currentStep === 2
-                    ? "Choose Service Area"
-                    : currentStep === 3
-                    ? "Delivery Address"
-                    : currentStep === 4
-                    ? "Select Your Plan"
-                    : "Payment & Activation"}
-                </h2>
-                <p className="hidden md:block text-[9.5px] lg:text-[10.5px] text-white/80 leading-snug">
-                  {currentStep === 1
-                    ? "Set up your profile to start receiving fresh farm-to-table A2 milk daily."
-                    : currentStep === 2
-                    ? "Select your state, city, and delivery hub."
-                    : currentStep === 3
-                    ? "Provide your exact flat, building, and receiver details."
-                    : currentStep === 4
-                    ? "Choose the milk plan that best fits your family's morning routine."
-                    : "Complete payment via wallet or cash to activate morning milk delivery."}
-                </p>
-              </div>
-
-              {/* Progress Steps List */}
-              <nav aria-label="Onboarding Steps" className="pt-0.5 md:pt-1">
-                <ol className="flex flex-row md:flex-col gap-1 md:gap-1.5">
-                  {stepsList.map((step) => {
-                    const isCurrent = currentStep === step.num;
-                    const isComplete = currentStep > step.num;
-                    const isClickable = step.num <= maxAllowedStep;
-
-                    return (
-                      <li
-                        className="relative min-w-0 flex-1 md:flex-none"
-                        key={step.num}
-                      >
-                        {step.num < 5 && (
-                          <>
-                            <span
-                              className="absolute left-3 top-5 hidden h-3.5 w-px bg-white/25 md:block lg:left-3 lg:h-4"
-                              aria-hidden="true"
-                            />
-                            <span
-                              className="absolute left-[24px] right-0 top-3 h-px bg-white/25 md:hidden"
-                              aria-hidden="true"
-                            />
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            isClickable && handleGoToStep(step.num)
-                          }
-                          disabled={!isClickable}
-                          aria-current={isCurrent ? "step" : undefined}
-                          className="relative z-10 flex w-full items-start gap-1.5 text-left disabled:cursor-not-allowed md:gap-2 cursor-pointer"
-                        >
-                          <span
-                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[9px] font-semibold transition-colors duration-200 sm:h-6.5 sm:w-6.5 sm:text-[9.5px] ${
-                              isCurrent
-                                ? "border-[#f8e94e] bg-[#f8e94e] text-[#6f2115]"
-                                : isComplete
-                                  ? "border-[#f8e94e] bg-transparent text-[#f8e94e]"
-                                  : "border-white/55 bg-transparent text-white"
-                            }`}
-                          >
-                            {isComplete ? (
-                              <FiCheck className="h-2.5 w-2.5" aria-hidden="true" />
-                            ) : (
-                              `0${step.num}`
-                            )}
-                          </span>
-                          <span className="hidden min-w-0 pt-0.5 md:block">
-                            <span className="block text-[10.5px] font-semibold text-white lg:text-[11px]">
-                              {step.title}
-                            </span>
-                            <span className="block text-[8.5px] leading-tight text-white/70 lg:text-[9px]">
-                              {step.desc}
-                            </span>
-                          </span>
-                          <span className="sr-only md:hidden">{step.title}</span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </nav>
-            </div>
-
-            <div className="hidden md:flex items-center gap-1.5 pt-2 border-t border-white/15 text-[9.5px] text-white/75">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#f8e94e] shrink-0" />
-              <span>Purety Farm Fresh Daily A2 Milk</span>
-            </div>
-          </aside>
+          {/* Left Sidebar - Shared across all 5 onboarding steps */}
+          <OnboardingSidebar
+            currentStep={currentStep}
+            maxAllowedStep={maxAllowedStep}
+            onGoToStep={handleGoToStep}
+          />
 
           {/* Right Content Panel - Smooth transition only within right side */}
           <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-y-auto md:overflow-hidden p-3.5 sm:p-4.5 lg:p-5 h-full">

@@ -19,7 +19,7 @@ import {
   SubscriptionDraft,
   SubscriptionCustomizationPayload,
 } from "@/features/subscription/types";
-import { calculateSubscriptionPricing, buildBreakdown } from "@/features/subscription/pricing";
+import { buildBreakdown } from "@/features/subscription/pricing";
 import { FiCheck, FiArrowLeft, FiMapPin, FiSliders, FiAlertCircle } from "react-icons/fi";
 
 export interface PlanStepProps {
@@ -100,6 +100,46 @@ export function PlanStep({
     single?: PlanQuote | null;
     monthly?: PlanQuote | null;
   }>({});
+
+  // Custom schedule pricing result if user customized.
+  // `customPricing` holds the server-authoritative pricing result from the
+  // SubscriptionPanel (which already incorporates the server quote values).
+  const [customPricing, setCustomPricing] = useState<PricingResult | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored =
+        localStorage.getItem("pf_subscription_draft_v2") ||
+        localStorage.getItem("pf_subscription_draft");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.lastQuotedPrice && parsed.lastDeliveries) {
+          const bd = buildBreakdown(
+            parsed.mode === "pattern" ? "pattern" : "fixed",
+            parsed.lastDeliveries,
+            parsed.fixedLitres || 1,
+            parsed.mode === "pattern" ? (parsed.day1Litres || 1) : (parsed.fixedLitres || 1),
+            parsed.mode === "pattern" ? (parsed.day2Litres || 2) : (parsed.fixedLitres || 1),
+          );
+          return {
+            frequency: parsed.frequency || "daily",
+            mode: parsed.mode || "fixed",
+            fixedLitres: parsed.fixedLitres || 1,
+            day1Litres: parsed.day1Litres || 1,
+            day2Litres: parsed.day2Litres || 2,
+            totalDeliveries: parsed.lastDeliveries,
+            totalLitres: parsed.lastQuotedLitres || bd.totalLitres,
+            pricePerLitre: 75,
+            totalPrice: parsed.lastQuotedPrice,
+            breakdownText: bd.breakdownText,
+            oddDeliveriesCount: bd.oddDeliveriesCount,
+            evenDeliveriesCount: bd.evenDeliveriesCount,
+            isValid: true,
+          };
+        }
+      }
+    } catch {}
+    return null;
+  });
 
   // Load backend plan availability, eligibility & live pricing quotes.
   // For the monthly card, use the saved draft parameters so the displayed
@@ -204,46 +244,6 @@ export function PlanStep({
       isMounted = false;
     };
   }, []);
-
-  // Custom schedule pricing result if user customized.
-  // `customPricing` holds the server-authoritative pricing result from the
-  // SubscriptionPanel (which already incorporates the server quote values).
-  const [customPricing, setCustomPricing] = useState<PricingResult | null>(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const stored =
-        localStorage.getItem("pf_subscription_draft_v2") ||
-        localStorage.getItem("pf_subscription_draft");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.lastQuotedPrice && parsed.lastDeliveries) {
-          const bd = buildBreakdown(
-            parsed.mode === "pattern" ? "pattern" : "fixed",
-            parsed.lastDeliveries,
-            parsed.fixedLitres || 1,
-            parsed.mode === "pattern" ? (parsed.day1Litres || 1) : (parsed.fixedLitres || 1),
-            parsed.mode === "pattern" ? (parsed.day2Litres || 2) : (parsed.fixedLitres || 1),
-          );
-          return {
-            frequency: parsed.frequency || "daily",
-            mode: parsed.mode || "fixed",
-            fixedLitres: parsed.fixedLitres || 1,
-            day1Litres: parsed.day1Litres || 1,
-            day2Litres: parsed.day2Litres || 2,
-            totalDeliveries: parsed.lastDeliveries,
-            totalLitres: parsed.lastQuotedLitres || bd.totalLitres,
-            pricePerLitre: 75,
-            totalPrice: parsed.lastQuotedPrice,
-            breakdownText: bd.breakdownText,
-            oddDeliveriesCount: bd.oddDeliveriesCount,
-            evenDeliveriesCount: bd.evenDeliveriesCount,
-            isValid: true,
-          };
-        }
-      }
-    } catch {}
-    return null;
-  });
 
   const handleConfirmSchedule = async (
     result: PricingResult,
@@ -580,8 +580,8 @@ export function PlanStep({
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
         onConfirmPlan={handleConfirmSchedule}
-        deliveryStartTime={plansOverview.find((p) => p.type === "MONTHLY")?.deliveryStartTime}
-        deliveryEndTime={plansOverview.find((p) => p.type === "MONTHLY")?.deliveryEndTime}
+        deliveryStartTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryStartTime}
+        deliveryEndTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryEndTime}
       />
     </m.div>
   );

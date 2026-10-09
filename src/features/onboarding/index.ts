@@ -6,3 +6,4 @@ export * from "./components/ServiceAreaStep";
 export * from "./components/AddressDetailsStep";
 export * from "./components/PlanStep";
 export * from "./components/OnboardingView";
+export * from "./components/OnboardingSidebar";
