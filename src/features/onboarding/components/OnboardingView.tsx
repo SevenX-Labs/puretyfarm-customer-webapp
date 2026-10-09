@@ -1,45 +1,15 @@
 "use client";
 
-import { m, AnimatePresence } from "framer-motion";
+import React from "react";
+import Image from "next/image";
+import { AnimatePresence, m } from "framer-motion";
 import { FiCheck } from "react-icons/fi";
-import { Navbar } from "@/components/ui/Navbar";
 import { useOnboardingFlow } from "../hooks/useOnboardingFlow";
 import { ProfileStep } from "./ProfileStep";
 import { ServiceAreaStep } from "./ServiceAreaStep";
 import { AddressDetailsStep } from "./AddressDetailsStep";
 import { PlanStep } from "./PlanStep";
 import { StepKey } from "../types";
-
-const STEPS = [
-  {
-    num: 1 as const,
-    title: "Profile Details",
-    desc: "Tell us about yourself",
-    sidebarHeading: "Complete\nYour Profile",
-    sidebarText: "Tell us who will receive the daily morning milk at your home.",
-  },
-  {
-    num: 2 as const,
-    title: "Service Area",
-    desc: "Choose delivery area",
-    sidebarHeading: "Choose\nService Area",
-    sidebarText: "Select your state, city, and delivery hub in Raipur.",
-  },
-  {
-    num: 3 as const,
-    title: "Delivery Address",
-    desc: "Enter house & street",
-    sidebarHeading: "Delivery\nAddress",
-    sidebarText: "Enter your house number, building, and street details.",
-  },
-  {
-    num: 4 as const,
-    title: "Select Plan",
-    desc: "Start receiving milk",
-    sidebarHeading: "Select\nYour Plan",
-    sidebarText: "Choose the fresh milk subscription or trial for your family.",
-  },
-];
 
 export function OnboardingView() {
   const {
@@ -49,7 +19,7 @@ export function OnboardingView() {
     currentStep,
     maxAllowedStep,
     handleGoToStep,
-    // Step 1
+    // Step 1: Profile
     profileName,
     setProfileName,
     profileEmail,
@@ -64,7 +34,7 @@ export function OnboardingView() {
     profileError,
     setProfileError,
     handleSaveProfile,
-    // Step 2
+    // Step 2: Service Area
     selectedStateId,
     setSelectedStateId,
     selectedCityId,
@@ -74,14 +44,16 @@ export function OnboardingView() {
     selectedAreaPincode,
     setSelectedAreaPincode,
     selectedAreaName,
+    setSelectedAreaName,
     selectedCityName,
+    setSelectedCityName,
     coords,
     setCoords,
     handleContinueToAddress,
-    // Step 3
+    // Step 3: Address
     savedAddress,
     handleSaveVerifiedAddress,
-    // Step 4
+    // Step 4: Plan
     selectedPlanId,
     setSelectedPlanId,
     planSubmitting,
@@ -89,57 +61,98 @@ export function OnboardingView() {
     handleCompletePlanSelection,
   } = useOnboardingFlow();
 
+  const isStepMounted = (step: StepKey) => {
+    return Math.abs(currentStep - step) <= 1;
+  };
+
+  const stepsList: { num: StepKey; title: string; desc: string }[] = [
+    {
+      num: 1,
+      title: "Profile Details",
+      desc: "Tell us about yourself",
+    },
+    {
+      num: 2,
+      title: "Service Area",
+      desc: "Choose delivery area",
+    },
+    {
+      num: 3,
+      title: "Delivery Address",
+      desc: "Enter house & street",
+    },
+    {
+      num: 4,
+      title: "Select Plan",
+      desc: "Start receiving milk",
+    },
+  ];
+
   if (authLoading || initialLoading) {
     return (
-      <div className="min-h-svh bg-[#f7e8cf]">
-        <Navbar />
-        <div className="flex min-h-svh items-center justify-center">
-          <div className="text-center">
-            <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-3 border-[#7a2417] border-t-transparent" />
-            <p className="text-xs font-medium text-[#715e50]">
-              Setting up your PuretyFarm journey...
-            </p>
-          </div>
+      <div className="flex h-screen w-screen items-center justify-center bg-[#faf7f2]">
+        <div className="flex flex-col items-center gap-2.5">
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#7a2417] border-t-transparent" />
+          <p className="text-xs font-semibold text-[#715e50]">
+            Preparing your onboarding...
+          </p>
         </div>
       </div>
     );
   }
 
-  const isStepMounted = (step: StepKey) =>
-    maxAllowedStep >= step || currentStep >= step;
-
-  const currentStepMeta = STEPS.find((s) => s.num === currentStep) || STEPS[0];
-
   return (
-    <div className="min-h-svh lg:h-svh lg:overflow-hidden bg-[#f7e8cf] selection:bg-[#7a2417]/15 selection:text-[#7a2417] flex flex-col justify-between">
-      <Navbar />
-
-      <main className="mx-auto flex flex-1 w-full max-w-[1320px] flex-col justify-center px-3 pt-[74px] pb-3 sm:px-6 sm:pt-[82px] sm:pb-5 lg:px-8 lg:pt-[86px] lg:pb-5">
+    <div className="relative h-screen w-screen overflow-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center">
+      <main className="mx-auto w-full max-w-5xl px-3 sm:px-4 py-2 sm:py-3 h-full max-h-[96vh] flex flex-col justify-center">
         <section
-          aria-label="PuretyFarm onboarding"
-          className="mx-auto grid w-full max-w-[1240px] md:max-h-[calc(100svh-5.8rem)] lg:max-h-[calc(100svh-6.2rem)] overflow-hidden rounded-2xl md:rounded-[24px] border border-[#e7d8c5] bg-[#fffdf8] shadow-[0_18px_48px_rgba(74,46,27,0.10)] md:grid-cols-[250px_minmax(0,1fr)] lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)]"
+          aria-label="Account setup and subscription workflow"
+          className="relative flex flex-col md:flex-row h-full max-h-[720px] w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-lg overflow-hidden"
         >
           {/* Left Sidebar */}
-          <aside className="relative flex flex-col justify-between overflow-hidden bg-[#6f2115] p-4 sm:p-5 lg:p-6 text-white shrink-0">
-            <div className="space-y-3 sm:space-y-3.5">
-              <div>
-                <span className="inline-block rounded-full border border-white/25 bg-[#fff8ee] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#6f2115]">
+          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-5 md:w-[260px] lg:w-[290px] shrink-0 text-white">
+            <div className="space-y-2.5 md:space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="relative h-6 w-20 sm:h-7 sm:w-24">
+                  <Image
+                    src="/logo/puretyfarm-logo.png"
+                    alt="Purety Farm Logo"
+                    fill
+                    className="object-contain object-left brightness-0 invert"
+                    priority
+                  />
+                </div>
+                <span className="rounded-full bg-white/15 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold tracking-wide uppercase text-white/90">
                   Step {currentStep} of 4
                 </span>
+              </div>
 
-                <h1 className="mt-2 font-heading text-[19px] font-bold leading-[1.12] tracking-[-0.025em] sm:text-[21px] md:mt-2.5 md:text-[23px] lg:text-[25px] whitespace-pre-line">
-                  {currentStepMeta.sidebarHeading}
-                </h1>
-                <p className="mt-0.5 max-w-[260px] text-[11px] leading-[1.45] text-white/85 sm:text-[12px]">
-                  {currentStepMeta.sidebarText}
+              <div className="space-y-0.5">
+                <h2 className="font-serif text-sm sm:text-base font-bold text-white md:text-lg">
+                  {currentStep === 1
+                    ? "Welcome to Purety"
+                    : currentStep === 2
+                    ? "Choose Service Area"
+                    : currentStep === 3
+                    ? "Delivery Address"
+                    : "Select Your Plan"}
+                </h2>
+                <p className="hidden md:block text-[10px] lg:text-[11px] text-white/80 leading-snug">
+                  {currentStep === 1
+                    ? "Set up your profile to start receiving fresh farm-to-table A2 milk daily."
+                    : currentStep === 2
+                    ? "Select your state, city, and delivery hub."
+                    : currentStep === 3
+                    ? "Provide your exact flat, building, and receiver details."
+                    : "Choose the milk plan that best fits your family's morning routine."}
                 </p>
               </div>
 
-              <nav aria-label="Onboarding steps" className="pt-0.5 md:pt-1">
-                <ol className="flex gap-1.5 md:flex-col md:gap-2 lg:gap-2.5">
-                  {STEPS.map((step) => {
-                    const isComplete = step.num < currentStep;
-                    const isCurrent = step.num === currentStep;
+              {/* Progress Steps List */}
+              <nav aria-label="Onboarding Steps" className="pt-1 md:pt-2">
+                <ol className="flex flex-row md:flex-col gap-1.5 md:gap-2">
+                  {stepsList.map((step) => {
+                    const isCurrent = currentStep === step.num;
+                    const isComplete = currentStep > step.num;
                     const isClickable = step.num <= maxAllowedStep;
 
                     return (
@@ -202,12 +215,12 @@ export function OnboardingView() {
 
             <div className="hidden md:flex items-center gap-2 pt-2.5 border-t border-white/15 text-[10px] text-white/75">
               <span className="h-1.5 w-1.5 rounded-full bg-[#f8e94e] shrink-0" />
-              <span>Raipur&apos;s Fresh Daily Morning A2 Milk</span>
+              <span>Purety Farm Fresh Daily A2 Milk</span>
             </div>
           </aside>
 
           {/* Right Content Panel */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden">
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden p-3.5 sm:p-5 lg:p-6">
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div
@@ -254,10 +267,14 @@ export function OnboardingView() {
                     selectedAreaId={selectedAreaId}
                     selectedAreaPincode={selectedAreaPincode}
                     onStateChange={setSelectedStateId}
-                    onCityChange={setSelectedCityId}
-                    onAreaChange={(areaId, pincode) => {
+                    onCityChange={(cityId, cityName) => {
+                      setSelectedCityId(cityId);
+                      if (cityName) setSelectedCityName(cityName);
+                    }}
+                    onAreaChange={(areaId, pincode, areaName) => {
                       setSelectedAreaId(areaId);
                       setSelectedAreaPincode(pincode);
+                      if (areaName) setSelectedAreaName(areaName);
                     }}
                     onCoordsChange={setCoords}
                     onBack={() => handleGoToStep(1)}
@@ -297,7 +314,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto overscroll-contain scrollbar-hide no-scrollbar p-3.5 sm:p-5 lg:p-6"
+                  className="h-full overflow-y-auto overscroll-contain scrollbar-hide no-scrollbar"
                 >
                   <PlanStep
                     savedAddress={savedAddress}

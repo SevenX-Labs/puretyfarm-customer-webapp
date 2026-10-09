@@ -68,14 +68,14 @@ export interface CustomerAddress {
 
 export const locationApi = {
   /**
-   * 2.1 Detect Location from GPS Coordinates (Server reverse-geocoding)
+   * 2.1 Detect Location from GPS Coordinates (Reverse-geocoding)
    */
   async detectLocation(payload: {
     latitude: number;
     longitude: number;
   }): Promise<DetectLocationResponse> {
     return apiClient.post<DetectLocationResponse>(
-      "/api/v1/customer/locations/detect",
+      "/api/locations/detect",
       payload
     );
   },
@@ -84,7 +84,7 @@ export const locationApi = {
    * 2.2 Get Active States from Server
    */
   async getStates(): Promise<StateItem[]> {
-    return apiClient.get<StateItem[]>("/api/v1/customer/locations/states");
+    return apiClient.get<StateItem[]>("/api/locations/states");
   },
 
   /**
@@ -92,7 +92,7 @@ export const locationApi = {
    */
   async getCities(stateId: string): Promise<CityItem[]> {
     return apiClient.get<CityItem[]>(
-      `/api/v1/customer/locations/states/${stateId}/cities`
+      `/api/locations/states/${stateId}/cities`
     );
   },
 
@@ -101,7 +101,7 @@ export const locationApi = {
    */
   async getAreas(cityId: string): Promise<AreaItem[]> {
     return apiClient.get<AreaItem[]>(
-      `/api/v1/customer/locations/cities/${cityId}/areas`
+      `/api/locations/cities/${cityId}/areas`
     );
   },
 

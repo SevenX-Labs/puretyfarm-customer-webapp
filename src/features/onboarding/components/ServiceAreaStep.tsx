@@ -26,8 +26,8 @@ export interface ServiceAreaStepProps {
   selectedAreaId: string;
   selectedAreaPincode: string;
   onStateChange: (stateId: string) => void;
-  onCityChange: (cityId: string) => void;
-  onAreaChange: (areaId: string, pincode: string) => void;
+  onCityChange: (cityId: string, cityName?: string) => void;
+  onAreaChange: (areaId: string, pincode: string, areaName?: string) => void;
   onCoordsChange: (coords: { lat?: number; lng?: number }) => void;
   onBack: () => void;
   onContinue: () => void;
@@ -64,18 +64,24 @@ export function ServiceAreaStep({
 
   // 1. Initial load of States from Server
   useEffect(() => {
+    let mounted = true;
     async function loadStates() {
       setLoadingStates(true);
       try {
         const stateList = await locationApi.getStates();
-        setStates(Array.isArray(stateList) ? stateList : []);
+        if (mounted) {
+          setStates(Array.isArray(stateList) ? stateList : []);
+        }
       } catch (err) {
         console.warn("Failed to load states from server:", err);
       } finally {
-        setLoadingStates(false);
+        if (mounted) setLoadingStates(false);
       }
     }
     loadStates();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // 2. Load Cities when State changes
@@ -87,18 +93,24 @@ export function ServiceAreaStep({
       return;
     }
 
+    let mounted = true;
     async function loadCities() {
       setLoadingCities(true);
       try {
         const cityList = await locationApi.getCities(selectedStateId);
-        setCities(Array.isArray(cityList) ? cityList : []);
+        if (mounted) {
+          setCities(Array.isArray(cityList) ? cityList : []);
+        }
       } catch (err) {
         console.warn("Failed to load cities for state:", err);
       } finally {
-        setLoadingCities(false);
+        if (mounted) setLoadingCities(false);
       }
     }
     loadCities();
+    return () => {
+      mounted = false;
+    };
   }, [selectedStateId]);
 
   // 3. Load Areas when City changes
@@ -110,24 +122,30 @@ export function ServiceAreaStep({
       return;
     }
 
+    let mounted = true;
     async function loadAreas() {
       setLoadingAreas(true);
       try {
         const areaList = await locationApi.getAreas(selectedCityId);
-        setAreas(Array.isArray(areaList) ? areaList : []);
+        if (mounted) {
+          setAreas(Array.isArray(areaList) ? areaList : []);
+        }
       } catch (err) {
         console.warn("Failed to load areas for city:", err);
       } finally {
-        setLoadingAreas(false);
+        if (mounted) setLoadingAreas(false);
       }
     }
     loadAreas();
+    return () => {
+      mounted = false;
+    };
   }, [selectedCityId]);
 
   // Handle Area Selection change
   const handleAreaSelect = (areaId: string) => {
     const chosen = areas.find((a) => a.id === areaId);
-    onAreaChange(areaId, chosen?.pincode || "");
+    onAreaChange(areaId, chosen?.pincode || "", chosen?.name || "");
   };
 
   // ─── GPS Auto-Detection Handler ───
@@ -162,7 +180,10 @@ export function ServiceAreaStep({
             if (!states.length && allStates.length) setStates(allStates);
 
             const matchedState = allStates.find(
-              (s) => s.name.toLowerCase() === res.state.toLowerCase()
+              (s) =>
+                s.name.toLowerCase() === res.state.toLowerCase() ||
+                res.state.toLowerCase().includes(s.name.toLowerCase()) ||
+                s.name.toLowerCase().includes(res.state.toLowerCase())
             );
 
             if (matchedState) {
@@ -171,16 +192,19 @@ export function ServiceAreaStep({
               setCities(cityList);
 
               const matchedCity = cityList.find(
-                (c) => c.name.toLowerCase() === res.city.toLowerCase()
+                (c) =>
+                  c.name.toLowerCase() === res.city.toLowerCase() ||
+                  res.city.toLowerCase().includes(c.name.toLowerCase()) ||
+                  c.name.toLowerCase().includes(res.city.toLowerCase())
               );
 
               if (matchedCity) {
-                onCityChange(matchedCity.id);
+                onCityChange(matchedCity.id, matchedCity.name);
                 const areaList = await locationApi.getAreas(matchedCity.id);
                 setAreas(areaList);
 
                 const matchedArea =
-                  areaList.find((a) => a.pincode === res.pincode) ||
+                  areaList.find((a) => a.pincode && res.pincode && a.pincode === res.pincode) ||
                   areaList.find(
                     (a) =>
                       a.name.toLowerCase().includes(res.area.toLowerCase()) ||
@@ -188,24 +212,24 @@ export function ServiceAreaStep({
                   );
 
                 if (matchedArea) {
-                  onAreaChange(matchedArea.id, matchedArea.pincode || res.pincode);
+                  onAreaChange(matchedArea.id, matchedArea.pincode || res.pincode, matchedArea.name);
                 } else {
-                  onAreaChange("", "");
+                  onAreaChange("", "", "");
                   setGpsError(
-                    `Detected area "${res.area}" is not in our serviceable list. Please select your Delivery Hub manually below.`
+                    `Detected location: ${res.city}, ${res.state}. Please select your specific Delivery Hub below.`
                   );
                 }
               } else {
-                onCityChange("");
-                onAreaChange("", "");
+                onCityChange("", "");
+                onAreaChange("", "", "");
                 setGpsError(
-                  `Detected city "${res.city}" is not yet serviceable. Please choose from available cities below.`
+                  `Detected city "${res.city}" is not yet serviceable. Please choose an available city below.`
                 );
               }
             } else {
               onStateChange("");
-              onCityChange("");
-              onAreaChange("", "");
+              onCityChange("", "");
+              onAreaChange("", "", "");
               setGpsError(
                 `Detected state "${res.state}" is not yet serviceable. Please select from available states below.`
               );
@@ -213,7 +237,7 @@ export function ServiceAreaStep({
           } finally {
             setTimeout(() => {
               gpsPopulatingRef.current = false;
-            }, 0);
+            }, 50);
           }
         } catch {
           setDetectedLocation(null);
@@ -235,38 +259,44 @@ export function ServiceAreaStep({
     );
   };
 
-  const isAreaServiceable = Boolean(selectedStateId && selectedCityId && selectedAreaId);
-  const selectedStateName = states.find((s) => s.id === selectedStateId)?.name || detectedLocation?.state || "";
-  const selectedCityName = cities.find((c) => c.id === selectedCityId)?.name || detectedLocation?.city || "";
+  const selectedStateObj = states.find((s) => s.id === selectedStateId);
+  const selectedCityObj = cities.find((c) => c.id === selectedCityId);
   const selectedAreaObj = areas.find((a) => a.id === selectedAreaId);
-  const selectedAreaName = selectedAreaObj?.name || detectedLocation?.area || "";
-  const activePincode = selectedAreaObj?.pincode || selectedAreaPincode || detectedLocation?.pincode || "";
+
+  const isAreaServiceable = Boolean(
+    selectedStateId &&
+    selectedCityId &&
+    selectedAreaId &&
+    selectedAreaObj
+  );
+
+  const selectedStateName = selectedStateObj?.name || "";
+  const selectedCityName = selectedCityObj?.name || "";
+  const selectedAreaName = selectedAreaObj?.name || "";
+  const activePincode = selectedAreaObj?.pincode || selectedAreaPincode || "";
 
   return (
     <m.section
-      aria-labelledby="service-area-heading"
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      className="bg-[#fffdf8] p-3.5 sm:p-5 lg:p-6 xl:p-7 flex flex-col justify-between h-full min-h-0"
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="flex flex-col justify-between"
     >
-      <div>
-        <header className="mb-2.5 sm:mb-3.5 flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="space-y-3.5 sm:space-y-4">
+        <header className="flex items-start justify-between gap-3">
           <div>
-            <h1
-              id="service-area-heading"
-              className="font-heading text-[20px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[23px] lg:text-[25px]"
-            >
+            <h1 className="font-serif text-lg font-bold text-[#24130f] sm:text-xl md:text-2xl">
               Choose Service Area
             </h1>
-            <p className="mt-0.5 text-[12px] text-[#715e50] sm:text-[13px]">
+            <p className="mt-0.5 text-xs text-[#715e50] sm:text-[13px]">
               Select where you want your fresh morning milk delivered.
             </p>
           </div>
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex min-h-8 w-fit items-center gap-1.5 text-[12px] font-semibold text-[#7a2417] transition-colors hover:text-[#5f1b12] cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-[#7a2417] hover:bg-[#7a2417]/10 transition-colors cursor-pointer"
           >
             <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
             Back to Profile
@@ -309,9 +339,11 @@ export function ServiceAreaStep({
             <div className="rounded-xl bg-[#faf6f0] px-3.5 py-2.5 text-xs border border-[#e8dfd4]">
               <div className="flex items-center justify-between gap-3 font-semibold text-[#24130f]">
                 <span>Detected location</span>
-                <span className="font-mono text-[11px] text-[#7a2417]">
-                  {detectedLocation.pincode}
-                </span>
+                {detectedLocation.pincode ? (
+                  <span className="font-mono text-[11px] text-[#7a2417]">
+                    {detectedLocation.pincode}
+                  </span>
+                ) : null}
               </div>
               <p className="mt-0.5 text-[11px] leading-relaxed text-[#715e50]">
                 {detectedLocation.formattedAddress}
@@ -329,8 +361,8 @@ export function ServiceAreaStep({
                 value={selectedStateId}
                 onChange={(e) => {
                   onStateChange(e.target.value);
-                  onCityChange("");
-                  onAreaChange("", "");
+                  onCityChange("", "");
+                  onAreaChange("", "", "");
                   setGpsError(null);
                 }}
                 disabled={loadingStates}
@@ -353,8 +385,9 @@ export function ServiceAreaStep({
               <select
                 value={selectedCityId}
                 onChange={(e) => {
-                  onCityChange(e.target.value);
-                  onAreaChange("", "");
+                  const chosenCity = cities.find((c) => c.id === e.target.value);
+                  onCityChange(e.target.value, chosenCity?.name || "");
+                  onAreaChange("", "", "");
                   setGpsError(null);
                 }}
                 disabled={!selectedStateId || loadingCities}
@@ -418,7 +451,8 @@ export function ServiceAreaStep({
               <>
                 <FiCheckCircle className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
                 <span>
-                  Delivery available in <strong>{selectedAreaName}</strong>, {selectedCityName}
+                  Delivery available in <strong>{selectedAreaName}</strong>
+                  {selectedCityName ? `, ${selectedCityName}` : ""}
                   {activePincode ? ` (${activePincode})` : ""}.
                 </span>
               </>
