@@ -67,6 +67,7 @@ function WalletContent() {
   const [errorBanner, setErrorBanner] = useState<{
     message: string;
     transactionId?: string;
+    cancelTransactionId?: string;
   } | null>(null);
 
   // ─── TABS & LEDGER STATES ───
@@ -425,10 +426,52 @@ function WalletContent() {
         setErrorBanner(null);
         return;
       } else if (code === "WALLET_PENDING_REQUEST_EXISTS" || (typeof msg === "string" && msg.includes("already pending"))) {
-        setErrorBanner({
-          message:
-            "A credit request is already pending approval for your wallet. Please wait for depot review before creating a new one.",
-        });
+        // A previous top-up is still holding the single pending slot. Pull the
+        // latest payments so we can offer the right recovery action: retry a
+        // failed attempt, or cancel an abandoned/in-flight online payment.
+        let onlinePayments: PaymentRecord[] = livePayments;
+        try {
+          const live = await paymentsApi.listPayments({ limit: 10 });
+          if (live && Array.isArray(live.data)) {
+            onlinePayments = live.data;
+            setLivePayments(live.data);
+          }
+        } catch {}
+
+        const topups = onlinePayments.filter(
+          (p) => p.paymentMethod === "ONLINE" && p.purpose === "WALLET_TOPUP"
+        );
+        const retryable = topups.find(
+          (p) =>
+            p.status === "FAILED" ||
+            p.status === "CANCELLED" ||
+            p.status === "EXPIRED"
+        );
+        const cancellable = topups.find(
+          (p) => p.status === "PENDING" || p.status === "PROCESSING"
+        );
+
+        if (retryable) {
+          setErrorBanner({
+            message:
+              "Your previous online top-up didn't go through. Retry it to finish, or cancel it to start over.",
+            transactionId: retryable.transactionId,
+            cancelTransactionId: cancellable?.transactionId,
+          });
+        } else if (cancellable) {
+          setErrorBanner({
+            message:
+              "You have an online top-up still awaiting payment. Cancel it to start a new recharge, or complete the payment.",
+            cancelTransactionId: cancellable.transactionId,
+          });
+        } else {
+          setErrorBanner({
+            message:
+              "A credit request is already pending approval for your wallet. Please wait for depot review before creating a new one.",
+          });
+        }
+        setShowTopupModal(false);
+        setActiveTab("PAYMENTS");
       } else if (code === "INVALID_CREDIT_AMOUNT") {
         setErrorBanner({
           message: "The top-up amount is outside the allowed bounds. Please enter between ₹1 and ₹10,000.",
@@ -472,6 +515,62 @@ function WalletContent() {
     } catch (err: any) {
       console.error("Payment retry failed:", err);
       setErrorBanner({ message: err?.message || "Failed to retry PayU payment." });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Cancels an abandoned online top-up and frees the pending slot so the
+  // customer can start a fresh top-up right away. The server verifies the real
+  // state with PayU first, so a payment that actually succeeded is not lost.
+  const handleCancelPayment = async (transactionId: string) => {
+    setIsProcessing(true);
+    setErrorBanner(null);
+    try {
+      const res = await paymentsApi.cancelPayment({ transactionId });
+
+      if (res.payment?.status === "SUCCESS") {
+        setSuccessBanner({
+          title: "Payment Already Completed",
+          message:
+            "This payment had actually gone through, so your wallet is being credited instead of cancelled.",
+        });
+      } else {
+        setSuccessBanner({
+          title: "Top-up Cancelled",
+          message:
+            "The pending top-up was cancelled. You can start a new recharge now.",
+        });
+      }
+
+      // Refresh wallet, ledger and the payment lists so the freed slot and new
+      // statuses show immediately.
+      await refreshAll();
+      try {
+        const live = await paymentsApi.listPayments({ limit: 10 });
+        if (live && Array.isArray(live.data)) setLivePayments(live.data);
+      } catch {}
+    } catch (err: any) {
+      console.error("Payment cancel failed:", err);
+      const code = err?.data?.error || err?.error || err?.code;
+      const msg = err?.data?.message || err?.message;
+      if (code === "PAYMENT_ALREADY_SUCCESSFUL") {
+        setSuccessBanner({
+          title: "Payment Already Completed",
+          message:
+            "This payment already succeeded and your wallet is being credited. It cannot be cancelled.",
+        });
+        await refreshAll();
+      } else if (code === "PAYMENT_IN_PROGRESS") {
+        setErrorBanner({
+          message:
+            "This payment is still being processed by the gateway. Please wait a moment and try again.",
+        });
+      } else {
+        setErrorBanner({
+          message: typeof msg === "string" ? msg : "Failed to cancel the pending top-up.",
+        });
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -603,6 +702,17 @@ function WalletContent() {
                 >
                   <FiRefreshCw className={`w-3.5 h-3.5 ${isProcessing ? "animate-spin" : ""}`} />
                   <span>Retry Payment</span>
+                </button>
+              )}
+              {errorBanner.cancelTransactionId && (
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() => handleCancelPayment(errorBanner.cancelTransactionId!)}
+                  className="rounded-xl px-3 py-1.5 text-xs font-bold bg-white border border-rose-300 text-rose-700 hover:bg-rose-100 flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <FiX className="w-3.5 h-3.5" />
+                  <span>Cancel &amp; Start Over</span>
                 </button>
               )}
               <button
@@ -1176,13 +1286,30 @@ function WalletContent() {
                           {isFailed && pay.paymentMethod === "ONLINE" && (
                             <button
                               type="button"
+                              disabled={isProcessing}
                               onClick={() => handleRetryPayment(pay.transactionId)}
-                              className="px-2.5 py-1 rounded-lg bg-[#5C1B13] text-white text-[11px] font-bold hover:bg-[#48150f] transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                              className="px-2.5 py-1 rounded-lg bg-[#5C1B13] text-white text-[11px] font-bold hover:bg-[#48150f] transition-all cursor-pointer shadow-2xs flex items-center gap-1 disabled:opacity-50"
                             >
                               <FiRefreshCw className="w-3 h-3" />
                               <span>Retry</span>
                             </button>
                           )}
+
+                          {/* Cancel Button for abandoned PENDING/PROCESSING online top-ups.
+                              Frees the single pending slot so a new recharge can start. */}
+                          {isPending &&
+                            pay.paymentMethod === "ONLINE" &&
+                            pay.purpose === "WALLET_TOPUP" && (
+                              <button
+                                type="button"
+                                disabled={isProcessing}
+                                onClick={() => handleCancelPayment(pay.transactionId)}
+                                className="px-2.5 py-1 rounded-lg bg-white border border-rose-300 text-rose-700 text-[11px] font-bold hover:bg-rose-50 transition-all cursor-pointer shadow-2xs flex items-center gap-1 disabled:opacity-50"
+                              >
+                                <FiX className="w-3 h-3" />
+                                <span>Cancel</span>
+                              </button>
+                            )}
                         </div>
                       </div>
                     );

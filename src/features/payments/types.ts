@@ -124,6 +124,16 @@ export interface RetryPaymentPayload {
 
 export interface RetryPaymentResponse extends CreatePaymentOnlineResponse {}
 
+export interface CancelPaymentPayload {
+  transactionId: string;
+}
+
+export interface CancelPaymentResponse {
+  payment: PaymentRecord;
+  cancelled: boolean;
+  alreadyFinal: boolean;
+}
+
 export interface ListPaymentsParams {
   status?: PaymentStatus;
   purpose?: PaymentPurpose;

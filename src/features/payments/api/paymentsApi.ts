@@ -8,6 +8,8 @@ import {
   VerifyPaymentResponse,
   RetryPaymentPayload,
   RetryPaymentResponse,
+  CancelPaymentPayload,
+  CancelPaymentResponse,
   ListPaymentsParams,
   ListPaymentsResponse,
   PaymentRecord,
@@ -148,6 +150,24 @@ export const paymentsApi = {
     }
 
     return res;
+  },
+
+  /**
+   * Cancel an abandoned ONLINE top-up and release the pending slot.
+   * POST /api/v1/customer/payments/cancel
+   *
+   * The server re-verifies the real state with PayU first, so a payment that
+   * actually succeeded is never discarded.
+   */
+  async cancelPayment(
+    payload: CancelPaymentPayload
+  ): Promise<CancelPaymentResponse> {
+    return apiClient.post<CancelPaymentResponse>(
+      "/api/v1/customer/payments/cancel",
+      {
+        transactionId: payload.transactionId,
+      }
+    );
   },
 
   /**
