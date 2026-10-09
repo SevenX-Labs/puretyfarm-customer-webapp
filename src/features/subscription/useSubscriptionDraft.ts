@@ -245,33 +245,22 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     };
 
     try {
-      // 1. If serverQuote is available, confirm it on backend
-      let quote = serverQuote;
-      if (!quote) {
-        quote = await plansApi.createMonthlyQuote({
+      // Customizing a schedule only configures parameters and computes a live
+      // pricing preview — it must NEVER confirm or book orders on the backend.
+      // Order confirmation happens exclusively in Step 5 (Payment) via
+      // useOnboardingFlow once the customer picks Wallet, Online, or Cash.
+      //
+      // Ensure a pricing quote exists (for preview only), but do not confirm it.
+      if (!serverQuote) {
+        await plansApi.createMonthlyQuote({
           frequency: frequency === "daily" ? "DAILY" : "ALTERNATE_DAYS",
           quantityMode: mode === "fixed" ? "FIXED" : "ALTERNATING",
           quantity: mode === "fixed" ? fixedLitres : undefined,
           quantityA: mode === "pattern" ? day1Litres : undefined,
           quantityB: mode === "pattern" ? day2Litres : undefined,
+        }).then((quote) => {
+          if (quote?.quoteId) setServerQuote(quote);
         }).catch(() => null);
-      }
-
-      if (quote?.quoteId) {
-        try {
-          await plansApi.confirmPlanQuote({
-            quoteId: quote.quoteId,
-            paymentMethod: "WALLET",
-          });
-        } catch (confirmErr: any) {
-          // If insufficient wallet balance, fall back to CASH confirmation
-          if (confirmErr?.data?.error === "INSUFFICIENT_WALLET_BALANCE" || confirmErr?.status === 400) {
-            await plansApi.confirmPlanQuote({
-              quoteId: quote.quoteId,
-              paymentMethod: "CASH",
-            }).catch(() => {});
-          }
-        }
       }
 
       if (onConfirm) {
