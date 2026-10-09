@@ -29,7 +29,7 @@ export interface PlanStepProps {
   planError: string | null;
   onSelectPlanId: (id: "trial" | "monthly" | "single") => void;
   onCompletePlanSelection: (plan: PlanDefinition) => void;
-  onGoToStep: (step: 1 | 2 | 3) => void;
+  onGoToStep: (step: 1 | 2 | 3 | 4) => void;
 }
 
 export function PlanStep({
@@ -203,7 +203,7 @@ export function PlanStep({
             </div>
             <button
               type="button"
-              onClick={() => onGoToStep(2)}
+              onClick={() => onGoToStep(3)}
               className="min-h-[44px] px-2 text-xs font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0 flex items-center"
             >
               Change
@@ -416,11 +416,11 @@ export function PlanStep({
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => onGoToStep(2)}
+          onClick={() => onGoToStep(3)}
           className="rounded-xl min-h-[44px] px-4 py-2 text-xs font-semibold cursor-pointer"
         >
           <FiArrowLeft className="w-3.5 h-3.5 mr-1" />
-          <span>Back to Delivery Location</span>
+          <span>Back to Delivery Address</span>
         </Button>
       </div>
 

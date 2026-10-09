@@ -14,9 +14,8 @@ export function useOnboardingFlow() {
   const searchParams = useSearchParams();
   const { user, loading: authLoading, refreshUser } = useAuth();
 
-  // Current active step in UI
+  // Current active step in UI (1: Profile, 2: Service Area, 3: Address, 4: Plan)
   const [currentStep, setCurrentStep] = useState<StepKey>(1);
-  // Highest unlocked step derived from backend data
   const [maxAllowedStep, setMaxAllowedStep] = useState<StepKey>(1);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -29,10 +28,19 @@ export function useOnboardingFlow() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
-  // ─── STEP 2: Location & Address State ───
+  // ─── STEP 2: Service Area State ───
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState("");
+  const [selectedAreaId, setSelectedAreaId] = useState("");
+  const [selectedAreaPincode, setSelectedAreaPincode] = useState("");
+  const [selectedAreaName, setSelectedAreaName] = useState("");
+  const [selectedCityName, setSelectedCityName] = useState("");
+  const [coords, setCoords] = useState<{ lat?: number; lng?: number }>({});
+
+  // ─── STEP 3: Address State ───
   const [savedAddress, setSavedAddress] = useState<Address | null>(null);
 
-  // ─── STEP 3: Plan Selection State ───
+  // ─── STEP 4: Plan Selection State ───
   const [selectedPlanId, setSelectedPlanId] = useState<"trial" | "monthly" | "single">("trial");
   const [planSubmitting, setPlanSubmitting] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
@@ -59,7 +67,7 @@ export function useOnboardingFlow() {
     setProfileDob(user.dob || "");
 
     try {
-      // Fetch user's saved addresses from the backend location/address API
+      // Fetch user's saved addresses
       const addresses = await locationApi.getAddresses().catch(() => []);
 
       if (addresses && addresses.length > 0) {
@@ -80,6 +88,13 @@ export function useOnboardingFlow() {
           isServiceable: true,
           createdAt: defaultServiceable.createdAt,
         });
+
+        setSelectedStateId(defaultServiceable.stateId || "");
+        setSelectedCityId(defaultServiceable.cityId || "");
+        setSelectedAreaId(defaultServiceable.areaId || "");
+        setSelectedAreaPincode(defaultServiceable.pincode || "");
+        setSelectedAreaName(defaultServiceable.area || "");
+        setSelectedCityName(defaultServiceable.city || "Raipur");
       }
 
       // Determine step based on profile and address existence
@@ -94,11 +109,11 @@ export function useOnboardingFlow() {
         setMaxAllowedStep(2);
         setCurrentStep(2);
       } else {
-        setMaxAllowedStep(3);
-        if (requestedStep === "1" || requestedStep === "2" || requestedStep === "3") {
+        setMaxAllowedStep(4);
+        if (requestedStep === "1" || requestedStep === "2" || requestedStep === "3" || requestedStep === "4") {
           setCurrentStep(parseInt(requestedStep, 10) as StepKey);
         } else {
-          setCurrentStep(3);
+          setCurrentStep(4);
         }
       }
 
@@ -139,7 +154,7 @@ export function useOnboardingFlow() {
 
     try {
       const data = await onboardingApi.updateProfile({
-        name: profileName.trim(),
+        name: cleanName,
         email: profileEmail.trim(),
         avatarUrl: profileAvatar,
         gender: profileGender || undefined,
@@ -152,7 +167,7 @@ export function useOnboardingFlow() {
       }
 
       await refreshUser();
-      setMaxAllowedStep(2);
+      setMaxAllowedStep((prev) => Math.max(prev, 2) as StepKey);
       setCurrentStep(2);
     } catch {
       setProfileError("Network error while updating profile. Please try again.");
@@ -161,7 +176,16 @@ export function useOnboardingFlow() {
     }
   };
 
-  // ─── STEP 2 HANDLER: Address Saved ───
+  // ─── STEP 2 HANDLER: Service Area Confirmed ───
+  const handleContinueToAddress = () => {
+    if (!selectedStateId || !selectedCityId || !selectedAreaId) {
+      return;
+    }
+    setMaxAllowedStep((prev) => Math.max(prev, 3) as StepKey);
+    setCurrentStep(3);
+  };
+
+  // ─── STEP 3 HANDLER: Address Saved ───
   const handleSaveVerifiedAddress = async () => {
     try {
       const addresses = await locationApi.getAddresses();
@@ -185,19 +209,18 @@ export function useOnboardingFlow() {
         });
       }
       await refreshUser();
-      setMaxAllowedStep(3);
-      setCurrentStep(3);
+      setMaxAllowedStep((prev) => Math.max(prev, 4) as StepKey);
+      setCurrentStep(4);
     } catch {
-      setMaxAllowedStep(3);
-      setCurrentStep(3);
+      setMaxAllowedStep((prev) => Math.max(prev, 4) as StepKey);
+      setCurrentStep(4);
     }
   };
 
-  // ─── STEP 3 HANDLER: Select Plan & Complete Onboarding ───
+  // ─── STEP 4 HANDLER: Select Plan & Complete Onboarding ───
   const handleCompletePlanSelection = async (plan: PlanDefinition) => {
     if (!savedAddress) {
-      setPlanError("Please verify and save a delivery address first.");
-      setCurrentStep(2);
+      setCurrentStep(3);
       return;
     }
 
@@ -214,7 +237,7 @@ export function useOnboardingFlow() {
       if (!data.success) {
         setPlanError(data.error || "Failed to complete plan order.");
         if (data.redirectStep === "location_pending") {
-          setCurrentStep(2);
+          setCurrentStep(3);
         }
         return;
       }
@@ -235,7 +258,7 @@ export function useOnboardingFlow() {
     currentStep,
     maxAllowedStep,
     handleGoToStep,
-    // Step 1
+    // Step 1: Profile
     profileName,
     setProfileName,
     profileEmail,
@@ -250,10 +273,26 @@ export function useOnboardingFlow() {
     profileError,
     setProfileError,
     handleSaveProfile,
-    // Step 2
+    // Step 2: Service Area
+    selectedStateId,
+    setSelectedStateId,
+    selectedCityId,
+    setSelectedCityId,
+    selectedAreaId,
+    setSelectedAreaId,
+    selectedAreaPincode,
+    setSelectedAreaPincode,
+    selectedAreaName,
+    setSelectedAreaName,
+    selectedCityName,
+    setSelectedCityName,
+    coords,
+    setCoords,
+    handleContinueToAddress,
+    // Step 3: Address
     savedAddress,
     handleSaveVerifiedAddress,
-    // Step 3
+    // Step 4: Plan
     selectedPlanId,
     setSelectedPlanId,
     planSubmitting,
