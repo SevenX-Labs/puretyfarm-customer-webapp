@@ -203,7 +203,7 @@ export function ProfileTab({
                 <span className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider block">
                   EMAIL ADDRESS
                 </span>
-                <span className="text-sm sm:text-base font-semibold text-[#1A1008] mt-0.5 block">
+                <span className="text-sm sm:text-base font-semibold text-[#1A1008] mt-0.5 block break-all">
                   {user.email || "manthanut27@gmail.com"}
                 </span>
               </div>

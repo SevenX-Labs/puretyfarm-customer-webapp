@@ -529,7 +529,7 @@ function WalletContent() {
         )}
 
         {/* ─── 1. WALLET BALANCE HERO CARD ─── */}
-        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#5C1B13] via-[#48150f] to-[#2E0B07] text-white p-6 sm:p-8 shadow-xl shadow-[#5C1B13]/15 border border-[#8C2C20]/30">
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#5C1B13] via-[#48150f] to-[#2E0B07] text-white p-4.5 sm:p-7 md:p-8 shadow-xl shadow-[#5C1B13]/15 border border-[#8C2C20]/30">
           <div className="absolute top-0 right-0 w-80 h-80 bg-radial from-amber-400/10 to-transparent rounded-full blur-2xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -553,7 +553,7 @@ function WalletContent() {
               </div>
 
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white drop-shadow-xs">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-black font-mono tracking-tight text-white drop-shadow-xs">
                   {walletLoading ? "₹---.--" : `₹${balance.toFixed(2)}`}
                 </span>
                 <span className="text-xs text-white/70 font-mono">
@@ -603,7 +603,7 @@ function WalletContent() {
         </div>
 
         {/* ─── 2. TOP-UP WALLET HUB ─── */}
-        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-6 sm:p-7 shadow-2xs space-y-5">
+        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-4.5 sm:p-7 shadow-2xs space-y-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h3 className="text-base sm:text-lg font-bold text-[#1A1008] flex items-center gap-2">
@@ -775,7 +775,7 @@ function WalletContent() {
         </div>
 
         {/* ─── 3. TABBED ACTIVITY & LEDGER SECTION ─── */}
-        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-5 sm:p-7 shadow-2xs space-y-5">
+        <div className="bg-white rounded-3xl border border-[#E8DFD4] p-4 sm:p-7 shadow-2xs space-y-5">
           {/* Section Heading & Tab Selector */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E8DFD4] gap-3">
             <div>

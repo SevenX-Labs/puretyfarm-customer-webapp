@@ -327,7 +327,7 @@ export function SocialProof() {
                   {tripledTestimonials.map((testimonial, idx) => (
                     <div
                       key={`${testimonial.name}-${idx}`}
-                      className="w-[310px] sm:w-[360px] md:w-[390px] shrink-0 h-full flex flex-col px-2.5 sm:px-3"
+                      className="w-[min(310px,85vw)] sm:w-[360px] md:w-[390px] shrink-0 h-full flex flex-col px-2 sm:px-3"
                     >
                       <div className="bg-white h-full rounded-2xl border border-[#E8DFD4] p-5 sm:p-6 shadow-xs hover:shadow-xl hover:-translate-y-1 hover:border-[#5C1B13]/30 transition-all duration-300 flex flex-col justify-between group">
                         <div>

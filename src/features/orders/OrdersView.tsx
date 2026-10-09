@@ -83,7 +83,7 @@ export function OrdersView() {
       />
 
       <section className="flex items-center justify-between gap-3 flex-wrap mb-5">
-        <div className="flex items-center gap-1 bg-[var(--pf-surface)] border border-[var(--pf-border)] rounded-full p-1">
+        <div className="flex items-center gap-1 bg-[var(--pf-surface)] border border-[var(--pf-border)] rounded-full p-1 overflow-x-auto max-w-full scrollbar-none">
           {FILTERS.map((f) => (
             <button
               key={f.key}
@@ -100,7 +100,7 @@ export function OrdersView() {
           ))}
         </div>
 
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px] max-w-sm">
           <Search
             size={16}
             strokeWidth={1.75}

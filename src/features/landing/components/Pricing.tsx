@@ -187,13 +187,13 @@ export function Pricing() {
         <p className="text-xs uppercase font-bold text-center text-[#5C1B13] tracking-wider mb-5">
           Every PuretyFarm Subscription Always Includes:
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 text-center">
           {INCLUDED_PERKS.map((perk) => {
             const PerkIcon = perk.icon;
             return (
               <div
                 key={perk.label}
-                className="p-4 rounded-2xl bg-gradient-to-br from-[#FAF3EA] to-white border border-[#E8DFD4]/60 hover:shadow-sm hover:border-[#5C1B13]/20 transition-all duration-200 group/perk"
+                className="p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-[#FAF3EA] to-white border border-[#E8DFD4]/60 hover:shadow-sm hover:border-[#5C1B13]/20 transition-all duration-200 group/perk"
               >
                 <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[#5C1B13]/10 text-[#5C1B13] mb-2 group-hover/perk:bg-[#5C1B13] group-hover/perk:text-white transition-colors duration-200">
                   <PerkIcon className="w-4 h-4" strokeWidth={2} />

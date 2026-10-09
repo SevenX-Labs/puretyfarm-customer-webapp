@@ -280,7 +280,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
              ══════════════════════════════════════════════════════════════════ */}
           <div
             id="purety-receipt-document"
-            className="bg-white rounded-3xl border border-[#E8DFD4] shadow-sm p-6 sm:p-9 relative overflow-hidden"
+            className="bg-white rounded-3xl border border-[#E8DFD4] shadow-sm p-4.5 sm:p-7 md:p-9 relative overflow-hidden"
           >
             {/* Top decorative receipt teeth/notch */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-[#5C1B13] via-[#8C2C20] to-[#5C1B13]" />
@@ -386,7 +386,8 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
               <div className="text-[10px] font-bold uppercase tracking-wider text-[#8C7A6B] mb-3">
                 Itemized Summary
               </div>
-              <table className="w-full text-xs">
+              <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-xs min-w-[280px]">
                 <thead>
                   <tr className="text-left text-[#8C7A6B] border-b border-[#E8DFD4]/60 pb-2">
                     <th className="font-semibold pb-2">Description</th>
@@ -436,6 +437,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Financial Ledger & Totals */}
@@ -524,7 +526,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
                 <button
                   type="button"
                   disabled={loadingInvoice}
@@ -763,7 +765,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 <label className="text-xs font-semibold text-[#1A1008] block">
                   Select Litres per Morning:
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[1, 2, 3, 4].map((qty) => (
                     <button
                       key={qty}

@@ -163,7 +163,7 @@ export function AddressesTab({
                 <button
                   type="button"
                   onClick={() => onOpenEditAddress(addr)}
-                  className="px-3 py-1.5 rounded-lg text-[#3A241C] hover:text-[#5C1B13] hover:bg-[#FAF3EA] bg-white border border-[#E8DFD4] transition-all cursor-pointer text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                  className="min-h-[36px] px-3 py-1.5 rounded-lg text-[#3A241C] hover:text-[#5C1B13] hover:bg-[#FAF3EA] bg-white border border-[#E8DFD4] transition-all cursor-pointer text-xs font-bold flex items-center gap-1.5 shadow-2xs"
                 >
                   <FiEdit2 className="w-3 h-3" />
                   <span>Edit</span>
@@ -172,7 +172,7 @@ export function AddressesTab({
                 <button
                   type="button"
                   onClick={() => onDeleteAddress(addr.id)}
-                  className="px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer text-xs font-bold flex items-center gap-1"
+                  className="min-h-[36px] px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer text-xs font-bold flex items-center gap-1"
                 >
                   <FiTrash2 className="w-3 h-3" />
                   <span>Delete</span>

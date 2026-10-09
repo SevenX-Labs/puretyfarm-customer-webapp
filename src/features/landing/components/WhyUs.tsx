@@ -229,9 +229,9 @@ export function WhyUs() {
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white border border-[#E8DFD4] shadow-md overflow-hidden">
+        <div className="rounded-3xl bg-white border border-[#E8DFD4] shadow-md overflow-hidden overflow-x-auto custom-scrollbar">
           {/* Comparison Table Header */}
-          <div className="grid grid-cols-12 bg-[#FAF3EA] border-b border-[#E8DFD4] text-xs sm:text-sm font-bold text-[#1A1008] p-4 sm:p-5 items-center">
+          <div className="grid grid-cols-12 min-w-[500px] md:min-w-0 bg-[#FAF3EA] border-b border-[#E8DFD4] text-xs sm:text-sm font-bold text-[#1A1008] p-4 sm:p-5 items-center">
             <div className="col-span-4 sm:col-span-3 text-[#6B584C] font-semibold uppercase tracking-wider text-[11px]">
               Feature
             </div>
@@ -246,7 +246,7 @@ export function WhyUs() {
           </div>
 
           {/* Comparison Rows */}
-          <div className="divide-y divide-[#F2ECE4]">
+          <div className="divide-y divide-[#F2ECE4] min-w-[500px] md:min-w-0">
             {COMPARISON_ROWS.map((row, idx) => (
               <div
                 key={row.feature}

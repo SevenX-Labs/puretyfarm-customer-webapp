@@ -408,7 +408,7 @@ export function LegalPageShell({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`Search across all ${document.sections.length} sections (e.g. refunds, cut-off, wallet, storage)...`}
-              className="w-full pl-11 pr-10 py-3 rounded-full bg-white border border-[#DDD0C2] text-sm sm:text-base text-[#140C07] placeholder:text-[#5C1B13]/60 focus:outline-none focus:ring-2 focus:ring-[#5C1B13] focus:border-transparent transition-all shadow-xs"
+              className="w-full pl-10 sm:pl-11 pr-10 py-2.5 sm:py-3 rounded-full bg-white border border-[#DDD0C2] text-xs sm:text-sm md:text-base text-[#140C07] placeholder:text-[#5C1B13]/60 focus:outline-none focus:ring-2 focus:ring-[#5C1B13] focus:border-transparent transition-all shadow-xs"
             />
             {searchQuery && (
               <button
@@ -423,7 +423,7 @@ export function LegalPageShell({
 
           <div className="flex items-center gap-2 shrink-0">
             {/* Text Scale Adjuster */}
-            <div className="flex items-center bg-[#FAF3EA] border border-[#DDD0C2] rounded-full p-1 text-xs font-bold">
+            <div className="flex items-center bg-[#FAF3EA] border border-[#DDD0C2] rounded-full p-1 text-[11px] sm:text-xs font-bold">
               <span className="px-2 text-[#5C1B13] flex items-center gap-1">
                 <FiType className="w-3 h-3" />
                 <span className="hidden sm:inline">Text:</span>

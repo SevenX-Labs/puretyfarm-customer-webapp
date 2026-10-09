@@ -139,13 +139,13 @@ export function DeliveryView() {
             <section>
               <PfSectionTitle title="Weekly schedule" />
               <PfCard padding="md">
-                <div className="flex items-center justify-between gap-2 sm:gap-3">
+                <div className="flex items-center justify-between gap-1 sm:gap-3 overflow-x-auto">
                   {WEEKDAYS.map((d, i) => {
                     const active = i === todayIdx;
                     return (
                       <div
                         key={d}
-                        className={`flex-1 flex flex-col items-center gap-2 py-3 rounded-[12px] ${
+                        className={`flex-1 min-w-[34px] flex flex-col items-center gap-1.5 sm:gap-2 py-2 sm:py-3 px-0.5 rounded-[12px] ${
                           active ? "bg-[var(--pf-yellow-soft)]" : ""
                         }`}
                       >

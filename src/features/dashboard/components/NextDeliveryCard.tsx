@@ -21,7 +21,7 @@ export function NextDeliveryCard({ order }: { order: Order }) {
 
   return (
     <article className="relative overflow-hidden bg-[var(--pf-surface)] border border-[var(--pf-border)] rounded-[22px] shadow-[var(--pf-shadow-card)]">
-      <div className="grid lg:grid-cols-[1fr_minmax(220px,280px)] gap-6 p-7 sm:p-8">
+      <div className="grid lg:grid-cols-[1fr_minmax(220px,280px)] gap-6 p-5 sm:p-7 md:p-8">
         {/* Left */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -33,7 +33,7 @@ export function NextDeliveryCard({ order }: { order: Order }) {
             </PfBadge>
           </div>
 
-          <h2 className="text-[32px] sm:text-[36px] font-bold leading-[1.05] tracking-tight text-[var(--pf-text)]">
+          <h2 className="text-[26px] sm:text-[32px] md:text-[36px] font-bold leading-[1.05] tracking-tight text-[var(--pf-text)]">
             {dayLabel}
           </h2>
           <p className="mt-1 text-[16px] sm:text-[18px] font-semibold text-[var(--pf-text-secondary)]">

@@ -247,7 +247,7 @@ export function OrderConfirmationView() {
             <ArrowRight className="h-4 w-4" />
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <Link
               href="/account"
               className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--pf-border)] bg-white px-5 text-sm font-bold text-[#24130f] hover:bg-[var(--pf-surface-soft)] transition-all cursor-pointer sm:flex-initial"

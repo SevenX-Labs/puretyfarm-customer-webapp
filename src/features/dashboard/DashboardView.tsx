@@ -125,7 +125,7 @@ function StarterBlock() {
           Choose a fresh A2 Gir cow milk plan and we&apos;ll deliver it straight from
           the farm to your doorstep each morning.
         </p>
-        <div className="mt-6 flex items-center justify-center gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
           <PfButton href="/plan">Explore Milk Plans</PfButton>
           <PfButton href="/plan" variant="secondary">
             View Plans

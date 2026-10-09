@@ -59,7 +59,7 @@ export function CustomerHeader({
     <>
       <header className="flex items-start sm:items-center justify-between gap-4 pb-6 sm:pb-8 flex-col sm:flex-row">
         <div className="min-w-0">
-          <h1 className="text-[26px] sm:text-[32px] md:text-[36px] font-bold text-[var(--pf-text)] leading-[1.1] tracking-tight">
+          <h1 className="text-[24px] sm:text-[30px] md:text-[36px] font-bold text-[var(--pf-text)] leading-[1.1] tracking-tight break-words">
             {headingTitle}
           </h1>
           <p className="mt-1.5 text-[14px] sm:text-[15px] text-[var(--pf-text-secondary)]">

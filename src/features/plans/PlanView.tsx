@@ -324,7 +324,7 @@ export function PlanView() {
                   </p>
 
                   {/* Stats Grid: Price, Next Delivery & Admin Delivery Window */}
-                  <div className="mt-6 grid sm:grid-cols-3 gap-5 pt-6 border-t border-[var(--pf-border)]">
+                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 pt-6 border-t border-[var(--pf-border)]">
                     <Stat
                       label="Price Paid"
                       value={
@@ -784,7 +784,7 @@ export function PlanView() {
       {/* Upgrade to Monthly Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-3xl bg-white border border-[var(--pf-border)] shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-lg rounded-3xl bg-white border border-[var(--pf-border)] shadow-2xl p-4.5 sm:p-7 space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[var(--pf-border)]">
               <div>
@@ -851,7 +851,7 @@ export function PlanView() {
               <label className="text-xs font-bold text-[#1A1008] block">
                 Delivery Schedule:
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
                   { val: "DAILY" as const, label: "Daily (Every Morning)" },
                   { val: "ALTERNATE_DAYS" as const, label: "Alternate Days" },

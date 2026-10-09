@@ -279,7 +279,7 @@ export function SubscriptionPanel({
         )}
 
         {/* Footer with Total and Primary CTA */}
-        <div className="pt-4 border-t border-[#E8DFD4] flex items-center justify-between gap-3">
+        <div className="pt-4 border-t border-[#E8DFD4] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A241C]/70 block">
               30-Day Plan Total
@@ -514,7 +514,7 @@ export function SubscriptionPanel({
             </div>
 
             {/* Sticky Footer with Total and Primary CTA - Never scrolls away */}
-            <div className="p-4 sm:p-5 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-3 shadow-lg">
+            <div className="p-3.5 sm:p-5 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-lg">
               <div className="min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A241C]/70 block">
                   30-Day Plan Total

@@ -126,10 +126,10 @@ export function OnboardingView() {
       <main className="mx-auto w-full max-w-5xl px-2.5 sm:px-4 flex flex-col justify-center items-center">
         <section
           aria-label="Account setup and subscription workflow"
-          className="relative flex flex-col md:flex-row w-full h-[580px] sm:h-[600px] lg:h-[620px] max-h-[94vh] rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl overflow-hidden"
+          className="relative flex flex-col md:flex-row w-full min-h-[560px] md:h-[600px] lg:h-[620px] md:max-h-[94vh] rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl overflow-hidden"
         >
           {/* Left Sidebar - Exact Same Fixed Size Across All 5 Steps */}
-          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-4.5 md:w-[250px] lg:w-[280px] shrink-0 text-white h-full">
+          <aside className="relative flex flex-col justify-between bg-[#6f2115] p-3.5 sm:p-4.5 md:w-[250px] lg:w-[280px] shrink-0 text-white h-auto md:h-full">
             <div className="space-y-2 md:space-y-3.5">
               <div className="flex items-center justify-between">
                 <div className="relative h-6 w-20 sm:h-6.5 sm:w-22">
@@ -245,7 +245,7 @@ export function OnboardingView() {
           </aside>
 
           {/* Right Content Panel - Smooth transition only within right side */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden p-3.5 sm:p-4.5 lg:p-5 h-full">
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-y-auto md:overflow-hidden p-3.5 sm:p-4.5 lg:p-5 h-full">
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div

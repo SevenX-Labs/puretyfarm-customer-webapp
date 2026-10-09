@@ -83,7 +83,7 @@ export function OrderDetailModal({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="bg-white rounded-3xl border border-[#E8DFD4] shadow-2xl max-w-lg w-full p-6 sm:p-7 relative overflow-hidden max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-3xl border border-[#E8DFD4] shadow-2xl max-w-lg w-full p-4.5 sm:p-7 relative overflow-hidden max-h-[90vh] overflow-y-auto"
         >
           <div className="flex items-center justify-between pb-4 border-b border-[#E8DFD4] mb-4">
             <div>

@@ -219,7 +219,7 @@ export function Navbar({ variant = "default" }: { variant?: "default" | "auth" }
             </div>
 
             {/* Quick Contact Desk */}
-            <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#FAF6F0] border border-[#E8DFD4] text-[11px] font-semibold text-[#1A1008]">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#FAF6F0] border border-[#E8DFD4] text-[10.5px] sm:text-[11px] font-semibold text-[#1A1008]">
               <a
                 href={getPhoneUrl()}
                 className="inline-flex items-center gap-1.5 text-[#5C1B13] hover:underline"

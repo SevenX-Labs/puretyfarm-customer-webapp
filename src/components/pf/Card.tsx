@@ -9,9 +9,9 @@ export interface PfCardProps extends HTMLAttributes<HTMLDivElement> {
 
 const paddingClasses = {
   none: "",
-  sm: "p-5",
-  md: "p-6 sm:p-7",
-  lg: "p-7 sm:p-8",
+  sm: "p-4 sm:p-5",
+  md: "p-4 sm:p-6 md:p-7",
+  lg: "p-4.5 sm:p-7 md:p-8",
 };
 
 export function PfCard({

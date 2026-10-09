@@ -24,9 +24,9 @@ export function ProductsView() {
       <section className="mb-10">
         <article className="relative overflow-hidden rounded-[22px] bg-[var(--pf-surface)] border border-[var(--pf-border)] shadow-[var(--pf-shadow-card)]">
           <div className="grid lg:grid-cols-[1.1fr_1fr] gap-6">
-            <div className="p-7 sm:p-9 flex flex-col justify-center">
+            <div className="p-5 sm:p-7 md:p-9 flex flex-col justify-center">
               <PfBadge tone="brand">Signature</PfBadge>
-              <h2 className="mt-4 text-[32px] sm:text-[40px] font-bold text-[var(--pf-text)] leading-[1.05] tracking-tight">
+              <h2 className="mt-4 text-[26px] sm:text-[34px] md:text-[40px] font-bold text-[var(--pf-text)] leading-[1.08] sm:leading-[1.05] tracking-tight">
                 Pure A2 Desi Gir Cow Milk
               </h2>
               <p className="mt-3 text-[15px] text-[var(--pf-text-secondary)] leading-relaxed max-w-md">

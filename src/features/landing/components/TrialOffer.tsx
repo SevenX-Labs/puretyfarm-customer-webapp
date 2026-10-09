@@ -201,7 +201,7 @@ export function TrialOffer() {
                   <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B584C] mb-3">
                     SELECT YOUR DAILY QUANTITY:
                   </p>
-                  <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-w-lg">
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-3 max-w-lg">
                     {TRIAL_VOLUMES.map((vol) => {
                       const isSelected = selectedVolume.id === vol.id;
                       const Icon = vol.icon;
@@ -210,7 +210,7 @@ export function TrialOffer() {
                           key={vol.id}
                           type="button"
                           onClick={() => setSelectedVolume(vol)}
-                          className={`relative flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3.5 rounded-2xl border text-left transition-all duration-150 cursor-pointer ${isSelected
+                          className={`relative flex items-center gap-2 sm:gap-3 p-2 sm:p-3.5 rounded-2xl border text-left transition-all duration-150 cursor-pointer ${isSelected
                             ? "bg-[#3E1610] text-white border-[#3E1610] shadow-md shadow-[#3E1610]/20"
                             : "bg-[#FBF8F3] text-[#1A1008] border-[#ECE4DA] hover:bg-[#FAF4ED]"
                             }`}
