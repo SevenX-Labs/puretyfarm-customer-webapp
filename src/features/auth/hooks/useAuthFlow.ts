@@ -1,39 +1,27 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "../api/authApi";
+import { AuthStep } from "../types";
 import { profileApi } from "@/features/profile/api/profileApi";
 import { locationApi } from "@/features/location/api/locationApi";
-import { AuthStep } from "../types";
-
-function getSafeRedirectUrl(param: string | null): string {
-  if (!param) return "/account";
-  const trimmed = param.trim();
-  // Reject non-relative paths, protocol-relative paths (//), and backslashes (\)
-  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("\\")) {
-    return "/account";
-  }
-  return trimmed;
-}
 
 export function useAuthFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectUrl = getSafeRedirectUrl(searchParams.get("redirect"));
+  const redirectUrl = searchParams.get("redirect") || "/dashboard";
   const { isLoggedIn, user, refreshUser } = useAuth();
 
   const [step, setStep] = useState<AuthStep>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpValues, setOtpValues] = useState<string[]>(["", "", "", "", "", ""]);
-
-  // Onboarding fields for first-time users
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
-  // States
   const [loading, setLoading] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
@@ -126,64 +114,15 @@ export function useAuthFlow() {
     }
   };
 
-  // Step 2: OTP input handlers
-  const handleOtpDigitChange = (index: number, val: string) => {
-    const numeric = val.replace(/\D/g, "");
-    if (!numeric) {
-      const next = [...otpValues];
-      next[index] = "";
-      setOtpValues(next);
-      return;
-    }
-
-    const char = numeric.slice(-1);
-    const next = [...otpValues];
-    next[index] = char;
-    setOtpValues(next);
-    setErrorMessage(null);
-
-    if (index < 5) {
-      otpInputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace") {
-      if (!otpValues[index] && index > 0) {
-        otpInputRefs.current[index - 1]?.focus();
-      }
-    } else if (e.key === "ArrowLeft" && index > 0) {
-      otpInputRefs.current[index - 1]?.focus();
-    } else if (e.key === "ArrowRight" && index < 5) {
-      otpInputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (!pasted) return;
-
-    const next = [...otpValues];
-    for (let i = 0; i < 6; i++) {
-      next[i] = pasted[i] || "";
-    }
-    setOtpValues(next);
-    setErrorMessage(null);
-
-    const targetFocus = Math.min(pasted.length, 5);
-    otpInputRefs.current[targetFocus]?.focus();
-  };
-
-  // Step 2: Verify OTP
-  const handleVerifyOtp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const code = otpValues.join("");
+  // Step 2: Auto-verify function
+  const triggerVerifyOtp = async (codeToVerify?: string) => {
+    if (isSubmittingRef.current) return;
+    const code = (codeToVerify || otpValues.join("")).trim();
     if (code.length !== 6) {
-      setErrorMessage("Please enter all 6 digits of the OTP.");
       return;
     }
 
+    isSubmittingRef.current = true;
     setLoading(true);
     setErrorMessage(null);
 
@@ -236,7 +175,86 @@ export function useAuthFlow() {
       setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
+  };
+
+  // Step 2: Automatic trigger whenever all 6 digits are filled
+  useEffect(() => {
+    if (step === "otp" && !loading && !isSubmittingRef.current) {
+      const fullCode = otpValues.join("");
+      if (fullCode.length === 6 && otpValues.every((d) => d.trim() !== "")) {
+        void triggerVerifyOtp(fullCode);
+      }
+    }
+  }, [otpValues, step, loading]);
+
+  // Step 2: OTP input handlers
+  const handleOtpDigitChange = (index: number, val: string) => {
+    const numeric = val.replace(/\D/g, "");
+    if (!numeric) {
+      const next = [...otpValues];
+      next[index] = "";
+      setOtpValues(next);
+      return;
+    }
+
+    if (numeric.length > 1) {
+      // Handles autofill or multi-digit paste directly in input
+      const next = [...otpValues];
+      for (let i = 0; i < numeric.length && index + i < 6; i++) {
+        next[index + i] = numeric[i];
+      }
+      setOtpValues(next);
+      setErrorMessage(null);
+      const nextFocus = Math.min(index + numeric.length, 5);
+      otpInputRefs.current[nextFocus]?.focus();
+      return;
+    }
+
+    const char = numeric.slice(-1);
+    const next = [...otpValues];
+    next[index] = char;
+    setOtpValues(next);
+    setErrorMessage(null);
+
+    if (index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace") {
+      if (!otpValues[index] && index > 0) {
+        otpInputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+
+    const next = [...otpValues];
+    for (let i = 0; i < 6; i++) {
+      next[i] = pasted[i] || "";
+    }
+    setOtpValues(next);
+    setErrorMessage(null);
+
+    const targetFocus = Math.min(pasted.length, 5);
+    otpInputRefs.current[targetFocus]?.focus();
+  };
+
+  // Step 2: Manual Verify OTP (fallback on button click / enter key)
+  const handleVerifyOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await triggerVerifyOtp();
   };
 
   // Step 3: Complete Onboarding Profile

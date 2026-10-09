@@ -46,13 +46,14 @@ export function OtpStep({
                 inputMode="numeric"
                 pattern="[0-9]*"
                 maxLength={1}
+                disabled={loading}
                 autoComplete={index === 0 ? "one-time-code" : "off"}
                 value={digit}
                 onChange={(event) => onOtpDigitChange(index, event.target.value)}
                 onKeyDown={(event) => onOtpKeyDown(index, event)}
                 onPaste={onOtpPaste}
                 aria-label={`Verification code digit ${index + 1}`}
-                className={`h-10 sm:h-11 lg:h-[44px] w-full min-w-0 rounded-xl border text-center text-[18px] sm:text-[19px] font-semibold outline-none transition-colors focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 ${
+                className={`h-10 sm:h-11 lg:h-[44px] w-full min-w-0 rounded-xl border text-center text-[18px] sm:text-[19px] font-semibold outline-none transition-colors focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-60 ${
                   digit
                     ? "border-[#9c705b] bg-[#fffaf3] text-[#7a2417]"
                     : "border-[#d8d0c6] bg-white text-[#24130f]"
