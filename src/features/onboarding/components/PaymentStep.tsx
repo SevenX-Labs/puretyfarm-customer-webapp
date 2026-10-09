@@ -78,8 +78,10 @@ export function PaymentStep({
   const totalPaise = quote.totalSellingAmount;
   const sufficient = walletBalancePaise >= totalPaise;
   const shortfallPaise = Math.max(totalPaise - walletBalancePaise, 0);
-  // Backend minimum top-up is ₹100 (10000 paise)
-  const topupPaise = Math.max(shortfallPaise, 10000);
+  // Top up for the exact shortfall. The backend-authoritative plan amount is
+  // quote.totalSellingAmount; we never pad it client-side. Backend validates
+  // against wallet min/max and returns an error if out of range.
+  const topupPaise = shortfallPaise;
   const isFirstTopup = !walletAutoCredit;
 
   const planTitle =

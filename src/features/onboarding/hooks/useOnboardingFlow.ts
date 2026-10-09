@@ -1,6 +1,5 @@
 "use client";
 
-import { apiClient } from "@/lib/api/client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -306,85 +305,45 @@ export function useOnboardingFlow() {
     }
   };
 
-  // Helper to record confirmed order & redirect to Order Confirmation page
+  // Redirect to Order Confirmation using the backend-authoritative confirm
+  // response. No localStorage, no fabricated order numbers, no mock routes —
+  // the confirmation page re-fetches the plan selection by id for the truth.
   const recordAndRedirectConfirmedOrder = async (
     method: "WALLET" | "CASH",
-    confirmResult?: any
+    confirmResult?: {
+      selectionId?: string;
+      status?: "CONFIRMED" | "PENDING_PAYMENT" | string;
+      paidAmountPaise?: number;
+      cashCollectionId?: string;
+    }
   ) => {
     if (!pendingPlan || !pendingQuote) return;
-    const orderNumber = "ORD-" + Math.floor(100000 + Math.random() * 900000);
-    const amountRupees = (pendingQuote.totalSellingAmount / 100).toFixed(2);
-    const tomorrowStr = new Date(Date.now() + 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0];
 
-    const orderRecord = {
-      id: confirmResult?.selectionId || ("ord_" + Date.now()),
-      orderNumber,
-      planId: pendingPlan.id,
-      planName: pendingPlan.name,
-      quantity: pendingPlan.quantity || "1 Litre",
-      totalAmount: Number(amountRupees),
-      paymentMethod: method,
-      paymentStatus: method === "WALLET" ? "PAID" : "PENDING",
-      status: "Confirmed",
-      createdAt: new Date().toISOString(),
-      deliveryDate: tomorrowStr,
-      deliveryAddress: savedAddress,
-      items: [
-        {
-          id: `item_${pendingPlan.id}`,
-          name: `${pendingPlan.name} (${pendingPlan.quantity || "1 Litre"})`,
-          productNameSnapshot: `${pendingPlan.name} (${pendingPlan.quantity || "1 Litre"})`,
-          quantity: pendingQuote.deliveryOccurrences || 1,
-          price: Number(amountRupees),
-          totalPaise: pendingQuote.totalSellingAmount,
-          unit: "Litre",
-        },
-      ],
-    };
+    const selectionId = confirmResult?.selectionId || "";
+    const status = confirmResult?.status || (method === "WALLET" ? "CONFIRMED" : "PENDING_PAYMENT");
+    const amountRupees = (
+      (confirmResult?.paidAmountPaise ?? pendingQuote.totalSellingAmount) / 100
+    ).toFixed(2);
 
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(
-          "pf_last_confirmed_order",
-          JSON.stringify(orderRecord)
-        );
-        const prev = JSON.parse(
-          localStorage.getItem("pf_local_orders") || "[]"
-        );
-        localStorage.setItem(
-          "pf_local_orders",
-          JSON.stringify([orderRecord, ...prev])
-        );
-      } catch {}
-    }
-
-    // Persist to local store for orders & subscriptions
-    await apiClient
-      .post("/api/orders", {
-        items: orderRecord.items,
-        totalAmount: orderRecord.totalAmount,
-        deliveryAddress: savedAddress,
-        status: "Placed",
-      })
-      .catch(() => {});
-
-    await apiClient
-      .post("/api/subscription", {
-        planId: pendingPlan.id,
-        planName: pendingPlan.name,
-        price: orderRecord.totalAmount,
-        dailyQuantity: `${pendingPlan.quantity || "1 Litre"} Daily`,
-      })
-      .catch(() => {});
+    // Clear the pending-quote scratchpad so a refresh of /onboarding does not
+    // re-route back into step 5 for an already-confirmed plan.
+    try {
+      window.localStorage.removeItem("pf_onboarding_pending_quote");
+    } catch {}
 
     await refreshUser();
-    router.push(
-      `/order-confirmation?orderNumber=${orderNumber}&plan=${encodeURIComponent(
-        pendingPlan.name
-      )}&amount=${amountRupees}&method=${method}`
-    );
+
+    const params = new URLSearchParams({
+      selectionId,
+      plan: pendingPlan.name,
+      amount: amountRupees,
+      method,
+      status,
+    });
+    if (confirmResult?.cashCollectionId) {
+      params.set("cashCollectionId", confirmResult.cashCollectionId);
+    }
+    router.push(`/order-confirmation?${params.toString()}`);
   };
 
   // ─── STEP 5 HANDLERS: Payment Methods ───
@@ -418,8 +377,13 @@ export function useOnboardingFlow() {
     setPaymentError(null);
     setPaymentNotice(null);
 
+    // Charge the exact shortfall needed to cover the plan — never a padded
+    // or hardcoded floor. Backend amount is authoritative and will reject
+    // values outside the wallet's configured min/max.
+    const shortfall = Math.max(pendingQuote.totalSellingAmount - walletBalancePaise, 0);
+
     try {
-      const res = await paymentsApi.initiateOnlineTopup(pendingQuote.totalSellingAmount, {
+      const res = await paymentsApi.initiateOnlineTopup(shortfall, {
         autoRedirect: true,
       });
 

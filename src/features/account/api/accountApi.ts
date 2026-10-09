@@ -13,60 +13,19 @@ import {
 
 export const accountApi = {
   async getOrders(): Promise<OrdersResponse> {
-    const collectedOrders: any[] = [];
-
-    // 1. Fetch from backend NestJS API
-    try {
-      const res = await ordersApi.listOrders();
-      if (res && Array.isArray(res.data) && res.data.length > 0) {
-        collectedOrders.push(...res.data);
-      }
-    } catch (err) {
-      console.warn("Direct /api/v1/customer/orders fetch failed, attempting fallback:", err);
-    }
-
-    // 2. Fetch from local Next.js DB store
-    try {
-      const localRes = await apiClient.get<OrdersResponse>("/api/orders");
-      if (localRes && Array.isArray(localRes.orders) && localRes.orders.length > 0) {
-        for (const lo of localRes.orders) {
-          if (!collectedOrders.some((co: any) => co.id === lo.id || co.orderNumber === lo.orderNumber)) {
-            collectedOrders.push(lo);
-          }
-        }
-      }
-    } catch {}
-
-    // 3. Fall back to browser localStorage if available
-    if (typeof window !== "undefined") {
-      try {
-        const stored = JSON.parse(localStorage.getItem("pf_local_orders") || "[]");
-        if (Array.isArray(stored)) {
-          for (const so of stored) {
-            if (!collectedOrders.some((co: any) => co.id === so.id || co.orderNumber === so.orderNumber)) {
-              collectedOrders.push(so);
-            }
-          }
-        }
-      } catch {}
-    }
-
+    // Backend is the single source of truth for order history. We do not
+    // merge with the local Next.js /api/orders store, and we do not merge
+    // with any browser-side cache. If the call fails, surface the failure.
+    const res = await ordersApi.listOrders();
     return {
       success: true,
-      orders: collectedOrders as any,
+      orders: (res?.data || []) as any,
     };
   },
 
   async getOrder(id: string) {
-    try {
-      const order = await ordersApi.getOrder(id);
-      if (order) {
-        return { success: true, order };
-      }
-    } catch (err) {
-      console.warn("Direct order get failed, fallback to local:", err);
-    }
-    return apiClient.get<{ success: boolean; order?: any }>(`/api/orders/${id}`);
+    const order = await ordersApi.getOrder(id);
+    return { success: true, order };
   },
 
   async createOrder(orderPayload: unknown): Promise<OrderResponse> {
