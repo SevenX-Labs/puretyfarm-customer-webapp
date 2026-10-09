@@ -259,7 +259,7 @@ export function WalletTab({
               100% Secure & Refundable
             </span>
             <p className="text-white/90 leading-relaxed">
-              Top-up via PayU Hosted Checkout or physical cash collection at depot.
+              Recharge prepaid credit for fresh sunrise deliveries.
             </p>
           </div>
         </div>
@@ -293,7 +293,7 @@ export function WalletTab({
               }`}
             >
               <FiCreditCard className="w-3.5 h-3.5" />
-              <span>Online PayU (Instant)</span>
+              <span>Online Payment (Instant)</span>
             </button>
             <button
               type="button"
@@ -343,7 +343,7 @@ export function WalletTab({
               </p>
               <div className="mt-3 pt-2 border-t border-[#E8DFD4]/60 flex items-center justify-between text-[11px] font-bold text-[#5C1B13]">
                 <span>
-                  {paymentMethod === "ONLINE" ? "Pay via PayU" : "Request Cash Pickup"}
+                  {paymentMethod === "ONLINE" ? "Pay Online" : "Request Cash Pickup"}
                 </span>
                 <span className="group-hover:translate-x-0.5 transition-transform">→</span>
               </div>
@@ -386,7 +386,7 @@ export function WalletTab({
               </span>
             ) : (
               <span>
-                {paymentMethod === "ONLINE" ? "Top-up via PayU" : "Request Cash Top-up"}
+                {paymentMethod === "ONLINE" ? "Pay Online" : "Request Cash Top-up"}
               </span>
             )}
           </Button>
@@ -484,7 +484,7 @@ export function WalletTab({
                     </span>
                     <div className="min-w-0">
                       <p className="font-bold text-[#1A1008] truncate">
-                        {pay.paymentMethod === "ONLINE" ? "PayU Top-Up" : "Cash Top-Up"} (
+                        {pay.paymentMethod === "ONLINE" ? "Online Payment" : "Cash Top-Up"} (
                         {pay.transactionId})
                       </p>
                       <p className="text-[10px] text-[#8C7A6B] truncate">
@@ -547,7 +547,7 @@ export function WalletTab({
                 <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                 <p>
                   <strong className="text-[#1A1008]">Direct Bank Refund:</strong>{" "}
-                  Unused wallet balance can be refunded back to source via PayU in 3–7 business days upon request.
+                  Unused wallet balance can be refunded back to source in 3–7 business days upon request.
                 </p>
               </div>
             </div>

@@ -249,7 +249,7 @@ function WalletContent() {
 
     if (resultHint === "error") {
       setErrorBanner({
-        message: "PayU reported a payment failure. Please retry below.",
+        message: "Payment could not be completed. Please retry below.",
       });
     }
 
@@ -266,7 +266,7 @@ function WalletContent() {
             ) {
               setSuccessBanner({
                 title: "Payment Received · Approval Pending",
-                message: `₹${amtRupees} reached PayU successfully. As this is your first wallet credit, our depot admin is reviewing it. Your balance will update automatically upon confirmation.`,
+                message: `₹${amtRupees} payment received successfully. As this is your first wallet credit, our depot admin is reviewing it. Your balance will update automatically upon confirmation.`,
               });
             } else {
               setSuccessBanner({
@@ -489,7 +489,7 @@ function WalletContent() {
                 <p className="font-bold">
                   Refund Status:{" "}
                   {rejectedRefundRequest.refundStatus === "REFUND_PENDING"
-                    ? "PayU Refund Initiated"
+                    ? "Refund Initiated"
                     : rejectedRefundRequest.refundStatus === "REFUNDED"
                     ? "Refund Settled to Source"
                     : "Refund Action Required"}{" "}
@@ -506,7 +506,7 @@ function WalletContent() {
                   </span>
                 )}
                 {rejectedRefundRequest.refundStatus === "REFUND_PENDING" &&
-                  "PayU is processing the credit back to your original payment method (3–7 business days)."}
+                  "Refund is being processed back to your original payment method (3–7 business days)."}
                 {rejectedRefundRequest.refundStatus === "REFUNDED" &&
                   "Funds have been successfully refunded to your original payment source."}
               </p>
@@ -554,7 +554,7 @@ function WalletContent() {
                   className="rounded-xl px-3 py-1.5 text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
                 >
                   <FiRefreshCw className={`w-3.5 h-3.5 ${isProcessing ? "animate-spin" : ""}`} />
-                  <span>Retry PayU</span>
+                  <span>Retry Payment</span>
                 </button>
               )}
               <button
@@ -796,16 +796,8 @@ function WalletContent() {
                   </>
                 ) : (
                   <>
-                    {rechargeMethod === "ONLINE" && <FiCreditCard className="w-4 h-4" />}
-                    {rechargeMethod === "CASH" && <FiDollarSign className="w-4 h-4" />}
-                    {rechargeMethod === "DIRECT_REQUEST" && <FiSend className="w-4 h-4" />}
-                    <span>
-                      {rechargeMethod === "ONLINE"
-                        ? `Top-up ₹${customAmount || 0} via PayU`
-                        : rechargeMethod === "CASH"
-                        ? `Request Cash ₹${customAmount || 0}`
-                        : `Submit Credit Request (₹${customAmount || 0})`}
-                    </span>
+                    <FiCreditCard className="w-4 h-4" />
+                    <span>Pay Online ₹{customAmount || 0}</span>
                   </>
                 )}
               </Button>
@@ -1104,7 +1096,7 @@ function WalletContent() {
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="font-bold text-[#1A1008] text-xs sm:text-sm">
                               {pay.paymentMethod === "ONLINE"
-                                ? "PayU Hosted Checkout"
+                                ? "Online Payment"
                                 : "Doorstep Cash"}
                             </span>
                             <span

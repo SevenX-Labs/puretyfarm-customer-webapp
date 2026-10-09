@@ -137,7 +137,7 @@ export function PaymentResultView() {
           </div>
           <div>
             <h3 className="text-lg font-bold text-[#1A1008]">
-              Verifying Payment with PayU...
+              Verifying Payment...
             </h3>
             <p className="text-xs sm:text-sm text-[#6B584C] mt-1">
               Confirming transaction authenticity and updating your wallet ledger.
@@ -205,7 +205,7 @@ export function PaymentResultView() {
               )}
             </div>
             <p className="text-xs sm:text-sm text-[#6B584C] max-w-md mx-auto leading-relaxed">
-              Your payment has been verified via PayU and automatically added to your PuretyFarm wallet ledger. Ready for sunrise deliveries!
+              Your payment has been verified and automatically added to your PuretyFarm wallet ledger. Ready for sunrise deliveries!
             </p>
           </div>
 
@@ -220,7 +220,7 @@ export function PaymentResultView() {
             <div className="flex items-center justify-between py-1 border-b border-[#FAF3EA]">
               <span className="text-[#8C7A6B]">Payment Method</span>
               <span className="font-semibold text-[#1A1008]">
-                PayU Hosted Checkout (ONLINE)
+                Online Payment (UPI / Cards / NetBanking)
               </span>
             </div>
             <div className="flex items-center justify-between py-1 border-b border-[#FAF3EA]">
@@ -277,7 +277,7 @@ export function PaymentResultView() {
                 Payment Successful · Approval Pending
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-[#1A1008] mt-2">
-                Payment Received at PayU!
+                Payment Received Successfully!
               </h2>
               {displayAmount && (
                 <p className="text-2xl sm:text-3xl font-black font-mono text-[#5C1B13] mt-1">
@@ -308,7 +308,7 @@ export function PaymentResultView() {
                     1. Money Received & Verified (Done)
                   </p>
                   <p className="text-[11px] text-[#8C7A6B]">
-                    SHA-512 cryptographic hash verified by PayU gateway.
+                    Cryptographic verification confirmed by payment gateway.
                   </p>
                 </div>
               </div>
@@ -405,7 +405,7 @@ export function PaymentResultView() {
             <p className="text-xs sm:text-sm text-[#6B584C] max-w-md mx-auto leading-relaxed">
               {payment?.failureMessage ||
                 error ||
-                "The payment transaction was cancelled, expired, or failed at PayU. No funds were debited from your bank account."}
+                "The payment transaction was cancelled, expired, or failed. No funds were debited from your bank account."}
             </p>
           </div>
 
@@ -442,7 +442,7 @@ export function PaymentResultView() {
               className="w-full sm:flex-1 py-3 px-4 rounded-2xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
             >
               <FiRotateCw className={`w-4 h-4 ${retrying ? "animate-spin" : ""}`} />
-              <span>{retrying ? "Redirecting to PayU..." : "Try Again via PayU"}</span>
+              <span>{retrying ? "Redirecting to Payment Gateway..." : "Retry Payment"}</span>
             </button>
             <Link
               href="/wallet"
@@ -469,7 +469,7 @@ export function PaymentResultView() {
               <h2 className="text-xl sm:text-2xl font-black text-[#1A1008] mt-2">
                 {payment?.status === "REFUNDED"
                   ? "Amount Refunded to Source"
-                  : "Refund Initiated via PayU"}
+                  : "Refund Initiated to Source"}
               </h2>
               {displayAmount && (
                 <p className="text-2xl sm:text-3xl font-black font-mono text-sky-900 mt-1">
@@ -478,7 +478,7 @@ export function PaymentResultView() {
               )}
             </div>
             <p className="text-xs sm:text-sm text-[#6B584C] max-w-md mx-auto leading-relaxed">
-              When a credit request is rejected or cancelled, settled online funds are automatically returned back to the original source bank/card via PayU.
+              When a credit request is rejected or cancelled, settled online funds are automatically returned back to the original payment method.
             </p>
           </div>
 

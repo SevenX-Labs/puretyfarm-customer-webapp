@@ -230,7 +230,7 @@ export function PaymentStep({
               )}
             </div>
 
-            {/* Action button: Pay from Wallet OR Add Money via PayU */}
+            {/* Action button: Pay from Wallet OR Add Money Online */}
             {sufficient ? (
               <Button
                 type="button"
@@ -263,8 +263,8 @@ export function PaymentStep({
                     <FiPlusCircle className="h-4 w-4" />
                     <span>
                       {paymentSubmitting
-                        ? "Redirecting to PayU..."
-                        : `Add ${paise(topupPaise)} via PayU`}
+                        ? "Redirecting to Payment Gateway..."
+                        : `Add ${paise(topupPaise)} Online`}
                     </span>
                   </div>
                 </Button>
@@ -272,7 +272,7 @@ export function PaymentStep({
                 <div className="rounded-xl border border-[#e8dfd4] bg-white p-2.5 sm:p-3 text-[11px] leading-relaxed text-[#715e50]">
                   <p className="font-semibold text-[#24130f]">What happens next</p>
                   <ol className="mt-1 list-decimal space-y-0.5 pl-4">
-                    <li>You pay {paise(topupPaise)} on PayU and return here.</li>
+                    <li>You pay {paise(topupPaise)} online and return here.</li>
                     <li>
                       {isFirstTopup ? (
                         <>
