@@ -2,6 +2,8 @@ import { apiClient } from "@/lib/api/client";
 import { profileApi } from "@/features/profile/api/profileApi";
 import { locationApi } from "@/features/location/api/locationApi";
 import { ordersApi } from "@/features/orders";
+import { manageDeliveryApi } from "@/features/delivery";
+import { Subscription } from "@/types/models";
 import {
   OrdersResponse,
   OrderResponse,
@@ -114,11 +116,69 @@ export const accountApi = {
   },
 
   async getSubscription(): Promise<SubscriptionResponse> {
-    return apiClient.get<SubscriptionResponse>("/api/subscription");
+    try {
+      const res = await manageDeliveryApi.getManageDelivery();
+      if (res && res.activePlan) {
+        const plan = res.activePlan;
+        const planId =
+          plan.planType === "BUY_ONCE"
+            ? "single"
+            : plan.planType === "SEVEN_DAY_TRIAL"
+            ? "trial"
+            : "monthly";
+        const planName =
+          plan.planType === "BUY_ONCE"
+            ? "Buy Once (1 Litre Sample)"
+            : plan.planType === "SEVEN_DAY_TRIAL"
+            ? "7-Day Trial Plan"
+            : "Monthly Subscription";
+        const nextDelivery =
+          res.upcomingDeliveries?.[0]?.date || plan.startDate || "";
+        const nextDeliveryDate = nextDelivery
+          ? new Date(nextDelivery).toISOString().split("T")[0]
+          : "";
+        const sub: Subscription = {
+          id: plan.selectionId,
+          userId: "",
+          planId,
+          planName,
+          price:
+            plan.planType === "BUY_ONCE"
+              ? 80
+              : plan.planType === "SEVEN_DAY_TRIAL"
+              ? 525
+              : 2250,
+          status:
+            plan.status === "ACTIVE" || plan.status === "CONFIRMED"
+              ? "active"
+              : "paused",
+          dailyQuantity:
+            plan.planType === "BUY_ONCE"
+              ? `${plan.quantityLitres || 1}L Sample Bottle`
+              : `${plan.quantityLitres || 1}L Daily`,
+          nextDeliveryDate: nextDeliveryDate,
+          startedAt: plan.startDate || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        return { success: true, subscription: sub };
+      }
+      return { success: true, subscription: null };
+    } catch {
+      return { success: true, subscription: null };
+    }
   },
 
-  async updateSubscriptionStatus(status: "active" | "paused"): Promise<SubscriptionResponse> {
-    return apiClient.patch<SubscriptionResponse>("/api/subscription", { status });
+  async updateSubscriptionStatus(
+    status: "active" | "paused"
+  ): Promise<SubscriptionResponse> {
+    try {
+      if (status === "paused") {
+        await manageDeliveryApi.pauseDelivery({});
+      }
+      return this.getSubscription();
+    } catch (e: any) {
+      return { success: false, error: e?.message || "Could not update status", subscription: null };
+    }
   },
 
   async createSubscription(payload: {
