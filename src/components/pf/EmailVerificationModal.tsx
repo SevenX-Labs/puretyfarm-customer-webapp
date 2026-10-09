@@ -395,10 +395,7 @@ export function EmailVerificationModal({
                   )}
                 </div>
 
-                {/* Dev hint */}
-                <div className="rounded-lg bg-[#FAF1E2] px-3 py-2 text-[11px] text-[#6F2115] border border-[#ECDCCB]">
-                  <strong>Testing Tip:</strong> In test / dev environments, you can enter <code>123456</code> to verify instantly.
-                </div>
+
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2.5 pt-1">

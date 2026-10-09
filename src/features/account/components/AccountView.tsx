@@ -96,7 +96,17 @@ export function AccountView() {
     showEmailModal,
     setShowEmailModal,
     handleEmailVerifiedAndResumeRecharge,
+    refreshUser,
   } = useAccountData();
+
+  const [profileEmailModalOpen, setProfileEmailModalOpen] = useState(false);
+  const [profileEmailToVerify, setProfileEmailToVerify] = useState("");
+
+  const handleOpenProfileEmailVerify = (emailCandidate?: string) => {
+    const target = (emailCandidate || profileEmail || user?.email || "").trim();
+    setProfileEmailToVerify(target);
+    setProfileEmailModalOpen(true);
+  };
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -434,7 +444,7 @@ export function AccountView() {
                 onGenderChange={setProfileGender}
                 onProfileError={(msg) => setProfileMsg({ type: "error", text: msg })}
                 onSaveProfile={handleSaveProfile}
-                onVerifyEmail={() => setShowEmailModal(true)}
+                onVerifyEmail={handleOpenProfileEmailVerify}
               />
             )}
 
@@ -491,11 +501,27 @@ export function AccountView() {
         )}
       </main>
 
+      {/* Profile Email Verification Modal */}
+      <EmailVerificationModal
+        isOpen={profileEmailModalOpen}
+        onClose={() => setProfileEmailModalOpen(false)}
+        onSuccess={(verifiedEmail) => {
+          setProfileEmail(verifiedEmail);
+          setProfileEmailModalOpen(false);
+          setProfileMsg({ type: "success", text: `Email ${verifiedEmail} verified successfully!` });
+          refreshUser().catch(() => {});
+        }}
+        initialEmail={profileEmailToVerify || profileEmail || user?.email || ""}
+        title="Verify Your Email Address"
+        description="We will send a 6-digit verification code to confirm your email address."
+      />
+
+      {/* Wallet Recharge / Payment Email Modal */}
       <EmailVerificationModal
         isOpen={showEmailModal}
         onClose={() => setShowEmailModal(false)}
         onSuccess={handleEmailVerifiedAndResumeRecharge}
-        initialEmail={user?.email || ""}
+        initialEmail={user?.email || profileEmail || ""}
         title="Email Required for Payment"
         description="Online payment gateways require a verified email address to send your payment receipts and invoice records."
       />

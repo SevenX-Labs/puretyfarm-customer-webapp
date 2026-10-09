@@ -863,6 +863,7 @@ export function useAccountData() {
     user,
     authLoading,
     logout,
+    refreshUser,
     activeTab,
     setActiveTab,
     isEditingProfile,

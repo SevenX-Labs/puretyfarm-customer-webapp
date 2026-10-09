@@ -38,7 +38,7 @@ export interface ProfileTabProps {
   onGenderChange: (val: string) => void;
   onProfileError: (msg: string) => void;
   onSaveProfile: (e: React.FormEvent) => void;
-  onVerifyEmail?: () => void;
+  onVerifyEmail?: (email?: string) => void;
 }
 
 const GENDER_OPTIONS = [
@@ -240,7 +240,7 @@ export function ProfileTab({
                 ) : user.email ? (
                   <button
                     type="button"
-                    onClick={onVerifyEmail || onStartEdit}
+                    onClick={() => onVerifyEmail ? onVerifyEmail(user.email!) : onStartEdit()}
                     className="text-[10px] font-bold uppercase text-[#5C1B13] hover:underline cursor-pointer"
                   >
                     Verify
@@ -248,10 +248,10 @@ export function ProfileTab({
                 ) : (
                   <button
                     type="button"
-                    onClick={onStartEdit}
+                    onClick={() => onVerifyEmail ? onVerifyEmail(profileEmail || "") : onStartEdit()}
                     className="text-[10px] font-bold uppercase text-[#5C1B13] hover:underline cursor-pointer"
                   >
-                    Add
+                    Add &amp; Verify
                   </button>
                 )}
               </div>
@@ -409,7 +409,7 @@ export function ProfileTab({
               ) : profileEmail.trim() ? (
                 <button
                   type="button"
-                  onClick={onVerifyEmail}
+                  onClick={() => onVerifyEmail?.(profileEmail.trim())}
                   className="text-[11px] font-bold text-[#5C1B13] hover:underline cursor-pointer"
                 >
                   Verify Email
