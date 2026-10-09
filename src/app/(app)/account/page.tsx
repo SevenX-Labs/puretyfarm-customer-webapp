@@ -12,7 +12,6 @@ const TAB_REDIRECTS: Record<string, string> = {
   subscription: "/plan",
   wallet: "/wallet",
   addresses: "/account-settings?tab=addresses",
-  profile: "/account-settings?tab=profile",
   preferences: "/account-settings?tab=preferences",
   security: "/account-settings?tab=security",
   activity: "/account-settings?tab=activity",

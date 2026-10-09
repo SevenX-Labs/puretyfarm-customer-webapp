@@ -23,6 +23,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfButton, PfCard, PfSectionTitle } from "@/components/pf";
+import { EditProfileModal } from "./components/EditProfileModal";
 import { accountApi } from "@/features/account/api/accountApi";
 import type { Subscription, Order } from "@/types/models";
 import {
@@ -56,6 +57,7 @@ export function AccountLandingView() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingPlan, setLoadingPlan] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,6 +103,11 @@ export function AccountLandingView() {
     <>
       <CustomerHeader title="Account" subtitle="Manage your profile, delivery, and preferences." />
 
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
+
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Profile Card */}
@@ -130,9 +137,9 @@ export function AccountLandingView() {
                 </div>
               </div>
               <PfButton
-                href="/account-settings?tab=profile&edit=true"
                 variant="secondary"
                 size="sm"
+                onClick={() => setIsEditModalOpen(true)}
                 className="w-full sm:w-auto mt-2 sm:mt-0 cursor-pointer"
               >
                 Edit profile
