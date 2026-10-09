@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { FiCamera, FiUpload, FiTrash2, FiZoomIn, FiCheck, FiX } from "react-icons/fi";
+import { FiCamera, FiUpload, FiTrash2, FiZoomIn, FiCheck, FiX, FiUser } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
 import { profileApi } from "@/features/profile/api/profileApi";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
@@ -27,7 +27,7 @@ export function AvatarUpload({
 }: AvatarUploadProps) {
   const { refreshUser, setUser } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string>(initialUrl);
-  const [prevInitialUrl, setPrevInitialUrl] = useState<string>(initialUrl);
+  const [imgError, setImgError] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   // Modal / Crop States
@@ -42,10 +42,12 @@ export function AvatarUpload({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const loadedImageRef = useRef<HTMLImageElement | null>(null);
 
-  if (initialUrl !== prevInitialUrl) {
-    setPrevInitialUrl(initialUrl);
-    setAvatarUrl(initialUrl || "");
-  }
+  useEffect(() => {
+    if (initialUrl) {
+      setAvatarUrl(initialUrl);
+      setImgError(false);
+    }
+  }, [initialUrl]);
 
   // Compute initials fallback
   const getInitials = (text: string) => {
@@ -60,7 +62,7 @@ export function AvatarUpload({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset input value so same file can be selected again if needed
+    // Reset input value so same file can be re-selected if needed
     e.target.value = "";
 
     // 1. Validate file type
@@ -101,19 +103,19 @@ export function AvatarUpload({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const size = canvas.width;
-    ctx.clearRect(0, 0, size, size);
+    const canvasSize = canvas.width;
+    ctx.clearRect(0, 0, canvasSize, canvasSize);
 
     // Calculate scaling to cover the square canvas
-    const baseScale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+    const baseScale = Math.max(canvasSize / img.naturalWidth, canvasSize / img.naturalHeight);
     const currentScale = baseScale * zoom;
 
     const drawW = img.naturalWidth * currentScale;
     const drawH = img.naturalHeight * currentScale;
 
     // Center image + apply user pan
-    const centerX = (size - drawW) / 2 + pan.x;
-    const centerY = (size - drawH) / 2 + pan.y;
+    const centerX = (canvasSize - drawW) / 2 + pan.x;
+    const centerY = (canvasSize - drawH) / 2 + pan.y;
 
     ctx.drawImage(img, centerX, centerY, drawW, drawH);
   }, [zoom, pan]);
@@ -191,55 +193,61 @@ export function AvatarUpload({
 
       ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
-      // Convert to blob with compression (WebP preferred, fallback to JPEG)
+      // Local high-res preview URL immediately
+      const localDataUrl = exportCanvas.toDataURL("image/webp", 0.9);
+      setAvatarUrl(localDataUrl);
+      setImgError(false);
+      onUploaded(localDataUrl);
+
+      // Convert to blob with compression
       const blob = await new Promise<Blob | null>((resolve) => {
         exportCanvas.toBlob((b) => resolve(b), "image/webp", 0.85);
       });
 
       if (!blob) throw new Error("Failed to compress image.");
 
-      let uploadedUrl = "";
+      let serverUploadedUrl = "";
 
       if (tokenStorage.getAccessToken()) {
         try {
           const profile = await profileApi.uploadAvatar(blob);
-          uploadedUrl = profile.profileImageUrl || "";
+          if (profile?.profileImageUrl) {
+            serverUploadedUrl = profile.profileImageUrl;
+          }
         } catch (err) {
-          console.warn("Direct avatar upload error, trying local fallback:", err);
+          console.warn("Direct avatar upload warning, trying local proxy:", err);
         }
       }
 
-      if (!uploadedUrl) {
+      if (!serverUploadedUrl) {
         const formData = new FormData();
         formData.append("file", blob, `avatar_${Date.now()}.webp`);
         const res = await fetch("/api/upload/avatar", {
           method: "POST",
           body: formData,
         });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          uploadedUrl = data.avatarUrl || data.url || "";
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success && data.avatarUrl) {
+          serverUploadedUrl = data.avatarUrl;
         }
       }
 
-      if (uploadedUrl) {
-        setPrevInitialUrl(uploadedUrl);
-        setAvatarUrl(uploadedUrl);
-        onUploaded(uploadedUrl);
-        setUser((prev) => (prev ? { ...prev, avatarUrl: uploadedUrl } : null));
-        await refreshUser().catch(() => {});
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error uploading avatar";
-      onError?.(message);
+      const finalUrl = serverUploadedUrl || localDataUrl;
+      setAvatarUrl(finalUrl);
+      onUploaded(finalUrl);
+      setUser((prev) => (prev ? { ...prev, avatarUrl: finalUrl } : null));
+      await refreshUser().catch(() => {});
+    } catch (err: any) {
+      console.error("Avatar upload process failed:", err);
+      onError?.(err?.message || "Failed to process photo. Please try again.");
     } finally {
       setUploading(false);
     }
   };
 
   const handleRemovePhoto = async () => {
-    setPrevInitialUrl("");
     setAvatarUrl("");
+    setImgError(false);
     onUploaded("");
     setUser((prev) => (prev ? { ...prev, avatarUrl: "" } : null));
 
@@ -253,6 +261,8 @@ export function AvatarUpload({
       console.error("Failed to remove avatar on server:", err);
     }
   };
+
+  const hasValidAvatar = Boolean(avatarUrl && !imgError);
 
   return (
     <div className={`flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4.5 ${className}`}>
@@ -276,18 +286,23 @@ export function AvatarUpload({
             ${uploading ? "opacity-60" : "group-hover:border-[#5C1B13]"}
           `}
         >
-          {avatarUrl ? (
+          {hasValidAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={avatarUrl}
               alt={name || "Profile avatar"}
+              onError={() => setImgError(true)}
               className="w-full h-full object-cover"
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-[#5C1B13]">
-              <span className="text-base sm:text-lg font-serif font-bold tracking-wider">
-                {getInitials(name)}
-              </span>
+              {name ? (
+                <span className="text-base sm:text-lg font-serif font-bold tracking-wider">
+                  {getInitials(name)}
+                </span>
+              ) : (
+                <FiUser className="w-6 h-6 text-[#5C1B13]/70" />
+              )}
             </div>
           )}
 
@@ -316,7 +331,7 @@ export function AvatarUpload({
         <div>
           <h4 className="text-sm font-bold text-[#1A1008]">Profile Picture</h4>
           <p className="text-[11px] text-[#3A241C]/65">
-          JPG, PNG or WebP · Max 3 MB · Square image
+            JPG, PNG or WebP · Max 3 MB · Square image
           </p>
         </div>
 
@@ -328,10 +343,10 @@ export function AvatarUpload({
             className="inline-flex items-center gap-1.5 rounded-xl border border-[#E8DFD4] bg-white px-2.5 py-1 text-[11px] sm:text-xs font-semibold text-[#1A1008] shadow-2xs transition-colors hover:border-[#5C1B13]/40 hover:text-[#5C1B13] cursor-pointer"
           >
             <FiUpload className="w-3.5 h-3.5" />
-            <span>{actionLabel || (avatarUrl ? "Replace Photo" : "Upload Photo")}</span>
+            <span>{actionLabel || (hasValidAvatar ? "Replace Photo" : "Upload Photo")}</span>
           </button>
 
-          {avatarUrl && (
+          {hasValidAvatar && (
             <button
               type="button"
               onClick={handleRemovePhoto}
