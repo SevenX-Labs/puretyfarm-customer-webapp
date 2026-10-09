@@ -70,33 +70,6 @@ export function WalletTab({
 }: WalletTabProps) {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "CASH">("ONLINE");
-  const [localTransactions, setLocalTransactions] = useState<LocalTransaction[]>([]);
-
-  // Load local wallet transactions fallback
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(`pf_wallet_tx_${userId}`);
-      if (stored) {
-        setLocalTransactions(JSON.parse(stored));
-      } else {
-        setLocalTransactions([
-          {
-            id: "tx_init_1",
-            type: "credit",
-            amount: 255,
-            title: "Promotional Welcome Credit",
-            description: "3 Free Glass Bottles Welcome Bonus (Raipur)",
-            date: new Date().toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "short",
-            }),
-          },
-        ]);
-      }
-    } catch {
-      // Fallback
-    }
-  }, [userId, balance]);
 
   const rechargePacks = [
     {
@@ -531,44 +504,9 @@ export function WalletTab({
                 </div>
               ))
             ) : (
-              localTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="py-2.5 flex items-center justify-between gap-3 text-xs"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span
-                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                        tx.type === "credit"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-[#FAF3EA] text-[#5C1B13]"
-                      }`}
-                    >
-                      {tx.type === "credit" ? (
-                        <FiArrowDownLeft className="w-4 h-4" />
-                      ) : (
-                        <FiArrowUpRight className="w-4 h-4" />
-                      )}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-[#1A1008] truncate">{tx.title}</p>
-                      <p className="text-[10px] text-[#8C7A6B] truncate">
-                        {tx.description} • {tx.date}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`font-mono font-bold shrink-0 ${
-                      tx.type === "credit" ? "text-emerald-700" : "text-[#5C1B13]"
-                    }`}
-                  >
-                    {tx.type === "credit"
-                      ? `+₹${tx.amount.toFixed(2)}`
-                      : `-₹${tx.amount.toFixed(2)}`}
-                  </span>
-                </div>
-              ))
+              <div className="py-6 text-center text-xs text-[#8C7A6B]">
+                No wallet activity yet.
+              </div>
             )}
           </div>
         </div>

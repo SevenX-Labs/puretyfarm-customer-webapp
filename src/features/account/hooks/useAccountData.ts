@@ -132,11 +132,7 @@ export function useAccountData() {
 
       if (walletRes && walletRes.balancePaise !== undefined) {
         setWallet(walletRes);
-        const rubBalance = walletRes.balancePaise / 100;
-        setWalletBalance(rubBalance);
-        try {
-          localStorage.setItem(`pf_wallet_${user.id}`, rubBalance.toString());
-        } catch {}
+        setWalletBalance(walletRes.balancePaise / 100);
       }
 
       if (txRes && Array.isArray(txRes.data)) {
@@ -147,33 +143,23 @@ export function useAccountData() {
         setCreditRequests(crRes.data);
       }
     } catch (err) {
-      console.warn("Wallet fetch error, using local fallback:", err);
+      console.warn("Wallet fetch error:", err);
     } finally {
       setWalletLoading(false);
     }
   }, [user]);
 
-  // Sync wallet balance on mount and custom events
+  // Sync wallet balance on mount and after any wallet_update event. Backend
+  // is the single source of truth — no localStorage balance cache.
   useEffect(() => {
     if (!user) return;
 
     fetchWalletData();
 
-    const syncBalance = () => {
-      fetchWalletData();
-      try {
-        const saved = localStorage.getItem(`pf_wallet_${user.id}`);
-        if (saved !== null) {
-          setWalletBalance(parseFloat(saved) || 0);
-        }
-      } catch {}
-    };
-
-    window.addEventListener("storage", syncBalance);
-    window.addEventListener("wallet_update", syncBalance);
+    const onUpdate = () => fetchWalletData();
+    window.addEventListener("wallet_update", onUpdate);
     return () => {
-      window.removeEventListener("storage", syncBalance);
-      window.removeEventListener("wallet_update", syncBalance);
+      window.removeEventListener("wallet_update", onUpdate);
     };
   }, [user, fetchWalletData]);
 
@@ -189,11 +175,11 @@ export function useAccountData() {
             const amt = (res.payment.amountPaise / 100).toFixed(0);
             if (res.requiresAdminApproval || res.payment.walletCredit?.status === "PENDING") {
               setWalletSuccessMsg(
-                `Payment of ₹${amt} verified! Awaiting Admin Approval for first wallet credit.`
+                `Payment Successful — ₹${amt} reached PayU. Wallet Credit Awaiting Approval: the admin will approve shortly and your balance will update automatically.`
               );
             } else {
               setWalletSuccessMsg(
-                `Payment of ₹${amt} verified! Wallet credited successfully.`
+                `Payment Successful — ₹${amt} verified. Wallet credited.`
               );
             }
             fetchWalletData();
@@ -258,37 +244,14 @@ export function useAccountData() {
         );
         fetchWalletData();
       }
-    } catch (err: any) {
-      console.warn("Live payment creation notice, running local ledger:", err);
-      const next = walletBalance + amount;
-      setWalletBalance(next);
-      try {
-        localStorage.setItem(`pf_wallet_${user.id}`, next.toString());
-        const txKey = `pf_wallet_tx_${user.id}`;
-        const existingTx = JSON.parse(localStorage.getItem(txKey) || "[]");
-        const newTx = {
-          id: `tx_${Date.now()}`,
-          type: "credit",
-          amount,
-          title: `Wallet Top-Up (₹${amount})`,
-          description:
-            method === "ONLINE"
-              ? "Online Instant UPI/Card Recharge"
-              : "Cash Collection Request",
-          date: new Date().toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        localStorage.setItem(txKey, JSON.stringify([newTx, ...existingTx]));
-        window.dispatchEvent(new Event("wallet_update"));
-      } catch {
-        // Ignore
-      }
-      setWalletSuccessMsg(`Successfully added ₹${amount} to your PuretyFarm wallet!`);
-      setTimeout(() => setWalletSuccessMsg(null), 5000);
+    } catch (err: unknown) {
+      // Backend-only: never fabricate a top-up locally on failure. Surface
+      // the real error and leave the balance untouched.
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Could not start the top-up. Please try again.";
+      setWalletPaymentError({ message, transactionId: "", canRetry: false });
     } finally {
       setWalletRecharging(false);
     }

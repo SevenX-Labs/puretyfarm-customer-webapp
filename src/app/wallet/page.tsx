@@ -47,7 +47,9 @@ function WalletContent() {
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
   const [creditRequests, setCreditRequests] = useState<WalletCreditRequest[]>([]);
 
-  // Fetch Wallet & Ledger from Server API
+  // Fetch Wallet & Ledger from Server API — backend is the single source of
+  // truth. Per customer wallet spec §10 rule 4, never read balancePaise from
+  // our own cache after a payment attempt.
   const fetchWalletData = useCallback(async () => {
     if (!user) return;
     try {
@@ -59,11 +61,7 @@ function WalletContent() {
 
       if (walletRes && walletRes.balancePaise !== undefined) {
         setWallet(walletRes);
-        const rubBalance = walletRes.balancePaise / 100;
-        setBalance(rubBalance);
-        try {
-          localStorage.setItem(`pf_wallet_${user.id}`, rubBalance.toString());
-        } catch {}
+        setBalance(walletRes.balancePaise / 100);
       }
 
       if (txRes && Array.isArray(txRes.data)) {
@@ -88,26 +86,12 @@ function WalletContent() {
     if (user) {
       fetchWalletData();
 
-      const syncBal = () => {
-        fetchWalletData();
-        try {
-          const saved = localStorage.getItem(`pf_wallet_${user.id}`);
-          if (saved) {
-            setBalance(parseFloat(saved) || 0);
-          } else {
-            setBalance(255);
-          }
-        } catch {
-          setBalance(255);
-        }
-      };
-
-      syncBal();
-      window.addEventListener("storage", syncBal);
-      window.addEventListener("wallet_update", syncBal);
+      // Listen for wallet_update events (e.g. after a PayU return in another
+      // tab) and re-fetch from the backend. No localStorage balance cache.
+      const onUpdate = () => fetchWalletData();
+      window.addEventListener("wallet_update", onUpdate);
       return () => {
-        window.removeEventListener("storage", syncBal);
-        window.removeEventListener("wallet_update", syncBal);
+        window.removeEventListener("wallet_update", onUpdate);
       };
     }
   }, [user, loading, router, fetchWalletData]);
@@ -137,16 +121,17 @@ function WalletContent() {
         .then((res) => {
           if (res.payment.status === "SUCCESS") {
             const amt = (res.payment.amountPaise / 100).toFixed(0);
+            // Spec §10.5: show the two events separately on first credit.
             if (
               res.requiresAdminApproval ||
               res.payment.walletCredit?.status === "PENDING"
             ) {
               setRechargeSuccess(
-                `Payment of ₹${amt} verified! Awaiting Admin Approval for first wallet credit.`
+                `Payment Successful — ₹${amt} reached PayU. Wallet Credit Awaiting Approval: the admin will approve shortly and your balance will update automatically.`
               );
             } else {
               setRechargeSuccess(
-                `Payment of ₹${amt} verified! Wallet credited successfully.`
+                `Payment Successful — ₹${amt} verified. Wallet credited.`
               );
             }
             fetchWalletData();
@@ -209,35 +194,14 @@ function WalletContent() {
         );
         fetchWalletData();
       }
-    } catch (err: any) {
-      console.warn("Live payment note, applying local balance:", err);
-      const next = balance + amount;
-      setBalance(next);
-      try {
-        localStorage.setItem(`pf_wallet_${user.id}`, next.toString());
-        const txKey = `pf_wallet_tx_${user.id}`;
-        const existingTx = JSON.parse(localStorage.getItem(txKey) || "[]");
-        const newTx = {
-          id: `tx_${Date.now()}`,
-          type: "credit",
-          amount,
-          title: `Wallet Top-Up (₹${amount})`,
-          description:
-            method === "ONLINE"
-              ? "Online Instant UPI/Card Recharge"
-              : "Cash Collection Request",
-          date: new Date().toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        localStorage.setItem(txKey, JSON.stringify([newTx, ...existingTx]));
-        window.dispatchEvent(new Event("wallet_update"));
-      } catch {}
-      setRechargeSuccess(`Added ₹${amount} to your PuretyFarm wallet!`);
-      setTimeout(() => setRechargeSuccess(null), 5000);
+    } catch (err: unknown) {
+      // Backend-only: never fabricate a successful top-up locally. A failed
+      // call must surface as an error with no balance change.
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Could not start the top-up. Please try again.";
+      setPaymentError({ message });
     } finally {
       setIsProcessing(false);
     }
@@ -578,17 +542,8 @@ function WalletContent() {
                   </div>
                 ))
               ) : (
-                <div className="py-2.5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                      <FiArrowDownLeft className="w-3.5 h-3.5" />
-                    </span>
-                    <div>
-                      <p className="font-bold text-[#1A1008]">Promotional Starter Credit</p>
-                      <p className="text-[10px] text-[#8C7A6B]">Account creation bonus</p>
-                    </div>
-                  </div>
-                  <span className="font-mono font-bold text-emerald-700">+₹255.00</span>
+                <div className="py-6 text-center text-xs text-[#8C7A6B]">
+                  No wallet activity yet.
                 </div>
               )}
             </div>
