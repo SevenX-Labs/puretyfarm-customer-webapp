@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Mail,
@@ -13,10 +14,24 @@ import {
   Package,
   Milk,
   ChevronRight,
+  Clock,
+  CheckCircle2,
+  Receipt,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfButton, PfCard, PfSectionTitle } from "@/components/pf";
+import { accountApi } from "@/features/account/api/accountApi";
+import type { Subscription, Order } from "@/types/models";
+import {
+  formatDeliveryDate,
+  orderItemsSummary,
+  orderTotalRupees,
+  statusLabel,
+  statusTone,
+} from "@/features/dashboard/utils";
 
 function initials(name?: string, mobile?: string) {
   if (name?.trim()) {
@@ -38,8 +53,33 @@ const SHORTCUTS = [
 
 export function AccountLandingView() {
   const { user, logout } = useAuth();
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingPlan, setLoadingPlan] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [subRes, ordRes] = await Promise.all([
+          accountApi.getSubscription().catch(() => ({ success: false, subscription: null })),
+          accountApi.getOrders().catch(() => ({ success: false, orders: [] as Order[] })),
+        ]);
+        if (cancelled) return;
+        setSubscription(subRes?.subscription || null);
+        setOrders(ordRes?.orders || []);
+      } finally {
+        if (!cancelled) setLoadingPlan(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (!user) return null;
+
+  const latestOrder = orders.length > 0 ? orders[0] : null;
 
   return (
     <>
@@ -47,6 +87,7 @@ export function AccountLandingView() {
 
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
+          {/* Profile Card */}
           <PfCard padding="lg">
             <div className="flex items-center gap-4 flex-wrap">
               <div className="relative shrink-0">
@@ -101,6 +142,149 @@ export function AccountLandingView() {
             </dl>
           </PfCard>
 
+          {/* Active Milk Plan & Usage Card */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <PfSectionTitle title="Milk Plan & Usage" />
+              <Link
+                href="/plan"
+                className="text-[12px] font-bold text-[var(--pf-brown)] hover:underline inline-flex items-center gap-1"
+              >
+                Manage plan <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            {subscription ? (
+              <PfCard padding="md" className="border-l-4 border-l-[var(--pf-brown)]">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--pf-yellow-soft)] flex items-center justify-center text-[var(--pf-brown)] shrink-0">
+                      <Milk size={20} strokeWidth={1.75} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-[15px] text-[var(--pf-text)]">
+                          {subscription.planName || "Active Milk Subscription"}
+                        </h3>
+                        <PfBadge tone={subscription.status === "active" ? "success" : "warning"} dot>
+                          {subscription.status === "active" ? "Active" : "Paused"}
+                        </PfBadge>
+                      </div>
+                      <p className="text-[12px] text-[var(--pf-text-secondary)] mt-0.5">
+                        {subscription.dailyQuantity || "1 Litre Daily"} · Pure A2 Cow Milk
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="font-serif text-lg font-bold text-[var(--pf-brown)]">
+                      ₹{subscription.price}
+                    </span>
+                    <span className="text-[11px] text-[var(--pf-text-muted)] block">
+                      Plan billing
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-[var(--pf-border)] grid sm:grid-cols-2 gap-3 text-xs text-[var(--pf-text-secondary)]">
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-amber-600 shrink-0" />
+                    <span>
+                      Next delivery: <strong>Tomorrow (6:00 AM – 8:00 AM)</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-emerald-600 shrink-0" />
+                    <span>Silent doorstep glass bottle drop</span>
+                  </div>
+                </div>
+              </PfCard>
+            ) : (
+              <PfCard padding="md">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--pf-surface-soft)] flex items-center justify-center text-[var(--pf-text-muted)]">
+                      <Milk size={20} strokeWidth={1.75} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-[var(--pf-text)]">No active subscription plan</h4>
+                      <p className="text-xs text-[var(--pf-text-secondary)] mt-0.5">
+                        Select a milk plan to start receiving fresh daily morning deliveries.
+                      </p>
+                    </div>
+                  </div>
+                  <PfButton href="/plan" size="sm">Choose Plan</PfButton>
+                </div>
+              </PfCard>
+            )}
+          </section>
+
+          {/* Recent Order Summary Card */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <PfSectionTitle title="Latest Order" />
+              <Link
+                href="/orders"
+                className="text-[12px] font-bold text-[var(--pf-brown)] hover:underline inline-flex items-center gap-1"
+              >
+                View all orders ({orders.length}) <ArrowRight size={13} />
+              </Link>
+            </div>
+
+            {latestOrder ? (
+              <PfCard padding="md">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-[var(--pf-brown)]">
+                        #{(latestOrder.orderNumber || latestOrder.id).toString().slice(0, 10).toUpperCase()}
+                      </span>
+                      <PfBadge tone={statusTone(latestOrder.status)} dot>
+                        {statusLabel(latestOrder.status)}
+                      </PfBadge>
+                    </div>
+                    <p className="text-sm font-semibold text-[var(--pf-text)] mt-1.5">
+                      {orderItemsSummary(latestOrder).name} × {orderItemsSummary(latestOrder).qty} {orderItemsSummary(latestOrder).unit}
+                    </p>
+                    <p className="text-xs text-[var(--pf-text-muted)] mt-0.5">
+                      Delivery: {formatDeliveryDate(latestOrder.deliveryDate || latestOrder.createdAt).label}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="font-serif text-base font-bold text-[var(--pf-text)]">
+                      {orderTotalRupees(latestOrder)}
+                    </div>
+                    <Link
+                      href={`/orders/${latestOrder.id}`}
+                      className="mt-1 text-xs font-semibold text-[var(--pf-brown)] hover:underline inline-flex items-center gap-1"
+                    >
+                      Details <ChevronRight size={13} />
+                    </Link>
+                  </div>
+                </div>
+              </PfCard>
+            ) : (
+              <PfCard padding="md">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--pf-surface-soft)] flex items-center justify-center text-[var(--pf-text-muted)]">
+                      <Receipt size={20} strokeWidth={1.75} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-[var(--pf-text)]">No orders placed yet</h4>
+                      <p className="text-xs text-[var(--pf-text-secondary)] mt-0.5">
+                        Your placed orders and delivery invoices will appear here.
+                      </p>
+                    </div>
+                  </div>
+                  <PfButton href="/products" variant="secondary" size="sm">Explore Products</PfButton>
+                </div>
+              </PfCard>
+            )}
+          </section>
+
+          {/* Shortcuts Grid */}
           <section>
             <PfSectionTitle title="Shortcuts" />
             <div className="grid sm:grid-cols-2 gap-3">

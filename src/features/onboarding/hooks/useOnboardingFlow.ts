@@ -1,5 +1,7 @@
 "use client";
 
+import { apiClient } from "@/lib/api/client";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -304,6 +306,87 @@ export function useOnboardingFlow() {
     }
   };
 
+  // Helper to record confirmed order & redirect to Order Confirmation page
+  const recordAndRedirectConfirmedOrder = async (
+    method: "WALLET" | "CASH",
+    confirmResult?: any
+  ) => {
+    if (!pendingPlan || !pendingQuote) return;
+    const orderNumber = "ORD-" + Math.floor(100000 + Math.random() * 900000);
+    const amountRupees = (pendingQuote.totalSellingAmount / 100).toFixed(2);
+    const tomorrowStr = new Date(Date.now() + 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
+
+    const orderRecord = {
+      id: confirmResult?.selectionId || ("ord_" + Date.now()),
+      orderNumber,
+      planId: pendingPlan.id,
+      planName: pendingPlan.name,
+      quantity: pendingPlan.quantity || "1 Litre",
+      totalAmount: Number(amountRupees),
+      paymentMethod: method,
+      paymentStatus: method === "WALLET" ? "PAID" : "PENDING",
+      status: "Confirmed",
+      createdAt: new Date().toISOString(),
+      deliveryDate: tomorrowStr,
+      deliveryAddress: savedAddress,
+      items: [
+        {
+          id: `item_${pendingPlan.id}`,
+          name: `${pendingPlan.name} (${pendingPlan.quantity || "1 Litre"})`,
+          productNameSnapshot: `${pendingPlan.name} (${pendingPlan.quantity || "1 Litre"})`,
+          quantity: pendingQuote.deliveryOccurrences || 1,
+          price: Number(amountRupees),
+          totalPaise: pendingQuote.totalSellingAmount,
+          unit: "Litre",
+        },
+      ],
+    };
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(
+          "pf_last_confirmed_order",
+          JSON.stringify(orderRecord)
+        );
+        const prev = JSON.parse(
+          localStorage.getItem("pf_local_orders") || "[]"
+        );
+        localStorage.setItem(
+          "pf_local_orders",
+          JSON.stringify([orderRecord, ...prev])
+        );
+      } catch {}
+    }
+
+    // Persist to local store for orders & subscriptions
+    await apiClient
+      .post("/api/orders", {
+        items: orderRecord.items,
+        totalAmount: orderRecord.totalAmount,
+        deliveryAddress: savedAddress,
+        status: "Placed",
+      })
+      .catch(() => {});
+
+    await apiClient
+      .post("/api/subscription", {
+        planId: pendingPlan.id,
+        planName: pendingPlan.name,
+        price: orderRecord.totalAmount,
+        dailyQuantity: `${pendingPlan.quantity || "1 Litre"} Daily`,
+      })
+      .catch(() => {});
+
+    await refreshUser();
+    router.push(
+      `/order-confirmation?orderNumber=${orderNumber}&plan=${encodeURIComponent(
+        pendingPlan.name
+      )}&amount=${amountRupees}&method=${method}`
+    );
+  };
+
   // ─── STEP 5 HANDLERS: Payment Methods ───
   const handlePayFromWallet = async () => {
     if (!pendingQuote || !pendingPlan) return;
@@ -312,20 +395,12 @@ export function useOnboardingFlow() {
     setPaymentNotice(null);
 
     try {
-      await plansApi.confirmPlanQuote({
+      const confirmRes = await plansApi.confirmPlanQuote({
         quoteId: pendingQuote.quoteId,
         paymentMethod: "WALLET",
       });
 
-      try {
-        await onboardingApi.completePlanSelection({
-          planId: pendingPlan.id,
-          addressId: savedAddress?.id || "",
-        });
-      } catch {}
-
-      await refreshUser();
-      router.replace("/account?welcome=1");
+      await recordAndRedirectConfirmedOrder("WALLET", confirmRes);
     } catch (err: any) {
       const msg =
         err?.data?.message ||
@@ -368,20 +443,12 @@ export function useOnboardingFlow() {
     setPaymentNotice(null);
 
     try {
-      await plansApi.confirmPlanQuote({
+      const confirmRes = await plansApi.confirmPlanQuote({
         quoteId: pendingQuote.quoteId,
         paymentMethod: "CASH",
       });
 
-      try {
-        await onboardingApi.completePlanSelection({
-          planId: pendingPlan.id,
-          addressId: savedAddress?.id || "",
-        });
-      } catch {}
-
-      await refreshUser();
-      router.replace("/account?welcome=1");
+      await recordAndRedirectConfirmedOrder("CASH", confirmRes);
     } catch (err: any) {
       const msg = err?.data?.message || err?.message || "Cash request could not be registered.";
       setPaymentError(Array.isArray(msg) ? msg.join(", ") : String(msg));

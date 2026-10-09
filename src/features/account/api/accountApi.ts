@@ -13,18 +13,48 @@ import {
 
 export const accountApi = {
   async getOrders(): Promise<OrdersResponse> {
+    const collectedOrders: any[] = [];
+
+    // 1. Fetch from backend NestJS API
     try {
       const res = await ordersApi.listOrders();
-      if (res && Array.isArray(res.data)) {
-        return {
-          success: true,
-          orders: res.data as any,
-        };
+      if (res && Array.isArray(res.data) && res.data.length > 0) {
+        collectedOrders.push(...res.data);
       }
     } catch (err) {
       console.warn("Direct /api/v1/customer/orders fetch failed, attempting fallback:", err);
     }
-    return apiClient.get<OrdersResponse>("/api/orders");
+
+    // 2. Fetch from local Next.js DB store
+    try {
+      const localRes = await apiClient.get<OrdersResponse>("/api/orders");
+      if (localRes && Array.isArray(localRes.orders) && localRes.orders.length > 0) {
+        for (const lo of localRes.orders) {
+          if (!collectedOrders.some((co: any) => co.id === lo.id || co.orderNumber === lo.orderNumber)) {
+            collectedOrders.push(lo);
+          }
+        }
+      }
+    } catch {}
+
+    // 3. Fall back to browser localStorage if available
+    if (typeof window !== "undefined") {
+      try {
+        const stored = JSON.parse(localStorage.getItem("pf_local_orders") || "[]");
+        if (Array.isArray(stored)) {
+          for (const so of stored) {
+            if (!collectedOrders.some((co: any) => co.id === so.id || co.orderNumber === so.orderNumber)) {
+              collectedOrders.push(so);
+            }
+          }
+        }
+      } catch {}
+    }
+
+    return {
+      success: true,
+      orders: collectedOrders as any,
+    };
   },
 
   async getOrder(id: string) {
