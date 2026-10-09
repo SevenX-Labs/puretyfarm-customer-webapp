@@ -33,13 +33,20 @@ export function useAuthFlow() {
     router.prefetch("/onboarding?step=1");
   }, [router]);
 
+  // Helper to check if user has not completed onboarding
+  const isPendingOnboarding = (u: typeof user) => {
+    if (!u) return true;
+    if (u.onboardingStep === "profile_pending") return true;
+    const name = u.name?.trim() || "";
+    return !name || name.startsWith("Customer (") || name.toLowerCase() === "customer";
+  };
+
   // Route existing sessions: only after session is confirmed authenticated
   useEffect(() => {
     if (status === "authenticated" && user && step === "phone") {
-      const isNewUserWithoutName =
-        user.onboardingStep === "profile_pending" && (!user.name || user.name.trim() === "");
+      const isPending = isPendingOnboarding(user);
 
-      if (isNewUserWithoutName) {
+      if (isPending) {
         router.replace("/onboarding?step=1");
       } else {
         const dest = redirectUrl && redirectUrl !== "/onboarding" && redirectUrl !== "/auth" ? redirectUrl : "/account";
@@ -154,13 +161,12 @@ export function useAuthFlow() {
 
       const refreshedUser = await refreshUser();
 
-      const isNewUserWithoutName = Boolean(
-        data.isNewUser &&
-        (!refreshedUser?.name || refreshedUser.name.startsWith("Customer (") || refreshedUser.name.trim() === "")
-      );
+      const isPending = isPendingOnboarding(refreshedUser);
 
-      const targetUrl = isNewUserWithoutName
-        ? "/onboarding?step=1"
+      const targetUrl = isPending
+        ? redirectUrl && redirectUrl.startsWith("/onboarding")
+          ? redirectUrl
+          : "/onboarding?step=1"
         : redirectUrl && redirectUrl !== "/onboarding" && redirectUrl !== "/auth"
         ? redirectUrl
         : "/account";
