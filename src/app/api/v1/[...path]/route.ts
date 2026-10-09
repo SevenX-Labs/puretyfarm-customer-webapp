@@ -47,6 +47,18 @@ async function proxyRequest(
     const data = await res.arrayBuffer();
     const responseHeaders = new Headers();
     res.headers.forEach((value, key) => {
+      const lower = key.toLowerCase();
+      // fetch() has already decompressed the body, so the upstream
+      // Content-Encoding/Content-Length no longer describe `data`.
+      // Forwarding them makes the browser try to gunzip plain bytes
+      // -> ERR_CONTENT_DECODING_FAILED.
+      if (
+        lower === "content-encoding" ||
+        lower === "content-length" ||
+        lower === "transfer-encoding"
+      ) {
+        return;
+      }
       responseHeaders.set(key, value);
     });
 
