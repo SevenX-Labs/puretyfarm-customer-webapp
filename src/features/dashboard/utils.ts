@@ -44,10 +44,9 @@ export function formatDeliveryDate(
   };
 }
 
-export function formatDeliveryWindow(start?: string, end?: string) {
+export function formatDeliveryWindow(start?: string, end?: string): string {
   const s = start?.trim();
   const e = end?.trim();
-  if (!s && !e) return "7:00 AM – 9:00 AM";
   if (s && e) return `${s} – ${e}`;
   return s || e || "";
 }

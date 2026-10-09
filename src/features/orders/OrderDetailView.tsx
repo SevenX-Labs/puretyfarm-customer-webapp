@@ -10,7 +10,6 @@ import type { Order } from "@/types/models";
 import {
   formatDeliveryDate,
   formatDeliveryWindow,
-  orderItemsSummary,
   paiseToRupeesText,
   statusLabel,
   statusTone,
@@ -75,7 +74,6 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
 }
 
 function OrderBody({ order }: { order: Order }) {
-  const { name, qty, unit } = orderItemsSummary(order);
   const d = formatDeliveryDate(order.deliveryDate);
   const win = formatDeliveryWindow(
     order.deliveryStartTime,
@@ -83,13 +81,21 @@ function OrderBody({ order }: { order: Order }) {
   );
   const addr = order.addressSnapshot || order.deliveryAddress;
 
-  const subtotal = paiseToRupeesText(order.subtotalPaise);
-  const delivery = paiseToRupeesText(order.deliveryFeePaise);
+  // Only render monetary rows the backend actually sent — no "—" placeholders
+  // or hardcoded values. Total is the only line we always show (it must exist
+  // for a confirmed order).
+  const subtotal =
+    order.subtotalPaise != null ? paiseToRupeesText(order.subtotalPaise) : null;
+  const delivery =
+    order.deliveryFeePaise != null
+      ? paiseToRupeesText(order.deliveryFeePaise)
+      : null;
   const total = paiseToRupeesText(order.totalPaise, order.totalAmount);
   const discount =
     order.discountPaise && order.discountPaise > 0
       ? paiseToRupeesText(order.discountPaise)
       : null;
+  const hasItems = Array.isArray(order.items) && order.items.length > 0;
 
   return (
     <>
@@ -113,9 +119,11 @@ function OrderBody({ order }: { order: Order }) {
                 <h2 className="mt-1 text-[26px] font-bold text-[var(--pf-text)] leading-[1.15]">
                   {d.label}
                 </h2>
-                <div className="mt-1 text-[14px] text-[var(--pf-text-secondary)] font-semibold">
-                  {win}
-                </div>
+                {win && (
+                  <div className="mt-1 text-[14px] text-[var(--pf-text-secondary)] font-semibold">
+                    {win}
+                  </div>
+                )}
               </div>
               <PfBadge tone={statusTone(order.status)} dot>
                 {statusLabel(order.status)}
@@ -129,35 +137,45 @@ function OrderBody({ order }: { order: Order }) {
             </div>
           </PfCard>
 
-          <PfCard padding="lg">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--pf-text-muted)] mb-4">
-              Items
-            </h3>
-            <ul className="divide-y divide-[var(--pf-border)]">
-              {order.items?.map((item, i) => (
-                <li
-                  key={item.id || i}
-                  className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
-                >
-                  <div>
-                    <div className="text-[14px] font-semibold text-[var(--pf-text)]">
-                      {item.productNameSnapshot || item.name || "A2 Cow Milk"}
-                    </div>
-                    <div className="text-[12px] text-[var(--pf-text-muted)]">
-                      {item.quantity} {item.unit || unit}
-                    </div>
-                  </div>
-                  <div className="text-[14px] font-semibold text-[var(--pf-text)]">
-                    {paiseToRupeesText(item.totalPaise, item.price)}
-                  </div>
-                </li>
-              )) || (
-                <li className="py-3 text-[14px] text-[var(--pf-text-secondary)]">
-                  {name} × {qty} {unit}
-                </li>
-              )}
-            </ul>
-          </PfCard>
+          {hasItems && (
+            <PfCard padding="lg">
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--pf-text-muted)] mb-4">
+                Items
+              </h3>
+              <ul className="divide-y divide-[var(--pf-border)]">
+                {order.items!.map((item, i) => {
+                  const label =
+                    item.productNameSnapshot || item.name || "";
+                  const qty =
+                    item.quantity != null ? String(item.quantity) : "";
+                  const unitLabel = item.unit || "";
+                  const price = paiseToRupeesText(item.totalPaise, item.price);
+                  return (
+                    <li
+                      key={item.id || i}
+                      className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                    >
+                      <div>
+                        {label && (
+                          <div className="text-[14px] font-semibold text-[var(--pf-text)]">
+                            {label}
+                          </div>
+                        )}
+                        {(qty || unitLabel) && (
+                          <div className="text-[12px] text-[var(--pf-text-muted)]">
+                            {qty} {unitLabel}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-[14px] font-semibold text-[var(--pf-text)]">
+                        {price}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </PfCard>
+          )}
         </div>
 
         <aside className="space-y-6">
@@ -203,9 +221,9 @@ function OrderBody({ order }: { order: Order }) {
               </h3>
             </div>
             <dl className="space-y-2 text-[13px]">
-              <Row dt="Subtotal" dd={subtotal} />
+              {subtotal && <Row dt="Subtotal" dd={subtotal} />}
               {discount && <Row dt="Discount" dd={`– ${discount}`} />}
-              <Row dt="Delivery" dd={delivery} />
+              {delivery && <Row dt="Delivery" dd={delivery} />}
               <div className="pt-2 mt-2 border-t border-[var(--pf-border)]">
                 <Row dt="Total" dd={total} strong />
               </div>
