@@ -9,6 +9,7 @@ import { ProfileStep } from "./ProfileStep";
 import { ServiceAreaStep } from "./ServiceAreaStep";
 import { AddressDetailsStep } from "./AddressDetailsStep";
 import { PlanStep } from "./PlanStep";
+import { PaymentStep } from "./PaymentStep";
 import { StepKey } from "../types";
 
 export function OnboardingView() {
@@ -59,6 +60,20 @@ export function OnboardingView() {
     planSubmitting,
     planError,
     handleCompletePlanSelection,
+    // Step 5: Payment
+    pendingQuote,
+    pendingPlan,
+    walletBalancePaise,
+    walletAutoCredit,
+    walletLoading,
+    paymentSubmitting,
+    paymentError,
+    paymentNotice,
+    reloadWallet,
+    handlePayFromWallet,
+    handlePayOnline,
+    handlePayCash,
+    handleCancelPendingQuote,
   } = useOnboardingFlow();
 
   const isStepMounted = (step: StepKey) => {
@@ -85,6 +100,11 @@ export function OnboardingView() {
       num: 4,
       title: "Select Plan",
       desc: "Start receiving milk",
+    },
+    {
+      num: 5,
+      title: "Payment",
+      desc: "Pay via wallet or cash",
     },
   ];
 
@@ -122,7 +142,7 @@ export function OnboardingView() {
                   />
                 </div>
                 <span className="rounded-full bg-white/15 px-2 py-0.5 text-[9px] sm:text-[9.5px] font-bold tracking-wide uppercase text-white/90">
-                  Step {currentStep} of 4
+                  Step {currentStep} of 5
                 </span>
               </div>
 
@@ -134,7 +154,9 @@ export function OnboardingView() {
                     ? "Choose Service Area"
                     : currentStep === 3
                     ? "Delivery Address"
-                    : "Select Your Plan"}
+                    : currentStep === 4
+                    ? "Select Your Plan"
+                    : "Pay for your plan"}
                 </h2>
                 <p className="hidden md:block text-[9.5px] lg:text-[10.5px] text-white/80 leading-snug">
                   {currentStep === 1
@@ -143,7 +165,9 @@ export function OnboardingView() {
                     ? "Select your state, city, and delivery hub."
                     : currentStep === 3
                     ? "Provide your exact flat, building, and receiver details."
-                    : "Choose the milk plan that best fits your family's morning routine."}
+                    : currentStep === 4
+                    ? "Choose the milk plan that best fits your family's morning routine."
+                    : "Pay via wallet, add money online, or opt for cash on delivery."}
                 </p>
               </div>
 
@@ -160,7 +184,7 @@ export function OnboardingView() {
                         className="relative min-w-0 flex-1 md:flex-none"
                         key={step.num}
                       >
-                        {step.num < 4 && (
+                        {step.num < 5 && (
                           <>
                             <span
                               className="absolute left-3 top-5.5 hidden h-4 w-px bg-white/25 md:block lg:left-3 lg:h-4.5"
@@ -324,6 +348,33 @@ export function OnboardingView() {
                     onSelectPlanId={setSelectedPlanId}
                     onCompletePlanSelection={handleCompletePlanSelection}
                     onGoToStep={handleGoToStep}
+                  />
+                </m.div>
+              )}
+
+              {currentStep === 5 && isStepMounted(5) && (
+                <m.div
+                  key="step-5"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="h-full flex flex-col overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
+                >
+                  <PaymentStep
+                    quote={pendingQuote}
+                    plan={pendingPlan}
+                    walletBalancePaise={walletBalancePaise}
+                    walletAutoCredit={walletAutoCredit}
+                    walletLoading={walletLoading}
+                    paymentSubmitting={paymentSubmitting}
+                    paymentError={paymentError}
+                    paymentNotice={paymentNotice}
+                    onReloadWallet={reloadWallet}
+                    onPayFromWallet={handlePayFromWallet}
+                    onPayOnline={handlePayOnline}
+                    onPayCash={handlePayCash}
+                    onBackToPlans={handleCancelPendingQuote}
                   />
                 </m.div>
               )}

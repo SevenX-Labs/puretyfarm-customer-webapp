@@ -116,6 +116,22 @@ function WalletContent() {
   useEffect(() => {
     const txnid = searchParams.get("txnid");
     if (txnid && user) {
+      // If a pending onboarding plan quote is waiting, resume onboarding so
+      // the plan can be auto-confirmed from the newly-topped-up wallet.
+      try {
+        const raw = window.localStorage.getItem("pf_onboarding_pending_quote");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const expiresAt = parsed?.quote?.expiresAt
+            ? new Date(parsed.quote.expiresAt).getTime()
+            : 0;
+          if (expiresAt > Date.now()) {
+            router.replace(`/onboarding?step=5&txnid=${encodeURIComponent(txnid)}`);
+            return;
+          }
+          window.localStorage.removeItem("pf_onboarding_pending_quote");
+        }
+      } catch {}
       paymentsApi
         .verifyPayment({ transactionId: txnid })
         .then((res) => {

@@ -7,7 +7,12 @@ import { Address } from "@/types/models";
 import { PlanDefinition } from "@/features/plans";
 import { onboardingApi } from "../api/onboardingApi";
 import { locationApi } from "@/features/location/api/locationApi";
+import { plansApi, PlanQuote } from "@/features/plans/api/plansApi";
+import { walletApi } from "@/features/wallet";
+import { paymentsApi } from "@/features/payments";
 import { StepKey } from "../types";
+
+const PENDING_QUOTE_KEY = "pf_onboarding_pending_quote";
 
 export function useOnboardingFlow() {
   const router = useRouter();
@@ -44,6 +49,16 @@ export function useOnboardingFlow() {
   const [selectedPlanId, setSelectedPlanId] = useState<"trial" | "monthly" | "single">("trial");
   const [planSubmitting, setPlanSubmitting] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
+
+  // ─── STEP 5: Payment State ───
+  const [pendingQuote, setPendingQuote] = useState<PlanQuote | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<PlanDefinition | null>(null);
+  const [walletBalancePaise, setWalletBalancePaise] = useState<number>(0);
+  const [walletAutoCredit, setWalletAutoCredit] = useState<boolean>(false);
+  const [walletLoading, setWalletLoading] = useState<boolean>(false);
+  const [paymentSubmitting, setPaymentSubmitting] = useState<boolean>(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentNotice, setPaymentNotice] = useState<string | null>(null);
 
   // Synchronize state with authenticated user
   const hasInitialized = useRef(false);
@@ -97,6 +112,24 @@ export function useOnboardingFlow() {
         setSelectedCityName(defaultServiceable.city || "Raipur");
       }
 
+      // Rehydrate any pending plan quote from a prior PayU redirect
+      let rehydratedQuote: PlanQuote | null = null;
+      try {
+        const raw = typeof window !== "undefined"
+          ? window.localStorage.getItem(PENDING_QUOTE_KEY)
+          : null;
+        if (raw) {
+          const parsed = JSON.parse(raw) as { quote: PlanQuote; planId: PlanDefinition["id"] };
+          if (parsed?.quote?.quoteId && new Date(parsed.quote.expiresAt).getTime() > Date.now()) {
+            rehydratedQuote = parsed.quote;
+            setPendingQuote(parsed.quote);
+            setSelectedPlanId(parsed.planId);
+          } else {
+            window.localStorage.removeItem(PENDING_QUOTE_KEY);
+          }
+        }
+      } catch {}
+
       // Determine step based on profile and address existence
       const hasProfile = user.onboardingStep !== "profile_pending" && user.name && !user.name.startsWith("Customer (");
       const hasAddress = addresses && addresses.length > 0;
@@ -109,11 +142,12 @@ export function useOnboardingFlow() {
         setMaxAllowedStep(2);
         setCurrentStep(2);
       } else {
-        setMaxAllowedStep(4);
-        if (requestedStep === "1" || requestedStep === "2" || requestedStep === "3" || requestedStep === "4") {
+        const resumeStep: StepKey = rehydratedQuote ? 5 : 4;
+        setMaxAllowedStep(resumeStep);
+        if (requestedStep === "1" || requestedStep === "2" || requestedStep === "3" || requestedStep === "4" || requestedStep === "5") {
           setCurrentStep(parseInt(requestedStep, 10) as StepKey);
         } else {
-          setCurrentStep(4);
+          setCurrentStep(resumeStep);
         }
       }
 
@@ -217,7 +251,7 @@ export function useOnboardingFlow() {
     }
   };
 
-  // ─── STEP 4 HANDLER: Select Plan & Complete Onboarding ───
+  // ─── STEP 4 HANDLER: Select Plan → Build Quote → Advance to Payment ───
   const handleCompletePlanSelection = async (plan: PlanDefinition) => {
     if (!savedAddress) {
       setCurrentStep(3);
@@ -225,30 +259,277 @@ export function useOnboardingFlow() {
     }
 
     setSelectedPlanId(plan.id);
+    setPendingPlan(plan);
     setPlanSubmitting(true);
     setPlanError(null);
 
     try {
-      const data = await onboardingApi.completePlanSelection({
-        planId: plan.id,
-        addressId: savedAddress.id,
-      });
+      let quote: PlanQuote;
+      if (plan.id === "trial") {
+        quote = await plansApi.createTrialQuote(1);
+      } else if (plan.id === "single") {
+        quote = await plansApi.createBuyOnceQuote(1);
+      } else {
+        let draft: {
+          frequency?: string;
+          mode?: string;
+          fixedLitres?: number;
+          day1Litres?: number;
+          day2Litres?: number;
+        } | null = null;
+        try {
+          const raw =
+            typeof window !== "undefined"
+              ? window.localStorage.getItem("pf_subscription_draft_v2") ||
+                window.localStorage.getItem("pf_subscription_draft")
+              : null;
+          if (raw) draft = JSON.parse(raw);
+        } catch {}
 
-      if (!data.success) {
-        setPlanError(data.error || "Failed to complete plan order.");
-        if (data.redirectStep === "location_pending") {
-          setCurrentStep(3);
-        }
-        return;
+        const freq = draft?.frequency === "alternate" ? "ALTERNATE_DAYS" : "DAILY";
+        const mode = draft?.mode === "pattern" ? "ALTERNATING" : "FIXED";
+
+        quote = await plansApi.createMonthlyQuote({
+          frequency: freq,
+          quantityMode: mode,
+          quantity: mode === "FIXED" ? (draft?.fixedLitres || 1) : undefined,
+          quantityA: mode === "ALTERNATING" ? (draft?.day1Litres || 1) : undefined,
+          quantityB: mode === "ALTERNATING" ? (draft?.day2Litres || 2) : undefined,
+        });
       }
 
-      await refreshUser();
-      router.replace("/account?welcome=1");
-    } catch {
-      setPlanError("Network error completing order. Please try again.");
+      setPendingQuote(quote);
+      try {
+        window.localStorage.setItem(
+          PENDING_QUOTE_KEY,
+          JSON.stringify({ quote, planId: plan.id })
+        );
+      } catch {}
+
+      setMaxAllowedStep((prev) => Math.max(prev, 5) as StepKey);
+      setCurrentStep(5);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Could not build the pricing quote for this plan. Please try again.";
+      setPlanError(msg);
     } finally {
       setPlanSubmitting(false);
     }
+  };
+
+  // ─── STEP 5: Load wallet balance whenever we land on the payment step ───
+  const loadWallet = useCallback(async () => {
+    setWalletLoading(true);
+    try {
+      const wallet = await walletApi.getWallet();
+      setWalletBalancePaise(wallet?.balancePaise ?? 0);
+      setWalletAutoCredit(Boolean(wallet?.autoCreditEnabled));
+    } catch {
+      setWalletBalancePaise(0);
+      setWalletAutoCredit(false);
+    } finally {
+      setWalletLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentStep === 5) void loadWallet();
+  }, [currentStep, loadWallet]);
+
+  const clearPendingQuote = useCallback(() => {
+    setPendingQuote(null);
+    setPendingPlan(null);
+    try {
+      window.localStorage.removeItem(PENDING_QUOTE_KEY);
+    } catch {}
+  }, []);
+
+  // Resume the pending plan once the wallet shows enough balance (e.g. after a
+  // PayU redirect lands back on the onboarding payment step).
+  useEffect(() => {
+    if (currentStep !== 5) return;
+    if (!pendingQuote) return;
+    const txnid = searchParams.get("txnid");
+    if (!txnid) return;
+
+    (async () => {
+      try {
+        const res = await paymentsApi.verifyPayment({ transactionId: txnid });
+        const walletCredit = res?.payment?.walletCredit;
+        const paid = (res?.payment?.amountPaise ?? 0) / 100;
+
+        if (res?.payment?.status === "SUCCESS") {
+          if (walletCredit?.status === "COMPLETED" || res?.walletCredited) {
+            setPaymentNotice(
+              `Payment of ₹${paid.toFixed(0)} verified. Confirming your plan from wallet...`
+            );
+            await loadWallet();
+          } else if (walletCredit?.status === "PENDING" || res?.requiresAdminApproval) {
+            setPaymentNotice(
+              `Payment of ₹${paid.toFixed(0)} successful. Wallet credit is pending admin approval — your plan will activate automatically once approved.`
+            );
+          }
+        } else if (
+          res?.payment?.status === "FAILED" ||
+          res?.payment?.status === "CANCELLED" ||
+          res?.payment?.status === "EXPIRED"
+        ) {
+          setPaymentError(
+            `Online payment was ${res.payment.status.toLowerCase()}. No money was debited — please try again or choose cash on delivery.`
+          );
+        }
+      } catch {
+        /* swallow — user can retry */
+      }
+    })();
+  }, [currentStep, pendingQuote, searchParams, loadWallet]);
+
+  // Once the wallet has enough balance for a pending quote, auto-confirm.
+  useEffect(() => {
+    if (currentStep !== 5) return;
+    if (!pendingQuote) return;
+    if (paymentSubmitting) return;
+    if (walletBalancePaise < pendingQuote.totalSellingAmount) return;
+    if (!searchParams.get("txnid")) return;
+
+    (async () => {
+      setPaymentSubmitting(true);
+      try {
+        const confirmed = await plansApi.confirmPlanQuote({
+          quoteId: pendingQuote.quoteId,
+          paymentMethod: "WALLET",
+        });
+        if (confirmed?.status === "CONFIRMED") {
+          clearPendingQuote();
+          await refreshUser();
+          router.replace("/account?welcome=1");
+        }
+      } catch (err: unknown) {
+        const msg =
+          err && typeof err === "object" && "message" in err
+            ? String((err as { message: unknown }).message)
+            : "Could not confirm your plan from wallet. Please retry.";
+        setPaymentError(msg);
+      } finally {
+        setPaymentSubmitting(false);
+      }
+    })();
+  }, [
+    currentStep,
+    pendingQuote,
+    walletBalancePaise,
+    paymentSubmitting,
+    searchParams,
+    clearPendingQuote,
+    refreshUser,
+    router,
+  ]);
+
+  // Pay the quoted amount using the current wallet balance.
+  const handlePayFromWallet = async () => {
+    if (!pendingQuote) return;
+    if (walletBalancePaise < pendingQuote.totalSellingAmount) {
+      setPaymentError("Wallet balance is not enough to cover this plan.");
+      return;
+    }
+    setPaymentSubmitting(true);
+    setPaymentError(null);
+    try {
+      const confirmed = await plansApi.confirmPlanQuote({
+        quoteId: pendingQuote.quoteId,
+        paymentMethod: "WALLET",
+      });
+      if (confirmed?.status === "CONFIRMED") {
+        clearPendingQuote();
+        await refreshUser();
+        router.replace("/account?welcome=1");
+      } else {
+        setPaymentError(confirmed?.message || "Wallet payment did not complete.");
+      }
+    } catch (err: unknown) {
+      const data =
+        err && typeof err === "object" && "data" in err
+          ? ((err as { data: unknown }).data as Record<string, unknown>)
+          : undefined;
+      const msg =
+        (data?.message as string) ||
+        (err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Could not confirm your plan from wallet.");
+      setPaymentError(msg);
+    } finally {
+      setPaymentSubmitting(false);
+    }
+  };
+
+  // Top up the wallet via PayU for exactly the shortfall needed, then PayU
+  // redirects the browser back here with ?txnid=... to resume the flow.
+  const handlePayOnline = async () => {
+    if (!pendingQuote) return;
+    const shortfall = Math.max(
+      pendingQuote.totalSellingAmount - walletBalancePaise,
+      10000 // backend minimum is ₹100 — never submit less
+    );
+    setPaymentSubmitting(true);
+    setPaymentError(null);
+    try {
+      await paymentsApi.initiateOnlineTopup(shortfall, { autoRedirect: true });
+      // Browser is now redirecting to PayU — nothing else to do here.
+    } catch (err: unknown) {
+      const data =
+        err && typeof err === "object" && "data" in err
+          ? ((err as { data: unknown }).data as Record<string, unknown>)
+          : undefined;
+      const msg =
+        (data?.message as string) ||
+        (err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Could not start the online payment. Please try again.");
+      setPaymentError(msg);
+      setPaymentSubmitting(false);
+    }
+  };
+
+  // Pay the entire plan amount in cash — admin confirms physical collection.
+  const handlePayCash = async () => {
+    if (!pendingQuote) return;
+    setPaymentSubmitting(true);
+    setPaymentError(null);
+    try {
+      const confirmed = await plansApi.confirmPlanQuote({
+        quoteId: pendingQuote.quoteId,
+        paymentMethod: "CASH",
+      });
+      if (confirmed?.status === "PENDING_PAYMENT" || confirmed?.status === "CONFIRMED") {
+        clearPendingQuote();
+        await refreshUser();
+        router.replace("/account?welcome=1&pendingCash=1");
+      } else {
+        setPaymentError(confirmed?.message || "Cash plan request did not go through.");
+      }
+    } catch (err: unknown) {
+      const data =
+        err && typeof err === "object" && "data" in err
+          ? ((err as { data: unknown }).data as Record<string, unknown>)
+          : undefined;
+      const msg =
+        (data?.message as string) ||
+        (err && typeof err === "object" && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "Could not request cash collection. Please try again.");
+      setPaymentError(msg);
+    } finally {
+      setPaymentSubmitting(false);
+    }
+  };
+
+  const handleCancelPendingQuote = () => {
+    clearPendingQuote();
+    setPaymentError(null);
+    setPaymentNotice(null);
+    setCurrentStep(4);
   };
 
   return {
@@ -298,5 +579,19 @@ export function useOnboardingFlow() {
     planSubmitting,
     planError,
     handleCompletePlanSelection,
+    // Step 5: Payment
+    pendingQuote,
+    pendingPlan,
+    walletBalancePaise,
+    walletAutoCredit,
+    walletLoading,
+    paymentSubmitting,
+    paymentError,
+    paymentNotice,
+    reloadWallet: loadWallet,
+    handlePayFromWallet,
+    handlePayOnline,
+    handlePayCash,
+    handleCancelPendingQuote,
   };
 }
