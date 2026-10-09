@@ -59,16 +59,22 @@ export async function POST(req: NextRequest) {
     // 9. Generate signed 30-day session token
     const token = await createSessionToken(user);
 
-    // 10. Construct response with secure httpOnly cookie
+    // 10. Derive onboarding status from actual data
+    const onboardingStep = await db.getUserOnboardingStatus(user.id);
+    const effectiveIsNewUser = isNewUser || !user.name || !user.name.trim();
+
+    // 11. Construct response with secure httpOnly cookie
     const response = NextResponse.json({
       success: true,
-      message: isNewUser ? "Account created successfully!" : "Signed in successfully!",
-      isNewUser: isNewUser || !user.name,
+      message: effectiveIsNewUser ? "Account created successfully!" : "Signed in successfully!",
+      isNewUser: effectiveIsNewUser,
+      onboardingStep,
       user: {
         id: user.id,
         phone: user.phone,
         name: user.name,
         email: user.email,
+        onboardingStep,
         createdAt: user.createdAt,
       },
     });

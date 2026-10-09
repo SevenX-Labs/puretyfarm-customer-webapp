@@ -85,11 +85,19 @@ export function useAuthFlow() {
     }
   };
 
+  const redirectLoggedInUser = () => {
+    if (isPendingOnboarding(user)) {
+      router.replace("/onboarding?step=1");
+    } else {
+      router.replace("/account");
+    }
+  };
+
   // Step 1: Send OTP
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (isLoggedIn) {
-      router.replace("/account");
+      redirectLoggedInUser();
       return;
     }
     if (phoneNumber.length !== 10) {
@@ -133,7 +141,7 @@ export function useAuthFlow() {
   // Step 2: Auto-verify function
   const triggerVerifyOtp = async (codeToVerify?: string) => {
     if (isLoggedIn) {
-      router.replace("/account");
+      redirectLoggedInUser();
       return;
     }
     if (isSubmittingRef.current) return;
