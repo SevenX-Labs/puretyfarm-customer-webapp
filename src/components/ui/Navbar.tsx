@@ -33,9 +33,13 @@ export function Navbar({ variant = "default" }: { variant?: "default" | "auth" }
 
   const handleAccountClick = () => {
     if (isLoggedIn) {
-      router.push("/account");
+      if (user?.onboardingStep === "profile_pending" || !user?.name || user?.name.startsWith("Customer (")) {
+        router.push("/onboarding?step=1");
+      } else {
+        router.push("/account");
+      }
     } else {
-      router.push("/auth?redirect=/account");
+      router.push("/auth?redirect=/onboarding");
     }
   };
 

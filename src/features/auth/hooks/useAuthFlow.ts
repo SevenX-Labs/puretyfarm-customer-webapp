@@ -4,14 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "../api/authApi";
+import { profileApi } from "@/features/profile/api/profileApi";
+import { locationApi } from "@/features/location/api/locationApi";
 import { AuthStep } from "../types";
 
 function getSafeRedirectUrl(param: string | null): string {
-  if (!param) return "/account";
+  if (!param) return "/dashboard";
   const trimmed = param.trim();
   // Reject non-relative paths, protocol-relative paths (//), and backslashes (\)
   if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("\\")) {
-    return "/account";
+    return "/dashboard";
   }
   return trimmed;
 }
@@ -36,10 +38,14 @@ export function useAuthFlow() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // An existing session should continue to the account area, not restart onboarding.
+  // Route existing sessions: if onboarding is incomplete, go to onboarding; else account.
   useEffect(() => {
     if (isLoggedIn && user && step === "phone") {
-      router.replace(redirectUrl === "/onboarding" ? "/account" : redirectUrl);
+      if (user.onboardingStep === "profile_pending" || !user.name || user.name.startsWith("Customer (")) {
+        router.replace("/onboarding?step=1");
+      } else {
+        router.replace(redirectUrl === "/onboarding" ? "/dashboard" : redirectUrl);
+      }
     }
   }, [isLoggedIn, user, step, redirectUrl, router]);
 
@@ -190,12 +196,17 @@ export function useAuthFlow() {
 
       await refreshUser();
 
+      const profile = await profileApi.getProfile().catch(() => null);
+      const addresses = await locationApi.getAddresses().catch(() => []);
+
       setSuccessMessage("Authentication successful! Redirecting...");
       setTimeout(() => {
-        if (data.isNewUser) {
-          router.replace("/onboarding");
+        if (!profile || !profile.firstName) {
+          router.replace("/onboarding?step=1");
+        } else if (!addresses || addresses.length === 0) {
+          router.replace("/onboarding?step=2");
         } else {
-          router.replace(redirectUrl === "/onboarding" ? "/account" : redirectUrl);
+          router.replace(redirectUrl === "/onboarding" ? "/dashboard" : redirectUrl);
         }
       }, 400);
     } catch (err: unknown) {

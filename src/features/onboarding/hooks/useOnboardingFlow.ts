@@ -80,25 +80,19 @@ export function useOnboardingFlow() {
         });
       }
 
-      // Determine step based on derived server state
-      const serverStep = user.onboardingStep || "profile_pending";
+      // Determine step based on profile and address existence
+      const hasProfile = user.onboardingStep !== "profile_pending" && user.name && !user.name.startsWith("Customer (");
+      const hasAddress = addresses && addresses.length > 0;
+      const requestedStep = searchParams.get("step");
 
-      if (serverStep === "complete") {
-        router.replace("/account");
-        return;
-      }
-
-      if (serverStep === "location_pending" || !addresses || addresses.length === 0) {
-        if (user.name && user.name.trim()) {
-          setMaxAllowedStep(2);
-          setCurrentStep(2);
-        } else {
-          setMaxAllowedStep(1);
-          setCurrentStep(1);
-        }
+      if (!hasProfile) {
+        setMaxAllowedStep(1);
+        setCurrentStep(1);
+      } else if (!hasAddress) {
+        setMaxAllowedStep(2);
+        setCurrentStep(2);
       } else {
         setMaxAllowedStep(3);
-        const requestedStep = searchParams.get("step");
         if (requestedStep === "1" || requestedStep === "2" || requestedStep === "3") {
           setCurrentStep(parseInt(requestedStep, 10) as StepKey);
         } else {

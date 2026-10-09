@@ -64,12 +64,12 @@ function normalizeCustomerUser(
 
   const displayName = fullName || (mobile ? `Customer (${mobile.slice(-4)})` : "Customer");
 
-  // Derive onboarding step: if profile/name exists, user has completed profile onboarding
-  let onboardingStep: OnboardingStatus = "complete";
-  if (data.onboardingStep) {
+  // Derive onboarding step: only complete if a valid customer profile actually exists in database
+  let onboardingStep: OnboardingStatus = "profile_pending";
+  if (profile && (profile.firstName || profile.lastName)) {
+    onboardingStep = (data.onboardingStep as OnboardingStatus) || "complete";
+  } else if (data.onboardingStep && data.onboardingStep !== "profile_pending") {
     onboardingStep = data.onboardingStep as OnboardingStatus;
-  } else if (!fullName && !profile?.firstName && !data.name?.trim()) {
-    onboardingStep = "profile_pending";
   }
 
   return {

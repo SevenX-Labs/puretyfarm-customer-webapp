@@ -106,7 +106,7 @@ export function CustomerHeader({
                 Account
               </MenuItem>
               <MenuItem
-                href="/account?tab=preferences"
+                href="/account-settings?tab=preferences"
                 icon={<Settings size={15} strokeWidth={1.75} />}
               >
                 Settings

@@ -339,6 +339,11 @@ html.lenis {
   font-feature-settings: "ss01", "cv11";
 }
 
+/* When the authenticated shell is on-screen, drop marketing's sticky-CTA mobile padding */
+body:has(.pf-app) {
+  padding-bottom: 0 !important;
+}
+
 .pf-app button,
 .pf-app input,
 .pf-app select,

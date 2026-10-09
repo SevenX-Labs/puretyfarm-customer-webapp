@@ -307,10 +307,15 @@ export function useAccountData() {
     }
   };
 
-  // Redirect if unauthenticated
+  // Redirect if unauthenticated or if profile onboarding is incomplete
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!user) {
       router.replace("/auth?redirect=/account");
+      return;
+    }
+    if (user.onboardingStep === "profile_pending" || !user.name || user.name.startsWith("Customer (")) {
+      router.replace("/onboarding?step=1");
     }
   }, [user, authLoading, router]);
 
