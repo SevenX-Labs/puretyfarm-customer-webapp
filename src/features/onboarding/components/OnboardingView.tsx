@@ -102,8 +102,8 @@ export function OnboardingView() {
   }
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center">
-      <main className="mx-auto w-full max-w-5xl px-3 sm:px-4 py-2 sm:py-3 h-full max-h-[96vh] flex flex-col justify-center">
+    <div className="relative min-h-screen w-screen overflow-x-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center py-2 sm:py-4">
+      <main className="mx-auto w-full max-w-5xl px-3 sm:px-4 h-full max-h-[96vh] flex flex-col justify-center">
         <section
           aria-label="Account setup and subscription workflow"
           className="relative flex flex-col md:flex-row h-full max-h-[720px] w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-lg overflow-hidden"
@@ -220,7 +220,7 @@ export function OnboardingView() {
           </aside>
 
           {/* Right Content Panel */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden p-3.5 sm:p-5 lg:p-6">
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-hidden">
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div
@@ -229,7 +229,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto lg:overflow-hidden overscroll-contain scrollbar-hide no-scrollbar"
+                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-10"
                 >
                   <ProfileStep
                     user={user}
@@ -259,7 +259,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto lg:overflow-hidden overscroll-contain scrollbar-hide no-scrollbar"
+                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-10"
                 >
                   <ServiceAreaStep
                     selectedStateId={selectedStateId}
@@ -290,7 +290,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto lg:overflow-hidden overscroll-contain scrollbar-hide no-scrollbar"
+                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-10"
                 >
                   <AddressDetailsStep
                     user={user}
@@ -314,7 +314,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full overflow-y-auto overscroll-contain scrollbar-hide no-scrollbar"
+                  className="h-full overflow-y-auto overscroll-contain custom-scrollbar p-3.5 sm:p-5 lg:p-6 pb-16"
                 >
                   <PlanStep
                     savedAddress={savedAddress}

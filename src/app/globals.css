@@ -419,3 +419,22 @@ body:has(.pf-app) {
     border: 1px solid #e0e0e0 !important;
   }
 }
+/* Clean custom scrollbar for dashboard and onboarding panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d5c3b0;
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a66a4e;
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d5c3b0 transparent;
+}
