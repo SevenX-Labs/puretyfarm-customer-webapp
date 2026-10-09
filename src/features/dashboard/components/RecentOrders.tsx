@@ -20,7 +20,7 @@ export function RecentOrders({ orders }: { orders: Order[] }) {
           icon={<Package size={22} strokeWidth={1.75} />}
           title="No orders yet"
           description="Your PuretyFarm deliveries will appear here once you place your first order."
-          action={<PfButton href="/products">Explore Products</PfButton>}
+          action={<PfButton href="/plan">Explore Plans</PfButton>}
         />
       </div>
     );

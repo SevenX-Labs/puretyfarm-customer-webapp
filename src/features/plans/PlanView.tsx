@@ -8,10 +8,9 @@ import {
   Pause,
   Play,
   Sparkles,
-  SkipForward,
   Sliders,
-  Truck,
   CalendarDays,
+  Clock,
   AlertCircle,
   RefreshCw,
   Check,
@@ -31,6 +30,26 @@ import {
 } from "@/features/delivery/types";
 import { plansApi, PlanOverviewItem, PlanQuote } from "@/features/plans/api/plansApi";
 import { formatDeliveryDate } from "@/features/dashboard/utils";
+
+function formatTimeSlot(time?: string | null): string {
+  if (!time) return "";
+  const [hStr, mStr] = time.split(":");
+  let h = parseInt(hStr, 10);
+  const m = mStr || "00";
+  if (isNaN(h)) return time;
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${m} ${ampm}`;
+}
+
+function formatDeliveryWindow(start?: string | null, end?: string | null): string {
+  const formattedStart = formatTimeSlot(start || "06:00");
+  const formattedEnd = formatTimeSlot(end || "11:00");
+  if (formattedStart && formattedEnd) {
+    return `${formattedStart} – ${formattedEnd}`;
+  }
+  return "6:00 AM – 11:00 AM";
+}
 
 export function PlanView() {
   const [loading, setLoading] = useState(true);
@@ -97,7 +116,21 @@ export function PlanView() {
   const buyOnceItem = plansOverview.find((p) => p.type === "BUY_ONCE");
   const monthlyItem = plansOverview.find((p) => p.type === "MONTHLY");
 
-  // Server Invariants (Analyzed from puretyfarm-server/src/modules/plans/plans.service.ts):
+  // Admin-configured delivery time window from PlanConfig (e.g. 06:00 - 11:00)
+  const currentPlanConfig = plansOverview.find(
+    (p) => p.type === activePlan?.planType
+  );
+  const deliveryStartTime =
+    activePlan?.deliveryStartTime ||
+    currentPlanConfig?.deliveryStartTime ||
+    "06:00";
+  const deliveryEndTime =
+    activePlan?.deliveryEndTime ||
+    currentPlanConfig?.deliveryEndTime ||
+    "11:00";
+  const activeDeliveryWindow = formatDeliveryWindow(deliveryStartTime, deliveryEndTime);
+
+  // Server Invariants:
   // 1. If Buy Once used -> Trial blocked: "BUY_ONCE_ALREADY_USED"
   // 2. If Trial used -> Buy Once blocked: "TRIAL_ALREADY_USED"
   // 3. SEVEN_DAY_TRIAL is one-time only: "TRIAL_ALREADY_USED"
@@ -125,11 +158,9 @@ export function PlanView() {
     setError(null);
     try {
       if (activePlan.status === "PAUSED") {
-        // Resume deliveries immediately
         await manageDeliveryApi.pauseDelivery({});
         setActionSuccess("Subscription resumed successfully!");
       } else {
-        // Pause deliveries for 7 days
         const start = new Date();
         start.setDate(start.getDate() + 7);
         await manageDeliveryApi.pauseDelivery({
@@ -207,7 +238,7 @@ export function PlanView() {
     <>
       <CustomerHeader
         title="My Milk Plan"
-        subtitle="Manage your daily A2 milk subscription."
+        subtitle="Manage your daily A2 milk subscription and schedule."
       />
 
       <div className="flex justify-end mb-4">
@@ -292,8 +323,8 @@ export function PlanView() {
                       (activePlan.quantityLitres || 1) + "L Daily (30L / mo)"}
                   </p>
 
-                  {/* Stats Grid */}
-                  <div className="mt-6 grid sm:grid-cols-2 gap-5 pt-6 border-t border-[var(--pf-border)]">
+                  {/* Stats Grid: Price, Next Delivery & Admin Delivery Window */}
+                  <div className="mt-6 grid sm:grid-cols-3 gap-5 pt-6 border-t border-[var(--pf-border)]">
                     <Stat
                       label="Price Paid"
                       value={
@@ -313,6 +344,11 @@ export function PlanView() {
                           ? "Today"
                           : "Scheduled"
                       }
+                    />
+                    <Stat
+                      label="Delivery Window"
+                      value={activeDeliveryWindow}
+                      sub="Set by Farm Admin"
                     />
                   </div>
 
@@ -368,7 +404,7 @@ export function PlanView() {
                   </div>
                 </div>
 
-                {/* What's Included Snapshot */}
+                {/* What Included Snapshot */}
                 <div className="lg:border-l lg:border-[var(--pf-border)] lg:pl-6">
                   <div className="flex items-center gap-2 mb-3">
                     <CalendarDays size={16} strokeWidth={1.75} className="text-[var(--pf-brown)]" />
@@ -386,8 +422,8 @@ export function PlanView() {
                       <span>Sanitized reusable glass bottle</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 size={14} strokeWidth={2} className="text-[var(--pf-brown)] mt-0.5 shrink-0" />
-                      <span>Doorstep morning cold-chain delivery at 4°C</span>
+                      <Clock size={14} strokeWidth={2} className="text-[var(--pf-brown)] mt-0.5 shrink-0" />
+                      <span>Doorstep delivery ({activeDeliveryWindow})</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 size={14} strokeWidth={2} className="text-[var(--pf-brown)] mt-0.5 shrink-0" />
@@ -414,7 +450,7 @@ export function PlanView() {
                     No active plan
                   </h2>
                   <p className="mt-1 text-[14px] text-[var(--pf-text-secondary)]">
-                    Select a plan below to start your sunrise milk deliveries.
+                    Select a plan below to start your sunrise milk deliveries ({activeDeliveryWindow}).
                   </p>
                 </div>
               </div>
@@ -429,7 +465,7 @@ export function PlanView() {
             />
 
             <div className="grid md:grid-cols-3 gap-5">
-              {/* ────────────────── 1. 7-Day Trial Plan ────────────────── */}
+              {/* 1. 7-Day Trial Plan */}
               <div
                 className={
                   "relative rounded-3xl p-6 transition-all border flex flex-col justify-between " +
@@ -479,8 +515,10 @@ export function PlanView() {
                       <span>Sanitized glass bottles</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 size={13} className="text-[var(--pf-brown)] shrink-0" />
-                      <span>Morning doorstep drop by 10 AM</span>
+                      <Clock size={13} className="text-[var(--pf-brown)] shrink-0" />
+                      <span>
+                        Morning drop ({formatDeliveryWindow(trialItem?.deliveryStartTime, trialItem?.deliveryEndTime)})
+                      </span>
                     </li>
                   </ul>
 
@@ -534,7 +572,7 @@ export function PlanView() {
                 </div>
               </div>
 
-              {/* ────────────────── 2. Monthly Subscription ────────────────── */}
+              {/* 2. Monthly Subscription */}
               <div
                 className={
                   "relative rounded-3xl p-6 transition-all border flex flex-col justify-between " +
@@ -578,8 +616,10 @@ export function PlanView() {
 
                   <ul className="mt-4 space-y-2 text-[12px] text-[var(--pf-text-secondary)]">
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 size={13} className="text-[var(--pf-brown)] shrink-0" />
-                      <span>1L delivered fresh daily before 10 AM</span>
+                      <Clock size={13} className="text-[var(--pf-brown)] shrink-0" />
+                      <span>
+                        Daily delivery ({formatDeliveryWindow(monthlyItem?.deliveryStartTime, monthlyItem?.deliveryEndTime)})
+                      </span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 size={13} className="text-[var(--pf-brown)] shrink-0" />
@@ -621,7 +661,7 @@ export function PlanView() {
                 </div>
               </div>
 
-              {/* ────────────────── 3. Buy Once (1 Litre) ────────────────── */}
+              {/* 3. Buy Once (1 Litre) */}
               <div
                 className={
                   "relative rounded-3xl p-6 transition-all border flex flex-col justify-between " +
@@ -667,8 +707,10 @@ export function PlanView() {
                       <span>Single 1L farm sample bottle</span>
                     </li>
                     <li className="flex items-center gap-2">
-                      <CheckCircle2 size={13} className="text-[var(--pf-brown)] shrink-0" />
-                      <span>Doorstep morning drop</span>
+                      <Clock size={13} className="text-[var(--pf-brown)] shrink-0" />
+                      <span>
+                        Morning drop ({formatDeliveryWindow(buyOnceItem?.deliveryStartTime, buyOnceItem?.deliveryEndTime)})
+                      </span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 size={13} className="text-[var(--pf-brown)] shrink-0" />
@@ -739,7 +781,7 @@ export function PlanView() {
         </div>
       )}
 
-      {/* ────────────────── Upgrade to Monthly Modal ────────────────── */}
+      {/* Upgrade to Monthly Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-lg rounded-3xl bg-white border border-[var(--pf-border)] shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-200">
@@ -751,7 +793,7 @@ export function PlanView() {
                   Upgrade to Monthly Plan
                 </h3>
                 <p className="text-xs text-[#8C7A6B] mt-0.5">
-                  Configure your daily morning milk deliveries
+                  Configure your daily morning milk deliveries ({activeDeliveryWindow})
                 </p>
               </div>
               <button
@@ -938,13 +980,20 @@ export function PlanView() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div>
       <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--pf-text-muted)]">
         {label}
       </div>
-      <div className="mt-1 text-[20px] font-bold text-[var(--pf-text)]">{value}</div>
+      <div className="mt-1 text-[18px] sm:text-[20px] font-bold text-[var(--pf-text)] leading-tight">
+        {value}
+      </div>
+      {sub && (
+        <div className="text-[11px] text-[var(--pf-text-muted)] font-medium mt-0.5">
+          {sub}
+        </div>
+      )}
     </div>
   );
 }
@@ -956,7 +1005,8 @@ function PlanSkeleton() {
         <PfSkeleton height={14} width={100} />
         <PfSkeleton className="mt-3" height={36} width="50%" />
         <PfSkeleton className="mt-2" height={16} width="35%" />
-        <div className="mt-6 grid sm:grid-cols-2 gap-5 pt-6 border-t border-[var(--pf-border)]">
+        <div className="mt-6 grid sm:grid-cols-3 gap-5 pt-6 border-t border-[var(--pf-border)]">
+          <PfSkeleton height={40} />
           <PfSkeleton height={40} />
           <PfSkeleton height={40} />
         </div>

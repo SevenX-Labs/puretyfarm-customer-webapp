@@ -132,7 +132,7 @@ export function OrdersView() {
             }
             action={
               orders.length === 0 ? (
-                <PfButton href="/products">Explore Products</PfButton>
+                <PfButton href="/plan">Explore Milk Plans</PfButton>
               ) : (
                 <PfButton
                   variant="secondary"

@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Receipt, Milk, ShoppingBag, User, Wallet } from "lucide-react";
+import { Home, Receipt, Milk, User, Wallet } from "lucide-react";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
   { label: "Orders", href: "/orders", icon: Receipt },
   { label: "Plan", href: "/plan", icon: Milk },
   { label: "Wallet", href: "/wallet", icon: Wallet },
-  { label: "Products", href: "/products", icon: ShoppingBag },
   { label: "Account", href: "/account", icon: User },
 ] as const;
 
@@ -21,7 +20,7 @@ export function MobileNavigation() {
       aria-label="Primary"
       className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[var(--pf-surface)] border-t border-[var(--pf-border)] pb-[env(safe-area-inset-bottom,0px)]"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="grid grid-cols-5">
         {NAV.map((item) => {
           const Icon = item.icon;
           const active =

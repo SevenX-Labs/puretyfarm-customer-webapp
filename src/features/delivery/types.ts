@@ -20,6 +20,8 @@ export interface ActivePlanView {
   quantityB?: number | null;
   startDate: string | null;
   endDate: string | null;
+  deliveryStartTime?: string | null;
+  deliveryEndTime?: string | null;
 }
 
 export interface UpcomingDeliveryView {

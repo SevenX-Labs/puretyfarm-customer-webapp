@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Receipt, Milk, Wallet, ShoppingBag, type LucideIcon } from "lucide-react";
+import { Receipt, Milk, Wallet, User, type LucideIcon } from "lucide-react";
 
 const ACTIONS: { label: string; sub: string; href: string; icon: LucideIcon }[] = [
   { label: "Orders", sub: "History & invoices", href: "/orders", icon: Receipt },
   { label: "Plan", sub: "Change or pause", href: "/plan", icon: Milk },
   { label: "Wallet", sub: "Balance & top-up", href: "/wallet", icon: Wallet },
-  { label: "Products", sub: "Explore the farm", href: "/products", icon: ShoppingBag },
+  { label: "Account", sub: "Profile & addresses", href: "/account", icon: User },
 ];
 
 export function QuickActions() {

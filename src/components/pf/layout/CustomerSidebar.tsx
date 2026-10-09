@@ -8,7 +8,6 @@ import {
   Home,
   Receipt,
   Milk,
-  ShoppingBag,
   Truck,
   User,
   CircleHelp,
@@ -23,7 +22,6 @@ const NAV = [
   { label: "Orders", href: "/orders", icon: Receipt },
   { label: "Milk Plan", href: "/plan", icon: Milk },
   { label: "Wallet", href: "/wallet", icon: Wallet },
-  { label: "Products", href: "/products", icon: ShoppingBag },
   { label: "Account", href: "/account", icon: User },
 ] as const;
 

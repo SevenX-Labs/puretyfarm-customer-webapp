@@ -278,7 +278,7 @@ export function AccountLandingView() {
                       </p>
                     </div>
                   </div>
-                  <PfButton href="/products" variant="secondary" size="sm">Explore Products</PfButton>
+                  <PfButton href="/plan" variant="secondary" size="sm">Explore Plans</PfButton>
                 </div>
               </PfCard>
             )}

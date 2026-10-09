@@ -7,6 +7,8 @@ export interface PlanOverviewItem {
   remainingUses?: number;
   used?: boolean;
   blockedReason?: string;
+  deliveryStartTime?: string | null;
+  deliveryEndTime?: string | null;
 }
 
 export interface PlansOverviewResponse {

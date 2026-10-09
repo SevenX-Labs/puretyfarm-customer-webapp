@@ -101,7 +101,7 @@ function NoUpcomingDelivery({ hasPlan }: { hasPlan: boolean }) {
               : "Pick a milk plan and we'll deliver farm-fresh A2 milk to your doorstep."}
           </p>
           <div className="mt-5">
-            <PfButton href={hasPlan ? "/plan" : "/products"}>
+            <PfButton href="/plan">
               {hasPlan ? "Manage Plan" : "Explore Milk Plans"}
             </PfButton>
           </div>
@@ -126,7 +126,7 @@ function StarterBlock() {
           the farm to your doorstep each morning.
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
-          <PfButton href="/products">Explore Milk Plans</PfButton>
+          <PfButton href="/plan">Explore Milk Plans</PfButton>
           <PfButton href="/plan" variant="secondary">
             View Plans
           </PfButton>
