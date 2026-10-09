@@ -1142,47 +1142,7 @@ function WalletContent() {
           )}
         </div>
 
-        {/* ─── 4. PURETYFARM GUARANTEES & REFUND POLICY ─── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Refund Policy Card */}
-          <div className="bg-[#FAF8F5] rounded-3xl border border-[#E8DFD4] p-5 sm:p-6 shadow-2xs space-y-3">
-            <h4 className="text-xs sm:text-sm font-bold text-[#1A1008] flex items-center gap-2">
-              <FiShield className="w-4 h-4 text-[#5C1B13]" />
-              <span>100% Refundable to Source</span>
-            </h4>
-            <p className="text-xs text-[#6B584C] leading-relaxed">
-              Unused wallet balances are never trapped. You can request a full or partial refund back to your original payment method (PayU) anytime. Processing typically completes in 3–7 business days depending on your issuing bank.
-            </p>
-            <div className="pt-1">
-              <button
-                type="button"
-                onClick={() =>
-                  alert(
-                    "Refund request noted. Our Raipur finance desk will reach out to process your unused balance back to source."
-                  )
-                }
-                className="text-xs font-bold text-[#5C1B13] hover:underline cursor-pointer inline-flex items-center gap-1"
-              >
-                <span>Request Refund to Bank Account</span>
-                <span>→</span>
-              </button>
-            </div>
-          </div>
 
-          {/* Ledger Invariants & Audit Card */}
-          <div className="bg-[#FAF8F5] rounded-3xl border border-[#E8DFD4] p-5 sm:p-6 shadow-2xs space-y-3">
-            <h4 className="text-xs sm:text-sm font-bold text-[#1A1008] flex items-center gap-2">
-              <FiCheckCircle className="w-4 h-4 text-emerald-700" />
-              <span>Immutable Ledger & Negative Balance Protection</span>
-            </h4>
-            <p className="text-xs text-[#6B584C] leading-relaxed">
-              Wallet records are cryptographically verified and immutable. A database CHECK constraint prevents negative balances, and idempotency guarantees that network retries never double-charge.
-            </p>
-            <div className="text-[11px] font-mono text-[#8C7A6B] pt-1">
-              Raipur Farm Depot • 4°C Cold-Chain Certified
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );
