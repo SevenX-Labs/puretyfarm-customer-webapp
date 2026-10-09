@@ -16,6 +16,7 @@ import {
   FiShield,
   FiRotateCw,
   FiHome,
+  FiXCircle,
 } from "react-icons/fi";
 import { LuWallet } from "react-icons/lu";
 
@@ -30,6 +31,8 @@ export function PaymentResultView() {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [retrying, setRetrying] = useState<boolean>(false);
+  const [cancelling, setCancelling] = useState<boolean>(false);
+  const [cancelled, setCancelled] = useState<boolean>(false);
   const [verification, setVerification] = useState<VerifyPaymentResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const confettiFired = useRef<boolean>(false);
@@ -100,13 +103,58 @@ export function PaymentResultView() {
     }
   };
 
+  // Abandoned checkout: the customer returned (or was redirected) while the
+  // payment is still live. Release the one-pending-per-wallet slot so they can
+  // start fresh. The server re-verifies with PayU first (see docs §6.4), so a
+  // payment that actually succeeded is settled, not discarded.
+  const handleCancel = async () => {
+    if (!txnid || cancelling) return;
+    setCancelling(true);
+    setError(null);
+    try {
+      const res = await paymentsApi.cancelPayment({ transactionId: txnid });
+      if (res.payment?.status === "SUCCESS") {
+        // PayU had actually taken the money; show the authoritative state.
+        setVerification({
+          payment: res.payment,
+          walletCredited: res.payment.walletCredit?.status === "COMPLETED",
+          requiresAdminApproval: res.payment.walletCredit?.status === "PENDING",
+        });
+      } else {
+        setCancelled(true);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("wallet_update"));
+        }
+      }
+    } catch (err: any) {
+      console.error("Payment cancel error:", err);
+      const code = err?.data?.error || err?.error || err?.code;
+      if (code === "PAYMENT_ALREADY_SUCCESSFUL" || code === "PAYMENT_IN_PROGRESS") {
+        // State moved under us — re-verify to show the real outcome.
+        await verifyAuthoritativeState();
+      } else {
+        const msg = err?.data?.message || err?.message || "Failed to cancel the pending top-up.";
+        setError(typeof msg === "string" ? msg : "Cancel failed.");
+      }
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const payment: PaymentRecord | undefined = verification?.payment;
   const isSuccess = payment?.status === "SUCCESS" || (!payment && statusHint === "SUCCESS");
   const isFailed =
-    payment?.status === "FAILED" ||
-    payment?.status === "CANCELLED" ||
-    payment?.status === "EXPIRED" ||
-    resultHint === "error";
+    !cancelled &&
+    (payment?.status === "FAILED" ||
+      payment?.status === "CANCELLED" ||
+      payment?.status === "EXPIRED" ||
+      resultHint === "error");
+  // Still live at the gateway (an abandoned or in-flight checkout the customer
+  // came back from), or just cancelled by them here.
+  const isPending =
+    !cancelled &&
+    (payment?.status === "PENDING" || payment?.status === "PROCESSING") &&
+    resultHint !== "error";
   const isRefunded =
     payment?.status === "REFUNDED" ||
     payment?.status === "REFUND_PENDING" ||
@@ -377,6 +425,108 @@ export function PaymentResultView() {
             >
               <LuWallet className="w-4 h-4" />
               <span>Track in Wallet</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ─── CANCELLED BY CUSTOMER (abandoned checkout released) ─── */}
+      {!loading && cancelled && (
+        <div className="bg-[#FAF8F5] rounded-3xl border border-[#E8DFD4] p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 rounded-full bg-[#E8DFD4] text-[#6B584C] flex items-center justify-center mx-auto shadow-xs">
+              <FiXCircle className="w-8 h-8" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B584C] bg-[#E8DFD4] px-2.5 py-0.5 rounded-full border border-[#D8CCBD]">
+                Top-up Cancelled
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-[#1A1008] mt-2">
+                Pending Top-up Cancelled
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-[#6B584C] max-w-md mx-auto leading-relaxed">
+              No funds were debited. Your wallet is free to start a new recharge
+              whenever you&apos;re ready.
+            </p>
+          </div>
+          <div className="flex items-center justify-center">
+            <Link
+              href="/wallet"
+              className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
+            >
+              <LuWallet className="w-4 h-4" />
+              <span>Start a New Top-up</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ─── PENDING / PROCESSING (abandoned or in-flight checkout) ─── */}
+      {!loading && isPending && (
+        <div className="bg-[#FAF8F5] rounded-3xl border border-amber-200 p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-xs">
+              <FiClock className="w-8 h-8" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">
+                Payment {payment?.status === "PROCESSING" ? "Processing" : "Not Completed"}
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-[#1A1008] mt-2">
+                {payment?.status === "PROCESSING"
+                  ? "Payment Is Being Processed"
+                  : "Did You Complete the Payment?"}
+              </h2>
+              {displayAmount && (
+                <p className="text-xl sm:text-2xl font-bold font-mono text-[#5C1B13] mt-1">
+                  ₹{displayAmount}
+                </p>
+              )}
+            </div>
+            <p className="text-xs sm:text-sm text-[#6B584C] max-w-md mx-auto leading-relaxed">
+              {payment?.status === "PROCESSING"
+                ? "The gateway is still confirming your payment. Re-check in a moment — your wallet updates automatically once it settles."
+                : "This top-up is still open at the payment gateway. If you paid, re-check the status. If you changed your mind, cancel it to free up your wallet for a new top-up."}
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-[#E8DFD4] p-4 space-y-2 text-xs">
+            <div className="flex items-center justify-between py-1">
+              <span className="text-[#8C7A6B]">Transaction ID</span>
+              <span className="font-mono font-semibold text-[#1A1008]">
+                {payment?.transactionId || txnid}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <button
+              type="button"
+              onClick={verifyAuthoritativeState}
+              disabled={cancelling}
+              className="w-full sm:flex-1 py-3 px-4 rounded-2xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              <FiRefreshCw className="w-4 h-4" />
+              <span>Re-check Status</span>
+            </button>
+            {payment?.status !== "PROCESSING" && (
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="w-full sm:flex-1 py-3 px-4 rounded-2xl border border-rose-300 bg-white text-rose-700 hover:bg-rose-50 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <FiXCircle className={`w-4 h-4 ${cancelling ? "animate-spin" : ""}`} />
+                <span>{cancelling ? "Cancelling..." : "Cancel Top-up"}</span>
+              </button>
+            )}
+            <Link
+              href="/wallet"
+              className="w-full sm:flex-1 py-3 px-4 rounded-2xl border border-[#E8DFD4] bg-white text-[#1A1008] hover:bg-[#FAF3EA] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all"
+            >
+              <LuWallet className="w-4 h-4" />
+              <span>Back to Wallet</span>
             </Link>
           </div>
         </div>
