@@ -26,6 +26,7 @@ import {
   FiChevronDown,
 } from "react-icons/fi";
 import { LuWallet } from "react-icons/lu";
+import { EmailVerificationModal } from "@/components/pf";
 
 export function AccountView() {
   const {
@@ -88,6 +89,9 @@ export function AccountView() {
     creditRequests,
     handleRechargeWallet,
     handleRetryPayment,
+    showEmailModal,
+    setShowEmailModal,
+    handleEmailVerifiedAndResumeRecharge,
   } = useAccountData();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -475,6 +479,15 @@ export function AccountView() {
           </div>
         )}
       </main>
+
+      <EmailVerificationModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSuccess={handleEmailVerifiedAndResumeRecharge}
+        initialEmail={user?.email || ""}
+        title="Email Required for Payment"
+        description="Online payment gateways require a verified email address to send your payment receipts and invoice records."
+      />
 
       {/* ─── FOOTER ─── */}
       <footer className="py-5 text-center border-t border-[#E8DFD4]/70 text-xs text-[#3A241C]/70 bg-white/70 backdrop-blur-md mt-auto z-10">

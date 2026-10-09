@@ -118,6 +118,8 @@ export function useAccountData() {
   const [walletPaymentStatus, setWalletPaymentStatus] = useState<VerifyPaymentResponse | null>(null);
   const [livePayments, setLivePayments] = useState<PaymentRecord[]>([]);
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
+  const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
+  const [pendingTopupPaise, setPendingTopupPaise] = useState<number | null>(null);
   const [creditRequests, setCreditRequests] = useState<WalletCreditRequest[]>([]);
 
   // Fetch Wallet & Transactions from Server API
@@ -229,6 +231,13 @@ export function useAccountData() {
 
     try {
       if (method === "ONLINE") {
+        if (!user.email) {
+          setPendingTopupPaise(amountPaise);
+          setShowEmailModal(true);
+          setWalletRecharging(false);
+          return;
+        }
+
         const res = await paymentsApi.initiateOnlineTopup(amountPaise, {
           autoRedirect: true,
         });
@@ -245,13 +254,50 @@ export function useAccountData() {
         fetchWalletData();
       }
     } catch (err: unknown) {
-      // Backend-only: never fabricate a top-up locally on failure. Surface
-      // the real error and leave the balance untouched.
+      const errorObj = err as any;
+      const code = errorObj?.data?.error || errorObj?.error || errorObj?.code;
       const message =
-        err && typeof err === "object" && "message" in err
-          ? String((err as { message: unknown }).message)
+        errorObj && typeof errorObj === "object" && "message" in errorObj
+          ? String(errorObj.message)
           : "Could not start the top-up. Please try again.";
+
+      if (
+        code === "CUSTOMER_EMAIL_REQUIRED" ||
+        (typeof message === "string" &&
+          (message.includes("CUSTOMER_EMAIL_REQUIRED") ||
+            message.toLowerCase().includes("email address on your profile")))
+      ) {
+        setPendingTopupPaise(amountPaise);
+        setShowEmailModal(true);
+        setWalletPaymentError(null);
+        return;
+      }
+
       setWalletPaymentError({ message, transactionId: "", canRetry: false });
+    } finally {
+      setWalletRecharging(false);
+    }
+  };
+
+  const handleEmailVerifiedAndResumeRecharge = async (_verifiedEmail: string) => {
+    setShowEmailModal(false);
+    const amountToCharge = pendingTopupPaise;
+    if (!amountToCharge) return;
+    setWalletRecharging(true);
+    setWalletPaymentError(null);
+    try {
+      const res = await paymentsApi.initiateOnlineTopup(amountToCharge, {
+        autoRedirect: true,
+      });
+      if (res.checkout) {
+        return;
+      }
+    } catch (err: any) {
+      setWalletPaymentError({
+        message: err?.message || "Failed to initiate online payment.",
+        transactionId: "",
+        canRetry: false,
+      });
     } finally {
       setWalletRecharging(false);
     }
@@ -851,5 +897,8 @@ export function useAccountData() {
     fetchWalletData,
     handleRechargeWallet,
     handleRetryPayment,
+    showEmailModal,
+    setShowEmailModal,
+    handleEmailVerifiedAndResumeRecharge,
   };
 }

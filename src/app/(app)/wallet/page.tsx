@@ -13,6 +13,7 @@ import {
 } from "@/features/wallet";
 import { paymentsApi, PaymentRecord, PaymentStatus } from "@/features/payments";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
+import { EmailVerificationModal } from "@/components/pf";
 import { Button } from "@/components/ui/Button";
 import {
   FiShield,
@@ -55,6 +56,8 @@ function WalletContent() {
   const [customAmount, setCustomAmount] = useState<string>("1000");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showTopupModal, setShowTopupModal] = useState<boolean>(false);
+  const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
+  const [pendingTopupPaise, setPendingTopupPaise] = useState<number | null>(null);
 
   // ─── STATUS & ERROR BANNERS ───
   const [successBanner, setSuccessBanner] = useState<{
@@ -354,6 +357,15 @@ function WalletContent() {
 
     try {
       if (rechargeMethod === "ONLINE") {
+        // Online gateways (PayU) require a verified customer email
+        if (!user?.email) {
+          setShowTopupModal(false);
+          setPendingTopupPaise(amountPaise);
+          setShowEmailModal(true);
+          setIsProcessing(false);
+          return;
+        }
+
         // Online PayU Flow (docs/customer/payments.md)
         const res = await paymentsApi.initiateOnlineTopup(amountPaise, {
           autoRedirect: true,
@@ -397,10 +409,22 @@ function WalletContent() {
       }
     } catch (err: any) {
       console.error("Top-up submission error:", err);
-      const code = err?.data?.error || err?.error;
+      const code = err?.data?.error || err?.error || err?.code;
       const msg = err?.data?.message || err?.message || "Failed to process top-up.";
 
-      if (code === "WALLET_PENDING_REQUEST_EXISTS" || msg.includes("already pending")) {
+      if (
+        code === "CUSTOMER_EMAIL_REQUIRED" ||
+        (typeof msg === "string" &&
+          (msg.includes("CUSTOMER_EMAIL_REQUIRED") ||
+            msg.toLowerCase().includes("email address on your profile") ||
+            msg.toLowerCase().includes("customer_email_required")))
+      ) {
+        setShowTopupModal(false);
+        setPendingTopupPaise(amountPaise);
+        setShowEmailModal(true);
+        setErrorBanner(null);
+        return;
+      } else if (code === "WALLET_PENDING_REQUEST_EXISTS" || (typeof msg === "string" && msg.includes("already pending"))) {
         setErrorBanner({
           message:
             "A credit request is already pending approval for your wallet. Please wait for depot review before creating a new one.",
@@ -414,6 +438,28 @@ function WalletContent() {
           message: typeof msg === "string" ? msg : "Top-up failed. Please try again.",
         });
       }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleEmailVerifiedAndResumeTopup = async (_verifiedEmail: string) => {
+    setShowEmailModal(false);
+    const amountToCharge = pendingTopupPaise;
+    if (!amountToCharge) return;
+
+    setIsProcessing(true);
+    setErrorBanner(null);
+    try {
+      const res = await paymentsApi.initiateOnlineTopup(amountToCharge, {
+        autoRedirect: true,
+      });
+      if (res.checkout) {
+        return;
+      }
+    } catch (err: any) {
+      console.error("Payment resumption error after email verification:", err);
+      setErrorBanner({ message: err?.message || "Failed to initiate online payment." });
     } finally {
       setIsProcessing(false);
     }
@@ -1363,6 +1409,19 @@ function WalletContent() {
             </div>
           )}
         </div>
+
+        {/* ─── 5. EMAIL VERIFICATION MODAL ─── */}
+        <EmailVerificationModal
+          isOpen={showEmailModal}
+          onClose={() => {
+            setShowEmailModal(false);
+            setIsProcessing(false);
+          }}
+          onSuccess={handleEmailVerifiedAndResumeTopup}
+          initialEmail={user?.email || ""}
+          title="Email Required for Payment"
+          description="Online payment gateways require a verified email address to send your payment receipts and invoice records."
+        />
 
         {/* ─── 4. TOP-UP CHECKOUT MODAL ─── */}
         {showTopupModal && (

@@ -4,3 +4,4 @@ export { PfBadge } from "./Badge";
 export { PfSkeleton } from "./Skeleton";
 export { PfEmptyState } from "./EmptyState";
 export { LogoutConfirmDialog } from "./LogoutConfirmDialog";
+export { EmailVerificationModal } from "./EmailVerificationModal";
