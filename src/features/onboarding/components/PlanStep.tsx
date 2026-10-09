@@ -173,20 +173,20 @@ export function PlanStep({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="space-y-6"
+      className="space-y-3.5 sm:space-y-4"
     >
       <header>
-        <h1 className="font-heading text-[28px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[32px]">
+        <h1 className="font-heading text-[22px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[26px]">
           Select Your Milk Plan
         </h1>
-        <p className="mt-1.5 text-[14px] text-[#715e50] sm:text-[15px]">
+        <p className="mt-1 text-[13px] text-[#715e50] sm:text-[14px]">
           Choose the plan that works best for your home.
         </p>
       </header>
 
       {/* Top Delivery Address Badge */}
       {savedAddress && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8DFD4] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-3 sm:p-3.5 rounded-xl bg-white border border-[#E8DFD4] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-[#FAF3EA] text-[#5C1B13] flex items-center justify-center shrink-0">
@@ -224,7 +224,7 @@ export function PlanStep({
       )}
 
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3.5 sm:gap-4 lg:grid-cols-3">
         {PLANS.map((plan) => {
           const Icon = plan.icon;
           const isSelected = selectedPlanId === plan.id;
@@ -265,7 +265,7 @@ export function PlanStep({
               key={plan.id}
               onClick={() => !isBlocked && onSelectPlanId(plan.id)}
               className={`
-                relative rounded-3xl border-2 transition-all p-6 sm:p-7 flex flex-col justify-between
+                relative rounded-2xl border-2 transition-all p-4 sm:p-4.5 lg:p-5 flex flex-col justify-between
                 bg-gradient-to-b ${plan.gradient}
                 ${
                   isBlocked
@@ -299,8 +299,8 @@ export function PlanStep({
 
               <div>
                 {/* Plan header */}
-                <div className="flex items-center justify-between mb-4 mt-2">
-                  <div className="w-10 h-10 rounded-2xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
+                <div className="flex items-center justify-between mb-2.5 mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
                     <Icon className="w-5 h-5" />
                   </div>
                   {isMonthly && customPricing ? (
@@ -321,12 +321,12 @@ export function PlanStep({
                 <h3 className="text-lg font-serif font-bold text-[#1A1008] mb-1">
                   {plan.name}
                 </h3>
-                <p className="text-xs text-[#3A241C]/70 mb-4 min-h-[36px]">
+                <p className="text-[11px] sm:text-xs text-[#3A241C]/70 mb-2.5 min-h-[28px]">
                   {plan.description}
                 </p>
 
                 {/* Pricing block */}
-                <div className="pb-5 mb-5 border-b border-[#E8DFD4]">
+                <div className="pb-3 mb-3 border-b border-[#E8DFD4]">
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-serif font-bold text-[#5C1B13]">
                       ₹{displayPrice}
@@ -349,7 +349,7 @@ export function PlanStep({
                 </div>
 
                 {/* Features list */}
-                <ul className="space-y-2.5 mb-6 text-xs text-[#3A241C]/80">
+                <ul className="space-y-1.5 mb-3.5 text-[11px] sm:text-xs text-[#3A241C]/80">
                   {plan.features.map((feat, idx) => {
                     const FeatIcon = feat.icon;
                     return (
@@ -363,7 +363,7 @@ export function PlanStep({
               </div>
 
               {/* Actions container */}
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 {/* Customize Schedule Button for Monthly Plan */}
                 {isMonthly && (
                   <button
@@ -373,7 +373,7 @@ export function PlanStep({
                       setIsPanelOpen(true);
                     }}
                     aria-label="Customize delivery frequency and quantity schedule"
-                    className="w-full min-h-[44px] py-2 px-3 rounded-xl border border-[#5C1B13]/30 bg-white hover:bg-[#FAF3EA] text-[#5C1B13] text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-2xs"
+                    className="w-full min-h-[36px] sm:min-h-[38px] py-1.5 px-3 rounded-xl border border-[#5C1B13]/30 bg-white hover:bg-[#FAF3EA] text-[#5C1B13] text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                   >
                     <FiSliders className="w-3.5 h-3.5 shrink-0" />
                     <span>{customPricing ? "Edit Custom Schedule" : "Customize Frequency & Quantity"}</span>
@@ -391,7 +391,7 @@ export function PlanStep({
                     e.stopPropagation();
                     if (!isBlocked) handleSelectAndComplete(plan);
                   }}
-                  className="rounded-2xl min-h-[44px] py-3 text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
+                  className="rounded-xl min-h-[38px] sm:min-h-[40px] py-2 text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
                 >
                   {planSubmitting && selectedPlanId === plan.id ? (
                     <div className="flex items-center justify-center gap-2">
@@ -411,7 +411,7 @@ export function PlanStep({
       </div>
 
       {/* Back button */}
-      <div className="flex justify-between items-center pt-4">
+      <div className="flex justify-between items-center pt-2">
         <Button
           type="button"
           variant="secondary"

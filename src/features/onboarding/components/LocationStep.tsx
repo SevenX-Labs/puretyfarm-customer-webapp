@@ -321,14 +321,14 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="space-y-5"
+      className="space-y-3.5 sm:space-y-4"
     >
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-heading text-[28px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[32px]">
+          <h1 className="font-heading text-[22px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[26px]">
             Delivery Location
           </h1>
-          <p className="mt-1.5 text-[14px] text-[#715e50] sm:text-[15px]">
+          <p className="mt-1 text-[13px] text-[#715e50] sm:text-[14px]">
             Choose where you&apos;d like your fresh milk delivered.
           </p>
         </div>
@@ -342,7 +342,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
         </button>
       </header>
 
-      <section className="space-y-5 rounded-2xl border border-[#e8dfd4] bg-white p-4 sm:p-5">
+      <section className="space-y-3.5 rounded-xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4.5">
         <div className="flex flex-col items-center gap-3 sm:flex-row">
           <Button
             type="button"
@@ -350,7 +350,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
             size="sm"
             onClick={handleDetectGps}
             disabled={gpsDetecting}
-            className="min-h-11 w-full rounded-xl bg-[#7a2417] px-4 text-xs font-bold text-white shadow-xs hover:bg-[#5f1b12] sm:w-auto"
+            className="min-h-10 sm:min-h-11 w-full rounded-xl bg-[#7a2417] px-4 text-xs font-bold text-white shadow-xs hover:bg-[#5f1b12] sm:w-auto"
           >
             <span className="inline-flex items-center justify-center gap-2">
               {gpsDetecting ? (
@@ -402,7 +402,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                 setSaveError(null);
               }}
               disabled={loadingStates}
-              className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+              className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
             >
               <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
               {states.map((s) => (
@@ -426,7 +426,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                 setSaveError(null);
               }}
               disabled={!selectedStateId || loadingCities}
-              className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
+              className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
             >
               <option value="">
                 {loadingCities
@@ -456,7 +456,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                 setSaveError(null);
               }}
               disabled={!selectedCityId || loadingAreas}
-              className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
+              className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
             >
               <option value="">
                 {loadingAreas
@@ -508,7 +508,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             onSubmit={handleSaveAddress}
-            className="space-y-4 rounded-2xl border border-[#e8dfd4] bg-white p-4 sm:p-5"
+            className="space-y-3 rounded-xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4.5"
           >
             <div className="border-b border-[#e8dfd4]/60 pb-2">
               <h2 className="text-sm font-bold text-[#24130f]">
@@ -537,7 +537,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={houseNumber}
                   onChange={(e) => setHouseNumber(e.target.value)}
                   placeholder="e.g. Flat 402, Building A"
-                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
@@ -549,7 +549,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={buildingName}
                   onChange={(e) => setBuildingName(e.target.value)}
                   placeholder="e.g. Green Acres Residency"
-                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
@@ -561,7 +561,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={streetName}
                   onChange={(e) => setStreetName(e.target.value)}
                   placeholder="e.g. Main Market Lane"
-                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
@@ -573,7 +573,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
                   placeholder="e.g. Near the market"
-                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
@@ -586,7 +586,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Full name of receiver"
-                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
@@ -599,7 +599,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder="+919876543210"
-                  className="h-12 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-10 sm:h-11 w-full rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 />
               </div>
               <div>
@@ -611,7 +611,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                   onChange={(e) =>
                     setAddressType(e.target.value as "Home" | "Work" | "Other")
                   }
-                  className="h-12 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
+                  className="h-10 sm:h-11 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3.5 text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 >
                   <option value="Home">Home</option>
                   <option value="Work">Work</option>
@@ -627,7 +627,7 @@ export function LocationStep({ user, onBack, onAddressSaved }: LocationStepProps
                 size="md"
                 fullWidth
                 disabled={savingAddress}
-                className="min-h-12 w-full rounded-xl bg-[#7a2417] py-3 text-[13px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] sm:ml-auto sm:w-[min(100%,360px)]"
+                className="min-h-11 sm:min-h-12 w-full rounded-xl bg-[#7a2417] py-2.5 sm:py-3 text-[13px] sm:text-[14px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] sm:ml-auto sm:w-[min(100%,320px)]"
               >
                 <span>
                   {savingAddress ? "Saving Address..." : "Continue to Select Plan"}
