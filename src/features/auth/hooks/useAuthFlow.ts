@@ -9,11 +9,11 @@ import { locationApi } from "@/features/location/api/locationApi";
 import { AuthStep } from "../types";
 
 function getSafeRedirectUrl(param: string | null): string {
-  if (!param) return "/dashboard";
+  if (!param) return "/account";
   const trimmed = param.trim();
   // Reject non-relative paths, protocol-relative paths (//), and backslashes (\)
   if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.includes("\\")) {
-    return "/dashboard";
+    return "/account";
   }
   return trimmed;
 }
@@ -41,10 +41,16 @@ export function useAuthFlow() {
   // Route existing sessions: if onboarding is incomplete, go to onboarding; else account.
   useEffect(() => {
     if (isLoggedIn && user && step === "phone") {
-      if (user.onboardingStep === "profile_pending" || !user.name || user.name.startsWith("Customer (")) {
+      const isProfileIncomplete =
+        user.onboardingStep === "profile_pending" ||
+        !user.name ||
+        user.name.trim() === "" ||
+        user.name.startsWith("Customer (");
+
+      if (isProfileIncomplete) {
         router.replace("/onboarding?step=1");
       } else {
-        router.replace(redirectUrl === "/onboarding" ? "/dashboard" : redirectUrl);
+        router.replace(redirectUrl === "/onboarding" ? "/account" : redirectUrl);
       }
     }
   }, [isLoggedIn, user, step, redirectUrl, router]);
@@ -194,19 +200,34 @@ export function useAuthFlow() {
         return;
       }
 
-      await refreshUser();
+      const refreshedUser = await refreshUser();
 
       const profile = await profileApi.getProfile().catch(() => null);
       const addresses = await locationApi.getAddresses().catch(() => []);
+      const subRes = await fetch("/api/subscription").then((r) => r.json()).catch(() => null);
+      const hasSubscription = Boolean(subRes?.subscription);
+
+      const isProfileComplete = Boolean(
+        (profile && profile.firstName && !profile.firstName.startsWith("Customer (")) ||
+        (refreshedUser && refreshedUser.name && !refreshedUser.name.startsWith("Customer (") && refreshedUser.name.trim() !== "")
+      );
+      const hasAddress = Array.isArray(addresses) && addresses.length > 0;
+      const hasPlan = hasSubscription || refreshedUser?.onboardingStep === "complete";
 
       setSuccessMessage("Authentication successful! Redirecting...");
       setTimeout(() => {
-        if (!profile || !profile.firstName) {
+        if (!isProfileComplete) {
+          // Incomplete profile -> onboarding step 1 (profile details)
           router.replace("/onboarding?step=1");
-        } else if (!addresses || addresses.length === 0) {
+        } else if (!hasAddress) {
+          // Profile exists, but no address -> onboarding step 2 (delivery location)
           router.replace("/onboarding?step=2");
+        } else if (!hasPlan) {
+          // Address exists, but no plan -> onboarding step 3 (plan selection)
+          router.replace("/onboarding?step=3");
         } else {
-          router.replace(redirectUrl === "/onboarding" ? "/dashboard" : redirectUrl);
+          // Existing active customer -> route to account page!
+          router.replace(redirectUrl && redirectUrl !== "/onboarding" ? redirectUrl : "/account");
         }
       }, 400);
     } catch (err: unknown) {
@@ -243,7 +264,7 @@ export function useAuthFlow() {
       await refreshUser();
       setSuccessMessage("Profile saved! Redirecting to your account...");
       setTimeout(() => {
-        router.replace(redirectUrl);
+        router.replace("/account");
       }, 600);
     } catch (err: unknown) {
       const errorMsg =

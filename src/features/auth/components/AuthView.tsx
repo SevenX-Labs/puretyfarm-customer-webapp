@@ -1,19 +1,33 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { AnimatePresence, m } from "framer-motion";
-import { FiAlertCircle, FiCheckCircle } from "react-icons/fi";
-import { LuLeaf, LuShieldCheck, LuTruck } from "react-icons/lu";
-import { useAuthFlow } from "../hooks/useAuthFlow";
+import Link from "next/link";
+import { m, AnimatePresence } from "framer-motion";
+import { FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import { GiMilkCarton } from "react-icons/gi";
+import { TbTruckDelivery } from "react-icons/tb";
+import { HiOutlineBadgeCheck } from "react-icons/hi";
 import { PhoneStep } from "./PhoneStep";
 import { OtpStep } from "./OtpStep";
 import { OnboardingStep } from "./OnboardingStep";
+import { useAuthFlow } from "../hooks/useAuthFlow";
 
 const features = [
-  { icon: LuLeaf, firstLine: "A2 Milk", secondLine: "Products" },
-  { icon: LuTruck, firstLine: "Farm Fresh", secondLine: "Delivery" },
-  { icon: LuShieldCheck, firstLine: "Pure", secondLine: "& Trusted" },
+  {
+    icon: GiMilkCarton,
+    firstLine: "A2 Milk",
+    secondLine: "Products",
+  },
+  {
+    icon: TbTruckDelivery,
+    firstLine: "Farm Fresh",
+    secondLine: "Delivery",
+  },
+  {
+    icon: HiOutlineBadgeCheck,
+    firstLine: "Pure",
+    secondLine: "& Trusted",
+  },
 ];
 
 export function AuthView() {
@@ -56,46 +70,46 @@ export function AuthView() {
 
   return (
     <main
-      className="fixed inset-0 isolate flex min-h-svh w-full items-center overflow-x-hidden overflow-y-auto bg-[#f3dfc0] bg-cover bg-center bg-no-repeat text-[#24130f]"
+      className="min-h-svh lg:h-svh lg:overflow-hidden isolate flex w-full flex-col justify-center overflow-x-hidden overflow-y-auto bg-[#f3dfc0] bg-cover bg-center bg-no-repeat text-[#24130f] pt-[74px] sm:pt-[82px] lg:pt-[86px] pb-3 sm:pb-5 lg:pb-5"
       style={{
         backgroundImage:
           "url('/newimge/Sepia%20Countryside%20Farm%20Panorama.png')",
       }}
     >
-      <div className="relative z-10 mx-auto flex w-full max-w-[1600px] flex-col items-center justify-center gap-5 px-4 py-6 sm:px-6 md:grid md:min-h-svh md:grid-cols-[minmax(0,1fr)_minmax(320px,40%)] md:items-center md:gap-4 md:px-6 md:py-6 lg:w-[92vw] lg:grid-cols-[minmax(0,1fr)_minmax(460px,520px)] lg:gap-8 lg:px-0 lg:py-8 xl:w-[84vw] xl:grid-cols-[minmax(0,1fr)_540px] xl:gap-14">
-        <section className="relative isolate hidden w-full self-stretch md:flex md:flex-col md:justify-center lg:justify-start lg:pt-[28svh]">
+      <div className="relative z-10 mx-auto flex flex-1 w-full max-w-[1360px] flex-col items-center justify-center gap-4 px-3 sm:px-6 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,410px)] lg:grid-cols-[minmax(0,1fr)_minmax(380px,440px)] xl:grid-cols-[minmax(0,1fr)_460px] md:items-center lg:gap-8 xl:gap-12 md:max-h-[calc(100svh-5.8rem)]">
+        <section className="relative isolate hidden w-full self-stretch md:flex md:flex-col md:justify-center">
           <m.div
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut", delay: 0.08 }}
-            className="relative z-10 max-w-[600px] lg:pl-1"
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="relative z-10 max-w-[560px] lg:pl-1"
           >
-            <h1 className="text-[clamp(2.75rem,5vw,3.5rem)] font-extrabold leading-[1.01] tracking-[-0.04em] text-[#24130f] lg:text-[clamp(3.5rem,4.3vw,4rem)] xl:text-[68px] 2xl:text-[72px]">
+            <h1 className="text-[clamp(2.2rem,3.8vw,3.2rem)] font-extrabold leading-[1.04] tracking-[-0.04em] text-[#24130f] xl:text-[54px]">
               Pure <span className="text-[#7a2417]">Goodness</span>
               <br />
               From Our Farm
               <br />
               To Your Home.
             </h1>
-            <p className="mt-4 max-w-[500px] text-[16px] leading-[1.6] text-[#3e332c] lg:mt-5 lg:text-[18px]">
+            <p className="mt-2.5 max-w-[460px] text-[13.5px] leading-[1.5] text-[#3e332c] sm:text-[14.5px] lg:mt-3.5">
               Fresh A2 milk and natural dairy products,
               <br className="hidden lg:block" /> straight from our farm to your doorstep.
             </p>
 
-            <div className="mt-6 hidden items-center lg:mt-7 md:hidden lg:flex">
+            <div className="mt-4 hidden items-center lg:mt-5 md:hidden lg:flex">
               {features.map(({ icon: Icon, firstLine, secondLine }, index) => (
                 <div className="flex items-center" key={firstLine}>
                   {index > 0 && (
                     <span
-                      className="mx-3 h-12 w-px bg-[#7a593e]/30 xl:mx-5"
+                      className="mx-3 h-10 w-px bg-[#7a593e]/30 xl:mx-4"
                       aria-hidden="true"
                     />
                   )}
-                  <div className="flex items-center gap-2 xl:gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ffe899] text-[#4a1e12] xl:h-12 xl:w-12">
-                      <Icon className="h-5 w-5 xl:h-6 xl:w-6" aria-hidden="true" />
+                  <div className="flex items-center gap-2 xl:gap-2.5">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ffe899] text-[#4a1e12] xl:h-11 xl:w-11">
+                      <Icon className="h-4.5 w-4.5 xl:h-5 xl:w-5" aria-hidden="true" />
                     </span>
-                    <span className="text-[13px] font-bold leading-[1.35] text-[#24130f] xl:text-[15px]">
+                    <span className="text-[12.5px] font-bold leading-[1.3] text-[#24130f] xl:text-[13.5px]">
                       {firstLine}
                       <br />
                       {secondLine}
@@ -107,44 +121,40 @@ export function AuthView() {
           </m.div>
         </section>
 
-        <div className="w-full max-w-[430px] md:max-w-none md:justify-self-end lg:max-w-none">
+        <div className="w-full max-w-[430px] md:max-w-none md:justify-self-end">
           <m.section
             aria-label="Sign in to PuretyFarm"
-            initial={{ opacity: 0, y: 14, scale: 0.99 }}
+            initial={{ opacity: 0, y: 12, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="relative isolate flex min-h-[500px] flex-col justify-center overflow-hidden rounded-[24px] border border-[#e7ddd0] bg-[#fffdf8] px-5 py-6 shadow-[0_24px_70px_rgba(64,37,18,0.16)] sm:px-8 sm:py-8 md:min-h-[520px] lg:min-h-[570px] lg:min-w-[460px] lg:rounded-[28px] lg:px-8 lg:py-8 xl:min-h-[620px] xl:rounded-[28px] xl:px-[54px] xl:py-[52px]"
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="relative isolate flex flex-col justify-center overflow-hidden rounded-2xl md:rounded-[24px] border border-[#e7ddd0] bg-[#fffdf8] px-4.5 py-4.5 sm:px-6 sm:py-5 lg:px-7 lg:py-6 xl:px-8 xl:py-7 shadow-[0_20px_60px_rgba(64,37,18,0.14)]"
           >
             <div
-              className="pointer-events-none absolute -right-5 -top-10 -z-10 h-36 w-36 rounded-bl-[120px] bg-[#f8e94e]/40"
+              className="pointer-events-none absolute -right-5 -top-10 -z-10 h-32 w-32 rounded-bl-[100px] bg-[#f8e94e]/35"
               aria-hidden="true"
             />
             <div
-              className="pointer-events-none absolute -right-12 -top-12 -z-10 h-36 w-36 rounded-bl-[120px] bg-[#f8e94e]/35"
-              aria-hidden="true"
-            />
-            <div
-              className="pointer-events-none absolute -bottom-16 -right-12 -z-10 h-32 w-40 rounded-tl-[100px] bg-[#f8e94e]/30"
+              className="pointer-events-none absolute -bottom-14 -right-10 -z-10 h-28 w-36 rounded-tl-[90px] bg-[#f8e94e]/25"
               aria-hidden="true"
             />
 
             <div className="relative">
-              <div className="mb-4 flex justify-center sm:mb-5 xl:mb-6">
+              <div className="mb-2.5 flex justify-center sm:mb-3">
                 <Image
                   src="/newimge/logo-removebg-preview.png"
                   alt="PuretyFarm — 100% Pure A2 Milk Products"
                   width={378}
                   height={229}
                   priority
-                  className="h-auto w-[148px] object-contain sm:w-[160px] xl:w-[180px]"
+                  className="h-auto w-[120px] object-contain sm:w-[130px] lg:w-[140px]"
                 />
               </div>
 
-              <div className="mb-5 text-center sm:mb-6 xl:mb-7">
-                <h2 className="text-[28px] font-bold leading-tight tracking-[-0.04em] text-[#24130f] sm:text-[30px] xl:text-[34px]">
+              <div className="mb-3 text-center sm:mb-3.5">
+                <h2 className="text-[20px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[23px] lg:text-[25px]">
                   {heading}
                 </h2>
-                <p className="mx-auto mt-2 max-w-[330px] text-[14px] leading-[1.5] text-[#715e50] sm:text-[15px]">
+                <p className="mx-auto mt-1 max-w-[320px] text-[12px] leading-[1.45] text-[#715e50] sm:text-[13px]">
                   {description}
                   {step === "otp" && (
                     <span className="mt-0.5 block font-semibold tracking-[0.02em] text-[#4a3830]">
@@ -162,9 +172,9 @@ export function AuthView() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mb-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] font-medium text-red-700"
+                    className="mb-2.5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11.5px] font-medium text-red-700"
                   >
-                    <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span>{errorMessage}</span>
                   </m.div>
                 )}
@@ -175,9 +185,9 @@ export function AuthView() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mb-4 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-[12px] font-medium text-emerald-800"
+                    className="mb-2.5 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11.5px] font-medium text-emerald-800"
                   >
-                    <FiCheckCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                    <FiCheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span>{successMessage}</span>
                   </m.div>
                 )}
@@ -190,7 +200,7 @@ export function AuthView() {
                     initial={{ opacity: 0, x: 8 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -8 }}
-                    transition={{ duration: 0.18 }}
+                    transition={{ duration: 0.16 }}
                   >
                     <PhoneStep
                       phoneNumber={phoneNumber}
@@ -206,7 +216,7 @@ export function AuthView() {
                     initial={{ opacity: 0, x: 8 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -8 }}
-                    transition={{ duration: 0.18 }}
+                    transition={{ duration: 0.16 }}
                   >
                     <OtpStep
                       loading={loading}
@@ -231,7 +241,7 @@ export function AuthView() {
                     initial={{ opacity: 0, x: 8 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -8 }}
-                    transition={{ duration: 0.18 }}
+                    transition={{ duration: 0.16 }}
                   >
                     <OnboardingStep
                       name={name}
@@ -245,7 +255,7 @@ export function AuthView() {
                 )}
               </AnimatePresence>
 
-              <p className="mt-5 text-center text-[10px] leading-relaxed text-[#8c7a6b] sm:mt-6 sm:text-[11px]">
+              <p className="mt-3.5 text-center text-[10px] leading-relaxed text-[#8c7a6b] sm:text-[10.5px]">
                 By continuing, you agree to our
                 <br />
                 <Link
