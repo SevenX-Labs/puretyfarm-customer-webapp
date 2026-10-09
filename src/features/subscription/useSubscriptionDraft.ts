@@ -11,6 +11,7 @@ import {
 } from "./types";
 import {
   calculateSubscriptionPricing,
+  buildBreakdown,
   getDeliverySchedulePreview,
   sanitizeLitres,
   MIN_LITRES,
@@ -57,6 +58,7 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
   const [hasLoadedDraft, setHasLoadedDraft] = useState(false);
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const quoteRequestIdRef = useRef(0);
 
   // 1. Load draft from localStorage on initial mount
   useEffect(() => {
@@ -105,13 +107,19 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     }
   }, [hasLoadedDraft, frequency, mode, fixedLitres, day1Litres, day2Litres]);
 
-  // 3. Fetch server-calculated monthly quote asynchronously (debounced)
+  // 3. Fetch server-calculated monthly quote asynchronously (debounced).
+  //    Invalidate stale quote immediately so the UI never shows an old amount
+  //    as if it is current while a new quote is loading.
   useEffect(() => {
     if (!hasLoadedDraft) return;
+
+    setServerQuote(null);
 
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
+
+    const requestId = ++quoteRequestIdRef.current;
 
     debounceTimerRef.current = setTimeout(async () => {
       setIsQuoteLoading(true);
@@ -127,13 +135,18 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
           quantityB: mode === "pattern" ? day2Litres : undefined,
         });
 
+        if (requestId !== quoteRequestIdRef.current) return;
+
         if (quote && quote.quoteId) {
           setServerQuote(quote);
         }
       } catch (err) {
+        if (requestId !== quoteRequestIdRef.current) return;
         console.warn("Could not fetch server-side monthly quote:", err);
       } finally {
-        setIsQuoteLoading(false);
+        if (requestId === quoteRequestIdRef.current) {
+          setIsQuoteLoading(false);
+        }
       }
     }, 250);
 
@@ -155,12 +168,25 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     });
 
     if (serverQuote) {
+      const qtyA = mode === "fixed" ? fixedLitres : day1Litres;
+      const qtyB = mode === "fixed" ? fixedLitres : day2Litres;
+      const bd = buildBreakdown(
+        mode,
+        serverQuote.deliveryOccurrences,
+        fixedLitres,
+        qtyA,
+        qtyB,
+      );
+
       return {
         ...local,
         totalDeliveries: serverQuote.deliveryOccurrences,
         totalLitres: serverQuote.totalLitres,
         pricePerLitre: Math.round(serverQuote.sellingPricePerLitre / 100),
         totalPrice: Math.round(serverQuote.totalSellingAmount / 100),
+        breakdownText: bd.breakdownText,
+        oddDeliveriesCount: bd.oddDeliveriesCount,
+        evenDeliveriesCount: bd.evenDeliveriesCount,
       };
     }
 

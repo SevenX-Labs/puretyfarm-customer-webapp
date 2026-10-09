@@ -61,6 +61,8 @@ export function SubscriptionPanel({
     day2Litres,
     pricingResult,
     schedulePreview,
+    serverQuote,
+    isQuoteLoading,
     isSubmitting,
     submitError,
     isSuccess,
@@ -263,6 +265,7 @@ export function SubscriptionPanel({
         <PricingSummary
           result={pricingResult}
           schedulePreview={schedulePreview}
+          isQuoteLoading={isQuoteLoading}
         />
 
         {/* Error Alert if any */}
@@ -419,6 +422,7 @@ export function SubscriptionPanel({
               <PricingSummary
                 result={pricingResult}
                 schedulePreview={schedulePreview}
+                isQuoteLoading={isQuoteLoading}
               />
 
               {/* Error Alert if any */}
@@ -437,7 +441,7 @@ export function SubscriptionPanel({
             <div className="px-5 py-4 sm:px-6 sm:py-4 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
               <div className="min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#715E50] block">
-                  30-Day Plan Total
+                  Monthly Plan Total
                 </span>
                 <span className="text-2xl sm:text-[26px] font-black text-[#5C1B13] tabular-nums leading-none block mt-1">
                   ₹{pricingResult.totalPrice.toLocaleString("en-IN")}

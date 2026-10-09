@@ -8,9 +8,10 @@ import { FiClock, FiShield, FiCalendar } from "react-icons/fi";
 interface PricingSummaryProps {
   result: PricingResult;
   schedulePreview?: DeliveryDatePreviewItem[];
+  isQuoteLoading?: boolean;
 }
 
-export function PricingSummary({ result, schedulePreview }: PricingSummaryProps) {
+export function PricingSummary({ result, schedulePreview, isQuoteLoading }: PricingSummaryProps) {
   const {
     totalDeliveries,
     totalLitres,
@@ -43,7 +44,7 @@ export function PricingSummary({ result, schedulePreview }: PricingSummaryProps)
       <div className="flex items-center justify-between pb-3.5 border-b border-[#E8DFD4]">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#5C1B13] block">
-            Plan Summary (30-Day Cycle)
+            Subscription Quote
           </span>
           <p className="text-xs font-medium text-[#715E50] mt-0.5">
             {totalDeliveries} total doorstep deliveries
@@ -54,12 +55,15 @@ export function PricingSummary({ result, schedulePreview }: PricingSummaryProps)
         </div>
 
         <div className="text-right">
-          <span className="text-2xl sm:text-3xl font-black text-[#5C1B13] tabular-nums leading-none block">
+          <span className={`text-2xl sm:text-3xl font-black text-[#5C1B13] tabular-nums leading-none block${isQuoteLoading ? " opacity-50" : ""}`}>
             ₹{totalPrice.toLocaleString("en-IN")}
           </span>
           <span className="text-[11px] font-semibold text-[#715E50] block mt-1">
             ₹{pricePerLitre} / litre
           </span>
+          {isQuoteLoading && (
+            <span className="text-[10px] text-[#715E50] block mt-0.5">Updating…</span>
+          )}
         </div>
       </div>
 
@@ -116,7 +120,7 @@ export function PricingSummary({ result, schedulePreview }: PricingSummaryProps)
       {/* Fine print & Cut-off notes */}
       <div className="space-y-2 pt-1 text-[11px] text-[#715E50] leading-relaxed">
         <p className="text-[10.5px] text-[#715E50] italic">
-          * Billed per 30-day cycle. Unused quota rolls over if vacation pause is activated.
+          * Billed per calendar-month billing period. Unused quota rolls over if vacation pause is activated.
         </p>
 
         <div className="flex items-start gap-2 pt-0.5 text-[11.5px]">

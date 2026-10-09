@@ -101,7 +101,9 @@ export function PlanStep({
     monthly?: PlanQuote | null;
   }>({});
 
-  // Load backend plan availability, eligibility & live pricing quotes
+  // Load backend plan availability, eligibility & live pricing quotes.
+  // For the monthly card, use the saved draft parameters so the displayed
+  // price matches the user's customized schedule.
   useEffect(() => {
     let isMounted = true;
     async function fetchLivePlanData() {
@@ -134,19 +136,59 @@ export function PlanStep({
         const trialAvailable = overviews.find((p) => p.type === "SEVEN_DAY_TRIAL")?.available ?? true;
         const buyOnceAvailable = overviews.find((p) => p.type === "BUY_ONCE")?.available ?? true;
 
+        let draft: { frequency?: string; mode?: string; fixedLitres?: number; day1Litres?: number; day2Litres?: number } | null = null;
+        try {
+          const raw = typeof window !== "undefined"
+            ? localStorage.getItem("pf_subscription_draft_v2") || localStorage.getItem("pf_subscription_draft")
+            : null;
+          if (raw) draft = JSON.parse(raw);
+        } catch {}
+
+        const monthlyFreq = draft?.frequency === "alternate" ? "ALTERNATE_DAYS" as const : "DAILY" as const;
+        const monthlyMode = draft?.mode === "pattern" ? "ALTERNATING" as const : "FIXED" as const;
+        const monthlyQuotePayload = {
+          frequency: monthlyFreq,
+          quantityMode: monthlyMode,
+          quantity: monthlyMode === "FIXED" ? (draft?.fixedLitres || 1) : undefined,
+          quantityA: monthlyMode === "ALTERNATING" ? (draft?.day1Litres || 1) : undefined,
+          quantityB: monthlyMode === "ALTERNATING" ? (draft?.day2Litres || 2) : undefined,
+        };
+
         const [trialQ, singleQ, monthlyQ] = await Promise.allSettled([
           trialAvailable ? plansApi.createTrialQuote(1) : Promise.resolve(null),
           buyOnceAvailable ? plansApi.createBuyOnceQuote(1) : Promise.resolve(null),
-          plansApi.createMonthlyQuote({ frequency: "DAILY", quantityMode: "FIXED", quantity: 1 }),
+          plansApi.createMonthlyQuote(monthlyQuotePayload),
         ]);
 
         if (!isMounted) return;
 
+        const mq = monthlyQ.status === "fulfilled" ? monthlyQ.value : null;
         setLiveQuotes({
           trial: trialQ.status === "fulfilled" ? trialQ.value : null,
           single: singleQ.status === "fulfilled" ? singleQ.value : null,
-          monthly: monthlyQ.status === "fulfilled" ? monthlyQ.value : null,
+          monthly: mq,
         });
+
+        if (draft && mq) {
+          const { buildBreakdown } = await import("@/features/subscription/pricing");
+          const bd = buildBreakdown(
+            draft.mode === "pattern" ? "pattern" : "fixed",
+            mq.deliveryOccurrences,
+            draft.fixedLitres || 1,
+            draft.mode === "pattern" ? (draft.day1Litres || 1) : (draft.fixedLitres || 1),
+            draft.mode === "pattern" ? (draft.day2Litres || 2) : (draft.fixedLitres || 1),
+          );
+          setCustomPricing((prev) => prev ? {
+            ...prev,
+            totalDeliveries: mq.deliveryOccurrences,
+            totalLitres: mq.totalLitres,
+            pricePerLitre: Math.round(mq.sellingPricePerLitre / 100),
+            totalPrice: Math.round(mq.totalSellingAmount / 100),
+            breakdownText: bd.breakdownText,
+            oddDeliveriesCount: bd.oddDeliveriesCount,
+            evenDeliveriesCount: bd.evenDeliveriesCount,
+          } : prev);
+        }
       } catch (err) {
         console.warn("Could not load plans overview:", err);
       } finally {
@@ -159,11 +201,15 @@ export function PlanStep({
     };
   }, []);
 
-  // Custom schedule pricing result if user customized
+  // Custom schedule pricing result if user customized.
+  // `customPricing` holds the server-authoritative pricing result from the
+  // SubscriptionPanel (which already incorporates the server quote values).
   const [customPricing, setCustomPricing] = useState<PricingResult | null>(() => {
     if (typeof window === "undefined") return null;
     try {
-      const stored = localStorage.getItem("pf_subscription_draft");
+      const stored =
+        localStorage.getItem("pf_subscription_draft_v2") ||
+        localStorage.getItem("pf_subscription_draft");
       if (stored) {
         const parsed = JSON.parse(stored);
         return calculateSubscriptionPricing(parsed);
@@ -172,7 +218,7 @@ export function PlanStep({
     return null;
   });
 
-  const handleConfirmSchedule = (
+  const handleConfirmSchedule = async (
     result: PricingResult,
     draft: SubscriptionDraft,
     _payload: SubscriptionCustomizationPayload
@@ -181,6 +227,22 @@ export function PlanStep({
     try {
       localStorage.setItem("pf_subscription_draft", JSON.stringify(draft));
     } catch {}
+
+    try {
+      const freq = draft.frequency === "alternate" ? "ALTERNATE_DAYS" as const : "DAILY" as const;
+      const qMode = draft.mode === "pattern" ? "ALTERNATING" as const : "FIXED" as const;
+      const freshQuote = await plansApi.createMonthlyQuote({
+        frequency: freq,
+        quantityMode: qMode,
+        quantity: qMode === "FIXED" ? draft.fixedLitres : undefined,
+        quantityA: qMode === "ALTERNATING" ? draft.day1Litres : undefined,
+        quantityB: qMode === "ALTERNATING" ? draft.day2Litres : undefined,
+      });
+      if (freshQuote?.quoteId) {
+        setLiveQuotes((prev) => ({ ...prev, monthly: freshQuote }));
+      }
+    } catch {}
+
     onSelectPlanId("monthly");
   };
 

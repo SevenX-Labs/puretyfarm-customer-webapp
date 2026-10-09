@@ -55,13 +55,45 @@ export function sanitizeLitres(
 }
 
 /**
+ * Builds the breakdown string and odd/even counts for a given delivery count.
+ */
+export function buildBreakdown(
+  mode: "fixed" | "pattern",
+  totalDeliveries: number,
+  fixedLitres: number,
+  day1Litres: number,
+  day2Litres: number,
+): { breakdownText: string; oddDeliveriesCount: number; evenDeliveriesCount: number; totalLitres: number } {
+  if (mode === "fixed") {
+    const totalLitres = totalDeliveries * fixedLitres;
+    return {
+      breakdownText: `${totalDeliveries} deliveries × ${fixedLitres}L = ${totalLitres}L`,
+      oddDeliveriesCount: totalDeliveries,
+      evenDeliveriesCount: 0,
+      totalLitres,
+    };
+  }
+  const oddDeliveriesCount = Math.ceil(totalDeliveries / 2);
+  const evenDeliveriesCount = Math.floor(totalDeliveries / 2);
+  const totalLitres = oddDeliveriesCount * day1Litres + evenDeliveriesCount * day2Litres;
+  return {
+    breakdownText: `${oddDeliveriesCount} × ${day1Litres}L + ${evenDeliveriesCount} × ${day2Litres}L = ${totalLitres}L`,
+    oddDeliveriesCount,
+    evenDeliveriesCount,
+    totalLitres,
+  };
+}
+
+/**
  * Pure calculation function for PuretyFarm subscription pricing.
  * Computes exact deliveries, litres, price, and dynamic breakdown string.
+ *
+ * When no server quote is available, uses the hardcoded 30/15 cycle as an
+ * estimate. Callers should prefer server-quote values when available.
  */
 export function calculateSubscriptionPricing(options: PricingOptions): PricingResult {
   const { frequency, mode } = options;
 
-  // 1. Total deliveries for the cycle
   const totalDeliveries = frequency === "daily" ? DAILY_DELIVERIES : ALTERNATE_DELIVERIES;
 
   let isValid = true;
@@ -70,10 +102,6 @@ export function calculateSubscriptionPricing(options: PricingOptions): PricingRe
   let fixedLitres = 1;
   let day1Litres = 1;
   let day2Litres = 2;
-  let oddDeliveriesCount = 0;
-  let evenDeliveriesCount = 0;
-  let totalLitres = 0;
-  let breakdownText = "";
 
   if (mode === "fixed") {
     const check = sanitizeLitres(options.fixedLitres, 1);
@@ -82,21 +110,11 @@ export function calculateSubscriptionPricing(options: PricingOptions): PricingRe
       isValid = false;
       validationError = check.error;
     }
-
-    oddDeliveriesCount = totalDeliveries;
-    evenDeliveriesCount = 0;
-    totalLitres = totalDeliveries * fixedLitres;
-
-    // Fixed format: "${totalDeliveries} deliveries × ${fixedLitres}L = ${totalLitres}L"
-    breakdownText = `${totalDeliveries} deliveries × ${fixedLitres}L = ${totalLitres}L`;
   } else {
-    // Mode: "pattern" (Day 1 → Day 2)
     const check1 = sanitizeLitres(options.day1Litres, 1);
     const check2 = sanitizeLitres(options.day2Litres, 2);
-
     day1Litres = check1.clamped;
     day2Litres = check2.clamped;
-
     if (!check1.isValid) {
       isValid = false;
       validationError = check1.error;
@@ -104,31 +122,22 @@ export function calculateSubscriptionPricing(options: PricingOptions): PricingRe
       isValid = false;
       validationError = check2.error;
     }
-
-    // Delivery indexing: oddCount = ceil(D/2), evenCount = floor(D/2)
-    // Daily (30): 15 odd deliveries, 15 even deliveries
-    // Alternate (15): 8 odd deliveries, 7 even deliveries
-    oddDeliveriesCount = Math.ceil(totalDeliveries / 2);
-    evenDeliveriesCount = Math.floor(totalDeliveries / 2);
-
-    totalLitres = oddDeliveriesCount * day1Litres + evenDeliveriesCount * day2Litres;
-
-    // Pattern format: "${oddCount} × ${day1}L + ${evenCount} × ${day2}L = ${totalLitres}L"
-    breakdownText = `${oddDeliveriesCount} × ${day1Litres}L + ${evenDeliveriesCount} × ${day2Litres}L = ${totalLitres}L`;
   }
 
-  const totalPrice = totalLitres * BASE_PRICE_PER_LITRE;
+  const bd = buildBreakdown(mode, totalDeliveries, fixedLitres, day1Litres, day2Litres);
+
+  const totalPrice = bd.totalLitres * BASE_PRICE_PER_LITRE;
 
   return {
     frequency,
     mode,
     totalDeliveries,
-    totalLitres,
+    totalLitres: bd.totalLitres,
     pricePerLitre: BASE_PRICE_PER_LITRE,
     totalPrice,
-    breakdownText,
-    oddDeliveriesCount,
-    evenDeliveriesCount,
+    breakdownText: bd.breakdownText,
+    oddDeliveriesCount: bd.oddDeliveriesCount,
+    evenDeliveriesCount: bd.evenDeliveriesCount,
     day1Litres,
     day2Litres,
     fixedLitres,
