@@ -24,7 +24,6 @@ const NAV = [
   { label: "Milk Plan", href: "/plan", icon: Milk },
   { label: "Wallet", href: "/wallet", icon: Wallet },
   { label: "Products", href: "/products", icon: ShoppingBag },
-  { label: "Delivery", href: "/delivery", icon: Truck },
   { label: "Account", href: "/account", icon: User },
 ] as const;
 
@@ -128,6 +127,7 @@ export function CustomerSidebar() {
                 <img
                   src={user.avatarUrl}
                   alt=""
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                 />
               ) : (

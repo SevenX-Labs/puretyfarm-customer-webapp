@@ -43,10 +43,8 @@ export function AvatarUpload({
   const loadedImageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
-    if (initialUrl) {
-      setAvatarUrl(initialUrl);
-      setImgError(false);
-    }
+    setAvatarUrl(initialUrl || "");
+    setImgError(false);
   }, [initialUrl]);
 
   // Compute initials fallback
@@ -292,6 +290,7 @@ export function AvatarUpload({
               src={avatarUrl}
               alt={name || "Profile avatar"}
               onError={() => setImgError(true)}
+              referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
             />
           ) : (

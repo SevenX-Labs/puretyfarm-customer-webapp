@@ -94,7 +94,7 @@ export function CustomerHeader({
               <span className="w-8 h-8 rounded-full bg-[var(--pf-brown)] text-white flex items-center justify-center text-[12px] font-bold overflow-hidden">
                 {user?.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 ) : (
                   firstName.charAt(0).toUpperCase()
                 )}

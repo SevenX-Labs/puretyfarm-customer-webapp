@@ -209,6 +209,14 @@ export const accountApi = {
         dateOfBirth: payload.dob,
       });
 
+      if (payload.avatarUrl && payload.avatarUrl.startsWith("data:image/")) {
+        try {
+          await profileApi.uploadAvatarFromDataUrl(payload.avatarUrl);
+        } catch (avatarErr) {
+          console.warn("Avatar upload after saveProfile failed:", avatarErr);
+        }
+      }
+
       await apiClient.patch("/api/me", payload).catch(() => {});
       return { success: true, message: "Profile updated successfully." };
     } catch (err: any) {

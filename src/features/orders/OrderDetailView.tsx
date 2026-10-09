@@ -593,10 +593,10 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 </div>
 
                 <Link
-                  href="/delivery"
+                  href="/plan"
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5C1B13] hover:underline shrink-0"
                 >
-                  <span>View Delivery Calendar</span>
+                  <span>View Plan Details</span>
                   <ChevronRight size={14} />
                 </Link>
               </div>

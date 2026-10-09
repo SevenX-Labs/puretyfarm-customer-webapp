@@ -108,6 +108,22 @@ export const profileApi = {
   },
 
   /**
+   * Helper to convert base64 data URL to a WebP or JPEG Blob
+   */
+  dataUrlToBlob(dataUrl: string): Blob {
+    const arr = dataUrl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/webp";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  },
+
+  /**
    * 2.4 Upload / Replace Avatar
    * POST /api/v1/customer/profile/update-avatar
    */
@@ -118,6 +134,19 @@ export const profileApi = {
       "/api/v1/customer/profile/update-avatar",
       formData
     );
+  },
+
+  /**
+   * Upload Avatar from Data URL (base64 string)
+   */
+  async uploadAvatarFromDataUrl(dataUrl: string): Promise<CustomerProfile | null> {
+    try {
+      const blob = this.dataUrlToBlob(dataUrl);
+      return await this.uploadAvatar(blob);
+    } catch (err) {
+      console.warn("Failed to upload avatar from dataUrl:", err);
+      return null;
+    }
   },
 
   /**

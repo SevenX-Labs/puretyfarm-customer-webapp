@@ -48,13 +48,7 @@ export function ProductsView() {
 
               <div className="mt-7 flex items-center gap-3 flex-wrap">
                 <PfButton href="/plan">Choose your plan</PfButton>
-                <Link
-                  href="/delivery"
-                  className="pf-focus-ring inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--pf-brown)] hover:text-[var(--pf-brown-hover)]"
-                >
-                  Check delivery
-                  <ArrowRight size={15} strokeWidth={2} />
-                </Link>
+                
               </div>
             </div>
 

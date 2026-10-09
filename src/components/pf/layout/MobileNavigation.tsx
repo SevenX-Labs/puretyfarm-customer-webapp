@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Receipt, Milk, Truck, User, Wallet } from "lucide-react";
+import { Home, Receipt, Milk, ShoppingBag, User, Wallet } from "lucide-react";
 
 const NAV = [
   { label: "Home", href: "/dashboard", icon: Home },
   { label: "Orders", href: "/orders", icon: Receipt },
   { label: "Plan", href: "/plan", icon: Milk },
   { label: "Wallet", href: "/wallet", icon: Wallet },
-  { label: "Delivery", href: "/delivery", icon: Truck },
+  { label: "Products", href: "/products", icon: ShoppingBag },
   { label: "Account", href: "/account", icon: User },
 ] as const;
 

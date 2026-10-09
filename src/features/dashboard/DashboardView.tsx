@@ -127,8 +127,8 @@ function StarterBlock() {
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
           <PfButton href="/products">Explore Milk Plans</PfButton>
-          <PfButton href="/delivery" variant="secondary">
-            Check Delivery
+          <PfButton href="/plan" variant="secondary">
+            View Plans
           </PfButton>
         </div>
       </div>

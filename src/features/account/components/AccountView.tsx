@@ -197,7 +197,7 @@ export function AccountView() {
               <div className="w-8 h-8 rounded-full border border-[#E8DFD4] overflow-hidden bg-[#FAF3EA] flex items-center justify-center text-xs font-serif font-bold text-[#5C1B13] shrink-0 shadow-2xs">
                 {user.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                 ) : (
                   <span>{initials}</span>
                 )}

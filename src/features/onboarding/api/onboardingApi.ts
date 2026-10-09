@@ -35,6 +35,14 @@ export const onboardingApi = {
         dateOfBirth: payload.dob,
       });
 
+      if (payload.avatarUrl && payload.avatarUrl.startsWith("data:image/")) {
+        try {
+          await profileApi.uploadAvatarFromDataUrl(payload.avatarUrl);
+        } catch (avatarErr) {
+          console.warn("Avatar upload after saveProfile failed:", avatarErr);
+        }
+      }
+
       await apiClient.patch<{ success: boolean }>("/api/me", payload).catch(() => {});
       return { success: true, message: "Profile saved successfully." };
     } catch (err: any) {

@@ -126,6 +126,7 @@ export function ProfileTab({
                 <img
                   src={user.avatarUrl}
                   alt={user.name || "Customer"}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                 />
               ) : (

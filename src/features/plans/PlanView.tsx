@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
+  Receipt,
   Pause,
   Play,
   Sparkles,
@@ -319,9 +320,9 @@ export function PlanView() {
                   <div className="mt-6 flex items-center gap-3 flex-wrap">
                     {activePlan.planType === "BUY_ONCE" ? (
                       <>
-                        <PfButton href="/delivery" variant="secondary">
-                          <Truck size={15} strokeWidth={2} />
-                          View Delivery Schedule
+                        <PfButton href="/orders" variant="secondary">
+                          <Receipt size={15} strokeWidth={2} />
+                          View Order Receipt
                         </PfButton>
                         <PfButton onClick={openUpgradeModal} variant="primary">
                           <Sparkles size={15} strokeWidth={2} />
@@ -330,9 +331,9 @@ export function PlanView() {
                       </>
                     ) : activePlan.planType === "SEVEN_DAY_TRIAL" || activePlan.planType === "TRIAL" ? (
                       <>
-                        <PfButton href="/delivery" variant="secondary">
-                          <SkipForward size={15} strokeWidth={2} />
-                          Skip a day
+                        <PfButton href="/orders" variant="secondary">
+                          <Receipt size={15} strokeWidth={2} />
+                          View Orders
                         </PfButton>
                         <PfButton onClick={openUpgradeModal} variant="primary">
                           <Sparkles size={15} strokeWidth={2} />
@@ -358,13 +359,9 @@ export function PlanView() {
                             </>
                           )}
                         </PfButton>
-                        <PfButton href="/delivery" variant="secondary">
-                          <SkipForward size={15} strokeWidth={2} />
-                          Skip a day
-                        </PfButton>
-                        <PfButton href="/delivery" variant="secondary">
+                        <PfButton onClick={openUpgradeModal} variant="secondary">
                           <Sliders size={15} strokeWidth={2} />
-                          Manage Schedule
+                          Modify Subscription
                         </PfButton>
                       </>
                     )}
@@ -612,8 +609,8 @@ export function PlanView() {
 
                 <div className="mt-6">
                   {activePlan?.planType === "MONTHLY" ? (
-                    <PfButton href="/delivery" variant="secondary" className="w-full justify-center">
-                      Manage Subscription
+                    <PfButton onClick={openUpgradeModal} variant="secondary" className="w-full justify-center">
+                      Modify Subscription
                     </PfButton>
                   ) : (
                     <PfButton onClick={openUpgradeModal} variant="primary" className="w-full justify-center">

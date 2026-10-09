@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-import { DeliveryView } from "@/features/delivery/DeliveryView";
-
-export const metadata: Metadata = {
-  title: "Delivery | PuretyFarm",
-  description: "Your delivery address, schedule, and preferences.",
-};
+import { redirect } from "next/navigation";
 
 export default function DeliveryPage() {
-  return <DeliveryView />;
+  redirect("/plan");
 }
