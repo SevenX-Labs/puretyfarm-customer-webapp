@@ -114,7 +114,7 @@ export function OnboardingView() {
               <div className="flex items-center justify-between">
                 <div className="relative h-6 w-20 sm:h-7 sm:w-24">
                   <Image
-                    src="/logo/puretyfarm-logo.png"
+                    src="/newimge/logo-removebg-preview.png"
                     alt="Purety Farm Logo"
                     fill
                     className="object-contain object-left brightness-0 invert"

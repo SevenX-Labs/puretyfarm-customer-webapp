@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import {
@@ -8,6 +9,7 @@ import {
   FiMapPin,
   FiAlertCircle,
   FiArrowRight,
+  FiLogIn,
 } from "react-icons/fi";
 import { locationApi } from "@/features/location/api/locationApi";
 import { User } from "@/types/models";
@@ -37,6 +39,7 @@ export function AddressDetailsStep({
   onBack,
   onAddressSaved,
 }: AddressDetailsStepProps) {
+  const router = useRouter();
   const [houseNumber, setHouseNumber] = useState("");
   const [buildingName, setBuildingName] = useState("");
   const [streetName, setStreetName] = useState("");
@@ -51,6 +54,7 @@ export function AddressDetailsStep({
 
   const [savingAddress, setSavingAddress] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
 
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +81,7 @@ export function AddressDetailsStep({
 
     setSavingAddress(true);
     setSaveError(null);
+    setIsSessionExpired(false);
 
     try {
       await locationApi.createAddress({
@@ -96,9 +101,21 @@ export function AddressDetailsStep({
 
       onAddressSaved();
     } catch (err: any) {
-      const errorMsg =
-        err?.data?.message || err?.message || "Failed to save address. Please check your details.";
-      setSaveError(Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg));
+      const status = err?.status || err?.statusCode;
+      const rawMsg = err?.data?.message || err?.message || "";
+      const errorMsg = Array.isArray(rawMsg) ? rawMsg.join(", ") : String(rawMsg);
+
+      if (
+        status === 401 ||
+        errorMsg.toLowerCase().includes("unauthorized") ||
+        errorMsg.toLowerCase().includes("refresh token") ||
+        errorMsg.toLowerCase().includes("token is missing")
+      ) {
+        setIsSessionExpired(true);
+        setSaveError("Your login session has expired. Please re-verify your phone number to save your address.");
+      } else {
+        setSaveError(errorMsg || "Failed to save address. Please check your details.");
+      }
     } finally {
       setSavingAddress(false);
     }
@@ -110,7 +127,8 @@ export function AddressDetailsStep({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
-      className="bg-[#fffdf8] p-3.5 sm:p-5 lg:p-6 xl:p-7 flex flex-col justify-between h-full min-h-0"
+      transition={{ duration: 0.18 }}
+      className="flex flex-col justify-between"
     >
       <div>
         <header className="mb-2.5 sm:mb-3 flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between">
@@ -140,7 +158,7 @@ export function AddressDetailsStep({
           <div className="flex items-center gap-2">
             <FiMapPin className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
             <span>
-              Delivering to Hub: <strong>{selectedAreaName || "Selected Area"}</strong>, {selectedCityName || "Raipur"}
+              Delivering to Hub: <strong>{selectedAreaName || "Star Colony"}</strong>, {selectedCityName || "Dombivali"}
               {selectedPincode ? ` (${selectedPincode})` : ""}
             </span>
           </div>
@@ -154,9 +172,21 @@ export function AddressDetailsStep({
         </div>
 
         {saveError && (
-          <div className="mb-2.5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700">
-            <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
-            <span>{saveError}</span>
+          <div className="mb-3 flex items-start justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <div className="flex items-start gap-2">
+              <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
+              <span>{saveError}</span>
+            </div>
+            {isSessionExpired && (
+              <button
+                type="button"
+                onClick={() => router.push("/auth?redirect=/onboarding?step=3")}
+                className="inline-flex shrink-0 items-center gap-1 font-bold text-[#7a2417] underline hover:text-[#5f1b12] cursor-pointer"
+              >
+                <FiLogIn className="h-3.5 w-3.5" />
+                <span>Log In</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -171,7 +201,7 @@ export function AddressDetailsStep({
                 required
                 value={houseNumber}
                 onChange={(e) => setHouseNumber(e.target.value)}
-                placeholder="e.g. Flat 402, Building A"
+                placeholder="e.g. 202"
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
                 autoFocus
               />
@@ -184,7 +214,7 @@ export function AddressDetailsStep({
                 type="text"
                 value={buildingName}
                 onChange={(e) => setBuildingName(e.target.value)}
-                placeholder="e.g. Green Acres Residency"
+                placeholder="e.g. Sunita apt"
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
@@ -196,7 +226,7 @@ export function AddressDetailsStep({
                 type="text"
                 value={streetName}
                 onChange={(e) => setStreetName(e.target.value)}
-                placeholder="e.g. Main Market Lane"
+                placeholder="e.g. gupta road"
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
@@ -208,7 +238,7 @@ export function AddressDetailsStep({
                 type="text"
                 value={landmark}
                 onChange={(e) => setLandmark(e.target.value)}
-                placeholder="e.g. Near the market"
+                placeholder="e.g. opp. sai baba mandir"
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
@@ -234,7 +264,7 @@ export function AddressDetailsStep({
                 required
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder="+919876543210"
+                placeholder="8652601566"
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-mono text-[#24130f] outline-none focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               />
             </div>
