@@ -13,10 +13,74 @@ export interface OtpProvider {
 }
 
 /**
- * Console Provider (Development & Demo default)
+ * Fast2SMS Provider (Active Production SMS Provider)
+ * Endpoint: POST https://www.fast2sms.com/dev/bulkV2
+ * Configured via FAST2SMS_OTP_API_KEY
+ */
+export class Fast2SmsProvider implements OtpProvider {
+  name = "fast2sms";
+
+  async send(phone: string, code: string): Promise<SendOtpResult> {
+    const apiKey = process.env.FAST2SMS_OTP_API_KEY || process.env.FAST2SMS_API_KEY;
+
+    if (!apiKey) {
+      console.error("[Fast2SMS Error] Missing FAST2SMS_OTP_API_KEY env variable.");
+      return {
+        success: false,
+        error: "Fast2SMS API key is not configured.",
+      };
+    }
+
+    try {
+      // 10-digit Indian mobile number
+      const cleanPhone = phone.replace(/\D/g, "").slice(-10);
+
+      const response = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+        method: "POST",
+        headers: {
+          authorization: apiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          route: "otp",
+          variables_values: code,
+          numbers: cleanPhone,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || (data && (data.return === false || data.status_code === 996))) {
+        const errorMsg =
+          data && Array.isArray(data.message)
+            ? data.message.join(", ")
+            : (data && data.message) || `Fast2SMS error status ${response.status}`;
+        console.error("[Fast2SMS Delivery Issue]", data);
+        return {
+          success: false,
+          error: errorMsg,
+        };
+      }
+
+      console.log(`[Fast2SMS] OTP dispatched to ${cleanPhone}. RequestId=${data?.request_id || "unknown"}`);
+      return {
+        success: true,
+        messageId: data?.request_id || "fast2sms_sent",
+      };
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Network error contacting Fast2SMS";
+      console.error("[Fast2SMS Network Error]", err);
+      return {
+        success: false,
+        error: errMsg,
+      };
+    }
+  }
+}
+
+/**
+ * Console Provider (Development & Demo default fallback)
  * Logs the OTP clearly to the terminal server console.
- * In development, returns devOtpHint for frictionless local testing and demoing without SMS credentials.
- * In production, if console provider is invoked, fails securely with "OTP service not configured".
  */
 export class ConsoleProvider implements OtpProvider {
   name = "console";
@@ -59,7 +123,6 @@ export class Msg91Provider implements OtpProvider {
     }
 
     try {
-      // Clean mobile number (strip '+')
       const cleanPhone = phone.replace(/^\+/, "");
       
       const response = await fetch("https://control.msg91.com/api/v5/otp", {
@@ -99,7 +162,6 @@ export class Msg91Provider implements OtpProvider {
 
 /**
  * Twilio SMS / Verify Provider Stub
- * Configured via TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER or TWILIO_VERIFY_SERVICE_SID
  */
 export class TwilioProvider implements OtpProvider {
   name = "twilio";
@@ -161,12 +223,19 @@ export class TwilioProvider implements OtpProvider {
 }
 
 /**
- * Factory to retrieve active OTP Provider based on OTP_PROVIDER env
+ * Factory to retrieve active OTP Provider based on FAST2SMS_OTP_API_KEY or OTP_PROVIDER env
  */
 export function getOtpProvider(): OtpProvider {
+  // If Fast2SMS API key is set, prioritize Fast2SMS
+  if (process.env.FAST2SMS_OTP_API_KEY || process.env.FAST2SMS_API_KEY) {
+    return new Fast2SmsProvider();
+  }
+
   const providerName = (process.env.OTP_PROVIDER || "console").toLowerCase();
 
   switch (providerName) {
+    case "fast2sms":
+      return new Fast2SmsProvider();
     case "msg91":
       if (process.env.MSG91_AUTH_KEY && process.env.MSG91_TEMPLATE_ID) {
         return new Msg91Provider();
