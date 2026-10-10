@@ -76,7 +76,7 @@ export function useOnboardingFlow() {
     const rawName = user.name || "";
     const isPlaceholder = !rawName || rawName.startsWith("Customer (") || rawName.toLowerCase() === "customer";
     setProfileName(isPlaceholder ? "" : rawName);
-    setProfileWhatsapp((user as any)?.whatsappNumber || user.phone || "");
+    setProfileWhatsapp((user as any)?.whatsappNumber || "");
     setProfileEmail(user.email || "");
     setProfileAvatar(user.avatarUrl || "");
     setProfileGender(user.gender || "");

@@ -21,7 +21,7 @@ export interface CreateProfileDto {
   lastName: string;
   gender: "MALE" | "FEMALE" | "OTHER";
   dateOfBirth: string;
-  whatsappNumber?: string;
+  whatsappNumber: string;
 }
 
 export interface UpdateProfileDto {
@@ -29,6 +29,7 @@ export interface UpdateProfileDto {
   lastName?: string;
   gender?: "MALE" | "FEMALE" | "OTHER";
   dateOfBirth?: string;
+  whatsappNumber?: string;
 }
 
 export const profileApi = {
@@ -90,11 +91,14 @@ export const profileApi = {
         ? payload.dateOfBirth.trim().split("T")[0]
         : "2000-01-01";
 
+    const whatsappNumber = (payload.whatsappNumber || "").trim();
+
     const dto: CreateProfileDto = {
       firstName: payload.firstName.trim() || "Customer",
       lastName: payload.lastName.trim() || "User",
       gender,
       dateOfBirth,
+      whatsappNumber,
     };
 
     try {
