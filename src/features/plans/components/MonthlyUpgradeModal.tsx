@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import {
   Sparkles,
   X,
@@ -11,6 +12,8 @@ import {
   CreditCard,
   Banknote,
   RefreshCw,
+  ExternalLink,
+  ArrowRight,
 } from "lucide-react";
 import {
   FrequencyRadioGroup,
@@ -78,12 +81,18 @@ export function MonthlyUpgradeModal({
     setDay2Litres,
   } = useSubscriptionDraft();
 
-  // Load wallet balance on mount to provide live feedback
+  // Load wallet balance on mount and whenever window regains focus (e.g. user returns from top-up tab)
+  const refreshWallet = useCallback(() => {
+    walletApi.getWallet().then(setWallet).catch(() => null);
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
-      walletApi.getWallet().then(setWallet).catch(() => null);
+      refreshWallet();
+      window.addEventListener("focus", refreshWallet);
+      return () => window.removeEventListener("focus", refreshWallet);
     }
-  }, [isOpen]);
+  }, [isOpen, refreshWallet]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -146,6 +155,7 @@ export function MonthlyUpgradeModal({
   if (!isOpen || !mounted) return null;
 
   const walletBalanceRupees = wallet ? wallet.balancePaise / 100 : 0;
+  const shortfallRupees = Math.max(0, Math.ceil(pricingResult.totalPrice - walletBalanceRupees));
   const isWalletInsufficient =
     paymentMethod === "WALLET" &&
     wallet !== null &&
@@ -218,9 +228,23 @@ export function MonthlyUpgradeModal({
           )}
 
           {error && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2.5">
-              <AlertCircle size={17} className="text-rose-600 shrink-0" />
-              <span>{error}</span>
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-2">
+              <div className="flex items-center gap-2.5">
+                <AlertCircle size={17} className="text-rose-600 shrink-0" />
+                <span className="font-medium">{error}</span>
+              </div>
+              {error.toLowerCase().includes("top up") && (
+                <div className="pt-1 flex items-center gap-2">
+                  <Link
+                    href="/wallet"
+                    target="_blank"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#5C1B13] hover:underline"
+                  >
+                    <span>Open Wallet Top-Up Page</span>
+                    <ExternalLink size={12} />
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 
@@ -307,10 +331,9 @@ export function MonthlyUpgradeModal({
               Payment Method
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod("WALLET")}
-                disabled={submitting}
+              {/* Prepaid Wallet Option */}
+              <div
+                onClick={() => !submitting && setPaymentMethod("WALLET")}
                 className={
                   "p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative " +
                   (paymentMethod === "WALLET"
@@ -329,7 +352,13 @@ export function MonthlyUpgradeModal({
                     <span className="text-xs font-bold text-[#1A1008]">Prepaid Wallet</span>
                   </div>
                   {wallet && (
-                    <span className="text-[10.5px] font-mono font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-700">
+                    <span
+                      className={`text-[10.5px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                        isWalletInsufficient
+                          ? "bg-rose-100 text-rose-800 border border-rose-200"
+                          : "bg-stone-100 text-stone-700"
+                      }`}
+                    >
                       ₹{walletBalanceRupees.toFixed(0)}
                     </span>
                   )}
@@ -337,18 +366,29 @@ export function MonthlyUpgradeModal({
                 <p className="text-[11px] text-[#715E50]">
                   Instant confirmation & auto-deduction from wallet.
                 </p>
-                {isWalletInsufficient && (
-                  <p className="text-[10.5px] text-amber-700 font-semibold mt-1.5 flex items-center gap-1">
-                    <AlertCircle size={12} className="shrink-0" />
-                    <span>Balance lower than plan total.</span>
-                  </p>
-                )}
-              </button>
 
-              <button
-                type="button"
-                onClick={() => setPaymentMethod("CASH")}
-                disabled={submitting}
+                {isWalletInsufficient && (
+                  <div className="mt-2 pt-2 border-t border-[#E8DFD4] space-y-1.5">
+                    <p className="text-[11px] text-rose-800 font-semibold flex items-center gap-1">
+                      <AlertCircle size={13} className="shrink-0 text-rose-600" />
+                      <span>Low Balance: Shortfall ₹{shortfallRupees}</span>
+                    </p>
+                    <Link
+                      href="/wallet"
+                      target="_blank"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5C1B13] hover:underline"
+                    >
+                      <span>Top up Wallet (+₹{shortfallRupees})</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Doorstep Cash Option */}
+              <div
+                onClick={() => !submitting && setPaymentMethod("CASH")}
                 className={
                   "p-3.5 rounded-2xl border text-left transition-all cursor-pointer " +
                   (paymentMethod === "CASH"
@@ -366,11 +406,19 @@ export function MonthlyUpgradeModal({
                     />
                     <span className="text-xs font-bold text-[#1A1008]">Doorstep Cash</span>
                   </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    Zero Pre-payment
+                  </span>
                 </div>
                 <p className="text-[11px] text-[#715E50]">
                   Collect cash on order confirmation at doorstep.
                 </p>
-              </button>
+                {isWalletInsufficient && (
+                  <p className="text-[10.5px] text-emerald-800 font-medium mt-2 pt-2 border-t border-[#E8DFD4]">
+                    Tip: Choose cash to activate immediately without topping up.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -400,35 +448,46 @@ export function MonthlyUpgradeModal({
               Cancel
             </button>
 
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={
-                submitting ||
-                isQuoteLoading ||
-                !pricingResult.isValid ||
-                !serverQuote ||
-                Boolean(quoteError)
-              }
-              className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? (
-                <>
-                  <RefreshCw size={14} className="animate-spin" />
-                  <span>Activating...</span>
-                </>
-              ) : isQuoteLoading ? (
-                <>
-                  <RefreshCw size={14} className="animate-spin" />
-                  <span>Updating Quote...</span>
-                </>
-              ) : (
-                <>
-                  <Check size={16} />
-                  <span>Confirm & Activate (₹{pricingResult.totalPrice.toLocaleString("en-IN")})</span>
-                </>
-              )}
-            </button>
+            {isWalletInsufficient ? (
+              <Link
+                href="/wallet"
+                target="_blank"
+                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
+              >
+                <span>Top up Wallet (+₹{shortfallRupees})</span>
+                <ExternalLink size={14} />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={
+                  submitting ||
+                  isQuoteLoading ||
+                  !pricingResult.isValid ||
+                  !serverQuote ||
+                  Boolean(quoteError)
+                }
+                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Activating...</span>
+                  </>
+                ) : isQuoteLoading ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Updating Quote...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={16} />
+                    <span>Confirm & Activate (₹{pricingResult.totalPrice.toLocaleString("en-IN")})</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
