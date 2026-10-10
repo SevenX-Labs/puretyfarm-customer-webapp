@@ -539,7 +539,8 @@ export function WalletTab({
                 <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                 <p>
                   <strong className="text-[#1A1008]">Vacation Flexibility:</strong>{" "}
-                  Pause daily delivery before 10:00 PM without fee. No money is deducted during paused days.
+                  Pause daily delivery before the 11:00 PM IST daily cut-off
+                  without fee. No money is deducted during paused days.
                 </p>
               </div>
 

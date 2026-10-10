@@ -34,6 +34,7 @@ import { accountApi } from "@/features/account/api/accountApi";
 import type { Subscription, Order } from "@/types/models";
 import {
   formatDeliveryDate,
+  formatDeliveryWindow,
   orderItemsSummary,
   orderTotalRupees,
   statusLabel,
@@ -168,6 +169,16 @@ export function AccountLandingView() {
   }
 
   const latestOrder = orders.length > 0 ? orders[0] : null;
+
+  // The subscription card used to assert "Tomorrow (6:00 AM – 8:00 AM)"
+  // regardless of what was actually scheduled. Both halves now come from the
+  // server's active plan: the next upcoming delivery date and the plan's saved
+  // delivery window. Either may be absent, and each says so on its own.
+  const nextDeliveryLabel = formatDeliveryDate(subscription?.nextDeliveryDate).label;
+  const nextDeliveryWindow = formatDeliveryWindow(
+    subscription?.deliveryStartTime,
+    subscription?.deliveryEndTime
+  );
   const isEmailVerified = Boolean(user.emailVerified && editEmail.trim() === user.email);
 
   return (
@@ -514,7 +525,11 @@ export function AccountLandingView() {
                   <div className="flex items-center gap-2">
                     <Clock size={14} className="text-amber-600 shrink-0" />
                     <span>
-                      Next delivery: <strong>Tomorrow (6:00 AM – 8:00 AM)</strong>
+                      Next delivery:{" "}
+                      <strong>
+                        {nextDeliveryLabel}
+                        {nextDeliveryWindow ? ` (${nextDeliveryWindow})` : ""}
+                      </strong>
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -571,7 +586,8 @@ export function AccountLandingView() {
                       {orderItemsSummary(latestOrder).name} × {orderItemsSummary(latestOrder).qty} {orderItemsSummary(latestOrder).unit}
                     </p>
                     <p className="text-xs text-[var(--pf-text-muted)] mt-0.5">
-                      Delivery: {formatDeliveryDate(latestOrder.deliveryDate || latestOrder.createdAt).label}
+                      Delivery:{" "}
+                      {formatDeliveryDate(latestOrder.deliveryDate).label}
                     </p>
                   </div>
 

@@ -157,6 +157,9 @@ export const accountApi = {
               ? `${plan.quantityLitres || 1}L Sample Bottle`
               : `${plan.quantityLitres || 1}L Daily`,
           nextDeliveryDate: nextDeliveryDate,
+          // Passed through verbatim from the active plan; null when unset.
+          deliveryStartTime: plan.deliveryStartTime ?? null,
+          deliveryEndTime: plan.deliveryEndTime ?? null,
           startedAt: plan.startDate || new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };

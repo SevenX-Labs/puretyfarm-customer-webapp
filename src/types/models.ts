@@ -120,6 +120,12 @@ export interface Subscription {
   status: "active" | "paused" | "cancelled";
   dailyQuantity: string;
   nextDeliveryDate: string;
+  /**
+   * Saved delivery window for the active plan, 24h "HH:MM". Null/absent means
+   * the backend has none configured — show that, never a substitute time.
+   */
+  deliveryStartTime?: string | null;
+  deliveryEndTime?: string | null;
   startedAt: string;
   updatedAt: string;
 }

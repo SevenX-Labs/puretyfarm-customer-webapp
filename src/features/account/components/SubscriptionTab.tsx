@@ -14,6 +14,7 @@ import {
 import {
   plansApi,
   PlanOverviewItem,
+  OrderCutoffPolicy,
   MonthlyConfigResponse,
   PlanQuote,
   BuyOnceEligibilityResponse,
@@ -59,6 +60,7 @@ export function SubscriptionTab({
   const handleClosePanel = onClosePanel || (() => setInternalIsOpen(false));
 
   const [planOverviews, setPlanOverviews] = useState<PlanOverviewItem[]>([]);
+  const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
 
   useEffect(() => {
     async function loadPlans() {
@@ -66,6 +68,7 @@ export function SubscriptionTab({
         const res = await plansApi.getPlansOverview();
         if (res?.plans) {
           setPlanOverviews(res.plans);
+          setOrderCutoff(res.orderCutoff ?? null);
         }
       } catch (err) {
         console.warn("Could not fetch plans overview:", err);
@@ -247,9 +250,13 @@ export function SubscriptionTab({
                 <FiClock className="w-3.5 h-3.5 text-[#5C1B13]" /> Cut-Off Time
               </span>
               <p className="text-sm font-bold text-[#5C1B13] mt-1 font-mono">
-                10:00 PM Tonight
+                {orderCutoff ? `${orderCutoff.timeLabel} tonight` : "Unavailable"}
               </p>
-              <p className="text-[10px] text-[#8C7A6B] mt-0.5">Modify for tomorrow morning</p>
+              <p className="text-[10px] text-[#8C7A6B] mt-0.5">
+                {orderCutoff
+                  ? `${orderCutoff.timezone} — order by then for tomorrow`
+                  : "Cut-off time could not be loaded"}
+              </p>
             </div>
           </div>
 
@@ -257,7 +264,10 @@ export function SubscriptionTab({
           <div className="mt-4 p-3.5 rounded-xl bg-white border border-[#E8DFD4] text-xs text-[#6B584C] flex items-start gap-2.5">
             <FiShield className="w-4 h-4 text-[#5C1B13] shrink-0 mt-0.5" />
             <p className="leading-relaxed">
-              <strong className="text-[#1A1008]">Vacation Flexibility:</strong> Pause your daily bottles anytime before 10:00 PM without fee. Unused quota stays credited in your account.
+              <strong className="text-[#1A1008]">Vacation Flexibility:</strong>{" "}
+              Pause your daily bottles before the daily cut-off
+              {orderCutoff ? ` (${orderCutoff.timeLabel} ${orderCutoff.timezone})` : ""}{" "}
+              without fee. Unused quota stays credited in your account.
             </p>
           </div>
         </div>

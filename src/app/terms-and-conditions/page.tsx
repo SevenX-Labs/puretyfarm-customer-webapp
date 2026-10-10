@@ -28,9 +28,9 @@ const TERMS_HIGHLIGHTS: {
   {
     icon: "clock",
     tag: "Flexible Control",
-    title: "10:00 PM Daily Cut-Off",
+    title: "11:00 PM IST Daily Cut-Off",
     description:
-      "Modify, pause deliveries, or set Vacation Mode anytime before 10:00 PM on the preceding evening with zero penalty fees.",
+      "Modify, pause deliveries, or set Vacation Mode anytime before 11:00 PM IST on the preceding evening with zero penalty fees.",
   },
   {
     icon: "check",

@@ -269,16 +269,16 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
       "number": 6,
       "title": "CANCELLATIONS AND REFUNDS",
       "paragraphs": [
-        "Please review our policy regarding daily cancellations, 10:00 PM cut-off times, refund criteria, wallet transfers, and doorstep return guidelines below:"
+        "Please review our policy regarding daily cancellations, the 11:00 PM IST cut-off time, refund criteria, wallet transfers, and doorstep return guidelines below:"
       ],
       "subsections": [
         {
-          "title": "6.1 Cancellation Policy & 10:00 PM Daily Cut-Off",
+          "title": "6.1 Cancellation Policy & 11:00 PM IST Daily Cut-Off",
           "description": "After making an online subscription or placing an order for a particular product:",
           "items": [
             {
               "label": "6.1.i",
-              "content": "You as a customer can cancel your delivery for a particular day/Order anytime up to the cut-off time (i.e. 10.00 PM of the day preceding the date of actual delivery of product) by getting in touch with our customer service Chat support or Call. You can also end the Vacation before the cut off time when you want to recommence the delivery. For Buy-Once orders, you can only cancel prior to confirmation."
+              "content": "You as a customer can cancel your delivery for a particular day/Order anytime up to the cut-off time (i.e. 11:00 PM IST of the day preceding the date of actual delivery of product) by getting in touch with our customer service Chat support or Call. You can also end the Vacation before the cut off time when you want to recommence the delivery. For Buy-Once orders, you can only cancel prior to confirmation."
             },
             {
               "label": "6.1.ii",
@@ -354,8 +354,8 @@ export const TERMS_CONDITIONS_DATA: LegalDocument = {
       "badge": "Cancellations & Refunds",
       "callout": {
         "type": "highlight",
-        "title": "⏰ 10:00 PM Daily Cut-Off Time",
-        "text": "To cancel or pause delivery for the next morning (including setting Vacation Mode), requests must be completed via chat/call before 10:00 PM of the preceding evening."
+        "title": "⏰ 11:00 PM IST Daily Cut-Off Time",
+        "text": "To cancel or pause delivery for the next morning (including setting Vacation Mode), requests must be completed via chat/call before 11:00 PM IST of the preceding evening."
       }
     },
     {

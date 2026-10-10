@@ -177,7 +177,9 @@ function OrdersList({ orders }: { orders: Order[] }) {
           <tbody>
             {orders.map((o) => {
               const { name, qty, unit } = orderItemsSummary(o);
-              const d = formatDeliveryDate(o.deliveryDate || o.createdAt);
+              // Never fall back to createdAt: the day an order was placed is
+              // not the day it arrives. A null date reads "Not scheduled".
+              const d = formatDeliveryDate(o.deliveryDate);
               return (
                 <tr
                   key={o.id}
@@ -228,7 +230,7 @@ function OrdersList({ orders }: { orders: Order[] }) {
       <ul className="md:hidden space-y-3">
         {orders.map((o) => {
           const { name, qty, unit } = orderItemsSummary(o);
-          const d = formatDeliveryDate(o.deliveryDate || o.createdAt);
+          const d = formatDeliveryDate(o.deliveryDate);
           return (
             <li key={o.id}>
               <Link
