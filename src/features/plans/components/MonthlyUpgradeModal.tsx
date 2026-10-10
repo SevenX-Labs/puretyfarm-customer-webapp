@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import {
   Sparkles,
   X,
@@ -45,11 +46,16 @@ export function MonthlyUpgradeModal({
   deliveryEndTime,
   orderCutoff = null,
 }: MonthlyUpgradeModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"WALLET" | "CASH">("WALLET");
   const [wallet, setWallet] = useState<CustomerWallet | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Hook encapsulates frequency, mode, volume steppers, debounced quote fetch and pricing calculation
   const {
@@ -136,7 +142,7 @@ export function MonthlyUpgradeModal({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const walletBalanceRupees = wallet ? wallet.balancePaise / 100 : 0;
   const isWalletInsufficient =
@@ -144,20 +150,21 @@ export function MonthlyUpgradeModal({
     wallet !== null &&
     walletBalanceRupees < pricingResult.totalPrice;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="upgrade-modal-title"
       onKeyDown={handleKeyDown}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
     >
       <div
-        className="w-full max-w-2xl rounded-3xl bg-white border border-[#E8DFD4] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-xl sm:max-w-2xl max-h-[88vh] sm:max-h-[85vh] rounded-3xl bg-white border border-[#E8DFD4] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 sm:px-7 py-4.5 border-b border-[#E8DFD4] bg-[#FFFDF7] shrink-0">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-[#E8DFD4] bg-[#FFFDF7] shrink-0">
           <div className="min-w-0 pr-3">
             <h3
               id="upgrade-modal-title"
@@ -169,7 +176,7 @@ export function MonthlyUpgradeModal({
               <span>{isMonthlyActive ? "Modify Monthly Subscription" : "Upgrade to Monthly Plan"}</span>
             </h3>
             <p className="text-xs text-[#8C7A6B] mt-0.5 truncate">
-              Customize delivery schedule, daily volume & payment method
+              Customize schedule, daily volume & payment method
               {resolvedDeliveryWindow ? ` (${resolvedDeliveryWindow})` : ""}
             </p>
           </div>
@@ -185,7 +192,7 @@ export function MonthlyUpgradeModal({
         </div>
 
         {/* Scrollable Body */}
-        <div className="px-5 sm:px-7 py-5 overflow-y-auto min-h-0 flex-1 space-y-6 custom-scrollbar overscroll-contain">
+        <div className="px-5 sm:px-6 py-4.5 overflow-y-auto min-h-0 flex-1 space-y-5 custom-scrollbar overscroll-contain">
           {/* Alerts */}
           {success && (
             <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2.5">
@@ -202,101 +209,80 @@ export function MonthlyUpgradeModal({
           )}
 
           {/* 1. Delivery Frequency */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block">
-              1. Delivery Schedule
-            </label>
-            <FrequencyRadioGroup
-              value={frequency}
-              onChange={setFrequency}
-              disabled={submitting}
-            />
-          </div>
+          <FrequencyRadioGroup
+            value={frequency}
+            onChange={setFrequency}
+            disabled={submitting}
+          />
 
           {/* 2. Quantity Pattern Mode */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block">
-              2. Quantity Mode
-            </label>
-            <ModeSegmentedControl
-              value={mode}
-              onChange={setMode}
-              day1Litres={day1Litres}
-              day2Litres={day2Litres}
-              disabled={submitting}
-            />
-          </div>
+          <ModeSegmentedControl
+            value={mode}
+            onChange={setMode}
+            day1Litres={day1Litres}
+            day2Litres={day2Litres}
+            disabled={submitting}
+          />
 
           {/* 3. Quantity Steppers */}
-          <div className="space-y-3">
-            <label className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block">
-              3. {mode === "pattern" ? "Delivery Volume by Sequence" : "Daily Delivery Volume"}
-            </label>
-
-            {mode === "fixed" ? (
+          {mode === "fixed" ? (
+            <QuantityStepper
+              label="Daily Delivery Volume"
+              sublabel={
+                frequency === "daily"
+                  ? "Same litres delivered every single day"
+                  : "Same litres delivered every alternate day"
+              }
+              value={fixedLitres}
+              onChange={setFixedLitres}
+              showChips={true}
+              disabled={submitting}
+            />
+          ) : (
+            <div className="space-y-3.5">
               <QuantityStepper
-                label="Delivery Volume"
+                label="Day 1 Delivery Volume"
                 sublabel={
                   frequency === "daily"
-                    ? "Same litres delivered every single day"
-                    : "Same litres delivered every alternate day"
+                    ? "Day 1: odd days (1st, 3rd, 5th delivery...)"
+                    : "Day 1: 1st, 3rd, 5th... delivery"
                 }
-                value={fixedLitres}
-                onChange={setFixedLitres}
+                value={day1Litres}
+                onChange={setDay1Litres}
                 showChips={true}
                 disabled={submitting}
               />
-            ) : (
-              <div className="space-y-4">
-                <QuantityStepper
-                  label="Day 1 Delivery"
-                  sublabel={
-                    frequency === "daily"
-                      ? "Day 1: odd days (1st, 3rd, 5th delivery...)"
-                      : "Day 1: 1st, 3rd, 5th... delivery"
-                  }
-                  value={day1Litres}
-                  onChange={setDay1Litres}
-                  showChips={true}
-                  disabled={submitting}
-                />
 
-                <QuantityStepper
-                  label="Day 2 Delivery"
-                  sublabel={
-                    frequency === "daily"
-                      ? "Day 2: even days (2nd, 4th, 6th...)"
-                      : "Day 2: 2nd, 4th, 6th... delivery"
-                  }
-                  value={day2Litres}
-                  onChange={setDay2Litres}
-                  showChips={true}
-                  disabled={submitting}
-                />
-              </div>
-            )}
-          </div>
+              <QuantityStepper
+                label="Day 2 Delivery Volume"
+                sublabel={
+                  frequency === "daily"
+                    ? "Day 2: even days (2nd, 4th, 6th...)"
+                    : "Day 2: 2nd, 4th, 6th... delivery"
+                }
+                value={day2Litres}
+                onChange={setDay2Litres}
+                showChips={true}
+                disabled={submitting}
+              />
+            </div>
+          )}
 
           {/* 4. Live Server Quote Breakdown & Schedule Preview */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block">
-              4. Pricing & Schedule Summary
-            </label>
-            <PricingSummary
-              result={pricingResult}
-              schedulePreview={schedulePreview}
-              isQuoteLoading={isQuoteLoading}
-              quoteError={quoteError}
-              onRetryQuote={retryQuote}
-              deliveryWindow={resolvedDeliveryWindow}
-              orderCutoff={orderCutoff}
-            />
-          </div>
+          <PricingSummary
+            result={pricingResult}
+            schedulePreview={schedulePreview}
+            isQuoteLoading={isQuoteLoading}
+            quoteError={quoteError}
+            onRetryQuote={retryQuote}
+            deliveryWindow={resolvedDeliveryWindow}
+            orderCutoff={orderCutoff}
+          />
 
           {/* 5. Payment Method Selector */}
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             <label className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block">
-              5. Payment Method
+              Payment Method
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
@@ -368,15 +354,15 @@ export function MonthlyUpgradeModal({
         </div>
 
         {/* Sticky Footer */}
-        <div className="px-5 sm:px-7 py-4 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
+        <div className="px-5 sm:px-6 py-3.5 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
           <div className="min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#715E50] block">
               Monthly Plan Total
             </span>
             {isQuoteLoading ? (
-              <div className="h-6 w-24 bg-[#E8DFD4]/70 animate-pulse rounded-md mt-1" />
+              <div className="h-6 w-24 bg-[#E8DFD4]/70 animate-pulse rounded-md mt-0.5" />
             ) : (
-              <span className="text-xl sm:text-2xl font-black text-[#5C1B13] tabular-nums leading-none block mt-1">
+              <span className="text-xl sm:text-2xl font-black text-[#5C1B13] tabular-nums leading-none block mt-0.5">
                 ₹{pricingResult.totalPrice.toLocaleString("en-IN")}
               </span>
             )}
@@ -387,7 +373,7 @@ export function MonthlyUpgradeModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="min-h-[42px] px-3.5 sm:px-4 py-2 rounded-xl border border-[#E8DFD4] text-xs font-bold text-[#3A241C] hover:bg-[#FAF3EA] transition-colors cursor-pointer disabled:opacity-50"
+              className="min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl border border-[#E8DFD4] text-xs font-bold text-[#3A241C] hover:bg-[#FAF3EA] transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
@@ -402,7 +388,7 @@ export function MonthlyUpgradeModal({
                 !serverQuote ||
                 Boolean(quoteError)
               }
-              className="min-h-[42px] px-4 sm:px-5 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-[40px] px-4 sm:px-5 py-2 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
@@ -424,6 +410,7 @@ export function MonthlyUpgradeModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

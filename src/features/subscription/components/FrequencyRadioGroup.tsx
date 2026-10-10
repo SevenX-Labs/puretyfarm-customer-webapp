@@ -16,7 +16,7 @@ const FREQUENCY_OPTIONS = [
     title: "Every day",
     badge: "DAILY",
     scheduleText: "Daily deliveries every calendar month",
-    description: "Chilled bottle delivered every morning before 10 AM.",
+    description: "Chilled bottle delivered fresh every morning.",
     icon: FiSun,
   },
   {
