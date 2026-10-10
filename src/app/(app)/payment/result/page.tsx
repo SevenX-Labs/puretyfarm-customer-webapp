@@ -9,7 +9,7 @@ export default function PaymentResultPage() {
     <div className="space-y-6">
       <CustomerHeader
         title="Payment Verification"
-        subtitle="Real-time PayU gateway transaction status and wallet ledger updates."
+        subtitle="Real-time PhonePe gateway transaction status and wallet ledger updates."
       />
 
       <Suspense

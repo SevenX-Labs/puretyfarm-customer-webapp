@@ -13,7 +13,7 @@ import {
   ListPaymentsParams,
   ListPaymentsResponse,
   PaymentRecord,
-  PayUCheckout,
+  OnlineCheckout,
 } from "../types";
 
 export function generateIdempotencyKey(): string {
@@ -23,27 +23,40 @@ export function generateIdempotencyKey(): string {
   return `idem_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
 }
 
-export function submitPayUHostedForm(checkout: PayUCheckout): void {
-  if (typeof document === "undefined") return;
+/**
+ * Redirects the customer to the PhonePe online checkout page or submits post form.
+ */
+export function submitOnlineCheckoutForm(checkout: OnlineCheckout): void {
+  if (typeof window === "undefined") return;
 
-  const form = document.createElement("form");
-  form.method = checkout.method || "POST";
-  form.action = checkout.endpoint;
-  form.style.display = "none";
+  // PhonePe Standard Checkout provides a direct redirect URL
+  if (checkout.endpoint) {
+    window.location.href = checkout.endpoint;
+    return;
+  }
 
-  Object.entries(checkout.fields).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = key;
-      input.value = String(value);
-      form.appendChild(input);
-    }
-  });
+  if (checkout.fields && Object.keys(checkout.fields).length > 0) {
+    const form = document.createElement("form");
+    form.method = checkout.method || "POST";
+    form.action = checkout.endpoint;
+    form.style.display = "none";
 
-  document.body.appendChild(form);
-  form.submit();
+    Object.entries(checkout.fields).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = String(value);
+        form.appendChild(input);
+      }
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  }
 }
+
+export const submitPayUHostedForm = submitOnlineCheckoutForm;
 
 export const paymentsApi = {
   /**
@@ -73,7 +86,7 @@ export const paymentsApi = {
   },
 
   /**
-   * Convenience helper to create an ONLINE top-up and optionally auto-submit to PayU
+   * Convenience helper to create an ONLINE top-up and automatically redirect to PhonePe
    */
   async initiateOnlineTopup(
     amountPaise: number,
@@ -88,7 +101,7 @@ export const paymentsApi = {
     )) as CreatePaymentOnlineResponse;
 
     if (options?.autoRedirect !== false && res.checkout) {
-      submitPayUHostedForm(res.checkout);
+      submitOnlineCheckoutForm(res.checkout);
     }
 
     return res;
@@ -111,7 +124,7 @@ export const paymentsApi = {
   },
 
   /**
-   * 6.2 Verify Payment State with Server & PayU Source of Truth
+   * 6.2 Verify Payment State with Server & PhonePe Source of Truth
    * POST /api/v1/customer/payments/verify
    */
   async verifyPayment(payload: VerifyPaymentPayload): Promise<VerifyPaymentResponse> {
@@ -146,7 +159,7 @@ export const paymentsApi = {
     );
 
     if (options?.autoRedirect !== false && res.checkout) {
-      submitPayUHostedForm(res.checkout);
+      submitOnlineCheckoutForm(res.checkout);
     }
 
     return res;
@@ -155,9 +168,6 @@ export const paymentsApi = {
   /**
    * Cancel an abandoned ONLINE top-up and release the pending slot.
    * POST /api/v1/customer/payments/cancel
-   *
-   * The server re-verifies the real state with PayU first, so a payment that
-   * actually succeeded is never discarded.
    */
   async cancelPayment(
     payload: CancelPaymentPayload

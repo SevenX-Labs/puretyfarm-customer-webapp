@@ -111,7 +111,7 @@ function WalletContent() {
   });
   const [reqLoading, setReqLoading] = useState<boolean>(false);
 
-  // Live Payments (for retryable PayU failures)
+  // Live Payments (for retryable PhonePe failures)
   const [livePayments, setLivePayments] = useState<PaymentRecord[]>([]);
 
   // ══════════════════════════════════════════════════════════════════
@@ -247,7 +247,7 @@ function WalletContent() {
     }
   }, [user, loading, router, fetchWallet, fetchTransactions, fetchCreditRequests, txTypeFilter, reqStatusFilter]);
 
-  // Handle PayU return txnid & result parameter
+  // Handle PhonePe return txnid & result parameter
   useEffect(() => {
     const txnid = searchParams.get("txnid");
     const resultHint = searchParams.get("result");
@@ -358,7 +358,7 @@ function WalletContent() {
 
     try {
       if (rechargeMethod === "ONLINE") {
-        // Online gateways (PayU) require a verified customer email
+        // Online gateways (PhonePe) require a verified customer email
         if (!user?.email) {
           setShowTopupModal(false);
           setPendingTopupPaise(amountPaise);
@@ -367,12 +367,12 @@ function WalletContent() {
           return;
         }
 
-        // Online PayU Flow (docs/customer/payments.md)
+        // Online PhonePe Flow (docs/customer/payments.md)
         const res = await paymentsApi.initiateOnlineTopup(amountPaise, {
           autoRedirect: true,
         });
         if (res.checkout) {
-          // PayU form auto-submits; waiting for browser redirect
+          // PhonePe form auto-submits; waiting for browser redirect
           return;
         }
       } else if (rechargeMethod === "CASH") {
@@ -514,7 +514,7 @@ function WalletContent() {
       await paymentsApi.retryPayment({ transactionId }, { autoRedirect: true });
     } catch (err: any) {
       console.error("Payment retry failed:", err);
-      setErrorBanner({ message: err?.message || "Failed to retry PayU payment." });
+      setErrorBanner({ message: err?.message || "Failed to retry PhonePe payment." });
     } finally {
       setIsProcessing(false);
     }
@@ -522,7 +522,7 @@ function WalletContent() {
 
   // Cancels an abandoned online top-up and frees the pending slot so the
   // customer can start a fresh top-up right away. The server verifies the real
-  // state with PayU first, so a payment that actually succeeded is not lost.
+  // state with PhonePe first, so a payment that actually succeeded is not lost.
   const handleCancelPayment = async (transactionId: string) => {
     setIsProcessing(true);
     setErrorBanner(null);

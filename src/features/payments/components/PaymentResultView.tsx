@@ -105,7 +105,7 @@ export function PaymentResultView() {
 
   // Abandoned checkout: the customer returned (or was redirected) while the
   // payment is still live. Release the one-pending-per-wallet slot so they can
-  // start fresh. The server re-verifies with PayU first (see docs §6.4), so a
+  // start fresh. The server re-verifies with PhonePe first (see docs §6.4), so a
   // payment that actually succeeded is settled, not discarded.
   const handleCancel = async () => {
     if (!txnid || cancelling) return;
@@ -114,7 +114,7 @@ export function PaymentResultView() {
     try {
       const res = await paymentsApi.cancelPayment({ transactionId: txnid });
       if (res.payment?.status === "SUCCESS") {
-        // PayU had actually taken the money; show the authoritative state.
+        // PhonePe had actually taken the money; show the authoritative state.
         setVerification({
           payment: res.payment,
           walletCredited: res.payment.walletCredit?.status === "COMPLETED",

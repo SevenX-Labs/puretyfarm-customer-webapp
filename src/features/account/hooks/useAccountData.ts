@@ -182,7 +182,7 @@ export function useAccountData() {
     };
   }, [user, fetchWalletData]);
 
-  // Check & verify any return txnid from PayU
+  // Check & verify any return txnid from PhonePe
   useEffect(() => {
     const txnid = searchParams.get("txnid");
     if (txnid && user) {
@@ -194,7 +194,7 @@ export function useAccountData() {
             const amt = (res.payment.amountPaise / 100).toFixed(0);
             if (res.requiresAdminApproval || res.payment.walletCredit?.status === "PENDING") {
               setWalletSuccessMsg(
-                `Payment Successful — ₹${amt} reached PayU. Wallet Credit Awaiting Approval: the admin will approve shortly and your balance will update automatically.`
+                `Payment Successful — ₹${amt} reached PhonePe. Wallet Credit Awaiting Approval: the admin will approve shortly and your balance will update automatically.`
               );
             } else {
               setWalletSuccessMsg(
@@ -234,7 +234,7 @@ export function useAccountData() {
       .catch(() => {});
   }, [user, walletSuccessMsg]);
 
-  // Handle Wallet Recharge (ONLINE PayU / CASH)
+  // Handle Wallet Recharge (ONLINE PhonePe / CASH)
   const handleRechargeWallet = async (
     amount: number,
     method: "ONLINE" | "CASH" = "ONLINE"
@@ -259,7 +259,7 @@ export function useAccountData() {
           autoRedirect: true,
         });
         if (res.checkout) {
-          // PayU hosted form was submitted automatically
+          // PhonePe hosted form was submitted automatically
           return;
         }
       } else {

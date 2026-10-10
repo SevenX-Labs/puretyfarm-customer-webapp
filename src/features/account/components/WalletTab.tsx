@@ -204,7 +204,7 @@ export function WalletTab({
               <div>
                 <p className="font-bold">{walletPaymentError.message}</p>
                 <p className="text-xs text-amber-700 mt-0.5">
-                  No money was deducted from your wallet. You can retry with PayU or choose another method.
+                  No money was deducted from your wallet. You can retry with PhonePe or choose another method.
                 </p>
               </div>
             </div>

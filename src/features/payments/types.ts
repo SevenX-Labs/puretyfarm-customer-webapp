@@ -20,7 +20,7 @@ export type RefundStatus =
   | "REFUNDED"
   | "REFUND_FAILED";
 
-export interface PayUCheckoutFields {
+export interface OnlineCheckoutFields {
   key: string;
   txnid: string;
   amount: string;
@@ -39,10 +39,10 @@ export interface PayUCheckoutFields {
   [key: string]: string | undefined;
 }
 
-export interface PayUCheckout {
+export interface OnlineCheckout {
   endpoint: string;
   method: string;
-  fields: PayUCheckoutFields;
+  fields: OnlineCheckoutFields;
 }
 
 export interface WalletCreditInfo {
@@ -58,7 +58,7 @@ export interface PaymentRecord {
   id: string;
   transactionId: string;
   providerPaymentId?: string | null;
-  provider?: "PAYU" | string;
+  provider?: "PHONEPE" | string;
   purpose?: PaymentPurpose;
   paymentMethod: PaymentMethod;
   amountPaise: number;
@@ -91,7 +91,7 @@ export interface CreatePaymentPayload {
 export interface CreatePaymentOnlineResponse {
   payment: PaymentRecord;
   walletCreditRequestId: string;
-  checkout: PayUCheckout;
+  checkout: OnlineCheckout;
   message: string;
   replayed?: boolean;
 }
@@ -153,3 +153,6 @@ export interface ListPaymentsResponse {
     totalPages: number;
   };
 }
+
+export type PayUCheckout = OnlineCheckout;
+export type PayUCheckoutFields = OnlineCheckoutFields;
