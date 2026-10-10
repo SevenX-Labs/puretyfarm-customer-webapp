@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, KeyboardEvent } from "react";
+import React, { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import {
   Sparkles,
@@ -52,6 +52,7 @@ export function MonthlyUpgradeModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -156,45 +157,56 @@ export function MonthlyUpgradeModal({
       aria-modal="true"
       aria-labelledby="upgrade-modal-title"
       onKeyDown={handleKeyDown}
-      onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-[100] flex justify-end overflow-hidden"
     >
+      {/* Backdrop overlay */}
       <div
-        className="w-full max-w-xl sm:max-w-2xl h-[92vh] sm:h-[85vh] max-h-[92vh] sm:max-h-[85vh] rounded-t-[28px] sm:rounded-3xl bg-white border-t sm:border border-[#E8DFD4] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-150"
+        onClick={() => !submitting && onClose()}
+        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        aria-hidden="true"
+      />
+
+      {/* Drawer Panel: Slide-over on Desktop (full height) & Bottom-Sheet on Mobile */}
+      <div
         onClick={(e) => e.stopPropagation()}
+        className={`
+          relative z-50 bg-white border-[#E8DFD4] shadow-2xl flex flex-col outline-none w-full
+          animate-in duration-200
+          bottom-0 left-0 right-0 h-[92vh] max-h-[92vh] rounded-t-3xl border-t mt-auto overflow-hidden slide-in-from-bottom
+          sm:bottom-auto sm:left-auto sm:right-0 sm:top-0 sm:h-screen sm:max-h-screen sm:w-[540px] sm:max-w-[100vw] sm:rounded-none sm:border-l sm:border-t-0 sm:slide-in-from-right sm:slide-in-from-bottom-0
+        `}
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-[#E8DFD4] bg-[#FFFDF7] shrink-0">
-          <div className="min-w-0 pr-3">
-            <h3
+        {/* Sticky Header */}
+        <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-[#E8DFD4] flex items-center justify-between gap-3 bg-[#FFFDF7] shrink-0">
+          <div className="min-w-0">
+            <span className="text-[10px] font-bold text-[#5C1B13] uppercase tracking-wider block">
+              PuretyFarm Monthly Plan
+            </span>
+            <h2
               id="upgrade-modal-title"
-              className="text-base sm:text-lg font-bold text-[#1A1008] flex items-center gap-2 truncate"
+              className="text-base sm:text-lg font-bold text-[#1A1008] flex items-center gap-2 truncate mt-0.5"
             >
-              <span className="w-7 h-7 rounded-xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center shrink-0">
-                <Sparkles size={16} />
-              </span>
+              <Sparkles size={16} className="text-[#5C1B13] shrink-0" />
               <span>{isMonthlyActive ? "Modify Monthly Subscription" : "Upgrade to Monthly Plan"}</span>
-            </h3>
-            <p className="text-xs text-[#8C7A6B] mt-0.5 truncate">
-              Customize schedule, daily volume & payment method
-              {resolvedDeliveryWindow ? ` (${resolvedDeliveryWindow})` : ""}
-            </p>
+            </h2>
           </div>
+
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
             aria-label="Close upgrade modal"
-            className="w-8 h-8 rounded-full hover:bg-stone-100 text-stone-500 hover:text-stone-800 flex items-center justify-center transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+            className="w-9 h-9 rounded-xl border border-[#E8DFD4] flex items-center justify-center text-[#1A1008] hover:bg-[#FAF3EA] transition-colors cursor-pointer shrink-0 disabled:opacity-50"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Scrollable Body with Mouse Wheel Support */}
+        {/* Scrollable Body - Smooth 2-finger / Mouse Wheel Scrolling */}
         <div
+          ref={scrollContainerRef}
           tabIndex={0}
-          className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 py-5 space-y-5.5 custom-scrollbar overscroll-contain focus:outline-none"
+          className="px-5 py-5 sm:px-6 sm:py-6 pb-12 sm:pb-14 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-6 overscroll-contain focus:outline-none"
           style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
         >
           {/* Alerts */}
@@ -228,51 +240,57 @@ export function MonthlyUpgradeModal({
             disabled={submitting}
           />
 
-          {/* 3. Quantity Steppers */}
-          {mode === "fixed" ? (
-            <QuantityStepper
-              label="Daily Delivery Volume"
-              sublabel={
-                frequency === "daily"
-                  ? "Same litres delivered every single day"
-                  : "Same litres delivered every alternate day"
-              }
-              value={fixedLitres}
-              onChange={setFixedLitres}
-              showChips={true}
-              disabled={submitting}
-            />
-          ) : (
-            <div className="space-y-3.5">
+          {/* 3. Quantity Steppers based on mode */}
+          <div className="space-y-3">
+            <label className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block">
+              {mode === "pattern" ? "Delivery Volume by Sequence" : "Daily Delivery Volume"}
+            </label>
+
+            {mode === "fixed" ? (
               <QuantityStepper
-                label="Day 1 Delivery Volume"
+                label="Delivery Volume"
                 sublabel={
                   frequency === "daily"
-                    ? "Day 1: odd days (1st, 3rd, 5th delivery...)"
-                    : "Day 1: 1st, 3rd, 5th... delivery"
+                    ? "Same litres delivered every single day"
+                    : "Same litres delivered every alternate day"
                 }
-                value={day1Litres}
-                onChange={setDay1Litres}
+                value={fixedLitres}
+                onChange={setFixedLitres}
                 showChips={true}
                 disabled={submitting}
               />
+            ) : (
+              <div className="space-y-4">
+                <QuantityStepper
+                  label="Day 1 Delivery"
+                  sublabel={
+                    frequency === "daily"
+                      ? "Day 1: odd days (1st, 3rd, 5th delivery...)"
+                      : "Day 1: 1st, 3rd, 5th... delivery"
+                  }
+                  value={day1Litres}
+                  onChange={setDay1Litres}
+                  showChips={true}
+                  disabled={submitting}
+                />
 
-              <QuantityStepper
-                label="Day 2 Delivery Volume"
-                sublabel={
-                  frequency === "daily"
-                    ? "Day 2: even days (2nd, 4th, 6th...)"
-                    : "Day 2: 2nd, 4th, 6th... delivery"
-                }
-                value={day2Litres}
-                onChange={setDay2Litres}
-                showChips={true}
-                disabled={submitting}
-              />
-            </div>
-          )}
+                <QuantityStepper
+                  label="Day 2 Delivery"
+                  sublabel={
+                    frequency === "daily"
+                      ? "Day 2: even days (2nd, 4th, 6th...)"
+                      : "Day 2: 2nd, 4th, 6th... delivery"
+                  }
+                  value={day2Litres}
+                  onChange={setDay2Litres}
+                  showChips={true}
+                  disabled={submitting}
+                />
+              </div>
+            )}
+          </div>
 
-          {/* 4. Live Server Quote Breakdown & Schedule Preview */}
+          {/* 4. Live Server Pricing Summary & Delivery Schedule Preview */}
           <PricingSummary
             result={pricingResult}
             schedulePreview={schedulePreview}
@@ -284,7 +302,7 @@ export function MonthlyUpgradeModal({
           />
 
           {/* 5. Payment Method Selector */}
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <label className="text-xs font-bold text-[#1A1008] uppercase tracking-wider block">
               Payment Method
             </label>
@@ -358,15 +376,15 @@ export function MonthlyUpgradeModal({
         </div>
 
         {/* Sticky Footer */}
-        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
+        <div className="px-5 py-4 sm:px-6 sm:py-4 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
           <div className="min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#715E50] block">
               Monthly Plan Total
             </span>
             {isQuoteLoading ? (
-              <div className="h-6 w-24 bg-[#E8DFD4]/70 animate-pulse rounded-md mt-0.5" />
+              <div className="h-7 w-24 bg-[#E8DFD4]/70 animate-pulse rounded-md mt-1" />
             ) : (
-              <span className="text-xl sm:text-2xl font-black text-[#5C1B13] tabular-nums leading-none block mt-0.5">
+              <span className="text-2xl sm:text-[26px] font-black text-[#5C1B13] tabular-nums leading-none block mt-1">
                 ₹{pricingResult.totalPrice.toLocaleString("en-IN")}
               </span>
             )}
@@ -377,7 +395,7 @@ export function MonthlyUpgradeModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl border border-[#E8DFD4] text-xs font-bold text-[#3A241C] hover:bg-[#FAF3EA] transition-colors cursor-pointer disabled:opacity-50"
+              className="min-h-[44px] px-4 py-2 rounded-xl border border-[#E8DFD4] text-xs font-bold text-[#3A241C] hover:bg-[#FAF3EA] transition-colors cursor-pointer disabled:opacity-50"
             >
               Cancel
             </button>
@@ -392,7 +410,7 @@ export function MonthlyUpgradeModal({
                 !serverQuote ||
                 Boolean(quoteError)
               }
-              className="min-h-[40px] px-4 sm:px-5 py-2 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="min-h-[44px] px-5 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
