@@ -93,11 +93,11 @@ export function OnboardingView() {
   }
 
   return (
-    <div className="relative min-h-screen w-screen overflow-x-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center py-2 sm:py-3">
-      <main className="mx-auto w-full max-w-5xl px-2.5 sm:px-4 flex flex-col justify-center items-center">
+    <div className="relative min-h-screen w-screen overflow-x-hidden bg-[#faf7f2] font-sans text-[#24130f] flex flex-col justify-center py-2 sm:py-3.5 md:py-4">
+      <main className="mx-auto w-full max-w-5xl xl:max-w-6xl px-2.5 sm:px-4 flex flex-col justify-center items-center">
         <section
           aria-label="Account setup and subscription workflow"
-          className="relative flex flex-col md:flex-row w-full min-h-[560px] md:h-[600px] lg:h-[620px] md:max-h-[94vh] rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl overflow-hidden"
+          className="relative flex flex-col md:flex-row w-full min-h-[560px] md:min-h-[580px] lg:min-h-[600px] md:max-h-[94vh] rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl overflow-hidden"
         >
           {/* Left Sidebar - Shared across all 4 onboarding steps */}
           <OnboardingSidebar
@@ -107,7 +107,7 @@ export function OnboardingView() {
           />
 
           {/* Right Content Panel - Smooth transition only within right side */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-y-auto md:overflow-hidden p-3.5 sm:p-4.5 lg:p-5 h-full">
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] overflow-y-auto p-3.5 sm:p-4.5 lg:p-5.5 h-full">
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div
@@ -152,7 +152,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
+                  className="h-full flex flex-col justify-between overflow-y-auto overscroll-contain custom-scrollbar"
                 >
                   <AddressDetailsStep
                     user={user}
@@ -187,7 +187,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
+                  className="h-full flex flex-col justify-between overflow-y-auto overscroll-contain custom-scrollbar"
                 >
                   <PlanStep
                     savedAddress={savedAddress}
@@ -208,7 +208,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full flex flex-col overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
+                  className="h-full flex flex-col justify-between overflow-y-auto overscroll-contain custom-scrollbar"
                 >
                   <PaymentStep
                     quote={pendingQuote}

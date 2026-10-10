@@ -406,9 +406,9 @@ export function PlanStep({
 
             const serverRateText =
               plan.id === "monthly" && monthlyConfig
-                ? `₹${Math.round(monthlyConfig.sellingPricePerLitre / 100)} / L`
+                ? `₹${Math.round(monthlyConfig.sellingPricePerLitre / 100)}/L`
                 : liveQuote
-                ? `₹${Math.round(liveQuote.sellingPricePerLitre / 100)} / ${plan.id === "single" ? "bottle" : "L"}`
+                ? `₹${Math.round(liveQuote.sellingPricePerLitre / 100)}/${plan.id === "single" ? "bottle" : "L"}`
                 : plan.rateText;
 
             const monthlyDeliveries = liveQuotes.monthly?.deliveryOccurrences || 30;
@@ -502,11 +502,11 @@ export function PlanStep({
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10.5px] font-semibold text-[#1A1008]">
+                      <span className="text-[10.5px] font-semibold text-[#1A1008] whitespace-nowrap">
                         {serverRateText}
                       </span>
                       <span className="text-[10.5px] text-[#3A241C]/50">•</span>
-                      <span className="text-[10.5px] text-[#3A241C]/65">
+                      <span className="text-[10.5px] text-[#3A241C]/65 whitespace-nowrap">
                         {displayQuantity}
                       </span>
                     </div>

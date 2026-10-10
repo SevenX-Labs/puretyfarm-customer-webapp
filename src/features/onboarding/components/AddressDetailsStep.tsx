@@ -11,7 +11,6 @@ import {
   FiArrowRight,
   FiLogIn,
   FiCheckCircle,
-  FiLock,
 } from "react-icons/fi";
 import {
   locationApi,
@@ -94,7 +93,6 @@ export function AddressDetailsStep({
         const stateList = await locationApi.getStates();
         if (isMounted) {
           setStates(stateList);
-          // If only 1 state available (e.g. Chhattisgarh), auto-select it
           if (stateList.length === 1 && !selectedStateId) {
             onStateChange(stateList[0].id);
           }
@@ -127,7 +125,6 @@ export function AddressDetailsStep({
         const cityList = await locationApi.getCities(selectedStateId);
         if (isMounted) {
           setCities(cityList);
-          // If only 1 city available (e.g. Raipur), auto-select it
           if (cityList.length === 1 && !selectedCityId) {
             onCityChange(cityList[0].id, cityList[0].name);
           }
@@ -174,7 +171,7 @@ export function AddressDetailsStep({
     };
   }, [selectedCityId]);
 
-  // Sync default receiver name and mobile if user object loads later
+  // Sync default receiver name and mobile if user object updates
   useEffect(() => {
     if (user?.name && !fullName && !user.name.startsWith("Customer (") && user.name.toLowerCase() !== "customer") {
       setFullName(user.name);
@@ -270,64 +267,43 @@ export function AddressDetailsStep({
   return (
     <m.section
       key="address-details-step"
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2 }}
-      className="flex flex-col justify-between h-full"
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ duration: 0.18 }}
+      className="flex flex-col justify-between h-full space-y-3"
     >
-      <form onSubmit={handleSaveAddress} className="flex flex-col justify-between h-full">
-        <div className="space-y-3 sm:space-y-3.5">
+      <form onSubmit={handleSaveAddress} className="flex flex-col justify-between h-full space-y-3">
+        <div className="space-y-3">
           {/* Header */}
-          <header className="flex items-start justify-between gap-3 border-b border-[#eee5db] pb-2 sm:pb-2.5">
+          <header className="flex items-center justify-between gap-3 border-b border-[#eee5db] pb-2">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#7a2417]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#7a2417] block">
                 Step 2 of 4
               </span>
               <h1 className="font-serif text-base font-bold text-[#24130f] sm:text-lg md:text-xl">
                 Delivery Address
               </h1>
               <p className="mt-0.5 text-[11px] sm:text-[12px] text-[#715e50]">
-                Select your delivery hub and enter your exact house details for daily morning delivery.
+                Select your delivery hub and enter your house & street details for daily morning delivery.
               </p>
             </div>
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[11.5px] font-semibold text-[#7a2417] hover:bg-[#7a2417]/10 transition-colors cursor-pointer"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11.5px] font-semibold text-[#7a2417] hover:bg-[#7a2417]/10 transition-colors cursor-pointer"
             >
               <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Back to Profile</span>
             </button>
           </header>
 
-          {/* Service Area Selection Block */}
-          <div className="rounded-xl border border-[#e8dfd4] bg-white p-3 sm:p-3.5 shadow-2xs space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#7a2417]">
-                1. Select Delivery Hub & Area
-              </span>
-              {isAreaSelected && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#326d3c]">
-                  <FiCheckCircle className="h-3.5 w-3.5" />
-                  Area Selected
-                </span>
-              )}
-            </div>
-
-            {catalogError && (
-              <div
-                role="alert"
-                className="rounded-lg border border-rose-200 bg-rose-50 p-2 text-xs text-rose-800"
-              >
-                {catalogError}
-              </div>
-            )}
-
+          {/* Service Area Selection Grid */}
+          <div className="rounded-xl border border-[#e8dfd4] bg-[#faf8f5] p-2.5 sm:p-3 space-y-2">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2.5">
               {/* State Selector */}
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   State <span className="text-[#7a2417]">*</span>
                 </label>
                 <select
@@ -338,7 +314,7 @@ export function AddressDetailsStep({
                     onAreaChange("", "", "");
                   }}
                   disabled={loadingStates}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
+                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-2.5 text-[12px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
                 >
                   <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
                   {states.map((s) => (
@@ -351,7 +327,7 @@ export function AddressDetailsStep({
 
               {/* City Selector */}
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   City <span className="text-[#7a2417]">*</span>
                 </label>
                 <select
@@ -362,7 +338,7 @@ export function AddressDetailsStep({
                     onAreaChange("", "", "");
                   }}
                   disabled={!selectedStateId || loadingCities}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
+                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-2.5 text-[12px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
                 >
                   <option value="">
                     {loadingCities
@@ -381,14 +357,14 @@ export function AddressDetailsStep({
 
               {/* Area / Hub Selector */}
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Delivery Hub / Area <span className="text-[#7a2417]">*</span>
                 </label>
                 <select
                   value={selectedAreaId}
                   onChange={(e) => handleAreaSelect(e.target.value)}
                   disabled={!selectedCityId || loadingAreas}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
+                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-2.5 text-[12px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
                 >
                   <option value="">
                     {loadingAreas
@@ -406,61 +382,37 @@ export function AddressDetailsStep({
               </div>
             </div>
 
-            {/* Service Availability / Instructions Status Pill */}
-            <div
-              role="status"
-              aria-live="polite"
-              className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs transition-colors ${
-                isAreaSelected
-                  ? "border-[#cce3cf] bg-[#f0f8f0] text-[#326d3c]"
-                  : "border-[#e8dfd4] bg-[#faf6f0] text-[#715e50]"
-              }`}
-            >
-              {isAreaSelected ? (
-                <>
-                  <FiCheckCircle className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
-                  <span>
-                    Delivering to Hub: <strong>{currentAreaName}</strong>
-                    {currentCityName ? `, ${currentCityName}` : ""}
-                    {activePincode ? ` (${activePincode})` : ""}. House details unlocked.
-                  </span>
-                </>
-              ) : (
-                <>
-                  <FiLock className="h-3.5 w-3.5 shrink-0 text-[#7a2417]" />
-                  <span>
-                    {!selectedStateId || !selectedCityId
-                      ? "Select your State, City, and Delivery Hub above to enter your house and street details."
-                      : "Select your Delivery Hub / Area above to unlock house details."}
-                  </span>
-                </>
-              )}
-            </div>
+            {/* Status Pill */}
+            {isAreaSelected ? (
+              <div
+                role="status"
+                className="flex items-center gap-2 rounded-lg border border-[#cce3cf] bg-[#f0f8f0] px-2.5 py-1.5 text-[11px] text-[#326d3c]"
+              >
+                <FiCheckCircle className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
+                <span>
+                  Delivering to Hub: <strong>{currentAreaName}</strong>
+                  {currentCityName ? `, ${currentCityName}` : ""}
+                  {activePincode ? ` (${activePincode})` : ""}. House details unlocked.
+                </span>
+              </div>
+            ) : (
+              <div
+                role="status"
+                className="flex items-center gap-2 rounded-lg border border-[#e8dfd4] bg-white px-2.5 py-1.5 text-[11px] text-[#715e50]"
+              >
+                <FiMapPin className="h-3.5 w-3.5 shrink-0 text-[#7a2417]" />
+                <span>
+                  Select your State, City, and Delivery Hub above to enter your house and street details.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* House & Street Manual Address Block */}
-          <div
-            className={`rounded-xl border p-3 sm:p-3.5 transition-all ${
-              isAreaSelected
-                ? "border-[#e8dfd4] bg-white shadow-2xs"
-                : "border-[#ede4d8] bg-[#fdfaf6] opacity-75"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#7a2417]">
-                2. Exact House & Contact Details
-              </span>
-              {!isAreaSelected && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8a7566]">
-                  <FiLock className="h-3 w-3" />
-                  Locked until area is selected
-                </span>
-              )}
-            </div>
-
+          <div className="rounded-xl border border-[#e8dfd4] bg-white p-3 sm:p-3.5 shadow-2xs space-y-2.5">
             {saveError && (
-              <div className="mb-2.5 flex items-start justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-2 text-xs text-red-700">
-                <div className="flex items-start gap-2">
+              <div className="flex items-start justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+                <div className="flex items-start gap-1.5">
                   <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
                   <span>{saveError}</span>
                 </div>
@@ -479,7 +431,7 @@ export function AddressDetailsStep({
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Flat / House / Unit Number <span className="text-[#7a2417]">*</span>
                 </label>
                 <input
@@ -488,12 +440,12 @@ export function AddressDetailsStep({
                   disabled={!isAreaSelected}
                   value={houseNumber}
                   onChange={(e) => setHouseNumber(e.target.value)}
-                  placeholder={isAreaSelected ? "e.g. Flat 203, Block B" : "Select area above first"}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  placeholder={isAreaSelected ? "e.g. Flat 203, Block B" : "Select hub above first"}
+                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Building / Society / Apartment
                 </label>
                 <input
@@ -501,12 +453,12 @@ export function AddressDetailsStep({
                   disabled={!isAreaSelected}
                   value={buildingName}
                   onChange={(e) => setBuildingName(e.target.value)}
-                  placeholder={isAreaSelected ? "e.g. Sunrise Heights" : "Select area above first"}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  placeholder={isAreaSelected ? "e.g. Sunrise Heights" : "Select hub above first"}
+                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Street / Road Name
                 </label>
                 <input
@@ -514,12 +466,12 @@ export function AddressDetailsStep({
                   disabled={!isAreaSelected}
                   value={streetName}
                   onChange={(e) => setStreetName(e.target.value)}
-                  placeholder={isAreaSelected ? "e.g. Station Road" : "Select area above first"}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  placeholder={isAreaSelected ? "e.g. Station Road" : "Select hub above first"}
+                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Landmark (Optional)
                 </label>
                 <input
@@ -527,12 +479,12 @@ export function AddressDetailsStep({
                   disabled={!isAreaSelected}
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
-                  placeholder={isAreaSelected ? "e.g. Near City Garden" : "Select area above first"}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  placeholder={isAreaSelected ? "e.g. Near City Garden" : "Select hub above first"}
+                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Receiver Name <span className="text-[#7a2417]">*</span>
                 </label>
                 <input
@@ -541,12 +493,12 @@ export function AddressDetailsStep({
                   disabled={!isAreaSelected}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder={isAreaSelected ? "Full name of receiver" : "Select area above first"}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  placeholder={isAreaSelected ? "Full name of receiver" : "Select hub above first"}
+                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Mobile Number <span className="text-[#7a2417]">*</span>
                 </label>
                 <input
@@ -555,12 +507,12 @@ export function AddressDetailsStep({
                   disabled={!isAreaSelected}
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
-                  placeholder={isAreaSelected ? "+91 98765 43210" : "Select area above first"}
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] font-mono text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  placeholder={isAreaSelected ? "+91 98765 43210" : "Select hub above first"}
+                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] font-mono text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div className="sm:col-span-2 lg:col-span-1">
-                <label className="mb-1 block text-[11px] sm:text-[11.5px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
                   Address Label
                 </label>
                 <select
@@ -569,7 +521,7 @@ export function AddressDetailsStep({
                   onChange={(e) =>
                     setAddressType(e.target.value as "Home" | "Work" | "Other")
                   }
-                  className="h-9 sm:h-9.5 lg:h-[38px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] sm:text-[12.5px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 >
                   <option value="Home">Home</option>
                   <option value="Work">Work</option>
@@ -581,7 +533,7 @@ export function AddressDetailsStep({
         </div>
 
         {/* Footer Submit Button */}
-        <div className="mt-3 flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:justify-end">
+        <div className="flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:justify-end">
           <Button
             type="submit"
             variant="primary"
