@@ -1,5 +1,6 @@
-import { FaWhatsapp } from "react-icons/fa";
 "use client";
+
+import { FaWhatsapp } from "react-icons/fa";
 
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, m } from "framer-motion";

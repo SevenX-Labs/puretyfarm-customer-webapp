@@ -1,6 +1,6 @@
 import { Address } from "@/types/models";
 
-export type StepKey = 1 | 2 | 3 | 4 | 5;
+export type StepKey = 1 | 2 | 3 | 4;
 
 export interface ServiceCheckResult {
   performed: boolean;

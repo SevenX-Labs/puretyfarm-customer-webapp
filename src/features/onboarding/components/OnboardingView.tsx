@@ -2,10 +2,8 @@
 
 import React from "react";
 import { AnimatePresence, m } from "framer-motion";
-import { FiCheck } from "react-icons/fi";
 import { useOnboardingFlow } from "../hooks/useOnboardingFlow";
 import { ProfileStep } from "./ProfileStep";
-import { ServiceAreaStep } from "./ServiceAreaStep";
 import { AddressDetailsStep } from "./AddressDetailsStep";
 import { PlanStep } from "./PlanStep";
 import { PaymentStep } from "./PaymentStep";
@@ -38,7 +36,7 @@ export function OnboardingView() {
     profileError,
     setProfileError,
     handleSaveProfile,
-    // Step 2: Service Area
+    // Step 2: Location & Delivery Address
     selectedStateId,
     setSelectedStateId,
     selectedCityId,
@@ -53,17 +51,15 @@ export function OnboardingView() {
     setSelectedCityName,
     coords,
     setCoords,
-    handleContinueToAddress,
-    // Step 3: Address
     savedAddress,
     handleSaveVerifiedAddress,
-    // Step 4: Plan
+    // Step 3: Plan
     selectedPlanId,
     setSelectedPlanId,
     planSubmitting,
     planError,
     handleCompletePlanSelection,
-    // Step 5: Payment
+    // Step 4: Payment
     pendingQuote,
     pendingPlan,
     walletBalancePaise,
@@ -82,7 +78,6 @@ export function OnboardingView() {
   const isStepMounted = (step: StepKey) => {
     return Math.abs(currentStep - step) <= 1;
   };
-
 
   if (authLoading || initialLoading) {
     return (
@@ -104,7 +99,7 @@ export function OnboardingView() {
           aria-label="Account setup and subscription workflow"
           className="relative flex flex-col md:flex-row w-full min-h-[560px] md:h-[600px] lg:h-[620px] md:max-h-[94vh] rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl overflow-hidden"
         >
-          {/* Left Sidebar - Shared across all 5 onboarding steps */}
+          {/* Left Sidebar - Shared across all 4 onboarding steps */}
           <OnboardingSidebar
             currentStep={currentStep}
             maxAllowedStep={maxAllowedStep}
@@ -159,11 +154,15 @@ export function OnboardingView() {
                   transition={{ duration: 0.18, ease: "easeOut" }}
                   className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
                 >
-                  <ServiceAreaStep
+                  <AddressDetailsStep
+                    user={user}
                     selectedStateId={selectedStateId}
                     selectedCityId={selectedCityId}
                     selectedAreaId={selectedAreaId}
-                    selectedAreaPincode={selectedAreaPincode}
+                    selectedAreaName={selectedAreaName}
+                    selectedCityName={selectedCityName}
+                    selectedPincode={selectedAreaPincode}
+                    coords={coords}
                     onStateChange={setSelectedStateId}
                     onCityChange={(cityId, cityName) => {
                       setSelectedCityId(cityId);
@@ -176,7 +175,7 @@ export function OnboardingView() {
                     }}
                     onCoordsChange={setCoords}
                     onBack={() => handleGoToStep(1)}
-                    onContinue={handleContinueToAddress}
+                    onAddressSaved={handleSaveVerifiedAddress}
                   />
                 </m.div>
               )}
@@ -184,30 +183,6 @@ export function OnboardingView() {
               {currentStep === 3 && isStepMounted(3) && (
                 <m.div
                   key="step-3"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="h-full flex flex-col justify-between overflow-y-auto lg:overflow-hidden overscroll-contain custom-scrollbar"
-                >
-                  <AddressDetailsStep
-                    user={user}
-                    selectedStateId={selectedStateId}
-                    selectedCityId={selectedCityId}
-                    selectedAreaId={selectedAreaId}
-                    selectedAreaName={selectedAreaName}
-                    selectedCityName={selectedCityName}
-                    selectedPincode={selectedAreaPincode}
-                    coords={coords}
-                    onBack={() => handleGoToStep(2)}
-                    onAddressSaved={handleSaveVerifiedAddress}
-                  />
-                </m.div>
-              )}
-
-              {currentStep === 4 && isStepMounted(4) && (
-                <m.div
-                  key="step-4"
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
@@ -226,9 +201,9 @@ export function OnboardingView() {
                 </m.div>
               )}
 
-              {currentStep === 5 && isStepMounted(5) && (
+              {currentStep === 4 && isStepMounted(4) && (
                 <m.div
-                  key="step-5"
+                  key="step-4"
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}

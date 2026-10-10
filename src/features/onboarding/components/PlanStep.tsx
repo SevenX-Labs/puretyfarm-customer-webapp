@@ -334,7 +334,7 @@ export function PlanStep({
         </div>
         <button
           type="button"
-          onClick={() => onGoToStep(3)}
+          onClick={() => onGoToStep(2)}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-[#7a2417] hover:bg-[#7a2417]/10 transition-colors cursor-pointer"
         >
           <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
@@ -353,7 +353,7 @@ export function PlanStep({
           </div>
           <button
             type="button"
-            onClick={() => onGoToStep(3)}
+            onClick={() => onGoToStep(2)}
             className="font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0 text-[10.5px] sm:text-[11px]"
           >
             Change

@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -18,7 +17,7 @@ export function useOnboardingFlow() {
   const searchParams = useSearchParams();
   const { user, loading: authLoading, refreshUser } = useAuth();
 
-  // Step state (1: Profile, 2: Service Area, 3: Address Details, 4: Plan, 5: Payment)
+  // Step state (1: Profile, 2: Delivery Address, 3: Plan, 4: Payment)
   const [currentStep, setCurrentStep] = useState<StepKey>(1);
   const [maxAllowedStep, setMaxAllowedStep] = useState<StepKey>(1);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -33,7 +32,7 @@ export function useOnboardingFlow() {
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
 
-  // Step 2: Location / Service Area selection state
+  // Step 2: Location / Delivery Area selection state
   const [selectedStateId, setSelectedStateId] = useState("");
   const [selectedCityId, setSelectedCityId] = useState("");
   const [selectedAreaId, setSelectedAreaId] = useState("");
@@ -42,15 +41,15 @@ export function useOnboardingFlow() {
   const [selectedCityName, setSelectedCityName] = useState("");
   const [coords, setCoords] = useState<{ lat?: number; lng?: number }>({});
 
-  // Step 3: Address state
+  // Step 2/3: Address state
   const [savedAddress, setSavedAddress] = useState<Address | null>(null);
 
-  // Step 4: Plan selection state
+  // Step 3: Plan selection state
   const [selectedPlanId, setSelectedPlanId] = useState<"trial" | "monthly" | "single">("monthly");
   const [planSubmitting, setPlanSubmitting] = useState(false);
   const [planError, setPlanError] = useState<string | null>(null);
 
-  // Step 5: Payment & quote state
+  // Step 4: Payment & quote state
   const [pendingQuote, setPendingQuote] = useState<PlanQuote | null>(null);
   const [pendingPlan, setPendingPlan] = useState<PlanDefinition | null>(null);
   const [walletBalancePaise, setWalletBalancePaise] = useState<number>(0);
@@ -139,17 +138,16 @@ export function useOnboardingFlow() {
         setMaxAllowedStep(2);
         setCurrentStep(2);
       } else {
-        setMaxAllowedStep(4);
+        setMaxAllowedStep(3);
         if (
           requestedStep === "1" ||
           requestedStep === "2" ||
           requestedStep === "3" ||
-          requestedStep === "4" ||
-          requestedStep === "5"
+          requestedStep === "4"
         ) {
           setCurrentStep(parseInt(requestedStep, 10) as StepKey);
         } else {
-          setCurrentStep(4);
+          setCurrentStep(3);
         }
       }
 
@@ -225,16 +223,7 @@ export function useOnboardingFlow() {
     }
   };
 
-  // ─── STEP 2 HANDLER: Service Area Confirmed ───
-  const handleContinueToAddress = () => {
-    if (!selectedStateId || !selectedCityId || !selectedAreaId) {
-      return;
-    }
-    setMaxAllowedStep((prev) => Math.max(prev, 3) as StepKey);
-    setCurrentStep(3);
-  };
-
-  // ─── STEP 3 HANDLER: Address Saved (Immediate Transition) ───
+  // ─── STEP 2 HANDLER: Address Saved (Immediate Transition to Step 3 Plan) ───
   const handleSaveVerifiedAddress = (createdAddr?: CustomerAddress) => {
     if (createdAddr) {
       setSavedAddress({
@@ -254,8 +243,8 @@ export function useOnboardingFlow() {
         createdAt: createdAddr.createdAt || new Date().toISOString(),
       });
     }
-    setMaxAllowedStep((prev) => Math.max(prev, 4) as StepKey);
-    setCurrentStep(4);
+    setMaxAllowedStep((prev) => Math.max(prev, 3) as StepKey);
+    setCurrentStep(3);
     void refreshUser().catch(() => {});
     void locationApi.getAddresses().catch(() => []);
   };
@@ -275,10 +264,10 @@ export function useOnboardingFlow() {
     }
   }, []);
 
-  // ─── STEP 4 HANDLER: Select Plan → Build Quote → Advance to Payment ───
+  // ─── STEP 3 HANDLER: Select Plan → Build Quote → Advance to Payment (Step 4) ───
   const handleCompletePlanSelection = async (plan: PlanDefinition) => {
     if (!savedAddress) {
-      setCurrentStep(3);
+      setCurrentStep(2);
       return;
     }
 
@@ -324,8 +313,8 @@ export function useOnboardingFlow() {
       setPendingPlan(plan);
       await reloadWallet();
 
-      setMaxAllowedStep((prev) => Math.max(prev, 5) as StepKey);
-      setCurrentStep(5);
+      setMaxAllowedStep((prev) => Math.max(prev, 4) as StepKey);
+      setCurrentStep(4);
     } catch (err: any) {
       const msg = err?.data?.message || err?.message || "Failed to proceed with selected plan.";
       setPlanError(Array.isArray(msg) ? msg.join(", ") : String(msg));
@@ -334,9 +323,7 @@ export function useOnboardingFlow() {
     }
   };
 
-  // Redirect to Order Confirmation using the backend-authoritative confirm
-  // response. No localStorage, no fabricated order numbers, no mock routes —
-  // the confirmation page re-fetches the plan selection by id for the truth.
+  // Redirect to Order Confirmation using the backend-authoritative confirm response
   const recordAndRedirectConfirmedOrder = async (
     method: "WALLET" | "CASH",
     confirmResult?: {
@@ -354,8 +341,6 @@ export function useOnboardingFlow() {
       (confirmResult?.paidAmountPaise ?? pendingQuote.totalSellingAmount) / 100
     ).toFixed(2);
 
-    // Clear the pending-quote scratchpad so a refresh of /onboarding does not
-    // re-route back into step 5 for an already-confirmed plan.
     try {
       window.localStorage.removeItem("pf_onboarding_pending_quote");
     } catch {}
@@ -375,7 +360,7 @@ export function useOnboardingFlow() {
     router.push(`/order-confirmation?${params.toString()}`);
   };
 
-  // ─── STEP 5 HANDLERS: Payment Methods ───
+  // ─── STEP 4 HANDLERS: Payment Methods ───
   const handlePayFromWallet = async () => {
     if (!pendingQuote || !pendingPlan) return;
     setPaymentSubmitting(true);
@@ -406,9 +391,6 @@ export function useOnboardingFlow() {
     setPaymentError(null);
     setPaymentNotice(null);
 
-    // Charge the exact shortfall needed to cover the plan — never a padded
-    // or hardcoded floor. Backend amount is authoritative and will reject
-    // values outside the wallet's configured min/max.
     const shortfall = Math.max(pendingQuote.totalSellingAmount - walletBalancePaise, 0);
 
     try {
@@ -463,7 +445,7 @@ export function useOnboardingFlow() {
     setPendingPlan(null);
     setPaymentError(null);
     setPaymentNotice(null);
-    setCurrentStep(4);
+    setCurrentStep(3);
   };
 
   return {
@@ -491,7 +473,7 @@ export function useOnboardingFlow() {
     profileError,
     setProfileError,
     handleSaveProfile,
-    // Step 2: Service Area
+    // Step 2: Delivery Address & Service Area
     selectedStateId,
     setSelectedStateId,
     selectedCityId,
@@ -506,17 +488,15 @@ export function useOnboardingFlow() {
     setSelectedCityName,
     coords,
     setCoords,
-    handleContinueToAddress,
-    // Step 3: Address
     savedAddress,
     handleSaveVerifiedAddress,
-    // Step 4: Plan
+    // Step 3: Plan
     selectedPlanId,
     setSelectedPlanId,
     planSubmitting,
     planError,
     handleCompletePlanSelection,
-    // Step 5: Payment
+    // Step 4: Payment
     pendingQuote,
     pendingPlan,
     walletBalancePaise,

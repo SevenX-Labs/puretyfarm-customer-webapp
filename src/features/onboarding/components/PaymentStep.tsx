@@ -118,7 +118,7 @@ export function PaymentStep({
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-md bg-[#5C1B13]/10 text-[#5C1B13] text-[10px] font-bold uppercase tracking-wider">
-                Step 5 • Final Step
+                Step 4 • Final Step
               </span>
               <span className="text-[11px] text-[#715E50] font-medium hidden sm:inline">
                 Secure Checkout

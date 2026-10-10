@@ -110,7 +110,7 @@ export function ProfileStep({
     >
       <header className="border-b border-[#eee5db] pb-2 sm:pb-2.5">
         <span className="text-[10px] font-bold uppercase tracking-wider text-[#7a2417]">
-          Step 1 of 5
+          Step 1 of 4
         </span>
         <h1
           id="profile-heading"

@@ -19,21 +19,16 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
   },
   {
     num: 2,
-    title: "Service Area",
-    subtitle: "Choose delivery area",
+    title: "Delivery Address",
+    subtitle: "Select area & house details",
   },
   {
     num: 3,
-    title: "Delivery Address",
-    subtitle: "Enter house & street",
-  },
-  {
-    num: 4,
     title: "Select Plan",
     subtitle: "Start receiving milk",
   },
   {
-    num: 5,
+    num: 4,
     title: "Payment",
     subtitle: "Pay via wallet or cash",
   },
@@ -52,7 +47,7 @@ export function OnboardingSidebar({
 }: OnboardingSidebarProps) {
   const currentStepConfig =
     ONBOARDING_STEPS.find((s) => s.num === currentStep) || ONBOARDING_STEPS[0];
-  const progressPercent = Math.round((currentStep / 5) * 100);
+  const progressPercent = Math.round((currentStep / 4) * 100);
 
   return (
     <aside
@@ -90,7 +85,7 @@ export function OnboardingSidebar({
 
           <div className="flex items-center gap-1.5 text-right min-w-0">
             <span className="text-[11px] font-bold text-[#F8E94E] uppercase tracking-wider shrink-0">
-              Step {currentStep} of 5
+              Step {currentStep} of 4
             </span>
             <span className="text-white/40 text-[10px]">•</span>
             <span className="text-xs font-semibold text-[#FFFDF7] truncate">
@@ -105,7 +100,7 @@ export function OnboardingSidebar({
           role="progressbar"
           aria-valuenow={currentStep}
           aria-valuemin={1}
-          aria-valuemax={5}
+          aria-valuemax={4}
           aria-label={`Onboarding progress: Step ${currentStep} of 5`}
         >
           <div
@@ -133,7 +128,7 @@ export function OnboardingSidebar({
 
           <div className="text-right">
             <span className="text-xs font-bold text-[#F8E94E] uppercase tracking-wider block">
-              Step {currentStep} of 5
+              Step {currentStep} of 4
             </span>
             <span className="text-xs font-semibold text-[#FFFDF7]">
               {currentStepConfig.title}
@@ -141,7 +136,7 @@ export function OnboardingSidebar({
           </div>
         </div>
 
-        {/* Horizontal 5-dot stepper indicator */}
+        {/* Horizontal 4-dot stepper indicator */}
         <div className="flex items-center justify-between gap-2 pt-1">
           {ONBOARDING_STEPS.map((step) => {
             const isCompleted = currentStep > step.num;
@@ -210,7 +205,7 @@ export function OnboardingSidebar({
           {/* Progress Section: Step counter and smooth yellow progress bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider">
-              <span className="text-[#F8E94E]">Step {currentStep} of 5</span>
+              <span className="text-[#F8E94E]">Step {currentStep} of 4</span>
               <span className="text-white/70 tabular-nums">{progressPercent}%</span>
             </div>
             <div
@@ -218,7 +213,7 @@ export function OnboardingSidebar({
               role="progressbar"
               aria-valuenow={currentStep}
               aria-valuemin={1}
-              aria-valuemax={5}
+              aria-valuemax={4}
               aria-label={`Onboarding progress: Step ${currentStep} of 5`}
             >
               <div

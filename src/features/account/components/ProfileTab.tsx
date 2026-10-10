@@ -1,5 +1,6 @@
-import { FaWhatsapp } from "react-icons/fa";
 "use client";
+
+import { FaWhatsapp } from "react-icons/fa";
 
 import React from "react";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
