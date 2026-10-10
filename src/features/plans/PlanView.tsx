@@ -20,6 +20,7 @@ import {
   DollarSign,
   Info,
 } from "lucide-react";
+import { MonthlyUpgradeModal } from "./components/MonthlyUpgradeModal";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfButton, PfCard, PfSectionTitle, PfSkeleton } from "@/components/pf";
 import { manageDeliveryApi } from "@/features/delivery/api/manageDeliveryApi";
@@ -53,14 +54,6 @@ export function PlanView() {
 
   // Upgrade to Monthly Modal State
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [modalQuantity, setModalQuantity] = useState<number>(1);
-  const [modalFrequency, setModalFrequency] = useState<"DAILY" | "ALTERNATE_DAYS">("DAILY");
-  const [modalPaymentMethod, setModalPaymentMethod] = useState<"WALLET" | "CASH">("WALLET");
-  const [modalQuote, setModalQuote] = useState<PlanQuote | null>(null);
-  const [modalQuoteLoading, setModalQuoteLoading] = useState(false);
-  const [modalSubmitting, setModalSubmitting] = useState(false);
-  const [modalError, setModalError] = useState<string | null>(null);
-  const [modalSuccess, setModalSuccess] = useState<string | null>(null);
 
   const [monthlyConfig, setMonthlyConfig] = useState<any>(null);
 
@@ -206,60 +199,8 @@ export function PlanView() {
     }
   };
 
-  // Fetch Monthly Quote when upgrade modal opens or params change
-  const fetchMonthlyQuote = async (
-    qty: number,
-    freq: "DAILY" | "ALTERNATE_DAYS"
-  ) => {
-    setModalQuoteLoading(true);
-    setModalError(null);
-    try {
-      const quote = await plansApi.createMonthlyQuote({
-        frequency: freq,
-        quantityMode: "FIXED",
-        quantity: qty,
-      });
-      setModalQuote(quote);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Could not fetch quote from server";
-      setModalError(msg);
-    } finally {
-      setModalQuoteLoading(false);
-    }
-  };
-
   const openUpgradeModal = () => {
     setShowUpgradeModal(true);
-    setModalError(null);
-    setModalSuccess(null);
-    fetchMonthlyQuote(modalQuantity, modalFrequency);
-  };
-
-  const handleConfirmUpgrade = async () => {
-    if (!modalQuote) return;
-    setModalSubmitting(true);
-    setModalError(null);
-    try {
-      const res = await plansApi.confirmPlanQuote({
-        quoteId: modalQuote.quoteId,
-        paymentMethod: modalPaymentMethod,
-      });
-
-      if (res.status === "CONFIRMED" || res.selectionId) {
-        setModalSuccess("Successfully upgraded to Monthly Subscription!");
-        setTimeout(() => {
-          setShowUpgradeModal(false);
-          loadData(true);
-        }, 1200);
-      } else {
-        setModalError(res.message || "Failed to confirm plan. Please check wallet balance or choose cash.");
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to confirm upgrade";
-      setModalError(msg);
-    } finally {
-      setModalSubmitting(false);
-    }
   };
 
   return (
@@ -898,202 +839,16 @@ export function PlanView() {
         </div>
       )}
 
-      {/* Upgrade to Monthly Modal */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-3xl bg-white border border-[var(--pf-border)] shadow-2xl p-4.5 sm:p-7 space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-[var(--pf-border)]">
-              <div>
-                <h3 className="text-lg font-bold text-[#1A1008] flex items-center gap-2">
-                  <Sparkles size={18} className="text-[#5C1B13]" />
-                  Upgrade to Monthly Plan
-                </h3>
-                <p className="text-xs text-[#8C7A6B] mt-0.5">
-                  Configure your daily milk deliveries
-                  {activeDeliveryWindowKnown ? ` (${activeDeliveryWindow})` : ""}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowUpgradeModal(false)}
-                className="w-8 h-8 rounded-full hover:bg-stone-100 text-stone-500 hover:text-stone-800 flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {modalSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span className="font-semibold">{modalSuccess}</span>
-              </div>
-            )}
-
-            {modalError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2">
-                <AlertCircle size={16} className="text-rose-600 shrink-0" />
-                <span>{modalError}</span>
-              </div>
-            )}
-
-            {/* Daily Litres Selector */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#1A1008] block">
-                Daily Quantity:
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3].map((qty) => (
-                  <button
-                    key={qty}
-                    type="button"
-                    onClick={() => {
-                      setModalQuantity(qty);
-                      fetchMonthlyQuote(qty, modalFrequency);
-                    }}
-                    className={
-                      "py-2.5 px-3 rounded-2xl text-xs font-bold border transition-all cursor-pointer " +
-                      (modalQuantity === qty
-                        ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-sm"
-                        : "bg-white text-[#1A1008] border-[#E8DFD4] hover:border-[#5C1B13]/40")
-                    }
-                  >
-                    {qty} Litre{qty > 1 ? "s" : ""} / morning
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Frequency Selector */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#1A1008] block">
-                Delivery Schedule:
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {[
-                  { val: "DAILY" as const, label: "Daily (Every Morning)" },
-                  { val: "ALTERNATE_DAYS" as const, label: "Alternate Days" },
-                ].map((freq) => (
-                  <button
-                    key={freq.val}
-                    type="button"
-                    onClick={() => {
-                      setModalFrequency(freq.val);
-                      fetchMonthlyQuote(modalQuantity, freq.val);
-                    }}
-                    className={
-                      "py-2.5 px-3 rounded-2xl text-xs font-bold border transition-all cursor-pointer " +
-                      (modalFrequency === freq.val
-                        ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-sm"
-                        : "bg-white text-[#1A1008] border-[#E8DFD4] hover:border-[#5C1B13]/40")
-                    }
-                  >
-                    {freq.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Live Server Quote Breakdown */}
-            <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4] space-y-2 text-xs">
-              <div className="flex items-center justify-between text-[#8C7A6B]">
-                <span className="font-semibold">Live Server Quote:</span>
-                {modalQuoteLoading && <RefreshCw size={12} className="animate-spin text-[#5C1B13]" />}
-              </div>
-
-              {modalQuote ? (
-                <>
-                  <div className="flex justify-between items-center text-[#6B584C]">
-                    <span>Monthly Deliveries:</span>
-                    <span className="font-mono font-bold text-[#1A1008]">
-                      {modalQuote.deliveryOccurrences} mornings ({modalQuote.totalLitres} Litres)
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-[#6B584C]">
-                    <span>Rate per Litre:</span>
-                    <span className="font-mono font-bold text-[#1A1008]">
-                      ₹{(modalQuote.sellingPricePerLitre / 100).toFixed(0)} / L
-                    </span>
-                  </div>
-                  {modalQuote.discountAmount > 0 && (
-                    <div className="flex justify-between items-center text-emerald-700 font-semibold">
-                      <span>Monthly Discount:</span>
-                      <span className="font-mono">
-                        - ₹{(modalQuote.discountAmount / 100).toFixed(0)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="pt-2 border-t border-[#E8DFD4] flex justify-between items-baseline">
-                    <span className="font-bold text-[#1A1008]">Total Plan Amount:</span>
-                    <span className="text-lg font-black font-mono text-[#5C1B13]">
-                      ₹{(modalQuote.totalSellingAmount / 100).toFixed(2)}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="py-2 text-center text-[#8C7A6B]">
-                  Calculating live server quote...
-                </div>
-              )}
-            </div>
-
-            {/* Payment Method Selector */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-[#1A1008] block">
-                Payment Method:
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setModalPaymentMethod("WALLET")}
-                  className={
-                    "py-2.5 px-3 rounded-2xl text-xs font-bold border flex items-center justify-center gap-2 transition-all cursor-pointer " +
-                    (modalPaymentMethod === "WALLET"
-                      ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-sm"
-                      : "bg-white text-[#1A1008] border-[#E8DFD4] hover:border-[#5C1B13]/40")
-                  }
-                >
-                  <CreditCard size={14} />
-                  <span>Prepaid Wallet</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModalPaymentMethod("CASH")}
-                  className={
-                    "py-2.5 px-3 rounded-2xl text-xs font-bold border flex items-center justify-center gap-2 transition-all cursor-pointer " +
-                    (modalPaymentMethod === "CASH"
-                      ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-sm"
-                      : "bg-white text-[#1A1008] border-[#E8DFD4] hover:border-[#5C1B13]/40")
-                  }
-                >
-                  <DollarSign size={14} />
-                  <span>Doorstep Cash</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm CTA */}
-            <button
-              type="button"
-              disabled={modalSubmitting || modalQuoteLoading || !modalQuote}
-              onClick={handleConfirmUpgrade}
-              className="w-full py-3 rounded-2xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50"
-            >
-              {modalSubmitting ? (
-                <>
-                  <RefreshCw size={14} className="animate-spin" />
-                  <span>Activating Monthly Plan...</span>
-                </>
-              ) : (
-                <>
-                  <Check size={16} />
-                  <span>Confirm & Activate Monthly Plan</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Upgrade / Customize Monthly Plan Modal */}
+      <MonthlyUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onSuccess={() => loadData(true)}
+        isMonthlyActive={activePlan?.planType === "MONTHLY"}
+        deliveryStartTime={monthlyItem?.deliveryStartTime ?? deliveryStartTime}
+        deliveryEndTime={monthlyItem?.deliveryEndTime ?? deliveryEndTime}
+        orderCutoff={orderCutoff}
+      />
     </>
   );
 }
