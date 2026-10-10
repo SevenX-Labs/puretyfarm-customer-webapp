@@ -51,11 +51,14 @@ export function OrdersView() {
     if (filter !== "all") {
       list = list.filter((o) => {
         const n = normaliseStatus(o.status);
-        if (filter === "delivered") return n === "delivered";
+        // A completed order is a finished one: it belongs with Delivered, and
+        // must never show under Upcoming.
+        if (filter === "delivered") return n === "delivered" || n === "completed";
         if (filter === "cancelled") return n === "cancelled" || n === "failed";
         if (filter === "upcoming")
           return (
             n !== "delivered" &&
+            n !== "completed" &&
             n !== "cancelled" &&
             n !== "failed"
           );

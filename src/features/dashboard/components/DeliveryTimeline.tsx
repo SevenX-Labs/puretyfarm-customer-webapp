@@ -10,12 +10,15 @@ const STEPS: { key: NormalisedStatus; label: string }[] = [
 
 export function DeliveryTimeline({ status }: { status: OrderStatus }) {
   const current = normaliseStatus(status);
+  // "completed" sits past "delivered" so a closed-out order shows the whole
+  // timeline done rather than falling off the end of the list.
   const order: NormalisedStatus[] = [
     "pending",
     "confirmed",
     "processing",
     "out_for_delivery",
     "delivered",
+    "completed",
   ];
   const currentIndex = order.indexOf(current);
 

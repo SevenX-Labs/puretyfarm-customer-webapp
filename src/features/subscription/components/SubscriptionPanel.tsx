@@ -9,6 +9,7 @@ import { FrequencyRadioGroup } from "./FrequencyRadioGroup";
 import { ModeSegmentedControl } from "./ModeSegmentedControl";
 import { QuantityStepper } from "./QuantityStepper";
 import { PricingSummary } from "./PricingSummary";
+import { formatDeliveryWindow } from "@/features/dashboard/utils";
 import {
   PricingResult,
   SubscriptionDraft,
@@ -29,17 +30,6 @@ export interface SubscriptionPanelProps {
   deliveryWindow?: string;
   deliveryStartTime?: string | null;
   deliveryEndTime?: string | null;
-}
-
-function formatTimeSlot(time?: string | null): string {
-  if (!time) return "";
-  const [hours, minutes] = time.split(":");
-  let h = parseInt(hours, 10);
-  const m = minutes || "00";
-  if (isNaN(h)) return time;
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${h}:${m} ${ampm}`;
 }
 
 export function SubscriptionPanel({
@@ -63,7 +53,7 @@ export function SubscriptionPanel({
   const resolvedDeliveryWindow =
     deliveryWindow ||
     (deliveryStartTime && deliveryEndTime
-      ? `${formatTimeSlot(deliveryStartTime)} – ${formatTimeSlot(deliveryEndTime)}`
+      ? formatDeliveryWindow(deliveryStartTime, deliveryEndTime)
       : "6:00 AM – 11:00 AM");
 
   useEffect(() => {

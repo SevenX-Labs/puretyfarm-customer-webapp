@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Order } from "@/types/models";
+import { formatDeliveryWindow, statusLabel } from "@/features/dashboard/utils";
 import { FiX, FiFileText, FiRefreshCw, FiCreditCard } from "react-icons/fi";
 
 export interface OrderDetailModalProps {
@@ -52,7 +53,9 @@ export function OrderDetailModal({
   };
 
   const isDelivered =
-    order.status === "DELIVERED" || order.status === "Delivered";
+    order.status === "DELIVERED" ||
+    order.status === "Delivered" ||
+    order.status === "COMPLETED";
   const isPendingPayment =
     order.status === "PENDING" && order.paymentStatus !== "PAID";
 
@@ -114,7 +117,9 @@ export function OrderDetailModal({
             <div className="p-3.5 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4] space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-[#3A241C]/60">Status:</span>
-                <span className="font-bold text-[#5C1B13]">{order.status}</span>
+                <span className="font-bold text-[#5C1B13]">
+                  {statusLabel(order.status)}
+                </span>
               </div>
               {order.paymentStatus && (
                 <div className="flex justify-between items-center">
@@ -140,7 +145,10 @@ export function OrderDetailModal({
                 <span className="text-[#3A241C]/60">Delivery Window:</span>
                 <span className="font-semibold text-[#1A1008]">
                   {order.deliveryStartTime && order.deliveryEndTime
-                    ? `${order.deliveryStartTime} - ${order.deliveryEndTime} (Cold Chain)`
+                    ? `${formatDeliveryWindow(
+                        order.deliveryStartTime,
+                        order.deliveryEndTime
+                      )} (Cold Chain)`
                     : "Before 10:00 AM (Cold Chain)"}
                 </span>
               </div>

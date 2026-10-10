@@ -41,6 +41,7 @@ export type OrderStatus =
   | "PROCESSING"
   | "OUT_FOR_DELIVERY"
   | "DELIVERED"
+  | "COMPLETED"
   | "CANCELLED"
   | "FAILED"
   | "Placed"
@@ -104,6 +105,8 @@ export interface Order {
     issuedAt: string;
   };
   reorderedFromOrderId?: string | null;
+  /** Server-stamped completion time; present only for COMPLETED orders. */
+  completedAt?: string | null;
   createdAt: string;
   updatedAt?: string;
 }

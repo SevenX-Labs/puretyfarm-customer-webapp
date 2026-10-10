@@ -44,13 +44,45 @@ export function formatDeliveryDate(
   };
 }
 
-export function formatDeliveryWindow(start?: string, end?: string): string {
-  const s = start?.trim();
-  const e = end?.trim();
+/** 24-hour "HH:MM" — the format the backend stores delivery windows in. */
+const DELIVERY_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Default window, mirroring the backend's PlanConfig fallback. */
+export const DEFAULT_DELIVERY_START_TIME = "06:00";
+export const DEFAULT_DELIVERY_END_TIME = "11:00";
+
+/**
+ * Renders a 24h "HH:MM" delivery time as 12h "h:mm AM/PM".
+ *
+ * The admin configures the window in 24h form and the API transports it that
+ * way, but a customer should never be shown "11:00" and left to guess. Input
+ * that isn't a well-formed time is passed through rather than rendered as a
+ * misleading "12:00 AM".
+ */
+export function formatTimeSlot(time?: string | null): string {
+  const value = time?.trim();
+  if (!value) return "";
+  if (!DELIVERY_TIME_PATTERN.test(value)) return value;
+  const [hStr, m] = value.split(":");
+  const h24 = parseInt(hStr, 10);
+  return `${h24 % 12 || 12}:${m} ${h24 >= 12 ? "PM" : "AM"}`;
+}
+
+export function formatDeliveryWindow(
+  start?: string | null,
+  end?: string | null
+): string {
+  const s = formatTimeSlot(start);
+  const e = formatTimeSlot(end);
   if (s && e) return `${s} – ${e}`;
   return s || e || "";
 }
 
+/**
+ * Statuses that still have a delivery ahead of them. DELIVERED and COMPLETED
+ * are both terminal and deliberately absent, so a closed-out order is never
+ * surfaced as the next delivery.
+ */
 const ACTIVE_STATUSES: OrderStatus[] = [
   "PENDING",
   "CONFIRMED",
@@ -84,11 +116,16 @@ export type NormalisedStatus =
   | "processing"
   | "out_for_delivery"
   | "delivered"
+  | "completed"
   | "cancelled"
   | "failed";
 
 export function normaliseStatus(status: OrderStatus): NormalisedStatus {
   const s = String(status).toLowerCase();
+  // COMPLETED is matched first: it is the terminal status an admin sets after
+  // a delivered order is closed out, and without its own branch it would fall
+  // through every substring test below and be mislabelled as "Scheduled".
+  if (s.includes("complet")) return "completed";
   if (s.includes("deliver") && !s.includes("out")) return "delivered";
   if (s.includes("out")) return "out_for_delivery";
   if (s.includes("process")) return "processing";
@@ -107,6 +144,7 @@ export function statusLabel(status: OrderStatus) {
       processing: "Preparing",
       out_for_delivery: "Out for delivery",
       delivered: "Delivered",
+      completed: "Completed",
       cancelled: "Cancelled",
       failed: "Failed",
     }[n] || "Scheduled"
@@ -117,7 +155,7 @@ export function statusTone(
   status: OrderStatus
 ): "success" | "warning" | "error" | "neutral" | "info" {
   const n = normaliseStatus(status);
-  if (n === "delivered") return "success";
+  if (n === "delivered" || n === "completed") return "success";
   if (n === "cancelled" || n === "failed") return "error";
   if (n === "out_for_delivery") return "warning";
   return "info";

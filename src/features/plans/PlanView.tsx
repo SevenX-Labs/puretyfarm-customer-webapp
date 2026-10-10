@@ -29,26 +29,20 @@ import {
   UpcomingDeliveryView,
 } from "@/features/delivery/types";
 import { plansApi, PlanOverviewItem, PlanQuote } from "@/features/plans/api/plansApi";
-import { formatDeliveryDate } from "@/features/dashboard/utils";
-
-function formatTimeSlot(time?: string | null): string {
-  if (!time) return "";
-  const [hStr, mStr] = time.split(":");
-  let h = parseInt(hStr, 10);
-  const m = mStr || "00";
-  if (isNaN(h)) return time;
-  const ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  return `${h}:${m} ${ampm}`;
-}
+import {
+  formatDeliveryDate,
+  formatDeliveryWindow as formatDeliveryWindowShared,
+  DEFAULT_DELIVERY_START_TIME,
+  DEFAULT_DELIVERY_END_TIME,
+} from "@/features/dashboard/utils";
 
 function formatDeliveryWindow(start?: string | null, end?: string | null): string {
-  const formattedStart = formatTimeSlot(start || "06:00");
-  const formattedEnd = formatTimeSlot(end || "11:00");
-  if (formattedStart && formattedEnd) {
-    return `${formattedStart} – ${formattedEnd}`;
-  }
-  return "6:00 AM – 11:00 AM";
+  return (
+    formatDeliveryWindowShared(
+      start || DEFAULT_DELIVERY_START_TIME,
+      end || DEFAULT_DELIVERY_END_TIME
+    ) || "6:00 AM – 11:00 AM"
+  );
 }
 
 export function PlanView() {

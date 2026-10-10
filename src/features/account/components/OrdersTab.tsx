@@ -33,6 +33,7 @@ export function OrdersTab({
 }: OrdersTabProps) {
   const getStatusBadge = (status: Order["status"]) => {
     switch (status) {
+      case "COMPLETED":
       case "DELIVERED":
       case "Delivered":
         return "bg-emerald-100 text-emerald-800 border-emerald-200";
@@ -60,6 +61,8 @@ export function OrdersTab({
     switch (status) {
       case "OUT_FOR_DELIVERY":
         return "Out for Delivery";
+      case "COMPLETED":
+        return "Completed";
       case "SEVEN_DAY_TRIAL":
         return "7-Day Trial";
       case "BUY_ONCE":
@@ -161,8 +164,12 @@ export function OrdersTab({
                 ? `₹${(order.totalPaise / 100).toFixed(0)}`
                 : `₹${order.totalAmount || 0}`;
 
+            // A completed order is a delivered order the admin has closed
+            // out, so it keeps the same reorder affordance.
             const isDelivered =
-              order.status === "DELIVERED" || order.status === "Delivered";
+              order.status === "DELIVERED" ||
+              order.status === "Delivered" ||
+              order.status === "COMPLETED";
 
             return (
               <div
