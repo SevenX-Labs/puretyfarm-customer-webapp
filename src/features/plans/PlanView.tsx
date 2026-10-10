@@ -27,6 +27,7 @@ import {
   ManageDeliveryResponse,
   ActivePlanView,
   UpcomingDeliveryView,
+  DeliveryRequestItem,
 } from "@/features/delivery/types";
 import {
   plansApi,
@@ -45,6 +46,7 @@ export function PlanView() {
   const [deliveryData, setDeliveryData] = useState<ManageDeliveryResponse | null>(null);
   const [plansOverview, setPlansOverview] = useState<PlanOverviewItem[]>([]);
   const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
+  const [changeRequests, setChangeRequests] = useState<DeliveryRequestItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -68,10 +70,11 @@ export function PlanView() {
     setError(null);
 
     try {
-      const [manageRes, overviewRes, monthlyRes] = await Promise.allSettled([
+      const [manageRes, overviewRes, monthlyRes, requestsRes] = await Promise.allSettled([
         manageDeliveryApi.getManageDelivery(),
         plansApi.getPlansOverview(),
         plansApi.getMonthlyConfig(),
+        manageDeliveryApi.getRequests(),
       ]);
 
       if (manageRes.status === "fulfilled" && manageRes.value?.activePlan) {
@@ -91,6 +94,12 @@ export function PlanView() {
       if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
         setMonthlyConfig(monthlyRes.value);
       }
+
+      // Pending requests drive the "requested, awaiting approval" affordances
+      // so a submitted change is never mistaken for an applied one.
+      setChangeRequests(
+        requestsRes.status === "fulfilled" ? requestsRes.value?.data ?? [] : []
+      );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load plan details";
       setError(msg);
@@ -132,6 +141,16 @@ export function PlanView() {
   );
   const activeDeliveryWindowKnown = Boolean(deliveryStartTime && deliveryEndTime);
 
+  const pendingRequests = changeRequests.filter((r) => r.status === "PENDING");
+  const hasPendingPauseOrResume = pendingRequests.some(
+    (r) => r.type === "PAUSE" || r.type === "RESUME"
+  );
+  // Most recent decided request, so a rejection and its admin note stay
+  // visible to the customer rather than vanishing silently.
+  const lastDecidedRequest = changeRequests.find(
+    (r) => r.status === "REJECTED" || r.status === "APPROVED"
+  );
+
   // Server Invariants:
   // 1. If Buy Once used -> Trial blocked: "BUY_ONCE_ALREADY_USED"
   // 2. If Trial used -> Buy Once blocked: "TRIAL_ALREADY_USED"
@@ -153,30 +172,37 @@ export function PlanView() {
     buyOnceItem?.blockedReason === "MAX_USES_REACHED" ||
     (!buyOnceItem?.available && activePlan?.planType !== "BUY_ONCE");
 
-  // Pause / Resume handler for Monthly plan
+  /**
+   * Submits a pause or resume REQUEST for admin review.
+   *
+   * Both are approval-gated server-side, so the plan keeps running until an
+   * admin decides. Two bugs fixed here: resuming used to call the *pause*
+   * endpoint (which skipped every remaining delivery), and both branches
+   * claimed success as though the change had already taken effect.
+   */
   const handleTogglePause = async () => {
     if (!activePlan || activePlan.planType !== "MONTHLY") return;
+    const isPaused = activePlan.status === "PAUSED";
     setUpdating(true);
     setError(null);
     try {
-      if (activePlan.status === "PAUSED") {
-        await manageDeliveryApi.pauseDelivery({});
-        setActionSuccess("Subscription resumed successfully!");
-      } else {
-        const start = new Date();
-        start.setDate(start.getDate() + 7);
-        await manageDeliveryApi.pauseDelivery({
-          resumeDate: start.toISOString().split("T")[0],
-        });
-        setActionSuccess("Deliveries paused for 7 days.");
-      }
+      const res = isPaused
+        ? await manageDeliveryApi.resumeDelivery()
+        : await manageDeliveryApi.pauseDelivery({});
+      // Prefer the server's own wording; it is the authority on what happened.
+      setActionSuccess(
+        res?.message ||
+          (isPaused
+            ? "Resume request submitted. Your plan stays paused until an admin approves it."
+            : "Pause request submitted. Deliveries continue as normal until an admin approves it.")
+      );
       await loadData(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to update plan status";
+      const msg = err instanceof Error ? err.message : "Failed to submit the request";
       setError(msg);
     } finally {
       setUpdating(false);
-      setTimeout(() => setActionSuccess(null), 4000);
+      setTimeout(() => setActionSuccess(null), 6000);
     }
   };
 
@@ -354,6 +380,49 @@ export function PlanView() {
                     />
                   </div>
 
+                  {pendingRequests.length > 0 && (
+                    <div className="mt-4 rounded-[12px] border border-[var(--pf-border)] bg-[var(--pf-surface-soft)] p-3">
+                      <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--pf-text-muted)]">
+                        Awaiting admin approval
+                      </div>
+                      <ul className="mt-2 space-y-1">
+                        {pendingRequests.map((r) => (
+                          <li
+                            key={r.id}
+                            className="flex items-center gap-2 text-[12.5px] text-[var(--pf-text-secondary)]"
+                          >
+                            <PfBadge tone="warning" dot>
+                              Pending
+                            </PfBadge>
+                            <span>{r.type.replace(/_/g, " ").toLowerCase()}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="mt-2 text-[11.5px] text-[var(--pf-text-muted)]">
+                        Your current plan stays exactly as it is until an admin
+                        approves the request.
+                      </p>
+                    </div>
+                  )}
+
+                  {lastDecidedRequest?.status === "REJECTED" && (
+                    <div className="mt-3 rounded-[12px] border border-[var(--pf-border)] bg-[var(--pf-error-bg)] p-3">
+                      <div className="flex items-center gap-2">
+                        <PfBadge tone="error" dot>
+                          Rejected
+                        </PfBadge>
+                        <span className="text-[12.5px] font-semibold text-[var(--pf-text)]">
+                          {lastDecidedRequest.type.replace(/_/g, " ").toLowerCase()}
+                        </span>
+                      </div>
+                      {lastDecidedRequest.adminNote && (
+                        <p className="mt-1.5 text-[12.5px] text-[var(--pf-text-secondary)]">
+                          {lastDecidedRequest.adminNote}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {orderCutoff && (
                     <p className="mt-4 text-[12px] text-[var(--pf-text-secondary)]">
                       <Clock size={12} className="mr-1 inline align-[-1px]" />
@@ -396,20 +465,29 @@ export function PlanView() {
                       </>
                     ) : (
                       <>
+                        {/* Labelled as a request: both actions go to admin
+                            review and change nothing until approved. Disabled
+                            while a decision is outstanding so the customer
+                            cannot queue contradictory requests. */}
                         <PfButton
                           onClick={handleTogglePause}
                           loading={updating}
+                          disabled={updating || hasPendingPauseOrResume}
                           variant={activePlan.status === "PAUSED" ? "primary" : "secondary"}
                         >
                           {activePlan.status === "PAUSED" ? (
                             <>
                               <Play size={15} strokeWidth={2} />
-                              Resume
+                              {hasPendingPauseOrResume
+                                ? "Resume Requested"
+                                : "Request Resume"}
                             </>
                           ) : (
                             <>
                               <Pause size={15} strokeWidth={2} />
-                              Pause
+                              {hasPendingPauseOrResume
+                                ? "Pause Requested"
+                                : "Request Pause"}
                             </>
                           )}
                         </PfButton>

@@ -31,13 +31,31 @@ export const manageDeliveryApi = {
   },
 
   /**
-   * 3. Pause upcoming deliveries (Vacation mode)
+   * 3. Request a pause (Vacation mode).
    * POST /api/v1/customer/manage-delivery/pause
+   *
+   * Approval-gated: this creates a PENDING change request and does not change
+   * the live plan. The response carries the created request.
    */
   async pauseDelivery(
     payload: PauseDeliveryPayload
   ): Promise<{ success: boolean; message: string; request?: any }> {
     return apiClient.post("/api/v1/customer/manage-delivery/pause", payload);
+  },
+
+  /**
+   * 3b. Request a resume for a PAUSED plan.
+   * POST /api/v1/customer/manage-delivery/resume
+   *
+   * Also approval-gated. Takes no body — resuming previously re-used the pause
+   * endpoint, which actually skipped every remaining delivery.
+   */
+  async resumeDelivery(): Promise<{
+    success: boolean;
+    message: string;
+    request?: any;
+  }> {
+    return apiClient.post("/api/v1/customer/manage-delivery/resume", {});
   },
 
   /**
