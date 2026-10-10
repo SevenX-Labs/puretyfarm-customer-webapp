@@ -157,10 +157,10 @@ export function MonthlyUpgradeModal({
       aria-labelledby="upgrade-modal-title"
       onKeyDown={handleKeyDown}
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
     >
       <div
-        className="w-full max-w-xl sm:max-w-2xl max-h-[88vh] sm:max-h-[85vh] rounded-3xl bg-white border border-[#E8DFD4] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+        className="w-full max-w-xl sm:max-w-2xl h-[92vh] sm:h-[85vh] max-h-[92vh] sm:max-h-[85vh] rounded-t-[28px] sm:rounded-3xl bg-white border-t sm:border border-[#E8DFD4] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -191,8 +191,12 @@ export function MonthlyUpgradeModal({
           </button>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="px-5 sm:px-6 py-4.5 overflow-y-auto min-h-0 flex-1 space-y-5 custom-scrollbar overscroll-contain">
+        {/* Scrollable Body with Mouse Wheel Support */}
+        <div
+          tabIndex={0}
+          className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 py-5 space-y-5.5 custom-scrollbar overscroll-contain focus:outline-none"
+          style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+        >
           {/* Alerts */}
           {success && (
             <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2.5">
@@ -354,7 +358,7 @@ export function MonthlyUpgradeModal({
         </div>
 
         {/* Sticky Footer */}
-        <div className="px-5 sm:px-6 py-3.5 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
+        <div className="px-5 sm:px-6 py-3.5 sm:py-4 border-t border-[#E8DFD4] bg-[#FFFDF7] shrink-0 flex items-center justify-between gap-4 shadow-lg z-10">
           <div className="min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#715E50] block">
               Monthly Plan Total
