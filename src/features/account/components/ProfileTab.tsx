@@ -1,3 +1,4 @@
+import { FaWhatsapp } from "react-icons/fa";
 "use client";
 
 import React from "react";
@@ -23,6 +24,7 @@ export interface ProfileTabProps {
   user: User;
   isEditingProfile: boolean;
   profileName: string;
+  profileWhatsapp: string;
   profileEmail: string;
   profileAvatar: string;
   profileDob: string;
@@ -32,6 +34,7 @@ export interface ProfileTabProps {
   onStartEdit: () => void;
   onCancelEdit: () => void;
   onNameChange: (val: string) => void;
+  onWhatsappChange: (val: string) => void;
   onEmailChange: (val: string) => void;
   onAvatarChange: (url: string) => void;
   onDobChange: (val: string) => void;
@@ -51,6 +54,7 @@ export function ProfileTab({
   user,
   isEditingProfile,
   profileName,
+  profileWhatsapp,
   profileEmail,
   profileAvatar,
   profileDob,
@@ -60,6 +64,7 @@ export function ProfileTab({
   onStartEdit,
   onCancelEdit,
   onNameChange,
+  onWhatsappChange,
   onEmailChange,
   onAvatarChange,
   onDobChange,
@@ -393,6 +398,36 @@ export function ProfileTab({
             </div>
           </div>
 
+          {/* Edit WhatsApp Number (Compulsory) */}
+          <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80">
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                htmlFor="profile-whatsapp-input"
+                className="text-[10px] font-bold text-[#8C7A6B] uppercase tracking-wider flex items-center gap-1.5"
+              >
+                <FaWhatsapp className="text-[#25D366]" /> WhatsApp Number <span className="text-[#5C1B13]">*</span>
+              </label>
+              <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                Priority Alerts
+              </span>
+            </div>
+            <div className="flex items-center rounded-xl border border-[#D5C7B8] focus-within:border-[#25D366] focus-within:ring-2 focus-within:ring-[#25D366]/15 bg-white px-3.5 py-2.5 transition-all">
+              <FaWhatsapp className="w-4 h-4 text-[#25D366] mr-2.5 shrink-0" />
+              <input
+                id="profile-whatsapp-input"
+                type="tel"
+                required
+                value={profileWhatsapp}
+                onChange={(e) => onWhatsappChange(e.target.value)}
+                placeholder="e.g. +91 98765 43210"
+                disabled={profileSaving}
+                className="w-full bg-transparent text-sm font-semibold text-[#1A1008] focus:outline-none"
+              />
+            </div>
+            <p className="text-[11px] text-[#8C7A6B] mt-1.5">
+              Required for morning dispatch notifications, pause/resume updates &amp; offers.
+            </p>
+          </div>
           {/* Edit Email Address */}
           <div className="p-4 rounded-2xl bg-[#FFFDF7] border border-[#E8DFD4]/80">
             <div className="flex items-center justify-between mb-1.5">

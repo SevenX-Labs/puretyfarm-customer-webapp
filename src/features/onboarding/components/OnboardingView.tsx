@@ -24,6 +24,8 @@ export function OnboardingView() {
     // Step 1: Profile
     profileName,
     setProfileName,
+    profileWhatsapp,
+    setProfileWhatsapp,
     profileEmail,
     setProfileEmail,
     profileAvatar,
@@ -124,6 +126,7 @@ export function OnboardingView() {
                   <ProfileStep
                     user={user}
                     profileName={profileName}
+                    profileWhatsapp={profileWhatsapp}
                     profileEmail={profileEmail}
                     profileAvatar={profileAvatar}
                     profileGender={profileGender}
@@ -132,6 +135,7 @@ export function OnboardingView() {
                     profileError={profileError}
                     autoFocus={currentStep === 1}
                     onNameChange={setProfileName}
+                    onWhatsappChange={setProfileWhatsapp}
                     onEmailChange={setProfileEmail}
                     onAvatarChange={setProfileAvatar}
                     onGenderChange={setProfileGender}

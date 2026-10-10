@@ -9,6 +9,7 @@ export interface User {
   phone: string; // E.164 normalized, e.g. +919876543210
   name: string;
   email?: string;
+  whatsappNumber?: string;
   avatarUrl?: string; // Profile image URL or optimized data URL
   gender?: string;
   dob?: string;

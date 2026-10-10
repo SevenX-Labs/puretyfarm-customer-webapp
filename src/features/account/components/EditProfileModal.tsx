@@ -1,3 +1,4 @@
+import { FaWhatsapp } from "react-icons/fa";
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -40,6 +41,7 @@ export function EditProfileModal({
   const { user, refreshUser } = useAuth();
 
   const [name, setName] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [gender, setGender] = useState<string>("female");
@@ -54,6 +56,7 @@ export function EditProfileModal({
   useEffect(() => {
     if (isOpen && user) {
       setName(user.name || "");
+      setWhatsappNumber((user as any)?.whatsappNumber || user.phone || "");
       setEmail(user.email || "");
       setAvatarUrl(user.avatarUrl || "");
       setGender(user.gender?.toLowerCase() || "female");
@@ -272,7 +275,44 @@ export function EditProfileModal({
                   </p>
                 </div>
 
-                {/* 4. Email Address */}
+                {/* WhatsApp Number (Compulsory for notifications & updates) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label
+                      htmlFor="edit-whatsapp-input"
+                      className="text-xs font-semibold text-[#4A3830] flex items-center gap-1.5"
+                    >
+                      <FaWhatsapp className="text-[#25D366] w-3.5 h-3.5" />
+                      WhatsApp Number <span className="text-[#6F2115]">*</span>
+                    </label>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                      Priority Alerts
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#25D366]">
+                      <FaWhatsapp size={16} />
+                    </div>
+                    <input
+                      id="edit-whatsapp-input"
+                      type="tel"
+                      required
+                      value={whatsappNumber}
+                      onChange={(e) => {
+                        setWhatsappNumber(e.target.value);
+                        setErrorMsg(null);
+                      }}
+                      placeholder="e.g. +91 98765 43210"
+                      disabled={saving}
+                      className="w-full rounded-xl border border-[#DDD2C7] bg-white py-2.5 pl-10 pr-3.5 text-sm font-semibold text-[#24130F] placeholder-[#A8988B] focus:border-[#25D366] focus:outline-none focus:ring-1 focus:ring-[#25D366] disabled:bg-[#F5EFE6] transition-colors"
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-[#8C7A6B]">
+                    Used for daily morning dispatch updates, delivery alerts &amp; offers.
+                  </p>
+                </div>
+
+                {/* 4. Email Address (Optional) */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label
@@ -313,7 +353,7 @@ export function EditProfileModal({
                     />
                   </div>
                   <p className="mt-1 text-[11px] text-[#8C7A6B]">
-                    Required for online payment receipts and monthly invoice PDFs.
+                    Optional. Used for payment receipts and monthly invoice PDFs.
                   </p>
                 </div>
 

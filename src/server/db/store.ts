@@ -117,6 +117,7 @@ export const db = {
     phone: string;
     name: string;
     email?: string;
+    whatsappNumber?: string;
     avatarUrl?: string;
     gender?: string;
     dob?: string;
@@ -130,6 +131,7 @@ export const db = {
       phone: userData.phone,
       name: userData.name,
       email: userData.email || "",
+      whatsappNumber: userData.whatsappNumber || userData.phone,
       avatarUrl: userData.avatarUrl || "",
       gender: userData.gender,
       dob: userData.dob,

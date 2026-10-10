@@ -40,6 +40,7 @@ export async function GET() {
           phone: user.phone,
           name: user.name,
           email: user.email,
+          whatsappNumber: (user as any).whatsappNumber || user.phone,
           avatarUrl: user.avatarUrl,
           gender: user.gender,
           dob: user.dob,
@@ -72,7 +73,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { name, email, avatarUrl, gender, dob } = body;
+    const { name, email, whatsappNumber, avatarUrl, gender, dob } = body;
 
     if (name !== undefined && (typeof name !== "string" || !name.trim())) {
       return NextResponse.json(
@@ -159,6 +160,7 @@ export async function PATCH(req: NextRequest) {
     let userRecord = await db.updateUser(session.userId, {
       ...(name !== undefined ? { name: name.trim() } : {}),
       ...(email !== undefined ? { email: email.trim() } : {}),
+      ...(whatsappNumber !== undefined ? { whatsappNumber: String(whatsappNumber).trim() } : {}),
       ...(avatarUrl !== undefined ? { avatarUrl } : {}),
       ...(genderToSave !== undefined ? { gender: genderToSave } : {}),
       ...(dobToSave !== undefined ? { dob: dobToSave } : {}),
@@ -171,6 +173,7 @@ export async function PATCH(req: NextRequest) {
         phone: session.phone || "+919876543210",
         name: (name && typeof name === "string" && name.trim()) ? name.trim() : "Customer",
         email: (email && typeof email === "string") ? email.trim() : "",
+        whatsappNumber: (whatsappNumber && typeof whatsappNumber === "string") ? whatsappNumber.trim() : (session.phone || ""),
         avatarUrl: typeof avatarUrl === "string" ? avatarUrl : "",
         gender: genderToSave,
         dob: dobToSave,
@@ -193,6 +196,7 @@ export async function PATCH(req: NextRequest) {
         phone: userRecord.phone,
         name: userRecord.name,
         email: userRecord.email,
+        whatsappNumber: (userRecord as any).whatsappNumber || userRecord.phone,
         avatarUrl: userRecord.avatarUrl,
         gender: userRecord.gender,
         dob: userRecord.dob,

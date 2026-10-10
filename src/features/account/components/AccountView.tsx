@@ -39,6 +39,8 @@ export function AccountView() {
     setIsEditingProfile,
     profileName,
     setProfileName,
+    profileWhatsapp,
+    setProfileWhatsapp,
     profileEmail,
     setProfileEmail,
     profileAvatar,
@@ -422,6 +424,7 @@ export function AccountView() {
                 user={user}
                 isEditingProfile={isEditingProfile}
                 profileName={profileName}
+                profileWhatsapp={profileWhatsapp}
                 profileEmail={profileEmail}
                 profileAvatar={profileAvatar}
                 profileDob={profileDob}
@@ -432,12 +435,14 @@ export function AccountView() {
                 onCancelEdit={() => {
                   setIsEditingProfile(false);
                   setProfileName(user?.name || "");
+                  setProfileWhatsapp((user as any)?.whatsappNumber || user?.phone || "");
                   setProfileEmail(user?.email || "");
                   setProfileAvatar(user?.avatarUrl || "");
                   setProfileDob(user?.dob ? user.dob.split("T")[0] : "");
                   setProfileGender(user?.gender ? user.gender.toLowerCase() : "female");
                 }}
                 onNameChange={setProfileName}
+                onWhatsappChange={setProfileWhatsapp}
                 onEmailChange={setProfileEmail}
                 onAvatarChange={setProfileAvatar}
                 onDobChange={setProfileDob}

@@ -9,6 +9,7 @@ export interface User {
   phone: string;
   name: string;
   email?: string;
+  whatsappNumber?: string;
   avatarUrl?: string;
   gender?: string;
   dob?: string;

@@ -193,6 +193,7 @@ export const accountApi = {
   async updateProfile(payload: {
     name: string;
     email?: string;
+    whatsappNumber?: string;
     avatarUrl?: string;
     gender?: string;
     dob?: string;
@@ -207,6 +208,7 @@ export const accountApi = {
         lastName,
         gender: payload.gender,
         dateOfBirth: payload.dob,
+        whatsappNumber: payload.whatsappNumber,
       });
 
       if (payload.avatarUrl && payload.avatarUrl.startsWith("data:image/")) {

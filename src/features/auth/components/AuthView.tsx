@@ -38,6 +38,8 @@ export function AuthView() {
     otpValues,
     name,
     setName,
+    whatsapp,
+    setWhatsapp,
     email,
     setEmail,
     loading,
@@ -254,9 +256,11 @@ export function AuthView() {
                   >
                     <OnboardingStep
                       name={name}
+                      whatsapp={whatsapp}
                       email={email}
                       loading={loading}
                       onNameChange={setName}
+                      onWhatsappChange={setWhatsapp}
                       onEmailChange={setEmail}
                       onSubmit={handleSaveProfile}
                     />

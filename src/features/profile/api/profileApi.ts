@@ -8,6 +8,7 @@ export interface CustomerProfile {
   gender: "MALE" | "FEMALE" | "OTHER";
   dateOfBirth: string;
   profileImageUrl: string | null;
+  whatsappNumber: string | null;
   mobile: string;
   email: string | null;
   emailVerified: boolean;
@@ -20,6 +21,7 @@ export interface CreateProfileDto {
   lastName: string;
   gender: "MALE" | "FEMALE" | "OTHER";
   dateOfBirth: string;
+  whatsappNumber?: string;
 }
 
 export interface UpdateProfileDto {
@@ -76,6 +78,7 @@ export const profileApi = {
     lastName: string;
     gender?: string;
     dateOfBirth?: string;
+    whatsappNumber?: string;
   }): Promise<CustomerProfile> {
     const rawGender = (payload.gender || "").toUpperCase();
     const gender = (

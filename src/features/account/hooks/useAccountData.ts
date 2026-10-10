@@ -69,6 +69,7 @@ export function useAccountData() {
   // Profile Edit State
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [profileWhatsapp, setProfileWhatsapp] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
   const [profileDob, setProfileDob] = useState("");
@@ -336,6 +337,7 @@ export function useAccountData() {
 
   const handleStartEditProfile = () => {
     setProfileName(user?.name || "");
+    setProfileWhatsapp((user as any)?.whatsappNumber || user?.phone || "");
     setProfileEmail(user?.email || "");
     setProfileAvatar(user?.avatarUrl || "");
     setProfileDob(user?.dob ? user.dob.split("T")[0] : "");
@@ -423,7 +425,8 @@ export function useAccountData() {
     try {
       const data = await accountApi.updateProfile({
         name: profileName.trim(),
-        email: profileEmail.trim(),
+        email: profileEmail.trim() || undefined,
+        whatsappNumber: profileWhatsapp.trim(),
         avatarUrl: profileAvatar,
         gender: profileGender,
         dob: profileDob || undefined,
@@ -438,6 +441,7 @@ export function useAccountData() {
                 ...prev,
                 name: profileName.trim(),
                 email: profileEmail.trim(),
+                whatsappNumber: profileWhatsapp.trim(),
                 avatarUrl: profileAvatar,
                 gender: profileGender,
                 dob: profileDob || prev.dob,
@@ -870,6 +874,8 @@ export function useAccountData() {
     setIsEditingProfile,
     profileName,
     setProfileName,
+    profileWhatsapp,
+    setProfileWhatsapp,
     profileEmail,
     setProfileEmail,
     profileAvatar,

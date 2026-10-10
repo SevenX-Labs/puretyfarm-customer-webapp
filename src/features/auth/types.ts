@@ -84,6 +84,7 @@ export interface VerifyEmailOtpResponse {
 export interface UpdateProfileRequest {
   name?: string;
   email?: string;
+  whatsappNumber?: string;
   avatarUrl?: string;
   gender?: string;
   dob?: string;

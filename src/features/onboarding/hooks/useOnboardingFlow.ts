@@ -25,6 +25,7 @@ export function useOnboardingFlow() {
 
   // Step 1: Profile form state
   const [profileName, setProfileName] = useState("");
+  const [profileWhatsapp, setProfileWhatsapp] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
   const [profileAvatar, setProfileAvatar] = useState("");
   const [profileGender, setProfileGender] = useState("");
@@ -75,6 +76,7 @@ export function useOnboardingFlow() {
     const rawName = user.name || "";
     const isPlaceholder = !rawName || rawName.startsWith("Customer (") || rawName.toLowerCase() === "customer";
     setProfileName(isPlaceholder ? "" : rawName);
+    setProfileWhatsapp((user as any)?.whatsappNumber || user.phone || "");
     setProfileEmail(user.email || "");
     setProfileAvatar(user.avatarUrl || "");
     setProfileGender(user.gender || "");
@@ -183,19 +185,15 @@ export function useOnboardingFlow() {
       return;
     }
 
-    const cleanEmail = profileEmail.trim();
-    if (!cleanEmail) {
-      setProfileError("Please enter your email address to continue.");
+    const cleanWhatsapp = profileWhatsapp.trim();
+    if (!cleanWhatsapp) {
+      setProfileError("Please enter your WhatsApp number for delivery notifications.");
       return;
     }
 
-    const isEmailVerified = Boolean(
-      user?.email &&
-      (user as any)?.emailVerified &&
-      user.email.toLowerCase() === cleanEmail.toLowerCase()
-    );
-    if (!isEmailVerified) {
-      setProfileError("Please verify your email address to continue.");
+    const cleanEmail = profileEmail.trim();
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setProfileError("Please enter a valid email address (e.g. name@domain.com) or leave it blank.");
       return;
     }
 
@@ -205,7 +203,8 @@ export function useOnboardingFlow() {
     try {
       const data = await onboardingApi.updateProfile({
         name: cleanName,
-        email: profileEmail.trim(),
+        email: cleanEmail || undefined,
+        whatsappNumber: cleanWhatsapp,
         avatarUrl: profileAvatar,
         gender: profileGender || undefined,
         dob: profileDob || undefined,
@@ -449,10 +448,7 @@ export function useOnboardingFlow() {
       if (strMsg.includes("Quote is no longer pending")) {
         await recordAndRedirectConfirmedOrder("CASH", {
           selectionId: "",
-          quoteId: pendingQuote.quoteId,
-          plan: pendingPlan.name,
           status: "PENDING_PAYMENT",
-          paymentMethod: "CASH",
         });
         return;
       }
@@ -481,6 +477,8 @@ export function useOnboardingFlow() {
     // Step 1: Profile
     profileName,
     setProfileName,
+    profileWhatsapp,
+    setProfileWhatsapp,
     profileEmail,
     setProfileEmail,
     profileAvatar,

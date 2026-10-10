@@ -19,6 +19,7 @@ export function useAuthFlow() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otpValues, setOtpValues] = useState<string[]>(["", "", "", "", "", ""]);
   const [name, setName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -287,7 +288,8 @@ export function useAuthFlow() {
     try {
       const data = await authApi.updateProfile({
         name: name.trim(),
-        email: email.trim(),
+        email: email.trim() || undefined,
+        whatsappNumber: whatsapp.trim() || phoneNumber,
       });
 
       if (!data.success) {
@@ -316,6 +318,8 @@ export function useAuthFlow() {
     otpValues,
     name,
     setName,
+    whatsapp,
+    setWhatsapp,
     email,
     setEmail,
     loading,
