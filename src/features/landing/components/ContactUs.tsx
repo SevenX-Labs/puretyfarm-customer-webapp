@@ -262,7 +262,7 @@ export function ContactUs() {
                           </p>
                           <div className="mt-2.5 pt-2.5 border-t border-[#E8DFD4]/80 flex items-center gap-2 text-xs font-bold text-[#5C1B13]">
                             <FiClock className="w-3.5 h-3.5 text-[#5C1B13] shrink-0" />
-                            <span>Morning Doorstep Dispatch: Delivered Before 10:00 AM Daily</span>
+                            <span>Morning Doorstep Dispatch, Daily</span>
                           </div>
                         </div>
                       </div>

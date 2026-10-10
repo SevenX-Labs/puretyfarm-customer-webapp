@@ -37,7 +37,7 @@ export function NextDeliveryCard({ order }: { order: Order }) {
             {dayLabel}
           </h2>
           <p className="mt-1 text-[16px] sm:text-[18px] font-semibold text-[var(--pf-text-secondary)]">
-            {windowText}
+            {windowText ?? "Delivery window not available"}
           </p>
 
           <div className="mt-5 flex items-baseline justify-between gap-4 pt-5 border-t border-[var(--pf-border)]">

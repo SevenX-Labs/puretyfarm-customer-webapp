@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     template: "%s | PuretyFarm",
   },
   description:
-    "Farm-fresh, unadulterated A2 Gir cow milk delivered daily before 10:00 AM across Raipur. FSSAI certified, chilled at 4°C, eco-friendly sanitized glass bottles. Start your risk-free 7-day trial today.",
+    "Farm-fresh, unadulterated A2 Gir cow milk delivered fresh every morning across Raipur. FSSAI certified, chilled at 4°C, eco-friendly sanitized glass bottles. Start your risk-free 7-day trial today.",
   keywords: [
     "A2 milk Raipur",
     "pure cow milk Raipur",
@@ -101,7 +101,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PuretyFarm — Pure A2 Desi Cow Milk Delivered Fresh in Raipur",
     description:
-      "Farm-fresh A2 Gir cow milk delivered before 10:00 AM daily in glass bottles across Raipur. Start your risk-free 7-day trial today.",
+      "Farm-fresh A2 Gir cow milk delivered fresh every morning in glass bottles across Raipur. Start your risk-free 7-day trial today.",
     url: ENV.SITE_URL,
     siteName: "PuretyFarm",
     locale: "en_IN",
@@ -119,7 +119,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PuretyFarm — Pure A2 Cow Milk Delivered Fresh in Raipur",
     description:
-      "Farm-fresh A2 Gir cow milk delivered before 10:00 AM daily in glass bottles. Start your risk-free 7-day trial.",
+      "Farm-fresh A2 Gir cow milk delivered fresh every morning in glass bottles. Start your risk-free 7-day trial.",
     images: ["/logo.webp"],
   },
   robots: {
@@ -190,7 +190,7 @@ export default function RootLayout({
         "@id": `${ENV.SITE_URL}/#product`,
         name: "Pure A2 Desi Gir Cow Milk",
         description:
-          "Raw, unadulterated chilled A2 beta-casein cow milk delivered daily in eco-friendly glass bottles before 10:00 AM in Raipur.",
+          "Raw, unadulterated chilled A2 beta-casein cow milk delivered every morning in eco-friendly glass bottles in Raipur.",
         brand: {
           "@type": "Brand",
           name: "PuretyFarm",

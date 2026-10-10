@@ -53,9 +53,9 @@ const CORE_PILLARS = [
     title: "Dawn Milked to Doorstep",
     highlight: "< 3 Hours Fresh",
     description:
-      "Commercial packet milk spends 2–4 days in collection centers and warehouses. PuretyFarm is milked at 4:30 AM, immediately chilled to 4°C, and delivered to your doorstep in Raipur before 10:00 AM.",
+      "Commercial packet milk spends 2–4 days in collection centers and warehouses. PuretyFarm is milked at 4:30 AM, immediately chilled to 4°C, and delivered to your doorstep in Raipur the same morning.",
     points: [
-      "Delivered before 10:00 AM every morning",
+      "Delivered fresh every morning",
       "Temperature-locked at 4°C in insulated vans",
       "Zero warehouse pooling or multi-day storage",
     ],
@@ -106,7 +106,7 @@ const COMPARISON_ROWS = [
   {
     feature: "Morning Delivery",
     packet: "Self-pickup from neighborhood convenience stores",
-    puretyfarm: "Free doorstep delivery before 10:00 AM across all Raipur localities",
+    puretyfarm: "Free doorstep delivery every morning across all Raipur localities",
   },
 ] as const;
 

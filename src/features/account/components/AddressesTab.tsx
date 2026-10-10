@@ -48,7 +48,7 @@ export function AddressesTab({
             Delivery Addresses
           </h2>
           <p className="text-xs sm:text-sm text-[#6B584C] mt-0.5">
-            Verified Raipur doorstep locations where fresh chilled milk crates arrive before 10:00 AM daily.
+            Verified Raipur doorstep locations where fresh chilled milk crates arrive each morning.
           </p>
         </div>
 

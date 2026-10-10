@@ -8,6 +8,7 @@ import { PLANS, PlanDefinition } from "@/features/plans";
 import {
   plansApi,
   PlanOverviewItem,
+  OrderCutoffPolicy,
   MonthlyConfigResponse,
   PlanQuote,
   BuyOnceEligibilityResponse,
@@ -92,6 +93,7 @@ export function PlanStep({
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [planOverviews, setPlanOverviews] = useState<PlanOverviewItem[]>([]);
+  const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
   const [monthlyConfig, setMonthlyConfig] = useState<MonthlyConfigResponse | null>(null);
   const [buyOnceElig, setBuyOnceElig] = useState<BuyOnceEligibilityResponse | null>(null);
   const [trialElig, setTrialElig] = useState<TrialEligibilityResponse | null>(null);
@@ -162,6 +164,7 @@ export function PlanStep({
         if (overviewRes.status === "fulfilled" && overviewRes.value?.plans) {
           overviews = overviewRes.value.plans;
           setPlanOverviews(overviews);
+          setOrderCutoff(overviewRes.value.orderCutoff ?? null);
         }
         if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
           setMonthlyConfig(monthlyRes.value);
@@ -582,6 +585,7 @@ export function PlanStep({
         onConfirmPlan={handleConfirmSchedule}
         deliveryStartTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryStartTime}
         deliveryEndTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryEndTime}
+        orderCutoff={orderCutoff}
       />
     </m.div>
   );

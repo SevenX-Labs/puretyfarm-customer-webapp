@@ -104,7 +104,7 @@ const BOTTOM_BENEFITS = [
     icon: FiClock,
     iconColor: "text-[#5C1B13]",
     iconBg: "bg-[#5C1B13]/10",
-    title: "Delivered Before 10:00 AM",
+    title: "Fresh Morning Delivery",
     subtitle: "Daily",
   },
   {
@@ -251,7 +251,7 @@ export function TrialOffer() {
                       <FiClock className="w-4 h-4" />
                     </div>
                     <div className="text-xs sm:text-sm text-[#1A1008] leading-tight">
-                      <span className="font-bold">Delivered daily before 10:00 AM</span>
+                      <span className="font-bold">Delivered fresh every morning</span>
                       <span className="text-[#6B584C] ml-1.5 font-normal">
                         in sanitized glass bottles
                       </span>
@@ -359,9 +359,9 @@ export function TrialOffer() {
                     <div className="flex items-center justify-between pb-3 border-b border-[#ECE4DA]/60">
                       <div className="flex items-center gap-3 text-[#5C4E44]">
                         <FiClock className="w-4 h-4 text-[#3E1610] shrink-0" />
-                        <span className="font-medium text-[#4A3B32]">Morning Window</span>
+                        <span className="font-medium text-[#4A3B32]">Delivery</span>
                       </div>
-                      <span className="font-bold text-[#1A1008]">Before 10:00 AM</span>
+                      <span className="font-bold text-[#1A1008]">Every morning</span>
                     </div>
 
                     {/* Row 4: Rate */}

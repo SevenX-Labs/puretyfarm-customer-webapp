@@ -138,7 +138,7 @@ export function SubscriptionTab({
           Milk Subscription & Vacation Schedule
         </h2>
         <p className="text-xs sm:text-sm text-[#6B584C] mt-0.5">
-          Delivered chilled every morning before 10:00 AM across Raipur in sanitized glass bottles.
+          Delivered chilled every morning across Raipur in sanitized glass bottles.
         </p>
       </div>
 

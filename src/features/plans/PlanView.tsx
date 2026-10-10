@@ -28,28 +28,23 @@ import {
   ActivePlanView,
   UpcomingDeliveryView,
 } from "@/features/delivery/types";
-import { plansApi, PlanOverviewItem, PlanQuote } from "@/features/plans/api/plansApi";
+import {
+  plansApi,
+  PlanOverviewItem,
+  PlanQuote,
+  OrderCutoffPolicy,
+} from "@/features/plans/api/plansApi";
 import {
   formatDeliveryDate,
-  formatDeliveryWindow as formatDeliveryWindowShared,
-  DEFAULT_DELIVERY_START_TIME,
-  DEFAULT_DELIVERY_END_TIME,
+  formatDeliveryWindowOrLabel as formatDeliveryWindow,
 } from "@/features/dashboard/utils";
-
-function formatDeliveryWindow(start?: string | null, end?: string | null): string {
-  return (
-    formatDeliveryWindowShared(
-      start || DEFAULT_DELIVERY_START_TIME,
-      end || DEFAULT_DELIVERY_END_TIME
-    ) || "6:00 AM – 11:00 AM"
-  );
-}
 
 export function PlanView() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [deliveryData, setDeliveryData] = useState<ManageDeliveryResponse | null>(null);
   const [plansOverview, setPlansOverview] = useState<PlanOverviewItem[]>([]);
+  const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -87,8 +82,10 @@ export function PlanView() {
 
       if (overviewRes.status === "fulfilled" && overviewRes.value?.plans) {
         setPlansOverview(overviewRes.value.plans);
+        setOrderCutoff(overviewRes.value.orderCutoff ?? null);
       } else {
         setPlansOverview([]);
+        setOrderCutoff(null);
       }
 
       if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
@@ -121,15 +118,19 @@ export function PlanView() {
   const currentPlanConfig = plansOverview.find(
     (p) => p.type === activePlan?.planType
   );
+  // The active plan's own saved window wins; otherwise the plan type's current
+  // configuration. If neither is set the window is genuinely unknown, and
+  // formatDeliveryWindow renders that rather than inventing a morning slot.
   const deliveryStartTime =
-    activePlan?.deliveryStartTime ||
-    currentPlanConfig?.deliveryStartTime ||
-    "06:00";
+    activePlan?.deliveryStartTime ?? currentPlanConfig?.deliveryStartTime ?? null;
   const deliveryEndTime =
-    activePlan?.deliveryEndTime ||
-    currentPlanConfig?.deliveryEndTime ||
-    "11:00";
-  const activeDeliveryWindow = formatDeliveryWindow(deliveryStartTime, deliveryEndTime);
+    activePlan?.deliveryEndTime ?? currentPlanConfig?.deliveryEndTime ?? null;
+  const activeDeliveryWindow = formatDeliveryWindow(
+    deliveryStartTime,
+    deliveryEndTime,
+    "Not set yet"
+  );
+  const activeDeliveryWindowKnown = Boolean(deliveryStartTime && deliveryEndTime);
 
   // Server Invariants:
   // 1. If Buy Once used -> Trial blocked: "BUY_ONCE_ALREADY_USED"
@@ -353,6 +354,22 @@ export function PlanView() {
                     />
                   </div>
 
+                  {orderCutoff && (
+                    <p className="mt-4 text-[12px] text-[var(--pf-text-secondary)]">
+                      <Clock size={12} className="mr-1 inline align-[-1px]" />
+                      Order before {orderCutoff.timeLabel} (
+                      {orderCutoff.timezone}) and your delivery is scheduled{" "}
+                      {orderCutoff.leadDaysBeforeCutoff === 1
+                        ? "for the next day"
+                        : `${orderCutoff.leadDaysBeforeCutoff} days later`}
+                      . After that it moves to{" "}
+                      {orderCutoff.leadDaysAfterCutoff === 2
+                        ? "the day after next"
+                        : `${orderCutoff.leadDaysAfterCutoff} days later`}
+                      .
+                    </p>
+                  )}
+
                   {/* Contextual Action Buttons */}
                   <div className="mt-6 flex items-center gap-3 flex-wrap">
                     {activePlan.planType === "BUY_ONCE" ? (
@@ -424,7 +441,10 @@ export function PlanView() {
                     </li>
                     <li className="flex items-start gap-2">
                       <Clock size={14} strokeWidth={2} className="text-[var(--pf-brown)] mt-0.5 shrink-0" />
-                      <span>Doorstep delivery ({activeDeliveryWindow})</span>
+                      <span>
+                        Doorstep delivery
+                        {activeDeliveryWindowKnown ? ` (${activeDeliveryWindow})` : ""}
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 size={14} strokeWidth={2} className="text-[var(--pf-brown)] mt-0.5 shrink-0" />
@@ -451,7 +471,10 @@ export function PlanView() {
                     No active plan
                   </h2>
                   <p className="mt-1 text-[14px] text-[var(--pf-text-secondary)]">
-                    Select a plan below to start your sunrise milk deliveries ({activeDeliveryWindow}).
+                    Select a plan below to start your milk deliveries.{" "}
+                    {activeDeliveryWindowKnown
+                      ? `Delivery window: ${activeDeliveryWindow}.`
+                      : ""}
                   </p>
                 </div>
               </div>
@@ -518,7 +541,12 @@ export function PlanView() {
                     <li className="flex items-center gap-2">
                       <Clock size={13} className="text-[var(--pf-brown)] shrink-0" />
                       <span>
-                        Morning drop ({formatDeliveryWindow(trialItem?.deliveryStartTime, trialItem?.deliveryEndTime)})
+                        Delivery window:{" "}
+                        {formatDeliveryWindow(
+                          trialItem?.deliveryStartTime,
+                          trialItem?.deliveryEndTime,
+                          "not set yet"
+                        )}
                       </span>
                     </li>
                   </ul>
@@ -619,7 +647,12 @@ export function PlanView() {
                     <li className="flex items-center gap-2">
                       <Clock size={13} className="text-[var(--pf-brown)] shrink-0" />
                       <span>
-                        Daily delivery ({formatDeliveryWindow(monthlyItem?.deliveryStartTime, monthlyItem?.deliveryEndTime)})
+                        Daily delivery —{" "}
+                        {formatDeliveryWindow(
+                          monthlyItem?.deliveryStartTime,
+                          monthlyItem?.deliveryEndTime,
+                          "window not set yet"
+                        )}
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
@@ -710,7 +743,12 @@ export function PlanView() {
                     <li className="flex items-center gap-2">
                       <Clock size={13} className="text-[var(--pf-brown)] shrink-0" />
                       <span>
-                        Morning drop ({formatDeliveryWindow(buyOnceItem?.deliveryStartTime, buyOnceItem?.deliveryEndTime)})
+                        Delivery window:{" "}
+                        {formatDeliveryWindow(
+                          buyOnceItem?.deliveryStartTime,
+                          buyOnceItem?.deliveryEndTime,
+                          "not set yet"
+                        )}
                       </span>
                     </li>
                     <li className="flex items-center gap-2">
@@ -794,7 +832,8 @@ export function PlanView() {
                   Upgrade to Monthly Plan
                 </h3>
                 <p className="text-xs text-[#8C7A6B] mt-0.5">
-                  Configure your daily morning milk deliveries ({activeDeliveryWindow})
+                  Configure your daily milk deliveries
+                  {activeDeliveryWindowKnown ? ` (${activeDeliveryWindow})` : ""}
                 </p>
               </div>
               <button

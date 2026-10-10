@@ -399,7 +399,7 @@ export function HowItWorks() {
               {/* Text Information */}
               <div className="flex-1 min-w-0 order-2 sm:order-1">
                 <span className="inline-block bg-purple-50 text-purple-700 border border-purple-200/80 rounded-full px-2.5 py-0.5 text-[11px] font-bold mb-1.5">
-                  Before 10:00 AM
+                  Every Morning
                 </span>
                 <h3 className="text-base sm:text-lg font-bold text-[#1A1008] leading-snug">
                   Set Delivery Location & Doorstep Notes
@@ -422,7 +422,7 @@ export function HowItWorks() {
 
                 <div className="flex items-center gap-1 text-[10px] font-bold text-purple-700">
                   <FiClock className="w-3 h-3 text-purple-600" />
-                  <span>Before 10:00 AM</span>
+                  <span>Every Morning</span>
                 </div>
               </div>
             </div>

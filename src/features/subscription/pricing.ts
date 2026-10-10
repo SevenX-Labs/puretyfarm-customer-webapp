@@ -9,7 +9,12 @@ export const DAILY_DELIVERIES = 30;
 export const ALTERNATE_DELIVERIES = 15;
 export const MIN_LITRES = 1;
 export const MAX_LITRES = 5;
-export const CUT_OFF_HOUR = 22; // 10:00 PM cutoff
+
+// The daily order cut-off deliberately lives on the server (23:00 IST) and is
+// delivered through the plans API. The browser-local `CUT_OFF_HOUR = 22` that
+// used to sit here computed delivery dates from the device clock, so a phone in
+// another timezone — or simply a different rule — disagreed with the schedule
+// the backend actually persisted.
 
 /**
  * Validates and clamps quantity between MIN_LITRES and MAX_LITRES.
@@ -331,18 +336,21 @@ export function getDeliverySchedulePreview(
   fixedLitres: number,
   day1Litres: number,
   day2Litres: number,
+  /** Server-provided first delivery date. Omitted means "no preview". */
   startDate?: Date | string
 ): {
   deliveryNumber: number;
   formattedDate: string;
   litres: number;
 }[] {
-  const baseDate = startDate ? new Date(startDate) : new Date();
-  if (!startDate) {
-    const currentHour = new Date().getHours();
-    const daysToAdd = currentHour >= CUT_OFF_HOUR ? 2 : 1;
-    baseDate.setDate(baseDate.getDate() + daysToAdd);
-  }
+  // Requires a server-provided start date. Without one there is nothing
+  // truthful to preview: the first delivery date is decided by the backend's
+  // cut-off, not by this device's clock, so we render no preview rather than a
+  // guess the confirmed schedule may contradict.
+  if (!startDate) return [];
+
+  const baseDate = new Date(startDate);
+  if (Number.isNaN(baseDate.getTime())) return [];
 
   const items: {
     deliveryNumber: number;

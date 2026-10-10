@@ -52,6 +52,13 @@ export function OrderDetailModal({
     }
   };
 
+  // The order's own saved snapshot, or nothing. There is no substitute window:
+  // "Before 10:00 AM" was shown as though it were the real schedule.
+  const deliveryWindowText = formatDeliveryWindow(
+    order.deliveryStartTime,
+    order.deliveryEndTime
+  );
+
   const isDelivered =
     order.status === "DELIVERED" ||
     order.status === "Delivered" ||
@@ -144,12 +151,9 @@ export function OrderDetailModal({
               <div className="flex justify-between items-center">
                 <span className="text-[#3A241C]/60">Delivery Window:</span>
                 <span className="font-semibold text-[#1A1008]">
-                  {order.deliveryStartTime && order.deliveryEndTime
-                    ? `${formatDeliveryWindow(
-                        order.deliveryStartTime,
-                        order.deliveryEndTime
-                      )} (Cold Chain)`
-                    : "Before 10:00 AM (Cold Chain)"}
+                  {deliveryWindowText
+                    ? `${deliveryWindowText} (Cold Chain)`
+                    : "Not available"}
                 </span>
               </div>
               {order.deliveryDate && (

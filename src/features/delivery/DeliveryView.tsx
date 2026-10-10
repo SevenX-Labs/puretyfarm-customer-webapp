@@ -60,6 +60,14 @@ export function DeliveryView() {
   const nextDelivery = findNextDelivery(orders);
   const todayIdx = (new Date().getDay() + 6) % 7;
 
+  // The window comes from the next delivery's own saved snapshot. There is no
+  // hardcoded fallback: this screen has no plan-config call of its own, so when
+  // there is no upcoming delivery the window is genuinely unknown and says so.
+  const windowText = formatDeliveryWindow(
+    nextDelivery?.deliveryStartTime,
+    nextDelivery?.deliveryEndTime
+  );
+
   return (
     <>
       <CustomerHeader
@@ -86,7 +94,7 @@ export function DeliveryView() {
                       {formatDeliveryWindow(
                         nextDelivery.deliveryStartTime,
                         nextDelivery.deliveryEndTime
-                      )}
+                      ) ?? "Delivery window not available"}
                     </div>
                   </div>
                   <PfBadge tone={statusTone(nextDelivery.status)} dot>
@@ -166,7 +174,10 @@ export function DeliveryView() {
                   })}
                 </div>
                 <p className="mt-4 text-[12.5px] text-[var(--pf-text-secondary)] text-center">
-                  Daily morning delivery, 7:00 – 9:00 AM. WhatsApp us to skip or pause.
+                  {windowText
+                    ? `Daily delivery, ${windowText}. `
+                    : "Daily delivery. "}
+                  WhatsApp us to skip or pause.
                 </p>
               </PfCard>
             </section>
@@ -178,7 +189,7 @@ export function DeliveryView() {
                   <PrefRow
                     icon={<Clock size={16} strokeWidth={1.75} />}
                     label="Delivery window"
-                    value="7:00 – 9:00 AM"
+                    value={windowText ?? "Not available"}
                   />
                   <PrefRow
                     icon={<CalendarDays size={16} strokeWidth={1.75} />}
@@ -239,7 +250,7 @@ export function DeliveryView() {
               </h3>
               <p className="text-[13px] text-[var(--pf-text-secondary)] leading-relaxed">
                 We currently serve Raipur — Shankar Nagar, VIP Road, Pandri, Civil Lines & nearby
-                localities. Delivery runs daily 7:00 – 9:00 AM.
+                localities.{windowText ? ` Delivery runs daily ${windowText}.` : ""}
               </p>
               <Link
                 href="/service-area"

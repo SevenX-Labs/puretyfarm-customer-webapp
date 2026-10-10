@@ -89,14 +89,14 @@ export function HeroProductVisual({ mobileOnly = false }: { mobileOnly?: boolean
             </div>
           </div>
 
-          {/* 3. Before 10:00 AM */}
+          {/* 3. Morning delivery */}
           <div className="bg-white/98 backdrop-blur-md rounded-xl p-2 border border-[#ECE5DC] shadow-2xs flex items-center gap-2 min-w-0">
             <div className="w-6 h-6 rounded-lg bg-[#F7F2EA] border border-[#E8DFD4] text-[#4A352A] flex items-center justify-center shrink-0">
               <FiClock className="w-3 h-3" />
             </div>
             <div className="flex flex-col min-w-0 text-left">
               <span className="text-[11px] font-bold text-[#1A1008] truncate">
-                Before 10:00 AM
+                Every Morning
               </span>
               <span className="text-[9.5px] text-[#6B584C] font-medium truncate">
                 Fresh daily delivery
@@ -269,7 +269,7 @@ export function HeroProductVisual({ mobileOnly = false }: { mobileOnly?: boolean
           </div>
         </m.div>
 
-        {/* Card 3: BOTTOM-LEFT — Before 10:00 AM */}
+        {/* Card 3: BOTTOM-LEFT — Morning delivery */}
         <m.div
           style={isReducedMotion ? {} : { x: card3X, y: card3Y }}
           className="absolute top-[280px] left-[-15px] z-20 pointer-events-auto"
@@ -280,7 +280,7 @@ export function HeroProductVisual({ mobileOnly = false }: { mobileOnly?: boolean
             </div>
             <div className="flex flex-col text-left">
               <span className="text-[13px] font-bold text-[#1A1008] tracking-tight leading-tight">
-                Before 10:00 AM
+                Every Morning
               </span>
               <span className="text-[11px] text-[#6B584C] font-medium leading-none mt-0.5">
                 Fresh daily delivery

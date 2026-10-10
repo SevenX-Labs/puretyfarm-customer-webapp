@@ -352,7 +352,7 @@ export function OnboardingSidebar({
               </li>
               <li className="flex items-center gap-2.5">
                 <FiClock className="w-3.5 h-3.5 text-[#F8E94E] shrink-0" />
-                <span>Delivered Fresh Before 10:00 AM</span>
+                <span>Delivered Fresh Every Morning</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <FiPackage className="w-3.5 h-3.5 text-[#F8E94E] shrink-0" />

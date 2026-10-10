@@ -153,7 +153,7 @@ export function ServiceAreaChecker() {
             Check If We Deliver to Your Door
           </h2>
           <p className="mt-3 text-base sm:text-lg text-[#3A241C]/80 max-w-xl mx-auto">
-            We deliver chilled raw A2 Gir cow milk before 10:00 AM daily across Raipur localities.
+            We deliver chilled raw A2 Gir cow milk every morning across Raipur localities.
           </p>
         </m.div>
 
@@ -286,7 +286,7 @@ export function ServiceAreaChecker() {
                         <span>Active Delivery Zone</span>
                       </span>
                       <span className="text-xs font-semibold text-emerald-800">
-                        Morning Slot: Before 10:00 AM
+                        Morning Delivery Slot
                       </span>
                     </div>
 

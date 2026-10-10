@@ -11,8 +11,27 @@ export interface PlanOverviewItem {
   deliveryEndTime?: string | null;
 }
 
+/**
+ * The server's order cut-off policy. Read from the API rather than restated
+ * here so the customer-facing message can never contradict the backend rule.
+ */
+export interface OrderCutoffPolicy {
+  /** 24h "HH:MM" in `timezone`. */
+  time: string;
+  /** Human-readable form, e.g. "11:00 PM". */
+  timeLabel: string;
+  /** IANA zone the cut-off is evaluated in. */
+  timezone: string;
+  /** Days until delivery when ordering before the cut-off. */
+  leadDaysBeforeCutoff: number;
+  /** Days until delivery when ordering at or after it. */
+  leadDaysAfterCutoff: number;
+}
+
 export interface PlansOverviewResponse {
   plans: PlanOverviewItem[];
+  /** Absent on older server builds; treat as "unavailable", never guess. */
+  orderCutoff?: OrderCutoffPolicy;
 }
 
 export interface BuyOnceEligibilityResponse {

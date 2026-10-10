@@ -110,7 +110,7 @@ export function HeroVideoModal({ isOpen, onClose }: HeroVideoModalProps) {
                   Dawn Milked &amp; Chilled to 4°C
                 </h4>
                 <p className="text-xs sm:text-sm text-white/80 mt-2 leading-relaxed">
-                  Raw unpasteurised Gir cow milk sealed immediately in sanitised glass bottles and delivered to Shankar Nagar, Civil Lines, VIP Road &amp; all Raipur before 10:00 AM.
+                  Raw unpasteurised Gir cow milk sealed immediately in sanitised glass bottles and delivered each morning to Shankar Nagar, Civil Lines, VIP Road &amp; all Raipur.
                 </p>
               </div>
 

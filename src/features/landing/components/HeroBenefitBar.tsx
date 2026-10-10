@@ -37,7 +37,7 @@ const BENEFITS = [
     icon: FiClock,
     iconColor: "text-[#5C1B13]",
     iconBg: "bg-[#5C1B13]/10",
-    title: "Delivered Before 10:00 AM",
+    title: "Fresh Morning Delivery",
     subtitle: "Daily",
   },
   {

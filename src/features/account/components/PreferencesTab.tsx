@@ -86,7 +86,9 @@ export function PreferencesTab() {
                 Recommended
               </span>
             </div>
-            <p className="text-sm font-bold text-[#5C1B13]">6:00 AM – 7:30 AM</p>
+            <p className="text-sm font-bold text-[#5C1B13]">
+              Earliest slot on the morning run
+            </p>
             <p className="text-[11px] text-[#8C7A6B] mt-1">Chilled milk arrives before your morning tea.</p>
           </button>
 
@@ -103,7 +105,9 @@ export function PreferencesTab() {
               <span className="text-xs font-bold text-[#1A1008]">Morning Slot</span>
               <span className="text-[10px] font-bold text-[#8C7A6B]">Standard</span>
             </div>
-            <p className="text-sm font-bold text-[#5C1B13]">7:30 AM – 9:00 AM</p>
+            <p className="text-sm font-bold text-[#5C1B13]">
+              As per your plan&apos;s delivery window
+            </p>
             <p className="text-[11px] text-[#8C7A6B] mt-1">Delivered and placed in doorstep insulated bag.</p>
           </button>
         </div>

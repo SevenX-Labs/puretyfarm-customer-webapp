@@ -2,7 +2,7 @@
 
 import React from "react";
 import { PricingResult, DeliveryDatePreviewItem } from "../types";
-import { CUT_OFF_HOUR } from "../pricing";
+import type { OrderCutoffPolicy } from "@/features/plans/api/plansApi";
 import { FiClock, FiShield, FiCalendar, FiAlertCircle, FiRefreshCw } from "react-icons/fi";
 
 interface PricingSummaryProps {
@@ -11,7 +11,10 @@ interface PricingSummaryProps {
   isQuoteLoading?: boolean;
   quoteError?: string | null;
   onRetryQuote?: () => void;
-  deliveryWindow?: string;
+  /** Formatted window from the backend, or null when none is configured. */
+  deliveryWindow?: string | null;
+  /** Server cut-off policy, or null when the API did not provide one. */
+  orderCutoff?: OrderCutoffPolicy | null;
 }
 
 export function PricingSummary({
@@ -21,6 +24,7 @@ export function PricingSummary({
   quoteError = null,
   onRetryQuote,
   deliveryWindow,
+  orderCutoff = null,
 }: PricingSummaryProps) {
   const {
     totalDeliveries,
@@ -41,10 +45,11 @@ export function PricingSummary({
       ? `₹${(day1Litres * pricePerLitre).toLocaleString("en-IN")} per delivery`
       : `₹${(day1Litres * pricePerLitre).toLocaleString("en-IN")} / ₹${(day2Litres * pricePerLitre).toLocaleString("en-IN")} per delivery`;
 
-  const cutOffHour12 = CUT_OFF_HOUR % 12 === 0 ? 12 : CUT_OFF_HOUR % 12;
-  const cutOffPeriod = CUT_OFF_HOUR >= 12 ? "PM" : "AM";
-  const cutOffFormatted = `${cutOffHour12}:00 ${cutOffPeriod}`;
-  const effectiveDeliveryWindow = deliveryWindow || "6:00 AM – 11:00 AM";
+  // Both of these come from the server or are not shown at all. The cut-off
+  // used to be derived from a hardcoded 22:00 and the device's clock, and the
+  // window from a hardcoded "6:00 AM - 11:00 AM" — neither of which the backend
+  // was guaranteeing.
+  const cutOffLabel = orderCutoff?.timeLabel ?? null;
 
   return (
     <div
@@ -157,7 +162,9 @@ export function PricingSummary({
               <FiCalendar className="w-3 h-3 text-[#5C1B13]" />
               Schedule Preview (First 4 Deliveries)
             </span>
-            <span className="text-[10px] text-[#715E50]">Morning sequence</span>
+            <span className="text-[10px] text-[#715E50]">
+              Server-scheduled dates
+            </span>
           </div>
 
           <div className="grid grid-cols-4 gap-1.5">
@@ -184,17 +191,24 @@ export function PricingSummary({
           * Billed per calendar-month billing period. Unused quota rolls over if vacation pause is activated.
         </p>
 
-        <div className="flex items-start gap-2 pt-0.5 text-[11.5px]">
-          <FiClock className="w-3.5 h-3.5 text-[#5C1B13] shrink-0 mt-0.5" />
-          <p>
-            <strong className="text-[#1A1008]">{cutOffFormatted} Daily Cut-Off:</strong> Modify quantities or pause mornings anytime before {cutOffFormatted} via customer WhatsApp/portal.
-          </p>
-        </div>
+        {cutOffLabel && (
+          <div className="flex items-start gap-2 pt-0.5 text-[11.5px]">
+            <FiClock className="w-3.5 h-3.5 text-[#5C1B13] shrink-0 mt-0.5" />
+            <p>
+              <strong className="text-[#1A1008]">
+                {cutOffLabel} daily cut-off ({orderCutoff?.timezone}):
+              </strong>{" "}
+              Order or change your schedule before {cutOffLabel} and it applies
+              from your next delivery.
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center gap-2 text-[11.5px] text-emerald-800 bg-emerald-50/90 px-3 py-2 rounded-xl border border-emerald-200 mt-1">
           <FiShield className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span>
-            Delivered cold in sterilized 1L reusable glass bottles ({effectiveDeliveryWindow}).
+            Delivered cold in sterilized 1L reusable glass bottles
+            {deliveryWindow ? ` (${deliveryWindow})` : ""}.
           </span>
         </div>
       </div>

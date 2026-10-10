@@ -47,42 +47,53 @@ export function formatDeliveryDate(
 /** 24-hour "HH:MM" — the format the backend stores delivery windows in. */
 const DELIVERY_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-/** Default window, mirroring the backend's PlanConfig fallback. */
-export const DEFAULT_DELIVERY_START_TIME = "06:00";
-export const DEFAULT_DELIVERY_END_TIME = "11:00";
+/** Shown wherever operational data the backend has not configured would go. */
+export const WINDOW_UNAVAILABLE_LABEL = "Delivery window not available";
 
 /**
- * Renders a 24h "HH:MM" delivery time as 12h "h:mm AM/PM".
+ * Renders a 24h "HH:MM" delivery time as 12h "h:mm AM/PM", or null when there
+ * is nothing valid to render.
  *
  * The admin configures the window in 24h form and the API transports it that
- * way, but a customer should never be shown "11:00" and left to guess. Input
- * that isn't a well-formed time is passed through rather than rendered as a
- * misleading "12:00 AM".
+ * way, but a customer should never be shown "11:00" and left to guess.
+ * Malformed or missing input returns null so callers must handle the gap —
+ * emitting "12:00 AM" for an unset field would state a delivery time nobody
+ * configured.
  */
-export function formatTimeSlot(time?: string | null): string {
+export function formatTimeSlot(time?: string | null): string | null {
   const value = time?.trim();
-  if (!value) return "";
-  if (!DELIVERY_TIME_PATTERN.test(value)) return value;
+  if (!value || !DELIVERY_TIME_PATTERN.test(value)) return null;
   const [hStr, m] = value.split(":");
   const h24 = parseInt(hStr, 10);
   return `${h24 % 12 || 12}:${m} ${h24 >= 12 ? "PM" : "AM"}`;
 }
 
+/**
+ * Renders a delivery window, or null when either end is missing.
+ *
+ * There is deliberately no default window. The delivery window is operational
+ * data owned by the backend; when it has none, the customer sees that rather
+ * than a plausible-looking morning slot.
+ */
 export function formatDeliveryWindow(
   start?: string | null,
   end?: string | null
-): string {
-  const s = formatTimeSlot(start);
-  const e = formatTimeSlot(end);
-  if (s && e) return `${s} – ${e}`;
-  return s || e || "";
+): string | null {
+  const from = formatTimeSlot(start);
+  const to = formatTimeSlot(end);
+  if (!from || !to) return null;
+  return `${from} – ${to}`;
 }
 
-/**
- * Statuses that still have a delivery ahead of them. DELIVERED and COMPLETED
- * are both terminal and deliberately absent, so a closed-out order is never
- * surfaced as the next delivery.
- */
+/** Window for display, falling back to an explicit unavailable label. */
+export function formatDeliveryWindowOrLabel(
+  start?: string | null,
+  end?: string | null,
+  label: string = WINDOW_UNAVAILABLE_LABEL
+): string {
+  return formatDeliveryWindow(start, end) ?? label;
+}
+
 const ACTIVE_STATUSES: OrderStatus[] = [
   "PENDING",
   "CONFIRMED",

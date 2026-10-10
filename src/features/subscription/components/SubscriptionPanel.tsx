@@ -10,6 +10,7 @@ import { ModeSegmentedControl } from "./ModeSegmentedControl";
 import { QuantityStepper } from "./QuantityStepper";
 import { PricingSummary } from "./PricingSummary";
 import { formatDeliveryWindow } from "@/features/dashboard/utils";
+import type { OrderCutoffPolicy } from "@/features/plans/api/plansApi";
 import {
   PricingResult,
   SubscriptionDraft,
@@ -30,6 +31,8 @@ export interface SubscriptionPanelProps {
   deliveryWindow?: string;
   deliveryStartTime?: string | null;
   deliveryEndTime?: string | null;
+  /** Server cut-off policy, forwarded to PricingSummary. Null = unavailable. */
+  orderCutoff?: OrderCutoffPolicy | null;
 }
 
 export function SubscriptionPanel({
@@ -42,6 +45,7 @@ export function SubscriptionPanel({
   deliveryWindow,
   deliveryStartTime,
   deliveryEndTime,
+  orderCutoff = null,
 }: SubscriptionPanelProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
@@ -50,11 +54,10 @@ export function SubscriptionPanel({
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // No hardcoded window: when the backend has not configured one, the panel
+  // passes null down and PricingSummary renders an explicit unavailable state.
   const resolvedDeliveryWindow =
-    deliveryWindow ||
-    (deliveryStartTime && deliveryEndTime
-      ? formatDeliveryWindow(deliveryStartTime, deliveryEndTime)
-      : "6:00 AM – 11:00 AM");
+    deliveryWindow || formatDeliveryWindow(deliveryStartTime, deliveryEndTime);
 
   useEffect(() => {
     setMounted(true);
@@ -277,6 +280,7 @@ export function SubscriptionPanel({
           quoteError={quoteError}
           onRetryQuote={retryQuote}
           deliveryWindow={resolvedDeliveryWindow}
+          orderCutoff={orderCutoff}
         />
 
         {/* Error Alert if any */}
@@ -437,6 +441,7 @@ export function SubscriptionPanel({
                 quoteError={quoteError}
                 onRetryQuote={retryQuote}
                 deliveryWindow={resolvedDeliveryWindow}
+                orderCutoff={orderCutoff}
               />
 
               {/* Error Alert if any */}

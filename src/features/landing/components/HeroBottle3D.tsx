@@ -209,7 +209,7 @@ export function HeroBottle3D({ className = "" }: HeroBottle3DProps) {
           <FiClock className="w-4 h-4 text-[#5C1B13]" />
           <div>
             <p className="text-xs sm:text-sm font-bold text-[#1A1008] leading-tight">
-              Before 10:00 AM
+              Every Morning
             </p>
             <p className="text-[10px] sm:text-xs text-[#3A241C]/70">
               Fresh daily delivery

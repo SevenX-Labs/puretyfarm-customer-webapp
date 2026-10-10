@@ -34,9 +34,7 @@ import { manageDeliveryApi, ManageDeliveryResponse } from "@/features/delivery";
 import type { CustomerOrder, OrderInvoiceDetail } from "@/features/orders/types";
 import {
   formatDeliveryDate,
-  formatDeliveryWindow,
-  DEFAULT_DELIVERY_START_TIME,
-  DEFAULT_DELIVERY_END_TIME,
+  formatDeliveryWindowOrLabel,
   paiseToRupeesText,
   statusLabel,
   statusTone,
@@ -339,9 +337,10 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 <div className="flex items-center gap-1 text-[11px] font-semibold text-[#5C1B13]">
                   <Clock size={12} />
                   <span>
-                    {formatDeliveryWindow(
-                      order.deliveryStartTime || DEFAULT_DELIVERY_START_TIME,
-                      order.deliveryEndTime || DEFAULT_DELIVERY_END_TIME
+                    {formatDeliveryWindowOrLabel(
+                      order.deliveryStartTime,
+                      order.deliveryEndTime,
+                      "Not available"
                     )}
                   </span>
                 </div>

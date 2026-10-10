@@ -82,7 +82,7 @@ export const FAQ_ITEMS: FaqItem[] = [
     num: "04",
     question: "What time is milk delivered?",
     answer:
-      "We deliver before 10:00 AM every morning (dispatches begin as early as 5:30 AM). You can track your delivery partner live on the app with real-time route updates.",
+      "We deliver every morning within the delivery window shown on your plan (dispatches begin as early as 5:30 AM). You can track your delivery partner live on the app with real-time route updates.",
     badge: {
       label: "Before 7:00 AM",
       icon: FiClock,
