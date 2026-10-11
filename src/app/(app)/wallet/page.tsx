@@ -1029,7 +1029,8 @@ function WalletContent() {
 
                           <div className="space-y-0.5">
                             <p className="font-bold text-[#1A1008] text-xs sm:text-sm">
-                              {tx.description || (isCredit ? "Wallet Top-up" : "Dawn Order Payment")}
+                              {(tx.description || "").replace(/^\[Admin:[^\]]*\]\s*/i, "") ||
+                                (isCredit ? "Wallet Top-up" : "Dawn Order Payment")}
                             </p>
                             <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#8C7A6B]">
                               <span className="font-mono">{tx.id}</span>

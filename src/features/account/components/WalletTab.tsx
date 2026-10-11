@@ -431,7 +431,7 @@ export function WalletTab({
                     </span>
                     <div className="min-w-0">
                       <p className="font-bold text-[#1A1008] truncate">
-                        {tx.description ||
+                        {(tx.description || "").replace(/^\[Admin:[^\]]*\]\s*/i, "") ||
                           (tx.type === "CREDIT" ? "Wallet Credit" : "Order Payment")}
                       </p>
                       <p className="text-[10px] text-[#8C7A6B] truncate">
