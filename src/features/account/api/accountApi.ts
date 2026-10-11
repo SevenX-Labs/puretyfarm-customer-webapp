@@ -118,19 +118,26 @@ export const accountApi = {
 
   async getSubscription(): Promise<SubscriptionResponse> {
     try {
-      const res = await manageDeliveryApi.getManageDelivery();
+      const [manageRes, ordersRes] = await Promise.allSettled([
+        manageDeliveryApi.getManageDelivery(),
+        ordersApi.listOrders(),
+      ]);
+
+      const res = manageRes.status === "fulfilled" ? manageRes.value : null;
+      const orders = ordersRes.status === "fulfilled" ? ordersRes.value?.data || [] : [];
+
       if (res && res.activePlan) {
         const plan = res.activePlan;
         const planId =
           plan.planType === "BUY_ONCE"
             ? "single"
-            : plan.planType === "SEVEN_DAY_TRIAL"
+            : plan.planType === "SEVEN_DAY_TRIAL" || plan.planType === "TRIAL"
             ? "trial"
             : "monthly";
         const planName =
           plan.planType === "BUY_ONCE"
             ? "Buy Once (1 Litre Sample)"
-            : plan.planType === "SEVEN_DAY_TRIAL"
+            : plan.planType === "SEVEN_DAY_TRIAL" || plan.planType === "TRIAL"
             ? "7-Day Trial Plan"
             : "Monthly Subscription";
         const nextDelivery =
@@ -138,17 +145,32 @@ export const accountApi = {
         const nextDeliveryDate = nextDelivery
           ? new Date(nextDelivery).toISOString().split("T")[0]
           : "";
+
+        // Resolve dynamic actual price from matched order / upcoming delivery instead of hardcoding
+        const relevantOrder = orders.find(
+          (o: any) => o.planSelectionId === plan.selectionId || o.planDeliveryId
+        ) || orders[0];
+
+        let price: number;
+        if (relevantOrder && relevantOrder.totalPaise != null) {
+          price = relevantOrder.totalPaise / 100;
+        } else if (res.upcomingDeliveries?.[0]?.expectedAmountPaise != null) {
+          price = res.upcomingDeliveries[0].expectedAmountPaise / 100;
+        } else {
+          price =
+            plan.planType === "BUY_ONCE"
+              ? 1
+              : plan.planType === "SEVEN_DAY_TRIAL" || plan.planType === "TRIAL"
+              ? 525
+              : 2250;
+        }
+
         const sub: Subscription = {
           id: plan.selectionId,
           userId: "",
           planId,
           planName,
-          price:
-            plan.planType === "BUY_ONCE"
-              ? 80
-              : plan.planType === "SEVEN_DAY_TRIAL"
-              ? 525
-              : 2250,
+          price,
           status:
             plan.status === "ACTIVE" || plan.status === "CONFIRMED"
               ? "active"
@@ -158,7 +180,6 @@ export const accountApi = {
               ? `${plan.quantityLitres || 1}L Sample Bottle`
               : `${plan.quantityLitres || 1}L Daily`,
           nextDeliveryDate: nextDeliveryDate,
-          // Passed through verbatim from the active plan; null when unset.
           deliveryStartTime: plan.deliveryStartTime ?? null,
           deliveryEndTime: plan.deliveryEndTime ?? null,
           startedAt: plan.startDate || new Date().toISOString(),

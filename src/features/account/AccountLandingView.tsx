@@ -527,9 +527,15 @@ export function AccountLandingView() {
                   </div>
                   <div className="text-right">
                     <div className="font-serif text-lg font-bold text-[var(--pf-text)]">
-                      ₹{subscription.price || 2250}
+                      ₹{subscription.price != null ? subscription.price : 2250}
                     </div>
-                    <div className="text-[11px] text-[var(--pf-text-muted)]">per month</div>
+                    <div className="text-[11px] text-[var(--pf-text-muted)]">
+                      {subscription.planId === "single"
+                        ? "one-time sample"
+                        : subscription.planId === "trial"
+                        ? "7-day trial"
+                        : "per month"}
+                    </div>
                   </div>
                 </div>
 

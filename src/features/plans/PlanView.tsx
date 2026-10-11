@@ -27,6 +27,8 @@ import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import { PfBadge, PfButton, PfCard, PfSectionTitle, PfSkeleton } from "@/components/pf";
 import { manageDeliveryApi } from "@/features/delivery/api/manageDeliveryApi";
+import { accountApi } from "@/features/account/api/accountApi";
+import type { Subscription } from "@/types/models";
 import {
   ManageDeliveryResponse,
   ActivePlanView,
@@ -53,6 +55,7 @@ export function PlanView() {
   const [plansOverview, setPlansOverview] = useState<PlanOverviewItem[]>([]);
   const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
   const [subscription, setSubscription] = useState<CustomerSubscriptionSummary | null>(null);
+  const [fallbackSub, setFallbackSub] = useState<Subscription | null>(null);
   const [changeRequests, setChangeRequests] = useState<DeliveryRequestItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -69,27 +72,30 @@ export function PlanView() {
     setError(null);
 
     try {
-      const [manageRes, overviewRes, monthlyRes, requestsRes] = await Promise.allSettled([
+      const [manageRes, overviewRes, monthlyRes, requestsRes, subRes] = await Promise.allSettled([
         manageDeliveryApi.getManageDelivery(),
         plansApi.getPlansOverview(),
         plansApi.getMonthlyConfig(),
         manageDeliveryApi.getRequests(),
+        accountApi.getSubscription(),
       ]);
 
       if (manageRes.status === "fulfilled" && manageRes.value?.activePlan) {
         setDeliveryData(manageRes.value);
-      } else {
+      } else if (!isRefresh) {
         setDeliveryData(null);
       }
 
       if (overviewRes.status === "fulfilled" && overviewRes.value?.plans) {
         setPlansOverview(overviewRes.value.plans);
         setOrderCutoff(overviewRes.value.orderCutoff ?? null);
-        setSubscription(overviewRes.value.subscription ?? null);
-      } else {
-        setPlansOverview([]);
-        setOrderCutoff(null);
-        setSubscription(null);
+        if (overviewRes.value.subscription) {
+          setSubscription(overviewRes.value.subscription);
+        }
+      }
+
+      if (subRes.status === "fulfilled" && subRes.value?.subscription) {
+        setFallbackSub(subRes.value.subscription);
       }
 
       if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
@@ -119,9 +125,45 @@ export function PlanView() {
   // High-frequency live data sync: sync active plans, pauses/resumes, and server configs in real-time
   useRealtimeSync(() => {
     loadData(true);
-  });
+  }, { intervalMs: 30000 });
 
-  const activePlan: ActivePlanView | undefined = deliveryData?.activePlan;
+  const activePlan: ActivePlanView | undefined =
+    deliveryData?.activePlan ||
+    (subscription
+      ? {
+          selectionId: subscription.selectionId,
+          planType: subscription.planType,
+          status: subscription.status,
+          billingModel: subscription.billingModel,
+          frequency: subscription.frequency,
+          quantityMode: subscription.quantityMode,
+          quantityLitres: subscription.quantity,
+          quantityA: subscription.quantityA,
+          quantityB: subscription.quantityB,
+          startDate: subscription.startDate,
+          endDate: subscription.endDate,
+          deliveryStartTime: null,
+          deliveryEndTime: null,
+        }
+      : fallbackSub
+      ? {
+          selectionId: fallbackSub.id,
+          planType:
+            fallbackSub.planId === "single"
+              ? "BUY_ONCE"
+              : fallbackSub.planId === "trial"
+              ? "SEVEN_DAY_TRIAL"
+              : "MONTHLY",
+          status: fallbackSub.status === "active" ? "ACTIVE" : "PAUSED",
+          frequency: "DAILY",
+          quantityMode: "FIXED",
+          quantityLitres: 1,
+          startDate: fallbackSub.startedAt,
+          endDate: null,
+          deliveryStartTime: fallbackSub.deliveryStartTime,
+          deliveryEndTime: fallbackSub.deliveryEndTime,
+        }
+      : undefined);
   const nextDelivery: UpcomingDeliveryView | undefined = deliveryData?.upcomingDeliveries?.[0];
 
   // Find eligibility & availability from server overview
@@ -328,17 +370,23 @@ export function PlanView() {
                           : "Plan Price"
                       }
                       value={
-                        subscription
+                        subscription?.expectedTotalPaise != null
                           ? formatCurrency(
                               (subscription.billingModel === "PER_DELIVERY"
                                 ? subscription.chargedPaise
                                 : subscription.expectedTotalPaise) / 100
                             )
+                          : fallbackSub?.price != null
+                          ? `₹${fallbackSub.price}`
                           : "—"
                       }
                       sub={
                         subscription?.billingModel === "PER_DELIVERY"
                           ? "Charged per delivered order"
+                          : activePlan?.planType === "BUY_ONCE"
+                          ? "One-time sample"
+                          : activePlan?.planType === "SEVEN_DAY_TRIAL" || activePlan?.planType === "TRIAL"
+                          ? "7-Day Trial"
                           : undefined
                       }
                     />

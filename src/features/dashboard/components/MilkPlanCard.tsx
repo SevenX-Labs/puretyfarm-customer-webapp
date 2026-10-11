@@ -69,7 +69,16 @@ export function MilkPlanCard({ subscription }: { subscription: Subscription | nu
       </div>
 
       <div className="mt-5 pt-5 border-t border-[var(--pf-border)] space-y-2.5">
-        <Row label="Price" value={`${priceText} / month`} />
+        <Row
+          label="Price"
+          value={
+            subscription.planId === "single"
+              ? `${priceText} (sample)`
+              : subscription.planId === "trial"
+              ? `${priceText} / 7 days`
+              : `${priceText} / month`
+          }
+        />
         <Row label="Next delivery" value={nextDel.label} />
       </div>
 
