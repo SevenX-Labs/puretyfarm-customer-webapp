@@ -340,8 +340,9 @@ html.lenis {
   font-feature-settings: "ss01", "cv11";
 }
 
-/* When the authenticated shell is on-screen, drop marketing's sticky-CTA mobile padding */
-body:has(.pf-app) {
+/* When the authenticated shell or auth/login page is on-screen, drop marketing's sticky-CTA mobile padding */
+body:has(.pf-app),
+body:has([data-auth-page]) {
   padding-bottom: 0 !important;
 }
 

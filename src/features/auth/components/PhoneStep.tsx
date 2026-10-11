@@ -17,16 +17,16 @@ export function PhoneStep({
   onSubmit,
 }: PhoneStepProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-3 sm:space-y-3.5">
+    <form onSubmit={onSubmit} className="space-y-3.5 sm:space-y-4">
       <div>
         <label
           htmlFor="phone-input"
-          className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]"
+          className="mb-1.5 block text-[12px] font-semibold text-[#24130f]"
         >
           Phone number
         </label>
-        <div className="flex h-10 sm:h-11 lg:h-[44px] items-center overflow-hidden rounded-xl border border-[#d8cfc5] bg-white px-3 transition-colors focus-within:border-[#7a2417] focus-within:ring-2 focus-within:ring-[#7a2417]/10">
-          <div className="flex shrink-0 select-none items-center gap-1.5 border-r border-[#ddd4c8] pr-2.5 text-[13px] sm:text-[13.5px] font-semibold text-[#24130f]">
+        <div className="flex h-11 sm:h-11 lg:h-[44px] items-center overflow-hidden rounded-xl border border-[#d8cfc5] bg-white px-3 transition-colors focus-within:border-[#7a2417] focus-within:ring-2 focus-within:ring-[#7a2417]/10">
+          <div className="flex shrink-0 select-none items-center gap-1.5 border-r border-[#ddd4c8] pr-2.5 text-[13.5px] font-semibold text-[#24130f]">
             <span
               className="inline-flex h-3 w-4.5 overflow-hidden rounded-[2px] border border-[#e8dfd4]"
               aria-label="India"
@@ -53,7 +53,7 @@ export function PhoneStep({
             value={phoneNumber}
             onChange={onPhoneChange}
             placeholder="98765 43210"
-            className="h-full min-w-0 flex-1 bg-transparent pl-3 text-[13.5px] sm:text-[14px] font-medium tracking-[0.01em] text-[#24130f] outline-none placeholder:text-[#a49a91]"
+            className="h-full min-w-0 flex-1 bg-transparent pl-3 text-[14px] font-medium tracking-[0.02em] text-[#24130f] outline-none placeholder:text-[#a49a91]"
             aria-label="10-digit Indian mobile number"
             aria-required="true"
             autoFocus
@@ -64,7 +64,7 @@ export function PhoneStep({
       <button
         type="submit"
         disabled={loading || phoneNumber.length !== 10}
-        className="flex h-10 sm:h-11 lg:h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#7a2417] text-[13.5px] sm:text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#5f1b12] active:bg-[#54170f] disabled:cursor-not-allowed disabled:opacity-55 cursor-pointer"
+        className="flex h-11 sm:h-11 lg:h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#7a2417] text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#5f1b12] active:bg-[#54170f] disabled:cursor-not-allowed disabled:opacity-55 cursor-pointer"
       >
         {loading ? (
           <>

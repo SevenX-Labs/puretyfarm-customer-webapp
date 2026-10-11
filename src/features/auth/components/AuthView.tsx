@@ -81,7 +81,7 @@ export function AuthView() {
 
   return (
     <main
-      className="min-h-screen min-h-[100dvh] lg:h-svh lg:overflow-hidden isolate flex w-full flex-1 flex-col justify-center overflow-x-hidden overflow-y-auto bg-[#f3dfc0] bg-cover bg-bottom sm:bg-center bg-no-repeat text-[#24130f] pt-[74px] sm:pt-[82px] lg:pt-[86px] pb-4 sm:pb-6 lg:pb-6"
+      className="min-h-screen min-h-[100dvh] lg:h-svh lg:overflow-hidden isolate flex w-full flex-1 flex-col justify-center overflow-x-hidden overflow-y-auto bg-[#fae7cb] bg-[length:max(100%,500px)_auto] sm:bg-[length:100%_auto] md:bg-cover bg-bottom md:bg-center bg-no-repeat text-[#24130f] pt-[72px] sm:pt-[80px] lg:pt-[86px] pb-6 sm:pb-8 lg:pb-6"
       style={{
         backgroundImage:
           "url('/newimge/Sepia%20Countryside%20Farm%20Panorama.png')",
@@ -132,13 +132,13 @@ export function AuthView() {
           </m.div>
         </section>
 
-        <div className="w-full max-w-[430px] md:max-w-none md:justify-self-end">
+        <div className="w-full max-w-[390px] min-[420px]:max-w-[410px] sm:max-w-[430px] md:max-w-none md:justify-self-end">
           <m.section
             aria-label="Sign in to PuretyFarm"
             initial={{ opacity: 0, y: 12, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="relative isolate flex flex-col justify-center overflow-hidden rounded-2xl md:rounded-[24px] border border-[#e7ddd0] bg-[#fffdf8] px-4.5 py-4.5 sm:px-6 sm:py-5 lg:px-7 lg:py-6 xl:px-8 xl:py-7 shadow-[0_20px_60px_rgba(64,37,18,0.14)]"
+            className="relative isolate flex flex-col justify-center overflow-hidden rounded-[22px] sm:rounded-[24px] border border-[#e7ddd0]/90 bg-[#fffdf8] px-5 py-5 sm:px-6 sm:py-5 lg:px-7 lg:py-6 xl:px-8 xl:py-7 shadow-[0_16px_50px_rgba(64,37,18,0.12)]"
           >
             <div
               className="pointer-events-none absolute -right-5 -top-10 -z-10 h-32 w-32 rounded-bl-[100px] bg-[#f8e94e]/35"
@@ -150,18 +150,18 @@ export function AuthView() {
             />
 
             <div className="relative">
-              <div className="mb-2.5 flex justify-center sm:mb-3">
+              <div className="mb-2 sm:mb-2.5 flex justify-center">
                 <Image
                   src="/newimge/logo-removebg-preview.png"
                   alt="PuretyFarm — 100% Pure A2 Milk Products"
                   width={378}
                   height={229}
                   priority
-                  className="h-auto w-[120px] object-contain sm:w-[130px] lg:w-[140px]"
+                  className="h-auto w-[116px] sm:w-[130px] lg:w-[140px] object-contain"
                 />
               </div>
 
-              <div className="mb-3 text-center sm:mb-3.5">
+              <div className="mb-3.5 sm:mb-4 text-center">
                 <h2 className="text-[20px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[23px] lg:text-[25px]">
                   {heading}
                 </h2>
@@ -268,24 +268,25 @@ export function AuthView() {
                 )}
               </AnimatePresence>
 
-              <p className="mt-3.5 text-center text-[10px] leading-relaxed text-[#8c7a6b] sm:text-[10.5px]">
-                By continuing, you agree to our
-                <br />
-                <Link
-                  href="/terms-and-conditions"
-                  className="font-medium text-[#4e382c] underline underline-offset-2 hover:text-[#7a2417]"
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
-                  href="/privacy"
-                  className="font-medium text-[#4e382c] underline underline-offset-2 hover:text-[#7a2417]"
-                >
-                  Privacy Policy
-                </Link>
-                .
-              </p>
+              <div className="mt-4 sm:mt-4.5 pt-0.5 text-center">
+                <p className="text-[11px] leading-relaxed text-[#7c695b]">
+                  By continuing, you agree to our{" "}
+                  <Link
+                    href="/terms-and-conditions"
+                    className="font-medium text-[#4e382c] underline underline-offset-2 hover:text-[#7a2417]"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy"
+                    className="font-medium text-[#4e382c] underline underline-offset-2 hover:text-[#7a2417]"
+                  >
+                    Privacy Policy
+                  </Link>
+                  .
+                </p>
+              </div>
             </div>
           </m.section>
         </div>

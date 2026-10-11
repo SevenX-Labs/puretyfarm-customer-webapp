@@ -30,12 +30,12 @@ export function OtpStep({
 }: OtpStepProps) {
   return (
     <div>
-      <form onSubmit={onSubmit} className="space-y-3 sm:space-y-3.5">
+      <form onSubmit={onSubmit} className="space-y-3.5 sm:space-y-4">
         <fieldset>
-          <legend className="mb-2 text-center text-[11.5px] sm:text-[12px] font-semibold text-[#4b3a31]">
+          <legend className="mb-2.5 text-center text-[12px] font-semibold text-[#4b3a31]">
             Enter the 6-digit code
           </legend>
-          <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-6 gap-1.5 min-[380px]:gap-2">
             {otpValues.map((digit, index) => (
               <input
                 key={index}
@@ -53,7 +53,7 @@ export function OtpStep({
                 onKeyDown={(event) => onOtpKeyDown(index, event)}
                 onPaste={onOtpPaste}
                 aria-label={`Verification code digit ${index + 1}`}
-                className={`h-10 sm:h-11 lg:h-[44px] w-full min-w-0 px-0 rounded-xl border text-center text-[18px] sm:text-[19px] font-semibold outline-none transition-colors focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-60 ${
+                className={`h-11 sm:h-11 lg:h-[44px] w-full min-w-0 px-0 rounded-xl border text-center text-[18px] sm:text-[19px] font-semibold outline-none transition-colors focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-60 ${
                   digit
                     ? "border-[#9c705b] bg-[#fffaf3] text-[#7a2417]"
                     : "border-[#d8d0c6] bg-white text-[#24130f]"
@@ -63,7 +63,7 @@ export function OtpStep({
           </div>
         </fieldset>
 
-        <div className="flex min-h-4 items-center justify-between gap-3 text-[11.5px] sm:text-[12px]">
+        <div className="flex min-h-[20px] items-center justify-between gap-2 text-[11.5px] sm:text-[12px]">
           <span className="text-[#71665f]">Didn&apos;t receive the code?</span>
           {countdown > 0 ? (
             <span className="shrink-0 font-medium tabular-nums text-[#71665f]">
@@ -86,7 +86,7 @@ export function OtpStep({
         <button
           type="submit"
           disabled={loading || otpValues.join("").length !== 6}
-          className="flex h-10 sm:h-11 lg:h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#7a2417] text-[13.5px] sm:text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#5f1b12] active:bg-[#54170f] disabled:cursor-not-allowed disabled:opacity-55 cursor-pointer"
+          className="flex h-11 sm:h-11 lg:h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#7a2417] text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#5f1b12] active:bg-[#54170f] disabled:cursor-not-allowed disabled:opacity-55 cursor-pointer"
         >
           {loading ? (
             <>
@@ -102,14 +102,16 @@ export function OtpStep({
         </button>
       </form>
 
-      <button
-        type="button"
-        onClick={onChangePhone}
-        className="mx-auto mt-2.5 flex items-center gap-1.5 text-[11.5px] sm:text-[12px] font-semibold text-[#7a2417] hover:text-[#54170f] cursor-pointer"
-      >
+      <div className="mt-3.5 pt-0.5 text-center">
+        <button
+          type="button"
+          onClick={onChangePhone}
+          className="inline-flex items-center justify-center gap-1.5 text-[12px] font-semibold text-[#7a2417] hover:text-[#5f1b12] cursor-pointer py-1"
+        >
         <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
         Change phone number
-      </button>
+        </button>
+      </div>
     </div>
   );
 }
