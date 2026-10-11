@@ -364,7 +364,7 @@ export function SubscriptionPanel({
             {/* Scrollable Body - Smooth mouse wheel scroll with custom scrollbar and generous bottom padding */}
             <div 
               tabIndex={0}
-              className="px-5 py-5 sm:px-6 sm:py-6 pb-12 sm:pb-14 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-6 overscroll-contain focus:outline-none"
+              className="px-5 py-5 sm:px-6 sm:py-6 pb-12 sm:pb-14 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-6 md:overscroll-contain touch-pan-y focus:outline-none"
               style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
             >
               {/* 1. Delivery Frequency */}

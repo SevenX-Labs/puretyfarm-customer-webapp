@@ -291,9 +291,9 @@ export function AddressDetailsStep({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.18 }}
-      className="flex flex-col justify-between h-full space-y-3"
+      className="flex flex-col justify-between min-h-full md:h-full space-y-3 touch-pan-y"
     >
-      <form onSubmit={handleSaveAddress} className="flex flex-col justify-between h-full space-y-3">
+      <form onSubmit={handleSaveAddress} className="flex flex-col justify-between min-h-full md:h-full space-y-3">
         <div className="space-y-3">
           {/* Header */}
           <header className="flex items-center justify-between gap-3 border-b border-[#eee5db] pb-2">
@@ -564,7 +564,7 @@ export function AddressDetailsStep({
         </div>
 
         {/* Footer Submit Button */}
-        <div className="flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:justify-end">
+        <div className="flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:justify-end pb-3 sm:pb-0">
           <Button
             type="submit"
             variant="primary"

@@ -51,7 +51,7 @@ export function OnboardingSidebar({
 
   return (
     <aside
-      className="relative flex flex-col justify-between shrink-0 text-white w-full md:w-[320px] lg:w-[340px] xl:w-[360px] h-auto md:h-full select-none overflow-hidden"
+      className="relative flex flex-col justify-between shrink-0 text-white w-full md:w-[320px] lg:w-[340px] xl:w-[360px] h-auto md:h-full select-none overflow-hidden rounded-t-2xl md:rounded-l-3xl md:rounded-tr-none"
       style={{
         background:
           "linear-gradient(180deg, #681F16 0%, #5C1B13 50%, #4A1510 100%)",

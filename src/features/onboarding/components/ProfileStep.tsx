@@ -120,7 +120,7 @@ export function ProfileStep({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       aria-labelledby="profile-heading"
-      className="flex h-full flex-col justify-between"
+      className="flex min-h-full md:h-full flex-col justify-between touch-pan-y"
     >
       <header className="border-b border-[#eee5db] pb-2 sm:pb-2.5">
         <span className="text-[10px] font-bold uppercase tracking-wider text-[#7a2417]">
@@ -137,7 +137,7 @@ export function ProfileStep({
         </p>
       </header>
 
-      <form onSubmit={handleFormSubmit} className="flex-1 flex flex-col justify-between pt-2.5">
+      <form onSubmit={handleFormSubmit} className="flex-1 flex flex-col justify-between pt-2.5 min-h-full md:h-full">
         {profileError && (
           <div
             role="alert"
@@ -389,7 +389,7 @@ export function ProfileStep({
           </div>
         </div>
 
-        <div className="mt-2.5 flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:mt-3 sm:justify-end sm:pt-3">
+        <div className="mt-2.5 flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:mt-3 sm:justify-end sm:pt-3 pb-3 sm:pb-0">
           <button
             type="submit"
             disabled={profileSaving}

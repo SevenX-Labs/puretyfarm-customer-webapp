@@ -323,7 +323,7 @@ export function PlanStep({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className="flex flex-col justify-between h-full space-y-2.5 sm:space-y-3"
+      className="flex flex-col justify-between min-h-full md:h-full space-y-2.5 sm:space-y-3 pb-3 sm:pb-0 touch-pan-y"
     >
       {/* Header with Back Navigation */}
       <header className="flex items-start justify-between gap-2 shrink-0">
