@@ -53,7 +53,10 @@ export const onboardingApi = {
         err?.response?.data?.message ||
         err?.message ||
         "Failed to save profile.";
-      const message = Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg);
+      let message = Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg);
+      if (message.includes("P2022") || message.includes("DATABASE_ERROR")) {
+        message = "Profile schema updated. Please click Continue again.";
+      }
       return { success: false, error: message };
     }
   },

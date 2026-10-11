@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { EmailVerificationModal } from "@/components/pf/EmailVerificationModal";
 import { m } from "framer-motion";
 import {
@@ -68,6 +68,15 @@ export function ProfileStep({
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [justVerifiedEmail, setJustVerifiedEmail] = useState<string | null>(null);
 
+  // Auto-dismiss error alert so it does not stay visible indefinitely
+  useEffect(() => {
+    if (!profileError) return;
+    const timer = setTimeout(() => {
+      onProfileError(null);
+    }, 7000);
+    return () => clearTimeout(timer);
+  }, [profileError, onProfileError]);
+
   const isEmailVerified = Boolean(
     profileEmail.trim() &&
     ((justVerifiedEmail && justVerifiedEmail.toLowerCase() === profileEmail.trim().toLowerCase()) ||
@@ -127,10 +136,20 @@ export function ProfileStep({
         {profileError && (
           <div
             role="alert"
-            className="mb-2.5 flex items-center gap-2 rounded-xl border border-[#f5c6cb] bg-[#f8d7da] p-2.5 text-[11.5px] sm:text-[12px] text-[#721c24]"
+            className="mb-2.5 flex items-center justify-between gap-2 rounded-xl border border-[#f5c6cb] bg-[#f8d7da] p-2.5 text-[11.5px] sm:text-[12px] text-[#721c24]"
           >
-            <FiAlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <p className="font-medium">{profileError}</p>
+            <div className="flex items-center gap-2">
+              <FiAlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <p className="font-medium">{profileError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onProfileError(null)}
+              className="text-[#721c24] hover:opacity-75 font-bold cursor-pointer text-xs px-1.5 py-0.5 rounded"
+              aria-label="Dismiss error"
+            >
+              ✕
+            </button>
           </div>
         )}
 
