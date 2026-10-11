@@ -13,6 +13,7 @@ import {
   Banknote,
   Wallet,
   AlertCircle,
+  Home,
 } from "lucide-react";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfCard } from "@/components/pf";
@@ -252,25 +253,24 @@ export function OrderConfirmationView() {
           </PfCard>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between pt-2">
+        {/* Actions: "Go to Orders" & "Go to Home" as requested */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 pt-3">
           <Link
             href="/orders"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#5C1B13] px-6 text-sm font-bold text-white shadow-md shadow-[#5C1B13]/20 hover:bg-[#48150f] transition-all cursor-pointer"
+            className="inline-flex h-11 w-full sm:flex-1 items-center justify-center gap-2 rounded-2xl bg-[#5C1B13] px-6 text-sm font-bold text-white shadow-md shadow-[#5C1B13]/20 hover:bg-[#48150f] transition-all cursor-pointer"
           >
             <Receipt className="h-4 w-4" />
-            <span>View My Orders</span>
+            <span>Go to Orders</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Link
-              href="/account"
-              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--pf-border)] bg-white px-5 text-sm font-bold text-[#24130f] hover:bg-[var(--pf-surface-soft)] transition-all cursor-pointer sm:flex-initial"
-            >
-              <span>Account</span>
-            </Link>
-          </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex h-11 w-full sm:flex-1 items-center justify-center gap-2 rounded-2xl border border-[var(--pf-border)] bg-white px-6 text-sm font-bold text-[#24130f] hover:bg-[var(--pf-surface-soft)] transition-all cursor-pointer"
+          >
+            <Home className="h-4 w-4 text-[#715e50]" />
+            <span>Go to Home</span>
+          </Link>
         </div>
       </div>
     </>

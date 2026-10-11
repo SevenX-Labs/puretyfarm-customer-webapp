@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { CustomerSidebar } from "./CustomerSidebar";
 import { MobileNavigation } from "./MobileNavigation";
@@ -9,11 +9,11 @@ import { MobileNavigation } from "./MobileNavigation";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { status, user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      const path =
-        typeof window !== "undefined" ? window.location.pathname : "/dashboard";
+      const path = pathname || "/dashboard";
       if (!path.startsWith("/login") && !path.startsWith("/auth")) {
         router.replace(`/login?redirect=${encodeURIComponent(path)}`);
       }
@@ -21,8 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
 
     if (status === "authenticated" && user) {
-      const path =
-        typeof window !== "undefined" ? window.location.pathname : "";
+      const path = pathname || "";
       const isExempt =
         path.startsWith("/order-confirmation") ||
         path.startsWith("/payment/result");
@@ -55,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (status !== "authenticated") return null;
 
   if (user?.onboardingStep && user.onboardingStep !== "complete") {
-    const path = typeof window !== "undefined" ? window.location.pathname : "";
+    const path = pathname || "";
     if (
       !path.startsWith("/order-confirmation") &&
       !path.startsWith("/payment/result")

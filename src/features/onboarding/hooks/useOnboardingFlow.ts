@@ -401,6 +401,16 @@ export function useOnboardingFlow() {
     }
 
     try {
+      if (typeof window !== "undefined") {
+        const checkoutPayload = {
+          quoteId: pendingQuote.quoteId,
+          planName: pendingPlan.name,
+          amountRupees: (pendingQuote.totalSellingAmount / 100).toFixed(2),
+        };
+        window.sessionStorage.setItem("purety_pending_plan_checkout", JSON.stringify(checkoutPayload));
+        window.localStorage.setItem("purety_pending_plan_checkout", JSON.stringify(checkoutPayload));
+      }
+
       const res = await paymentsApi.initiateOnlineTopup(shortfall, {
         autoRedirect: true,
       });
