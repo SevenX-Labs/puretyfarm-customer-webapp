@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { accountApi } from "@/features/account/api/accountApi";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import type { Order, Subscription, Address } from "@/types/models";
 
 export interface DashboardData {
@@ -51,6 +52,10 @@ export function useDashboardData(): DashboardData {
   useEffect(() => {
     load();
   }, [load]);
+
+  useRealtimeSync(() => {
+    load();
+  }, { intervalMs: 12000 });
 
   return {
     orders,

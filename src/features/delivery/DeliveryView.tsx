@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import Link from "next/link";
 import {
   MapPin,
@@ -31,29 +32,31 @@ export function DeliveryView() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [addrRes, ordRes] = await Promise.all([
-          accountApi
-            .getAddresses()
-            .catch(() => ({ success: false, addresses: [] as Address[] })),
-          accountApi
-            .getOrders()
-            .catch(() => ({ success: false, orders: [] as Order[] })),
-        ]);
-        if (cancelled) return;
-        setAddresses((addrRes as any).addresses || []);
-        setOrders(ordRes.orders || []);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const fetchDeliveryData = useCallback(async () => {
+    try {
+      const [addrRes, ordRes] = await Promise.all([
+        accountApi
+          .getAddresses()
+          .catch(() => ({ success: false, addresses: [] as Address[] })),
+        accountApi
+          .getOrders()
+          .catch(() => ({ success: false, orders: [] as Order[] })),
+      ]);
+      setAddresses((addrRes as any).addresses || []);
+      setOrders(ordRes.orders || []);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchDeliveryData();
+  }, [fetchDeliveryData]);
+
+  // Real-time synchronization: sync delivery schedules when admin approves plan
+  useRealtimeSync(() => {
+    fetchDeliveryData();
+  }, { intervalMs: 12000 });
 
   const defaultAddress =
     addresses.find((a) => a.isDefault) || addresses[0] || null;

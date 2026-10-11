@@ -24,6 +24,7 @@ import { MonthlyUpgradeModal } from "./components/MonthlyUpgradeModal";
 import { SubscriptionStatusCard } from "./components/SubscriptionStatusCard";
 import { UpcomingDeliveriesList } from "./components/UpcomingDeliveriesList";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import { PfBadge, PfButton, PfCard, PfSectionTitle, PfSkeleton } from "@/components/pf";
 import { manageDeliveryApi } from "@/features/delivery/api/manageDeliveryApi";
 import {
@@ -112,6 +113,12 @@ export function PlanView() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Real-time sync: when admin approves plan or edits plan configs/cutoffs,
+  // updates automatically reflect on customer view without manual refresh.
+  useRealtimeSync(() => {
+    loadData(true);
+  }, { intervalMs: 10000 });
 
   const activePlan: ActivePlanView | undefined = deliveryData?.activePlan;
   const nextDelivery: UpcomingDeliveryView | undefined = deliveryData?.upcomingDeliveries?.[0];

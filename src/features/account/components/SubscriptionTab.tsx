@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Subscription } from "@/types/models";
@@ -62,20 +63,25 @@ export function SubscriptionTab({
   const [planOverviews, setPlanOverviews] = useState<PlanOverviewItem[]>([]);
   const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
 
-  useEffect(() => {
-    async function loadPlans() {
-      try {
-        const res = await plansApi.getPlansOverview();
-        if (res?.plans) {
-          setPlanOverviews(res.plans);
-          setOrderCutoff(res.orderCutoff ?? null);
-        }
-      } catch (err) {
-        console.warn("Could not fetch plans overview:", err);
+  const loadPlans = useCallback(async () => {
+    try {
+      const res = await plansApi.getPlansOverview();
+      if (res?.plans) {
+        setPlanOverviews(res.plans);
+        setOrderCutoff(res.orderCutoff ?? null);
       }
+    } catch (err) {
+      console.warn("Could not fetch plans overview:", err);
     }
-    loadPlans();
   }, []);
+
+  useEffect(() => {
+    loadPlans();
+  }, [loadPlans]);
+
+  useRealtimeSync(() => {
+    loadPlans();
+  }, { intervalMs: 15000 });
 
   const getPlanEligibility = (id: "trial" | "monthly" | "single") => {
     const backendType =

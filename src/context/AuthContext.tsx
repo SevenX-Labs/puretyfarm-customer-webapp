@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authApi } from "@/features/auth/api/authApi";
 import { profileApi, CustomerProfile } from "@/features/profile/api/profileApi";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import {
   bootstrapAuthSession,
   endAuthSession,
@@ -195,6 +196,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
     };
   }, [checkSession]);
+
+  useRealtimeSync(() => {
+    if (status === "authenticated" && tokenStorage.getAccessToken()) {
+      refreshUser();
+    }
+  }, { intervalMs: 30000, enabled: status === "authenticated" });
 
   useEffect(
     () =>

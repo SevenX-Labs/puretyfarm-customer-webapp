@@ -5,6 +5,7 @@ import Link from "next/link";
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import {
   walletApi,
   CustomerWallet,

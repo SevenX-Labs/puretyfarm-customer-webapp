@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import { Address, Order, Subscription } from "@/types/models";
 import { accountApi } from "../api/accountApi";
 import { plansApi } from "@/features/plans/api/plansApi";
@@ -181,6 +182,14 @@ export function useAccountData() {
       window.removeEventListener("wallet_update", onUpdate);
     };
   }, [user, fetchWalletData]);
+
+  // Real-time synchronization: when admin approves cash or credits wallet,
+  // customer wallet balance and credit status refresh live in the background.
+  useRealtimeSync(() => {
+    if (user) {
+      fetchWalletData();
+    }
+  }, { intervalMs: 10000 });
 
   // Check & verify any return txnid from PhonePe
   useEffect(() => {
