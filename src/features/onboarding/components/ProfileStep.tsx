@@ -99,6 +99,11 @@ export function ProfileStep({
       onProfileError("Please enter your WhatsApp number for delivery notifications.");
       return;
     }
+    const cleanWhatsappDigits = profileWhatsapp.replace(/\D/g, "");
+    if (cleanWhatsappDigits.length < 10) {
+      onProfileError("Please enter a valid 10-digit WhatsApp number.");
+      return;
+    }
     if (profileEmail.trim() && !isValidEmail(profileEmail)) {
       onProfileError("Please enter a valid email address (e.g. name@domain.com) or leave it empty.");
       return;
@@ -226,7 +231,7 @@ export function ProfileStep({
                   className="text-[11.5px] sm:text-[12px] font-semibold text-[#24130f] flex items-center gap-1.5"
                 >
                   <FaWhatsapp className="text-[#25D366] h-3.5 w-3.5" />
-                  WhatsApp Number <span className="text-[#7a2417]">*</span>
+                  WhatsApp Number <span className="text-[#7a2417] font-bold">*</span>
                 </label>
                 <span className="text-[10px] font-medium text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded">
                   Priority Alerts
@@ -264,14 +269,17 @@ export function ProfileStep({
               </p>
             </div>
 
-            {/* 4. Date of Birth */}
+            {/* 4. Date of Birth (Optional) */}
             <div>
-              <label
-                htmlFor="profileDobInput"
-                className="mb-1 block text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]"
-              >
-                Date of Birth <span className="text-[#7a2417]">*</span>
-              </label>
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <label
+                  htmlFor="profileDobInput"
+                  className="text-[11.5px] sm:text-[12px] font-semibold text-[#24130f]"
+                >
+                  Date of Birth
+                </label>
+                <span className="text-[10px] text-[#8b7b70]">Optional</span>
+              </div>
               <div className="relative">
                 <FiCalendar
                   className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#7a2417]"
@@ -280,13 +288,15 @@ export function ProfileStep({
                 <input
                   id="profileDobInput"
                   type="date"
-                  required
                   value={profileDob}
                   max={today}
                   onChange={(event) => onDobChange(event.target.value)}
                   className={`${fieldClassName} cursor-pointer pl-9`}
                 />
               </div>
+              <p className="mt-0.5 text-[10px] text-[#715e50]">
+                Optional. Used for birthday specials and surprises.
+              </p>
             </div>
 
             {/* 5. Gender */}

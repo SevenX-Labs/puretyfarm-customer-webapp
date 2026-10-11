@@ -228,6 +228,11 @@ export function AddressDetailsStep({
       return;
     }
 
+    if (!buildingName.trim()) {
+      setSaveError("Please enter your building / society / apartment name.");
+      return;
+    }
+
     if (!fullName.trim() || fullName.trim().startsWith("Customer (")) {
       setSaveError("Please enter the receiver's full name.");
       return;
@@ -458,21 +463,28 @@ export function AddressDetailsStep({
                   required
                   disabled={!isAreaSelected}
                   value={houseNumber}
-                  onChange={(e) => setHouseNumber(e.target.value)}
+                  onChange={(e) => {
+                    setHouseNumber(e.target.value);
+                    setSaveError(null);
+                  }}
                   placeholder={isAreaSelected ? "e.g. Flat 203, Block B" : "Select hub above first"}
                   className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
                 <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  Building / Society / Apartment
+                  Building / Society / Apartment <span className="text-[#7a2417]">*</span>
                 </label>
                 <input
                   type="text"
+                  required
                   disabled={!isAreaSelected}
                   value={buildingName}
-                  onChange={(e) => setBuildingName(e.target.value)}
-                  placeholder={isAreaSelected ? "e.g. Sunrise Heights" : "Select hub above first"}
+                  onChange={(e) => {
+                    setBuildingName(e.target.value);
+                    setSaveError(null);
+                  }}
+                  placeholder={isAreaSelected ? "e.g. Sunrise Heights, Tower B" : "Select hub above first"}
                   className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>

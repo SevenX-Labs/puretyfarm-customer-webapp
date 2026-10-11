@@ -75,7 +75,7 @@ export function useOnboardingFlow() {
     const rawName = user.name || "";
     const isPlaceholder = !rawName || rawName.startsWith("Customer (") || rawName.toLowerCase() === "customer";
     setProfileName(isPlaceholder ? "" : rawName);
-    setProfileWhatsapp((user as any)?.whatsappNumber || "");
+    setProfileWhatsapp((user as any)?.whatsappNumber || user.phone || "");
     setProfileEmail(user.email || "");
     setProfileAvatar(user.avatarUrl || "");
     setProfileGender(user.gender || "");
@@ -188,6 +188,11 @@ export function useOnboardingFlow() {
       setProfileError("Please enter your WhatsApp number for delivery notifications.");
       return;
     }
+    const cleanWhatsappDigits = cleanWhatsapp.replace(/\D/g, "");
+    if (cleanWhatsappDigits.length < 10) {
+      setProfileError("Please enter a valid 10-digit WhatsApp number.");
+      return;
+    }
 
     const cleanEmail = profileEmail.trim();
     if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
@@ -205,7 +210,7 @@ export function useOnboardingFlow() {
         whatsappNumber: cleanWhatsapp,
         avatarUrl: profileAvatar,
         gender: profileGender || undefined,
-        dob: profileDob || undefined,
+        dob: profileDob.trim() || undefined,
       });
 
       if (!data.success) {
