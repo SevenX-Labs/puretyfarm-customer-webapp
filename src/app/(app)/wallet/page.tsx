@@ -1619,10 +1619,7 @@ function WalletContent() {
                   <span className="text-[10px] font-mono font-medium text-[#8C7A6B] block">
                     {Math.round(parseFloat(customAmount || "0") * 100).toLocaleString("en-IN")} paise
                   </span>
-                  <span className="text-[11px] text-emerald-700 font-bold flex items-center justify-end gap-1 mt-0.5">
-                    <FiCheckCircle className="w-3.5 h-3.5" />
-                    <span>100% Refundable</span>
-                  </span>
+                  
                 </div>
               </div>
 
@@ -1699,7 +1696,7 @@ function WalletContent() {
                       </span>
                     </div>
                     <p className="text-[11px] text-[#6B584C] mt-0.5">
-                      Hand cash to our delivery partner during sunrise delivery.
+                      Hand cash to our cash collection executive during sunrise delivery.
                     </p>
                   </div>
                 </button>
