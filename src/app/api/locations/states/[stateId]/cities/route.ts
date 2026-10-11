@@ -13,9 +13,6 @@ export async function GET(
     return NextResponse.json(cities);
   } catch (err) {
     console.error("[GET /api/locations/states/[stateId]/cities error]", err);
-    return NextResponse.json(
-      [{ id: "6875fc90-fe1d-4307-9271-bdf4b505c562", name: "Dombivali", stateId: "8277a58a-ff91-4163-b8a7-1c915af8d859" }],
-      { status: 200 }
-    );
+    return NextResponse.json([], { status: 200 });
   }
 }

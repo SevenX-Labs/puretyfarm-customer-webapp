@@ -161,7 +161,7 @@ export function AddressModal({
                       disabled={!selectedStateId}
                       className="px-2 py-1.5 rounded-lg border border-[#E8DFD4] bg-white text-[11px] font-semibold text-[#1A1008] focus:outline-none disabled:opacity-50"
                     >
-                      <option value="">City</option>
+                      <option value="">{cities.length === 0 && selectedStateId ? "No Cities" : "City"}</option>
                       {cities.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.name}
@@ -175,7 +175,7 @@ export function AddressModal({
                       disabled={!selectedCityId}
                       className="px-2 py-1.5 rounded-lg border border-[#E8DFD4] bg-white text-[11px] font-semibold text-[#1A1008] focus:outline-none disabled:opacity-50"
                     >
-                      <option value="">Area/Hub</option>
+                      <option value="">{areas.length === 0 && selectedCityId ? "No Areas" : "Area/Hub"}</option>
                       {areas.map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.name}

@@ -9,9 +9,6 @@ export async function GET() {
     return NextResponse.json(states);
   } catch (err) {
     console.error("[GET /api/locations/states error]", err);
-    return NextResponse.json(
-      [{ id: "8277a58a-ff91-4163-b8a7-1c915af8d859", name: "Maharastra" }],
-      { status: 200 }
-    );
+    return NextResponse.json([], { status: 200 });
   }
 }

@@ -61,9 +61,13 @@ export function ServiceAreaStep({
         const stateList = await locationApi.getStates();
         if (isMounted) {
           setStates(stateList);
-          // If only 1 state available (e.g. Chhattisgarh), auto-select it
-          if (stateList.length === 1 && !selectedStateId) {
+          const stateExists = stateList.some((s) => s.id === selectedStateId);
+          if (stateList.length === 1 && (!selectedStateId || !stateExists)) {
             onStateChange(stateList[0].id);
+          } else if (!stateExists && selectedStateId) {
+            onStateChange("");
+            onCityChange("", "");
+            onAreaChange("", "");
           }
         }
       } catch (err: unknown) {
@@ -94,9 +98,12 @@ export function ServiceAreaStep({
         const cityList = await locationApi.getCities(selectedStateId);
         if (isMounted) {
           setCities(cityList);
-          // If only 1 city available (e.g. Raipur), auto-select it
-          if (cityList.length === 1 && !selectedCityId) {
+          const cityExists = cityList.some((c) => c.id === selectedCityId);
+          if (cityList.length === 1 && (!selectedCityId || !cityExists)) {
             onCityChange(cityList[0].id, cityList[0].name);
+          } else if (!cityExists && selectedCityId) {
+            onCityChange("", "");
+            onAreaChange("", "");
           }
         }
       } catch (err: unknown) {
@@ -126,6 +133,12 @@ export function ServiceAreaStep({
         const areaList = await locationApi.getAreas(selectedCityId);
         if (isMounted) {
           setAreas(areaList);
+          const areaExists = areaList.some((a) => a.id === selectedAreaId);
+          if (areaList.length === 1 && (!selectedAreaId || !areaExists)) {
+            onAreaChange(areaList[0].id, areaList[0].pincode || "", areaList[0].name);
+          } else if (!areaExists && selectedAreaId) {
+            onAreaChange("", "", "");
+          }
         }
       } catch (err: unknown) {
         if (isMounted) {
@@ -215,7 +228,7 @@ export function ServiceAreaStep({
                 disabled={loadingStates}
                 className="h-9.5 sm:h-10 lg:h-[42px] w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10"
               >
-                <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
+                <option value="">{loadingStates ? "Loading states..." : states.length === 0 ? "No states available" : "Select State"}</option>
                 {states.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.name}
@@ -244,6 +257,8 @@ export function ServiceAreaStep({
                     ? "Loading cities..."
                     : !selectedStateId
                     ? "Choose state first"
+                    : cities.length === 0
+                    ? "No cities available"
                     : "Select City"}
                 </option>
                 {cities.map((c) => (
@@ -272,6 +287,8 @@ export function ServiceAreaStep({
                     ? "Loading areas..."
                     : !selectedCityId
                     ? "Choose city first"
+                    : areas.length === 0
+                    ? "No delivery areas available"
                     : "Select Delivery Area / Hub"}
                 </option>
                 {areas.map((a) => (

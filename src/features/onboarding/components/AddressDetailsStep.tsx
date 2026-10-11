@@ -93,8 +93,13 @@ export function AddressDetailsStep({
         const stateList = await locationApi.getStates();
         if (isMounted) {
           setStates(stateList);
-          if (stateList.length === 1 && !selectedStateId) {
+          const stateExists = stateList.some((s) => s.id === selectedStateId);
+          if (stateList.length === 1 && (!selectedStateId || !stateExists)) {
             onStateChange(stateList[0].id);
+          } else if (!stateExists && selectedStateId) {
+            onStateChange("");
+            onCityChange("", "");
+            onAreaChange("", "");
           }
         }
       } catch (err: unknown) {
@@ -125,8 +130,12 @@ export function AddressDetailsStep({
         const cityList = await locationApi.getCities(selectedStateId);
         if (isMounted) {
           setCities(cityList);
-          if (cityList.length === 1 && !selectedCityId) {
+          const cityExists = cityList.some((c) => c.id === selectedCityId);
+          if (cityList.length === 1 && (!selectedCityId || !cityExists)) {
             onCityChange(cityList[0].id, cityList[0].name);
+          } else if (!cityExists && selectedCityId) {
+            onCityChange("", "");
+            onAreaChange("", "");
           }
         }
       } catch (err: unknown) {
@@ -156,6 +165,12 @@ export function AddressDetailsStep({
         const areaList = await locationApi.getAreas(selectedCityId);
         if (isMounted) {
           setAreas(areaList);
+          const areaExists = areaList.some((a) => a.id === selectedAreaId);
+          if (areaList.length === 1 && (!selectedAreaId || !areaExists)) {
+            onAreaChange(areaList[0].id, areaList[0].pincode || "", areaList[0].name);
+          } else if (!areaExists && selectedAreaId) {
+            onAreaChange("", "", "");
+          }
         }
       } catch (err: unknown) {
         if (isMounted) {
@@ -316,7 +331,7 @@ export function AddressDetailsStep({
                   disabled={loadingStates}
                   className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-2.5 text-[12px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
                 >
-                  <option value="">{loadingStates ? "Loading states..." : "Select State"}</option>
+                  <option value="">{loadingStates ? "Loading states..." : states.length === 0 ? "No states available" : "Select State"}</option>
                   {states.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
@@ -345,6 +360,8 @@ export function AddressDetailsStep({
                       ? "Loading cities..."
                       : !selectedStateId
                       ? "Choose state first"
+                      : cities.length === 0
+                      ? "No cities available"
                       : "Select City"}
                   </option>
                   {cities.map((c) => (
@@ -371,6 +388,8 @@ export function AddressDetailsStep({
                       ? "Loading areas..."
                       : !selectedCityId
                       ? "Choose city first"
+                      : areas.length === 0
+                      ? "No delivery areas available"
                       : "Select Delivery Area / Hub"}
                   </option>
                   {areas.map((a) => (
