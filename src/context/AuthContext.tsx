@@ -96,15 +96,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const fetchFullUserProfile = useCallback(async (): Promise<AuthUser | null> => {
-    const authData = await authApi.getMe();
+    // The two lookups are independent, so load them together instead of
+    // waiting for one before starting the other.
+    const [authData, profileData] = await Promise.all([
+      authApi.getMe(),
+      profileApi.getProfile().catch((): CustomerProfile | null => null),
+    ]);
     if (!authData || !authData.id) return null;
-
-    let profileData: CustomerProfile | null = null;
-    try {
-      profileData = await profileApi.getProfile();
-    } catch {
-      profileData = null;
-    }
 
     return normalizeCustomerUser(authData, profileData);
   }, []);
