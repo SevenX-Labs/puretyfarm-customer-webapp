@@ -296,26 +296,83 @@ export function PlanStep({
         : "MONTHLY";
 
     const found = planOverviews.find((p) => p.type === typeKey);
-    if (found) return found;
 
-    if (planId === "single" && buyOnceElig) {
-      return {
-        type: "BUY_ONCE" as const,
-        available: buyOnceElig.eligible,
-        remainingUses: buyOnceElig.remainingUses,
-        usageCount: buyOnceElig.usageCount,
-        blockedReason: buyOnceElig.blockedReason,
-      };
+    const hasUsedBuyOnce = Boolean(
+      (buyOnceElig?.usageCount !== undefined && buyOnceElig.usageCount > 0) ||
+      (buyOnceElig?.remainingUses !== undefined && buyOnceElig.remainingUses <= 0) ||
+      trialElig?.blockedReason === "BUY_ONCE_ALREADY_USED" ||
+      found?.blockedReason === "BUY_ONCE_ALREADY_USED"
+    );
+
+    const hasUsedTrial = Boolean(
+      trialElig?.used === true ||
+      trialElig?.blockedReason === "TRIAL_ALREADY_USED" ||
+      buyOnceElig?.blockedReason === "TRIAL_ALREADY_USED" ||
+      found?.blockedReason === "TRIAL_ALREADY_USED"
+    );
+
+    if (planId === "trial") {
+      if (hasUsedBuyOnce) {
+        return {
+          type: "SEVEN_DAY_TRIAL" as const,
+          available: false,
+          used: false,
+          blockedReason: "BUY_ONCE_ALREADY_USED",
+        };
+      }
+      if (hasUsedTrial) {
+        return {
+          type: "SEVEN_DAY_TRIAL" as const,
+          available: false,
+          used: true,
+          blockedReason: "TRIAL_ALREADY_USED",
+        };
+      }
+      if (found) return found;
+      if (trialElig) {
+        return {
+          type: "SEVEN_DAY_TRIAL" as const,
+          available: trialElig.eligible,
+          used: trialElig.used,
+          blockedReason: trialElig.blockedReason,
+        };
+      }
+      return undefined;
     }
-    if (planId === "trial" && trialElig) {
-      return {
-        type: "SEVEN_DAY_TRIAL" as const,
-        available: trialElig.eligible,
-        used: trialElig.used,
-        blockedReason: trialElig.blockedReason,
-      };
+
+    if (planId === "single") {
+      if (hasUsedTrial) {
+        return {
+          type: "BUY_ONCE" as const,
+          available: false,
+          remainingUses: 0,
+          usageCount: 1,
+          blockedReason: "TRIAL_ALREADY_USED",
+        };
+      }
+      if (hasUsedBuyOnce) {
+        return {
+          type: "BUY_ONCE" as const,
+          available: false,
+          remainingUses: 0,
+          usageCount: 1,
+          blockedReason: "BUY_ONCE_ALREADY_USED",
+        };
+      }
+      if (found) return found;
+      if (buyOnceElig) {
+        return {
+          type: "BUY_ONCE" as const,
+          available: buyOnceElig.eligible,
+          remainingUses: buyOnceElig.remainingUses,
+          usageCount: buyOnceElig.usageCount,
+          blockedReason: buyOnceElig.blockedReason,
+        };
+      }
+      return undefined;
     }
-    return undefined;
+
+    return found;
   };
 
   return (

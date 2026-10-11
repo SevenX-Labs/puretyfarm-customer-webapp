@@ -87,7 +87,35 @@ export function SubscriptionTab({
   const getPlanEligibility = (id: "trial" | "monthly" | "single") => {
     const backendType =
       id === "trial" ? "SEVEN_DAY_TRIAL" : id === "single" ? "BUY_ONCE" : "MONTHLY";
-    return planOverviews.find((p) => p.type === backendType);
+    const found = planOverviews.find((p) => p.type === backendType);
+
+    // Cross-introductory exclusion check:
+    const isSingleActive =
+      subscription?.planId === "single" ||
+      subscription?.planName?.toLowerCase().includes("sample") ||
+      subscription?.planName?.toLowerCase().includes("buy once");
+
+    const isTrialActive =
+      subscription?.planId === "trial" ||
+      subscription?.planName?.toLowerCase().includes("trial");
+
+    if (id === "trial" && isSingleActive) {
+      return {
+        ...(found || { type: "SEVEN_DAY_TRIAL", durationDays: 7 }),
+        available: false,
+        blockedReason: "BUY_ONCE_ALREADY_USED",
+      };
+    }
+
+    if (id === "single" && isTrialActive) {
+      return {
+        ...(found || { type: "BUY_ONCE", durationDays: 1 }),
+        available: false,
+        blockedReason: "TRIAL_ALREADY_USED",
+      };
+    }
+
+    return found;
   };
 
   const availablePlans = [

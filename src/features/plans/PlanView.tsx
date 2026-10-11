@@ -28,6 +28,8 @@ import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import { PfBadge, PfButton, PfCard, PfSectionTitle, PfSkeleton } from "@/components/pf";
 import { manageDeliveryApi } from "@/features/delivery/api/manageDeliveryApi";
 import { accountApi } from "@/features/account/api/accountApi";
+import { ordersApi } from "@/features/orders/api/ordersApi";
+import type { CustomerOrder } from "@/features/orders/types";
 import type { Subscription } from "@/types/models";
 import {
   ManageDeliveryResponse,
@@ -56,6 +58,7 @@ export function PlanView() {
   const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
   const [subscription, setSubscription] = useState<CustomerSubscriptionSummary | null>(null);
   const [fallbackSub, setFallbackSub] = useState<Subscription | null>(null);
+  const [userOrders, setUserOrders] = useState<CustomerOrder[]>([]);
   const [changeRequests, setChangeRequests] = useState<DeliveryRequestItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -72,12 +75,13 @@ export function PlanView() {
     setError(null);
 
     try {
-      const [manageRes, overviewRes, monthlyRes, requestsRes, subRes] = await Promise.allSettled([
+      const [manageRes, overviewRes, monthlyRes, requestsRes, subRes, ordersRes] = await Promise.allSettled([
         manageDeliveryApi.getManageDelivery(),
         plansApi.getPlansOverview(),
         plansApi.getMonthlyConfig(),
         manageDeliveryApi.getRequests(),
         accountApi.getSubscription(),
+        ordersApi.listOrders({ limit: 20 }),
       ]);
 
       if (manageRes.status === "fulfilled" && manageRes.value?.activePlan) {
@@ -96,6 +100,10 @@ export function PlanView() {
 
       if (subRes.status === "fulfilled" && subRes.value?.subscription) {
         setFallbackSub(subRes.value.subscription);
+      }
+
+      if (ordersRes.status === "fulfilled" && ordersRes.value?.data) {
+        setUserOrders(ordersRes.value.data);
       }
 
       if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
@@ -201,26 +209,57 @@ export function PlanView() {
     (r) => r.status === "REJECTED" || r.status === "APPROVED"
   );
 
-  // Server Invariants:
-  // 1. If Buy Once used -> Trial blocked: "BUY_ONCE_ALREADY_USED"
-  // 2. If Trial used -> Buy Once blocked: "TRIAL_ALREADY_USED"
-  // 3. SEVEN_DAY_TRIAL is one-time only: "TRIAL_ALREADY_USED"
-  // 4. BUY_ONCE is single sample: "MAX_USES_REACHED"
-  const isTrialBlockedByBuyOnce =
+  // Server Invariants & Introductory Rules:
+  // 1. BUY_ONCE and SEVEN_DAY_TRIAL are strictly mutually exclusive introductory offers.
+  //    If a customer uses/orders either one, the other is permanently disabled.
+  // 2. Both introductory offers can only be used 1 time maximum.
+  const hasUsedBuyOnce = Boolean(
+    activePlan?.planType === "BUY_ONCE" ||
+    subscription?.planType === "BUY_ONCE" ||
+    fallbackSub?.planId === "single" ||
+    fallbackSub?.planName?.toLowerCase().includes("sample") ||
+    fallbackSub?.planName?.toLowerCase().includes("buy once") ||
     trialItem?.blockedReason === "BUY_ONCE_ALREADY_USED" ||
-    activePlan?.planType === "BUY_ONCE";
+    (buyOnceItem?.usageCount !== undefined && buyOnceItem.usageCount > 0) ||
+    (buyOnceItem?.remainingUses !== undefined && buyOnceItem.remainingUses <= 0) ||
+    userOrders.some((o) => o.planType === "BUY_ONCE")
+  );
 
-  const isBuyOnceBlockedByTrial =
-    buyOnceItem?.blockedReason === "TRIAL_ALREADY_USED" ||
+  const hasUsedTrial = Boolean(
     activePlan?.planType === "SEVEN_DAY_TRIAL" ||
-    activePlan?.planType === "TRIAL";
+    activePlan?.planType === "TRIAL" ||
+    subscription?.planType === "SEVEN_DAY_TRIAL" ||
+    subscription?.planType === "TRIAL" ||
+    fallbackSub?.planId === "trial" ||
+    fallbackSub?.planName?.toLowerCase().includes("trial") ||
+    buyOnceItem?.blockedReason === "TRIAL_ALREADY_USED" ||
+    trialItem?.used === true ||
+    trialItem?.blockedReason === "TRIAL_ALREADY_USED" ||
+    userOrders.some((o) => o.planType === "SEVEN_DAY_TRIAL")
+  );
 
-  const isTrialUsed =
-    trialItem?.blockedReason === "TRIAL_ALREADY_USED" || trialItem?.used === true;
+  const isTrialBlockedByBuyOnce = hasUsedBuyOnce;
+  const isBuyOnceBlockedByTrial = hasUsedTrial;
+  const isTrialUsed = hasUsedTrial;
 
   const isBuyOnceLimitReached =
+    hasUsedBuyOnce ||
     buyOnceItem?.blockedReason === "MAX_USES_REACHED" ||
-    (!buyOnceItem?.available && activePlan?.planType !== "BUY_ONCE");
+    (buyOnceItem?.remainingUses !== undefined && buyOnceItem.remainingUses <= 0);
+
+  const isTrialAvailable = Boolean(
+    trialItem?.available !== false &&
+    !isTrialBlockedByBuyOnce &&
+    !isTrialUsed &&
+    trialItem?.blockedReason !== "PLAN_NOT_CONFIGURED"
+  );
+
+  const isBuyOnceAvailable = Boolean(
+    buyOnceItem?.available !== false &&
+    !isBuyOnceBlockedByTrial &&
+    !isBuyOnceLimitReached &&
+    buyOnceItem?.blockedReason !== "PLAN_NOT_CONFIGURED"
+  );
 
   /**
    * Submits a pause or resume REQUEST for admin review.
@@ -600,7 +639,7 @@ export function PlanView() {
                   "relative rounded-3xl p-6 transition-all border flex flex-col justify-between " +
                   (activePlan?.planType === "SEVEN_DAY_TRIAL" || activePlan?.planType === "TRIAL"
                     ? "bg-[#FCF9F2] border-[var(--pf-brown)] shadow-md"
-                    : isTrialBlockedByBuyOnce || isTrialUsed
+                    : !isTrialAvailable
                     ? "bg-[#F7F4EE]/60 border-[var(--pf-border)] opacity-80"
                     : "bg-[var(--pf-card-bg)] border-[var(--pf-border)] hover:border-[var(--pf-brown)]/40 hover:shadow-md")
                 }
@@ -617,6 +656,8 @@ export function PlanView() {
                       <PfBadge tone="warning">Intro Availed</PfBadge>
                     ) : isTrialUsed ? (
                       <PfBadge tone="neutral">Already Used</PfBadge>
+                    ) : !isTrialAvailable ? (
+                      <PfBadge tone="neutral">Unavailable</PfBadge>
                     ) : null}
                   </div>
 
@@ -674,6 +715,15 @@ export function PlanView() {
                       </span>
                     </div>
                   )}
+
+                  {!isTrialAvailable && !isTrialBlockedByBuyOnce && !isTrialUsed && (
+                    <div className="mt-4 p-3 rounded-2xl bg-stone-100 border border-stone-200 text-stone-700 text-[11px] flex items-start gap-2">
+                      <Info size={14} className="text-stone-600 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Currently Unavailable:</strong> 7-Day Trial is currently not available for selection.
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-6">
@@ -697,6 +747,13 @@ export function PlanView() {
                       className="w-full py-2.5 rounded-2xl bg-stone-100 text-stone-400 font-medium text-xs cursor-not-allowed border border-stone-200"
                     >
                       Already Availed
+                    </button>
+                  ) : !isTrialAvailable ? (
+                    <button
+                      disabled
+                      className="w-full py-2.5 rounded-2xl bg-stone-100 text-stone-400 font-medium text-xs cursor-not-allowed border border-stone-200"
+                    >
+                      Currently Unavailable
                     </button>
                   ) : (
                     <PfButton href="/onboarding/plan" variant="secondary" className="w-full justify-center">
@@ -806,7 +863,7 @@ export function PlanView() {
                   "relative rounded-3xl p-6 transition-all border flex flex-col justify-between " +
                   (activePlan?.planType === "BUY_ONCE"
                     ? "bg-[#FCF9F2] border-[var(--pf-brown)] shadow-md"
-                    : isBuyOnceBlockedByTrial || isBuyOnceLimitReached
+                    : !isBuyOnceAvailable
                     ? "bg-[#F7F4EE]/60 border-[var(--pf-border)] opacity-80"
                     : "bg-[var(--pf-card-bg)] border-[var(--pf-border)] hover:border-[var(--pf-brown)]/40 hover:shadow-md")
                 }
@@ -820,9 +877,11 @@ export function PlanView() {
                     {activePlan?.planType === "BUY_ONCE" ? (
                       <PfBadge tone="brand">Current Active</PfBadge>
                     ) : isBuyOnceBlockedByTrial ? (
-                      <PfBadge tone="neutral">Unavailable</PfBadge>
+                      <PfBadge tone="warning">Intro Availed</PfBadge>
                     ) : isBuyOnceLimitReached ? (
-                      <PfBadge tone="neutral">Limit Reached</PfBadge>
+                      <PfBadge tone="neutral">Already Used</PfBadge>
+                    ) : !isBuyOnceAvailable ? (
+                      <PfBadge tone="neutral">Unavailable</PfBadge>
                     ) : null}
                   </div>
 
@@ -889,6 +948,15 @@ export function PlanView() {
                       </span>
                     </div>
                   )}
+
+                  {!isBuyOnceAvailable && !isBuyOnceBlockedByTrial && !isBuyOnceLimitReached && activePlan?.planType !== "BUY_ONCE" && (
+                    <div className="mt-4 p-3 rounded-2xl bg-stone-100 border border-stone-200 text-stone-700 text-[11px] flex items-start gap-2">
+                      <Info size={14} className="text-stone-600 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>Currently Unavailable:</strong> Sample bottle is currently not available for selection.
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-6">
@@ -912,6 +980,13 @@ export function PlanView() {
                       className="w-full py-2.5 rounded-2xl bg-stone-100 text-stone-400 font-medium text-xs cursor-not-allowed border border-stone-200"
                     >
                       Limit Reached (1/1)
+                    </button>
+                  ) : !isBuyOnceAvailable ? (
+                    <button
+                      disabled
+                      className="w-full py-2.5 rounded-2xl bg-stone-100 text-stone-400 font-medium text-xs cursor-not-allowed border border-stone-200"
+                    >
+                      Currently Unavailable
                     </button>
                   ) : (
                     <PfButton href="/onboarding/plan" variant="secondary" className="w-full justify-center">
