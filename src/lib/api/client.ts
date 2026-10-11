@@ -25,6 +25,19 @@ function resolveUrl(path: string): string {
 
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
+  // Internal Next.js API endpoints (hosted by Next.js, not by the NestJS backend)
+  const isInternalNextRoute =
+    cleanPath.startsWith("/api/locations") ||
+    cleanPath.startsWith("/api/serviceability") ||
+    cleanPath.startsWith("/api/auth/send-otp") ||
+    cleanPath.startsWith("/api/auth/verify-otp") ||
+    cleanPath.startsWith("/api/auth/logout") ||
+    cleanPath.startsWith("/api/upload");
+
+  if (isInternalNextRoute) {
+    return cleanPath;
+  }
+
   // If in direct API mode or server-side execution, use full backend URL
   if (typeof window === "undefined" || env.NEXT_PUBLIC_API_MODE === "direct") {
     return `${BACKEND_BASE_URL}${cleanPath}`;
