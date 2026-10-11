@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { m, AnimatePresence } from "framer-motion";
+import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { PlanDefinition } from "@/features/plans";
 import { PlanQuote } from "@/features/plans/api/plansApi";
@@ -12,9 +12,11 @@ import {
   FiRefreshCw,
   FiShield,
   FiLock,
+  FiPlusCircle,
 } from "react-icons/fi";
 import { LuWallet, LuBanknote } from "react-icons/lu";
 import { EmailVerificationModal } from "@/components/pf/EmailVerificationModal";
+import { useAuth } from "@/context/AuthContext";
 
 export interface PaymentStepProps {
   quote: PlanQuote | null;
@@ -53,6 +55,7 @@ export function PaymentStep({
   onPayCash,
   onBackToPlans,
 }: PaymentStepProps) {
+  const { user } = useAuth();
   const [method, setMethod] = useState<Method>("WALLET");
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
@@ -76,9 +79,10 @@ export function PaymentStep({
   }
 
   const totalPaise = quote.totalSellingAmount;
-  // The plan is charged per delivered order, so the wallet does not need to
-  // hold the plan total to buy it. A low balance is only pointed out.
-  const walletBelowPlanTotal = walletBalancePaise < totalPaise;
+  const shortfallPaise = Math.max(totalPaise - walletBalancePaise, 0);
+  const hasWalletBalance = walletBalancePaise > 0;
+  const isWalletSufficient = walletBalancePaise >= totalPaise;
+  const walletBelowPlanTotal = !isWalletSufficient;
 
   const planTitle =
     plan?.name?.toUpperCase() ||
@@ -91,6 +95,16 @@ export function PaymentStep({
   const occurrencesText = `${quote.deliveryOccurrences} ${
     quote.deliveryOccurrences === 1 ? "delivery" : "deliveries"
   }`;
+
+  const handleOnlinePaymentClick = () => {
+    if (user && !user.email) {
+      setIsEmailModalOpen(true);
+    } else {
+      onPayOnline();
+    }
+  };
+
+  const walletUrl = `/wallet?amount=${Math.ceil(shortfallPaise / 100)}`;
 
   return (
     <m.section
@@ -159,10 +173,21 @@ export function PaymentStep({
         {paymentError && (
           <div
             role="alert"
-            className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2 text-xs text-red-700"
+            className="flex items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-700"
           >
-            <FiAlertCircle className="h-4 w-4 shrink-0 text-red-600" />
-            <span>{paymentError}</span>
+            <div className="flex items-center gap-2">
+              <FiAlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+              <span>{paymentError}</span>
+            </div>
+            {paymentError.toLowerCase().includes("email") && (
+              <button
+                type="button"
+                onClick={() => setIsEmailModalOpen(true)}
+                className="shrink-0 rounded-lg bg-[#5C1B13] px-2.5 py-1 text-[11px] font-bold text-white hover:bg-[#48150F]"
+              >
+                Verify Email
+              </button>
+            )}
           </div>
         )}
 
@@ -176,7 +201,7 @@ export function PaymentStep({
         )}
 
         {/* Payment Method Selector */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {/* 1. Wallet Option */}
             <button
@@ -255,43 +280,152 @@ export function PaymentStep({
             </button>
           </div>
 
-          <p className="text-[11px] text-[#715E50]">
-            Nothing is deducted now. Each delivery is deducted from your wallet only when
-            it is delivered. Plan total at this quantity: {paise(totalPaise)}.
-            {!walletLoading && walletBelowPlanTotal && (
-              <>
-                {" "}
-                Your wallet has {paise(walletBalancePaise)} — add money from the Wallet page
-                so your plan can be approved and deliveries charged.
-              </>
-            )}
-          </p>
+          {/* WALLET BREAKDOWN & REMAINING TOP-UP CALLOUT */}
+          {method === "WALLET" && !walletLoading && (
+            <>
+              {walletBelowPlanTotal && hasWalletBalance ? (
+                /* User has partial wallet balance: Show remaining top-up calculation */
+                <div className="rounded-2xl border border-amber-200/90 bg-[#FFFDF7] p-3 sm:p-3.5 space-y-2 shadow-2xs">
+                  <div className="flex items-center justify-between text-xs pb-1.5 border-b border-[#E8DFD4]/80">
+                    <span className="text-[#715E50]">Plan Total Amount:</span>
+                    <span className="font-semibold text-[#24130F]">{paise(totalPaise)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs pb-1.5 border-b border-[#E8DFD4]/80">
+                    <span className="text-[#715E50] flex items-center gap-1.5">
+                      <LuWallet className="h-3.5 w-3.5 text-emerald-700 shrink-0" />
+                      <span>Existing Wallet Balance:</span>
+                    </span>
+                    <span className="font-bold text-emerald-700 font-mono">
+                      {paise(walletBalancePaise)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs pt-0.5">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#5C1B13] block">
+                        Remaining Balance to Add
+                      </span>
+                      <span className="text-[10.5px] text-[#715E50]">
+                        (Top up only remainder, not full {paise(totalPaise)})
+                      </span>
+                    </div>
+                    <span className="text-sm sm:text-base font-black font-mono text-[#5C1B13] bg-[#F8E94E] px-2.5 py-0.5 rounded-lg shadow-2xs">
+                      +{paise(shortfallPaise)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#715E50] leading-snug pt-1 border-t border-[#E8DFD4]/60">
+                    You already have <strong>{paise(walletBalancePaise)}</strong> in your wallet.
+                    You only need to add the remaining balance of <strong className="text-[#5C1B13]">{paise(shortfallPaise)}</strong> to ensure uninterrupted daily milk deliveries.
+                  </p>
+                </div>
+              ) : isWalletSufficient ? (
+                /* User has full balance */
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3 flex items-start gap-2.5 text-xs text-emerald-900 shadow-2xs">
+                  <FiCheckCircle className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                  <div className="space-y-0.5">
+                    <span className="font-bold block">Sufficient Balance Available</span>
+                    <span className="text-[11px] text-emerald-800">
+                      Your wallet has {paise(walletBalancePaise)}, which covers this entire plan ({paise(totalPaise)}). Deliveries will be charged per delivery.
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* Zero balance */
+                <p className="text-[11px] text-[#715E50]">
+                  Nothing is deducted now. Each delivery is deducted from your wallet only when
+                  it is delivered. Plan total at this quantity: {paise(totalPaise)}.
+                </p>
+              )}
+            </>
+          )}
+
+          {method === "CASH" && (
+            <div className="rounded-2xl border border-[#E8DFD4] bg-[#FAF8F5] p-3 text-xs text-[#715E50] space-y-1">
+              <span className="font-bold text-[#24130F] block">Doorstep Cash Collection:</span>
+              <p className="text-[11px] leading-relaxed">
+                {hasWalletBalance
+                  ? `Your wallet has ${paise(walletBalancePaise)}. Our delivery partner can collect either the remaining ${paise(shortfallPaise)} or cash to top up your wallet during milk delivery.`
+                  : `Our delivery partner will collect cash to top up your wallet during your first morning delivery.`}
+              </p>
+            </div>
+          )}
 
           {/* Action Button Area */}
-          <div className="pt-1">
+          <div className="pt-1 space-y-2">
             {method === "WALLET" ? (
-              <Button
-                type="button"
-                variant="primary"
-                size="md"
-                disabled={paymentSubmitting}
-                onClick={onPayFromWallet}
-                className="h-10 sm:h-10.5 w-full rounded-xl bg-[#5C1B13] hover:bg-[#48150F] text-xs sm:text-[13px] font-bold text-white cursor-pointer disabled:opacity-60 shadow-sm"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  {paymentSubmitting ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <FiCheckCircle className="h-4 w-4" />
-                  )}
-                  <span>
-                    {paymentSubmitting
-                      ? "Confirming Subscription..."
-                      : "Confirm Plan — Charged per Delivery"}
-                  </span>
+              walletBelowPlanTotal ? (
+                /* Shortfall Action Area: Primary action is adding remaining balance online */
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    disabled={paymentSubmitting}
+                    onClick={handleOnlinePaymentClick}
+                    className="h-10 sm:h-10.5 w-full rounded-xl bg-[#5C1B13] hover:bg-[#48150F] text-xs sm:text-[13px] font-bold text-white cursor-pointer disabled:opacity-60 shadow-sm"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      {paymentSubmitting ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <FiPlusCircle className="h-4 w-4" />
+                      )}
+                      <span>
+                        {paymentSubmitting
+                          ? "Connecting to Payment Gateway..."
+                          : hasWalletBalance
+                          ? `Add Remaining ${paise(shortfallPaise)} Online`
+                          : `Add ${paise(totalPaise)} Online & Activate`}
+                      </span>
+                    </div>
+                  </Button>
+
+                  <div className="flex items-center justify-between px-1 text-[11px] pt-0.5">
+                    <button
+                      type="button"
+                      disabled={paymentSubmitting}
+                      onClick={onPayFromWallet}
+                      className="font-semibold text-[#5C1B13] hover:underline cursor-pointer disabled:opacity-50 text-left"
+                    >
+                      {hasWalletBalance
+                        ? `Or confirm with existing wallet (${paise(walletBalancePaise)}) →`
+                        : `Confirm Plan (Pay per delivery) →`}
+                    </button>
+                    <a
+                      href={walletUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-[#715E50] hover:text-[#5C1B13] hover:underline text-right"
+                    >
+                      Add in Wallet page ↗
+                    </a>
+                  </div>
                 </div>
-              </Button>
+              ) : (
+                /* Full Balance Available: Normal wallet confirmation */
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  disabled={paymentSubmitting}
+                  onClick={onPayFromWallet}
+                  className="h-10 sm:h-10.5 w-full rounded-xl bg-[#5C1B13] hover:bg-[#48150F] text-xs sm:text-[13px] font-bold text-white cursor-pointer disabled:opacity-60 shadow-sm"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    {paymentSubmitting ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <FiCheckCircle className="h-4 w-4" />
+                    )}
+                    <span>
+                      {paymentSubmitting
+                        ? "Confirming Subscription..."
+                        : "Confirm Plan — Charged per Delivery"}
+                    </span>
+                  </div>
+                </Button>
+              )
             ) : (
+              /* Cash on Delivery Button */
               <Button
                 type="button"
                 variant="primary"

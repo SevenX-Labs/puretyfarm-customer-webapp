@@ -384,7 +384,7 @@ export function MonthlyUpgradeModal({
                       </span>
                     </p>
                     <Link
-                      href="/wallet"
+                      href={`/wallet?amount=${shortfallRupees}`}
                       target="_blank"
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5C1B13] hover:underline"

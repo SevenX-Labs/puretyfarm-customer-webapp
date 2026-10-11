@@ -302,6 +302,18 @@ function WalletContent() {
     }
   }, [searchParams, user, refreshAll]);
 
+  // Handle pre-filled amount from search params (e.g. ?amount=65 from onboarding or plan upgrade)
+  useEffect(() => {
+    const amt = searchParams.get("amount");
+    if (amt) {
+      const parsed = parseFloat(amt);
+      if (!isNaN(parsed) && parsed > 0) {
+        setCustomAmount(String(parsed));
+        setSelectedPreset(null);
+      }
+    }
+  }, [searchParams]);
+
   // Load live payments for retry assistance
   useEffect(() => {
     if (!user) return;

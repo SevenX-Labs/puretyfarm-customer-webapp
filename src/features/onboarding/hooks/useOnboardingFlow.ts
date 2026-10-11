@@ -396,6 +396,9 @@ export function useOnboardingFlow() {
     setPaymentNotice(null);
 
     const shortfall = Math.max(pendingQuote.totalSellingAmount - walletBalancePaise, 0);
+    if (shortfall === 0) {
+      return handlePayFromWallet();
+    }
 
     try {
       const res = await paymentsApi.initiateOnlineTopup(shortfall, {
