@@ -93,8 +93,8 @@ export function OnboardingView() {
   }
 
   return (
-    <div className="relative min-h-screen min-h-[100dvh] w-full overflow-x-hidden overflow-y-auto bg-[#faf7f2] font-sans text-[#24130f] flex flex-col md:justify-center py-2 sm:py-3.5 md:py-4 pb-10 sm:pb-8 md:pb-4 touch-pan-y overscroll-y-contain">
-      <main className="mx-auto w-full max-w-5xl xl:max-w-6xl px-2.5 sm:px-4 flex flex-col items-center my-auto">
+    <div data-onboarding-page="true" className="relative min-h-screen min-h-[100dvh] w-full bg-[#faf7f2] font-sans text-[#24130f] flex flex-col md:justify-center py-2.5 sm:py-3.5 md:py-4 pb-16 sm:pb-10 md:pb-4">
+      <main className="mx-auto w-full max-w-5xl xl:max-w-6xl px-2.5 sm:px-4 flex flex-col items-center md:my-auto shrink-0">
         <section
           aria-label="Account setup and subscription workflow"
           className="relative flex flex-col md:flex-row w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl md:min-h-[580px] lg:min-h-[600px] md:max-h-[94vh] overflow-visible md:overflow-hidden"
@@ -116,7 +116,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="w-full min-h-full md:h-full flex flex-col justify-between md:overflow-y-auto md:overscroll-contain custom-scrollbar touch-pan-y"
+                  className="w-full flex flex-col justify-between md:h-full md:overflow-y-auto md:overscroll-contain custom-scrollbar"
                 >
                   <ProfileStep
                     user={user}
@@ -152,7 +152,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="w-full min-h-full md:h-full flex flex-col justify-between md:overflow-y-auto md:overscroll-contain custom-scrollbar touch-pan-y"
+                  className="w-full flex flex-col justify-between md:h-full md:overflow-y-auto md:overscroll-contain custom-scrollbar"
                 >
                   <AddressDetailsStep
                     user={user}
@@ -187,7 +187,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="w-full min-h-full md:h-full flex flex-col justify-between md:overflow-y-auto md:overscroll-contain custom-scrollbar touch-pan-y"
+                  className="w-full flex flex-col justify-between md:h-full md:overflow-y-auto md:overscroll-contain custom-scrollbar"
                 >
                   <PlanStep
                     savedAddress={savedAddress}
@@ -208,7 +208,7 @@ export function OnboardingView() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="w-full min-h-full md:h-full flex flex-col justify-between md:overflow-y-auto md:overscroll-contain custom-scrollbar touch-pan-y"
+                  className="w-full flex flex-col justify-between md:h-full md:overflow-y-auto md:overscroll-contain custom-scrollbar"
                 >
                   <PaymentStep
                     quote={pendingQuote}

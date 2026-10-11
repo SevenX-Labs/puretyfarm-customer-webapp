@@ -112,7 +112,7 @@ export function PaymentStep({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: 0.18 }}
-      className="flex flex-col justify-between min-h-full md:h-full space-y-3 pb-3 sm:pb-0 touch-pan-y"
+      className="flex flex-col justify-between w-full md:h-full space-y-3 pb-3 sm:pb-0"
     >
       <div className="space-y-3">
         {/* Header */}

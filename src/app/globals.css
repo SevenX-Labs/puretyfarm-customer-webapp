@@ -342,7 +342,8 @@ html.lenis {
 
 /* When the authenticated shell or auth/login page is on-screen, drop marketing's sticky-CTA mobile padding */
 body:has(.pf-app),
-body:has([data-auth-page]) {
+body:has([data-auth-page]),
+body:has([data-onboarding-page]) {
   padding-bottom: 0 !important;
 }
 
