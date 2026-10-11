@@ -60,7 +60,7 @@ export function AuthView() {
 
   if (authStatus === "loading" || authStatus === "authenticated") {
     return (
-      <main className="min-h-svh flex items-center justify-center bg-[#f3dfc0]">
+      <main className="min-h-screen min-h-[100dvh] flex flex-1 items-center justify-center bg-[#f3dfc0]">
         <div className="w-8 h-8 rounded-full border-2 border-[#5C1B13] border-t-transparent animate-spin" />
       </main>
     );
@@ -81,13 +81,13 @@ export function AuthView() {
 
   return (
     <main
-      className="min-h-svh lg:h-svh lg:overflow-hidden isolate flex w-full flex-col justify-center overflow-x-hidden overflow-y-auto bg-[#f3dfc0] bg-cover bg-center bg-no-repeat text-[#24130f] pt-[74px] sm:pt-[82px] lg:pt-[86px] pb-3 sm:pb-5 lg:pb-5"
+      className="min-h-screen min-h-[100dvh] lg:h-svh lg:overflow-hidden isolate flex w-full flex-1 flex-col justify-center overflow-x-hidden overflow-y-auto bg-[#f3dfc0] bg-cover bg-bottom sm:bg-center bg-no-repeat text-[#24130f] pt-[74px] sm:pt-[82px] lg:pt-[86px] pb-4 sm:pb-6 lg:pb-6"
       style={{
         backgroundImage:
           "url('/newimge/Sepia%20Countryside%20Farm%20Panorama.png')",
       }}
     >
-      <div className="relative z-10 mx-auto flex flex-1 w-full max-w-[1360px] flex-col items-center justify-center gap-4 px-3 sm:px-6 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,410px)] lg:grid-cols-[minmax(0,1fr)_minmax(380px,440px)] xl:grid-cols-[minmax(0,1fr)_460px] md:items-center lg:gap-8 xl:gap-12 md:max-h-[calc(100svh-5.8rem)]">
+      <div className="relative z-10 mx-auto my-auto flex flex-1 w-full max-w-[1360px] flex-col items-center justify-center gap-4 px-3 sm:px-6 md:grid md:grid-cols-[minmax(0,1fr)_minmax(340px,410px)] lg:grid-cols-[minmax(0,1fr)_minmax(380px,440px)] xl:grid-cols-[minmax(0,1fr)_460px] md:items-center lg:gap-8 xl:gap-12 md:max-h-[calc(100svh-5.8rem)]">
         <section className="relative isolate hidden w-full self-stretch md:flex md:flex-col md:justify-center">
           <m.div
             initial={{ opacity: 0, x: -16 }}
