@@ -24,29 +24,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (status === "authenticated" && user) {
-      const path = pathname || "";
-      // Only profile_pending (missing name) and location_pending (missing address)
-      // are essential onboarding steps that require redirecting to setup.
-      // plan_pending or complete must NEVER hijack access to /dashboard, /orders, /wallet, etc.
-      const isEssentialSetupPending =
-        user.onboardingStep === "profile_pending" ||
-        user.onboardingStep === "location_pending";
-
-      if (
-        isEssentialSetupPending &&
-        !path.startsWith("/onboarding") &&
-        !path.startsWith("/payment/result") &&
-        !path.startsWith("/order-confirmation")
-      ) {
-        if (user.onboardingStep === "location_pending") {
-          router.replace("/onboarding?step=2");
-        } else {
-          router.replace("/onboarding?step=1");
-        }
-      }
-    }
-  }, [status, user, pathname, router]);
+    // Once authenticated, NEVER hijack app navigation (/dashboard, /orders, /wallet, /plans, /account)
+    // to onboarding on hot refresh or page reload.
+  }, [status, pathname, router]);
 
   if (status === "loading") {
     return (
@@ -75,31 +55,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       );
     }
     return null;
-  }
-
-  // Only block with redirect spinner if essential profile/address setup is missing
-  const isEssentialSetupPending =
-    user?.onboardingStep === "profile_pending" ||
-    user?.onboardingStep === "location_pending";
-
-  if (isEssentialSetupPending) {
-    const path = pathname || "";
-    if (
-      !path.startsWith("/onboarding") &&
-      !path.startsWith("/order-confirmation") &&
-      !path.startsWith("/payment/result")
-    ) {
-      return (
-        <div className="min-h-screen pf-app flex items-center justify-center bg-[#faf7f2]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 rounded-full border-2 border-[var(--pf-brown)] border-t-transparent animate-spin" />
-            <div className="text-[12px] font-semibold text-[#715e50]">
-              Completing initial setup...
-            </div>
-          </div>
-        </div>
-      );
-    }
   }
 
   return (

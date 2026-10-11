@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { ArrowRight, Milk, UserPlus, MapPin, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { PfButton, PfCard, PfSectionTitle } from "@/components/pf";
@@ -15,6 +16,12 @@ import { DashboardSkeleton } from "./components/DashboardSkeleton";
 
 export function DashboardView() {
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("pf_onboarding_completed", "true");
+    }
+  }, []);
   const { orders, subscription, defaultAddress, loading, error } =
     useDashboardData();
 

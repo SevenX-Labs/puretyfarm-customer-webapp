@@ -79,14 +79,22 @@ function normalizeCustomerUser(
   // 2. No serviceable address saved -> location_pending (Step 2)
   // 3. Address saved, but no active plan / order placed -> plan_pending (Step 3/4)
   // 4. All complete -> complete
-  let onboardingStep: OnboardingStatus = "profile_pending";
-  if (!isPlaceholder && fullName.length > 0) {
-    const hasAddress = Array.isArray(addresses) && addresses.length > 0;
-    if (!hasAddress) {
-      onboardingStep = "location_pending";
+  const isMarkedCompleted =
+    typeof window !== "undefined" &&
+    (window.localStorage.getItem("pf_onboarding_completed") === "true" ||
+     window.sessionStorage.getItem("pf_onboarding_completed") === "true");
+
+  let onboardingStep: OnboardingStatus = "complete";
+  if (!isMarkedCompleted && !hasActivePlan) {
+    if (isPlaceholder || fullName.length === 0) {
+      onboardingStep = "profile_pending";
     } else {
-      // User has established profile and serviceable delivery address
-      onboardingStep = "complete";
+      const hasAddress = Array.isArray(addresses) && addresses.length > 0;
+      if (!hasAddress) {
+        onboardingStep = "location_pending";
+      } else {
+        onboardingStep = "complete";
+      }
     }
   }
 
