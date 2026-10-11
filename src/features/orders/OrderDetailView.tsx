@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -72,54 +73,56 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
   const [skipDate, setSkipDate] = useState<string>("");
   const [pauseResumeDate, setPauseResumeDate] = useState<string>("");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
+  const loadOrder = useCallback(
+    async (isSilent = false) => {
+      if (!isSilent) setLoading(true);
       try {
         const res = await ordersApi.getOrder(orderId);
-        if (!cancelled) {
-          const ord = ((res as any).order || res) as CustomerOrder;
-          setOrder(ord);
+        const ord = ((res as any).order || res) as CustomerOrder;
+        setOrder(ord);
 
-          // If monthly plan, fetch manage-delivery active plan view
-          const isMonthly =
-            ord.planType === "MONTHLY" ||
-            ord.planType === "MONTHLY_PLAN" ||
-            ord.items?.some((i) =>
-              (i.productNameSnapshot || i.name || "").toLowerCase().includes("monthly")
-            );
+        const isMonthly =
+          ord.planType === "MONTHLY" ||
+          ord.planType === "MONTHLY_PLAN" ||
+          ord.items?.some((i) =>
+            (i.productNameSnapshot || i.name || "").toLowerCase().includes("monthly")
+          );
 
-          if (isMonthly) {
-            setLoadingManage(true);
-            manageDeliveryApi
-              .getManageDelivery()
-              .then((mRes) => {
-                if (!cancelled && mRes) {
-                  setManageData(mRes);
-                  if (mRes.activePlan?.quantityLitres) {
-                    setSelectedQuantity(mRes.activePlan.quantityLitres);
-                  }
-                  if (mRes.activePlan?.frequency) {
-                    setSelectedFrequency(mRes.activePlan.frequency);
-                  }
-                }
-              })
-              .catch(() => {})
-              .finally(() => {
-                if (!cancelled) setLoadingManage(false);
-              });
+        if (isMonthly) {
+          if (!isSilent) setLoadingManage(true);
+          try {
+            const mRes = await manageDeliveryApi.getManageDelivery();
+            if (mRes) {
+              setManageData(mRes);
+              if (mRes.activePlan?.quantityLitres) {
+                setSelectedQuantity(mRes.activePlan.quantityLitres);
+              }
+              if (mRes.activePlan?.frequency) {
+                setSelectedFrequency(mRes.activePlan.frequency);
+              }
+            }
+          } catch {
+            // Silently ignore manage delivery errors in live sync
+          } finally {
+            if (!isSilent) setLoadingManage(false);
           }
         }
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Could not load order.");
+        if (!isSilent) setError(e?.message || "Could not load order.");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!isSilent) setLoading(false);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [orderId]);
+    },
+    [orderId]
+  );
+
+  useEffect(() => {
+    loadOrder(false);
+  }, [loadOrder]);
+
+  // High-frequency live data sync: reflects admin status changes, delivery updates,
+  // and cancellations in real-time without reloading the page.
+  useRealtimeSync(() => loadOrder(true));
 
   // A per-delivery order that is still upcoming can have just its own
   // delivery changed; the server re-checks every one of these conditions.

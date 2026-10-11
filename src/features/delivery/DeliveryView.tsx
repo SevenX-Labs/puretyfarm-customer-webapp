@@ -53,10 +53,10 @@ export function DeliveryView() {
     fetchDeliveryData();
   }, [fetchDeliveryData]);
 
-  // Real-time synchronization: sync delivery schedules when admin approves plan
+  // High-frequency live data sync: sync delivery schedules when admin approves plan in real-time
   useRealtimeSync(() => {
     fetchDeliveryData();
-  }, { intervalMs: 12000 });
+  });
 
   const defaultAddress =
     addresses.find((a) => a.isDefault) || addresses[0] || null;

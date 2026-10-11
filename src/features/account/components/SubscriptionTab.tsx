@@ -79,9 +79,10 @@ export function SubscriptionTab({
     loadPlans();
   }, [loadPlans]);
 
+  // High-frequency live data sync: sync plan overviews and configurations in real-time
   useRealtimeSync(() => {
     loadPlans();
-  }, { intervalMs: 15000 });
+  });
 
   const getPlanEligibility = (id: "trial" | "monthly" | "single") => {
     const backendType =

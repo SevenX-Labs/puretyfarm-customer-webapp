@@ -116,9 +116,10 @@ export function PlanView() {
 
   // Real-time sync: when admin approves plan or edits plan configs/cutoffs,
   // updates automatically reflect on customer view without manual refresh.
+  // High-frequency live data sync: sync active plans, pauses/resumes, and server configs in real-time
   useRealtimeSync(() => {
     loadData(true);
-  }, { intervalMs: 10000 });
+  });
 
   const activePlan: ActivePlanView | undefined = deliveryData?.activePlan;
   const nextDelivery: UpcomingDeliveryView | undefined = deliveryData?.upcomingDeliveries?.[0];

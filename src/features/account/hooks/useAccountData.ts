@@ -183,13 +183,13 @@ export function useAccountData() {
     };
   }, [user, fetchWalletData]);
 
-  // Real-time synchronization: when admin approves cash or credits wallet,
-  // customer wallet balance and credit status refresh live in the background.
-  useRealtimeSync(() => {
+  // High-frequency live data sync: when admin approves orders, plans, credits/debits wallet,
+  // or updates subscription state, customer views update automatically in real-time.
+  useRealtimeSync(async () => {
     if (user) {
-      fetchWalletData();
+      await fetchWalletData();
     }
-  }, { intervalMs: 10000 });
+  });
 
   // Check & verify any return txnid from PhonePe
   useEffect(() => {

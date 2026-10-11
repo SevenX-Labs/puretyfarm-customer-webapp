@@ -251,6 +251,10 @@ function WalletContent() {
     }
   }, [user, loading, router, fetchWallet, fetchTransactions, fetchCreditRequests, txTypeFilter, reqStatusFilter]);
 
+  // High-frequency live data sync: automatically updates wallet balance,
+  // credit requests, and transaction ledger when admin approves or credits/debits in real-time.
+  useRealtimeSync(refreshAll, { enabled: Boolean(user) });
+
   // Handle PhonePe return txnid & result parameter
   useEffect(() => {
     const txnid = searchParams.get("txnid");

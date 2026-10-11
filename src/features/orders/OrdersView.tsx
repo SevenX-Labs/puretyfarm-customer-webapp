@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import Link from "next/link";
 import { ArrowRight, Package, Search } from "lucide-react";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
@@ -34,23 +35,26 @@ export function OrdersView() {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await accountApi.getOrders();
-        if (!cancelled) {
-          setOrders(res.orders || []);
-          setPendingPurchases(res.pendingPlanPurchases || []);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const loadOrders = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
+    try {
+      const res = await accountApi.getOrders();
+      setOrders(res.orders || []);
+      setPendingPurchases(res.pendingPlanPurchases || []);
+    } catch {
+      // Background sync swallows error
+    } finally {
+      if (!isSilent) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadOrders(false);
+  }, [loadOrders]);
+
+  // High-frequency live data sync: automatically updates orders and pending approvals
+  // without needing hot reload when admin updates/confirms orders.
+  useRealtimeSync(() => loadOrders(true));
 
   const filtered = useMemo(() => {
     let list = orders;

@@ -21,9 +21,8 @@ export function useDashboardData(): DashboardData {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       const [ordersRes, subRes, addrRes] = await Promise.all([
         accountApi.getOrders().catch(() => ({ success: false, orders: [] as Order[] })),
@@ -42,20 +41,21 @@ export function useDashboardData(): DashboardData {
       const def =
         addrs.find((a: Address) => a.isDefault) || addrs[0] || null;
       setDefaultAddress(def);
+      if (!isSilent) setError(null);
     } catch (e: any) {
-      setError(e?.message || "Could not load your dashboard.");
+      if (!isSilent) setError(e?.message || "Could not load your dashboard.");
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    load();
+    load(false);
   }, [load]);
 
   useRealtimeSync(() => {
-    load();
-  }, { intervalMs: 12000 });
+    load(true);
+  });
 
   return {
     orders,

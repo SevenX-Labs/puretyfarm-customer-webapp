@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import {
@@ -116,6 +117,24 @@ export function AddressDetailsStep({
       isMounted = false;
     };
   }, [selectedStateId, onStateChange]);
+
+  // Live data sync: silently update states catalog if admin adds or removes states
+  useRealtimeSync(async () => {
+    try {
+      const stateList = await locationApi.getStates();
+      setStates(stateList);
+      const stateExists = stateList.some((s) => s.id === selectedStateId);
+      if (stateList.length === 1 && (!selectedStateId || !stateExists)) {
+        onStateChange(stateList[0].id);
+      } else if (!stateExists && selectedStateId) {
+        onStateChange("");
+        onCityChange("", "");
+        onAreaChange("", "");
+      }
+    } catch {
+      // Silently ignore live sync errors in background
+    }
+  }, { intervalMs: 5000 });
 
   // Load Cities whenever State changes
   useEffect(() => {
