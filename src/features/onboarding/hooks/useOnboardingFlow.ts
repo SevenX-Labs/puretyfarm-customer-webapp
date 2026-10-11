@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { onboardingApi } from "../api/onboardingApi";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
 import { locationApi, CustomerAddress } from "@/features/location/api/locationApi";
 import { plansApi, PlanQuote } from "@/features/plans/api/plansApi";
 import { paymentsApi } from "@/features/payments/api/paymentsApi";
@@ -67,6 +68,9 @@ export function useOnboardingFlow() {
     if (authLoading) return;
 
     if (!user) {
+      if (tokenStorage.hasAccessToken()) {
+        return;
+      }
       router.replace("/auth?redirect=/onboarding");
       return;
     }

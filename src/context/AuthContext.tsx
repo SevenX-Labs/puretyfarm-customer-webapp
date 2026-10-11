@@ -126,7 +126,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!authData || !authData.id) return null;
 
     const hasOrders = Boolean(ordersRes && ordersRes.orders && ordersRes.orders.length > 0);
-    const hasActivePlan = Boolean(manageDeliveryRes?.activePlan || hasOrders);
+    const hasPendingPurchases = Boolean(
+      ordersRes &&
+      (ordersRes as any).pendingPlanPurchases &&
+      (ordersRes as any).pendingPlanPurchases.length > 0
+    );
+    const hasActivePlan = Boolean(
+      manageDeliveryRes?.activePlan || hasOrders || hasPendingPurchases
+    );
 
     return normalizeCustomerUser(authData, profileData, addresses, hasActivePlan);
   }, []);
@@ -147,14 +154,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      // If user had tokens, do not immediately force unauthenticated on transient API failure
+      if (tokenStorage.hasAccessToken()) {
+        return user;
+      }
+
       setUser(null);
       setStatus("unauthenticated");
       return null;
     } catch (err) {
       console.warn("[AuthContext] Could not refresh the user profile:", err);
-      setUser(null);
-      setStatus("unauthenticated");
-      return null;
+      return user;
     }
   }, [fetchFullUserProfile]);
 
