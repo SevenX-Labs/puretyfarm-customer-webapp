@@ -31,7 +31,7 @@ export class Fast2SmsProvider implements OtpProvider {
       `Recipient : ${cleanPhone} (${phone})\n` +
       `Code      : ${code}\n` +
       `Provider  : Fast2SMS (POST https://www.fast2sms.com/dev/bulkV2)\n` +
-      `Route     : Quick SMS ("q") / OTP\n` +
+      `Route     : Dedicated OTP ("otp")\n` +
       `Expires   : 5 Minutes\n` +
       `========================================\n`
     );
@@ -45,41 +45,9 @@ export class Fast2SmsProvider implements OtpProvider {
       };
     }
 
-    // Try Quick SMS route ("q") first for instant live SMS delivery without website verification gates
+    // Exclusively use Fast2SMS dedicated "otp" route (without using Quick SMS "q")
     try {
-      const quickResponse = await fetch("https://www.fast2sms.com/dev/bulkV2", {
-        method: "POST",
-        headers: {
-          authorization: apiKey,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          route: "q",
-          message: `Your Purety Farm verification code is ${code}. Valid for 5 minutes.`,
-          numbers: cleanPhone,
-        }),
-      });
-
-      const quickData = await quickResponse.json().catch(() => null);
-
-      if (quickResponse.ok && quickData && quickData.return === true) {
-        console.log(`[Fast2SMS Quick SMS] SMS dispatched to ${cleanPhone}. RequestId=${quickData.request_id || "sent"}`);
-        return {
-          success: true,
-          messageId: quickData.request_id || "fast2sms_sent",
-          devOtpHint: code,
-        };
-      }
-
-      // Fallback: try OTP route if Quick SMS returned an unexpected status
-      const quickNotice =
-        quickData && Array.isArray(quickData.message)
-          ? quickData.message.join(", ")
-          : (quickData && quickData.message) || `HTTP ${quickResponse.status}`;
-
-      console.warn(`[Fast2SMS Quick SMS notice: ${quickNotice}], trying OTP route...`);
-
-      const otpResponse = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+      const response = await fetch("https://www.fast2sms.com/dev/bulkV2", {
         method: "POST",
         headers: {
           authorization: apiKey,
@@ -92,35 +60,34 @@ export class Fast2SmsProvider implements OtpProvider {
         }),
       });
 
-      const otpData = await otpResponse.json().catch(() => null);
+      const data = await response.json().catch(() => null);
 
-      if (otpResponse.ok && otpData && otpData.return === true) {
-        console.log(`[Fast2SMS OTP Route] SMS dispatched to ${cleanPhone}. RequestId=${otpData.request_id || "sent"}`);
+      if (response.ok && data && data.return === true) {
+        console.log(`[Fast2SMS OTP Route] Dispatched OTP to ${cleanPhone}. RequestId=${data.request_id || "sent"}`);
         return {
           success: true,
-          messageId: otpData.request_id || "fast2sms_sent",
+          messageId: data.request_id || "fast2sms_sent",
           devOtpHint: code,
         };
       }
 
-      const otpNotice =
-        otpData && Array.isArray(otpData.message)
-          ? otpData.message.join(", ")
-          : (otpData && otpData.message) || `Fast2SMS status ${otpResponse.status}`;
-      console.warn(`[Fast2SMS Gateway Notice] ${otpNotice}`);
-      
-      // Return success with devOtpHint so developer/preview testing is never blocked
+      const errorMessage =
+        data && Array.isArray(data.message)
+          ? data.message.join(", ")
+          : (data && data.message) || `Fast2SMS HTTP ${response.status}`;
+
+      console.warn(`[Fast2SMS OTP Route Failure for ${cleanPhone}]: ${errorMessage}`);
+
       return {
-        success: true,
-        messageId: `dev_fallback_${Date.now()}`,
-        devOtpHint: code,
+        success: false,
+        error: errorMessage,
       };
     } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : "Network error contacting Fast2SMS";
       console.error("[Fast2SMS Network Error]", err);
       return {
-        success: true,
-        messageId: `dev_fallback_${Date.now()}`,
-        devOtpHint: code,
+        success: false,
+        error: errMsg,
       };
     }
   }
