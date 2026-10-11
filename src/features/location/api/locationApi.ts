@@ -84,7 +84,7 @@ export const locationApi = {
    * 2.2 Get Active States from Server
    */
   async getStates(): Promise<StateItem[]> {
-    return apiClient.get<StateItem[]>("/api/locations/states");
+    return apiClient.get<StateItem[]>("/api/locations/states", { headers: { "Cache-Control": "no-cache, no-store, must-revalidate" } });
   },
 
   /**
@@ -92,7 +92,8 @@ export const locationApi = {
    */
   async getCities(stateId: string): Promise<CityItem[]> {
     return apiClient.get<CityItem[]>(
-      `/api/locations/states/${stateId}/cities`
+      `/api/locations/states/${encodeURIComponent(stateId)}/cities`,
+      { headers: { "Cache-Control": "no-cache, no-store, must-revalidate" } }
     );
   },
 
@@ -101,7 +102,8 @@ export const locationApi = {
    */
   async getAreas(cityId: string): Promise<AreaItem[]> {
     return apiClient.get<AreaItem[]>(
-      `/api/locations/cities/${cityId}/areas`
+      `/api/locations/cities/${encodeURIComponent(cityId)}/areas`,
+      { headers: { "Cache-Control": "no-cache, no-store, must-revalidate" } }
     );
   },
 

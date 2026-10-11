@@ -118,23 +118,71 @@ export function AddressDetailsStep({
     };
   }, [selectedStateId, onStateChange]);
 
-  // Live data sync: silently update states catalog if admin adds or removes states
+  // Live data sync: silently update states, cities, and areas if admin adds or removes them
   useRealtimeSync(async () => {
     try {
+      // 1. Sync states catalog
       const stateList = await locationApi.getStates();
       setStates(stateList);
+
       const stateExists = stateList.some((s) => s.id === selectedStateId);
-      if (stateList.length === 1 && (!selectedStateId || !stateExists)) {
-        onStateChange(stateList[0].id);
-      } else if (!stateExists && selectedStateId) {
+      if (selectedStateId && !stateExists) {
+        // Selected state was deleted by admin!
         onStateChange("");
         onCityChange("", "");
-        onAreaChange("", "");
+        onAreaChange("", "", "");
+        setCities([]);
+        setAreas([]);
+        return;
+      }
+
+      if (stateList.length === 1 && (!selectedStateId || !stateExists)) {
+        onStateChange(stateList[0].id);
+      }
+
+      const activeState = selectedStateId || (stateList.length === 1 ? stateList[0].id : "");
+
+      // 2. Sync cities if state is active
+      if (activeState) {
+        const cityList = await locationApi.getCities(activeState);
+        setCities(cityList);
+
+        const cityExists = cityList.some((c) => c.id === selectedCityId);
+        if (selectedCityId && !cityExists) {
+          // Selected city was deleted by admin!
+          onCityChange("", "");
+          onAreaChange("", "", "");
+          setAreas([]);
+          return;
+        }
+
+        if (cityList.length === 1 && (!selectedCityId || !cityExists)) {
+          onCityChange(cityList[0].id, cityList[0].name);
+        }
+
+        const activeCity = selectedCityId || (cityList.length === 1 ? cityList[0].id : "");
+
+        // 3. Sync areas if city is active
+        if (activeCity) {
+          const areaList = await locationApi.getAreas(activeCity);
+          setAreas(areaList);
+
+          const areaExists = areaList.some((a) => a.id === selectedAreaId);
+          if (selectedAreaId && !areaExists) {
+            // Selected area was deleted by admin!
+            onAreaChange("", "", "");
+            return;
+          }
+
+          if (areaList.length === 1 && (!selectedAreaId || !areaExists)) {
+            onAreaChange(areaList[0].id, areaList[0].pincode || "", areaList[0].name);
+          }
+        }
       }
     } catch {
       // Silently ignore live sync errors in background
     }
-  }, { intervalMs: 5000 });
+  }, { intervalMs: 3000 });
 
   // Load Cities whenever State changes
   useEffect(() => {

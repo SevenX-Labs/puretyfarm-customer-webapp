@@ -1,6 +1,8 @@
 const SUPABASE_URL =
   process.env.SUPABASE_URL || "https://pggwlhletpnrexdggqnv.supabase.co";
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || "******";
+const SUPABASE_SECRET_KEY =
+  process.env.SUPABASE_SECRET_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnZ3dsaGxldHBucmV4ZGdncW52Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDg0MDU3MCwiZXhwIjoyMTA2NDE2NTcwfQ.pkG9tHrqVye_1tNk8Z5jyxDCvGzR9QCdvrR-tSVyeo4";
 
 export interface StateItem {
   id: string;
