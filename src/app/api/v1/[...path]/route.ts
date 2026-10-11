@@ -36,6 +36,13 @@ async function proxyRequest(
     } catch {}
   }
 
+  if (body) {
+    headers.set("content-length", String(body.byteLength));
+  }
+  // Strip accept-encoding so upstream response is not compressed and decoded twice
+  headers.delete("accept-encoding");
+  headers.set("connection", "keep-alive");
+
   try {
     const res = await fetch(targetUrl, {
       method,
