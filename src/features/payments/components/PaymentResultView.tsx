@@ -54,10 +54,12 @@ export function PaymentResultView() {
   const confettiFired = useRef<boolean>(false);
   const pollAttempts = useRef<number>(0);
   const isPollingRef = useRef<boolean>(false);
+  const hardTimeoutReached = useRef<boolean>(false);
 
   // Hard safety timeout: Guarantee verification spinner takes MAX 7 seconds
   useEffect(() => {
     const hardLimitTimer = setTimeout(() => {
+      hardTimeoutReached.current = true;
       setLoading(false);
     }, 7000);
     return () => clearTimeout(hardLimitTimer);
@@ -138,7 +140,7 @@ export function PaymentResultView() {
 
   const verifyAuthoritativeState = useCallback(
     async (isAutoPoll = false) => {
-      if (!txnid) {
+      if (!txnid || hardTimeoutReached.current) {
         setLoading(false);
         return;
       }
