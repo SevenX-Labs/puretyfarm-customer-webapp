@@ -4,6 +4,11 @@ import React, { useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Order } from "@/types/models";
+import {
+  OrderBillingInfo,
+  isPerDeliveryOrder,
+  orderChargeLabel,
+} from "@/features/orders/components/OrderBillingInfo";
 import { formatDeliveryWindow, statusLabel } from "@/features/dashboard/utils";
 import { FiX, FiFileText, FiRefreshCw, FiCreditCard } from "react-icons/fi";
 
@@ -63,8 +68,12 @@ export function OrderDetailModal({
     order.status === "DELIVERED" ||
     order.status === "Delivered" ||
     order.status === "COMPLETED";
+  // A per-delivery order is charged automatically on delivery, so it is never
+  // offered the manual "pay now" action.
   const isPendingPayment =
-    order.status === "PENDING" && order.paymentStatus !== "PAID";
+    !isPerDeliveryOrder(order) &&
+    order.status === "PENDING" &&
+    order.paymentStatus !== "PAID";
 
   const totalDisplay =
     order.totalPaise !== undefined
@@ -138,10 +147,13 @@ export function OrderDetailModal({
                         : "text-amber-700"
                     }`}
                   >
-                    {order.paymentStatus}
+                    {isPerDeliveryOrder(order)
+                      ? orderChargeLabel(order)
+                      : order.paymentStatus}
                   </span>
                 </div>
               )}
+              <OrderBillingInfo order={order} compact />
               <div className="flex justify-between items-center">
                 <span className="text-[#3A241C]/60">Date Placed:</span>
                 <span className="font-semibold text-[#1A1008]">

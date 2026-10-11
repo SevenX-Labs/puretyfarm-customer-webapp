@@ -33,6 +33,11 @@ import { ordersApi } from "@/features/orders/api/ordersApi";
 import { manageDeliveryApi, ManageDeliveryResponse } from "@/features/delivery";
 import type { CustomerOrder, OrderInvoiceDetail } from "@/features/orders/types";
 import {
+  OrderBillingInfo,
+  isPerDeliveryOrder,
+  orderChargeLabel,
+} from "@/features/orders/components/OrderBillingInfo";
+import {
   formatDeliveryDate,
   formatDeliveryWindowOrLabel,
   paiseToRupeesText,
@@ -61,6 +66,8 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
 
   // Modal form inputs
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
+  // Set when a quantity request was refused because the wallet is too low.
+  const [needsTopUp, setNeedsTopUp] = useState(false);
   const [selectedFrequency, setSelectedFrequency] = useState<string>("DAILY");
   const [skipDate, setSkipDate] = useState<string>("");
   const [pauseResumeDate, setPauseResumeDate] = useState<string>("");
@@ -114,6 +121,15 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
     };
   }, [orderId]);
 
+  // A per-delivery order that is still upcoming can have just its own
+  // delivery changed; the server re-checks every one of these conditions.
+  const changesThisDeliveryOnly = Boolean(
+    order &&
+      isPerDeliveryOrder(order) &&
+      (order.status === "CONFIRMED" || order.status === "PENDING") &&
+      order.deliveryDate
+  );
+
   // Handle invoice fetch and trigger print
   const handlePrintOrDownloadInvoice = async () => {
     setLoadingInvoice(true);
@@ -135,14 +151,30 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
   const handleActionQuantity = async () => {
     setModalLoading(true);
     setModalErrorMsg(null);
+    setNeedsTopUp(false);
     try {
-      await manageDeliveryApi.changeQuantity({ quantityLitres: selectedQuantity });
-      setModalSuccessMsg(`Quantity updated to ${selectedQuantity}L for upcoming deliveries.`);
+      // For a per-delivery order that has not been dispatched, the request
+      // targets this order's own delivery date. Otherwise it is plan-wide.
+      const targetDate =
+        order && changesThisDeliveryOnly && order.deliveryDate
+          ? String(order.deliveryDate).slice(0, 10)
+          : undefined;
+      await manageDeliveryApi.changeQuantity({
+        quantityLitres: selectedQuantity,
+        ...(targetDate ? { deliveryDate: targetDate } : {}),
+      });
+      // A request changes nothing until an admin approves it.
+      setModalSuccessMsg(
+        targetDate
+          ? `Request sent: ${selectedQuantity}L for the ${targetDate} delivery. It applies once approved.`
+          : `Request sent: ${selectedQuantity}L for upcoming deliveries. It applies once approved.`
+      );
       const refreshed = await manageDeliveryApi.getManageDelivery().catch(() => null);
       if (refreshed) setManageData(refreshed);
-      setTimeout(() => setActiveModal(null), 1500);
+      setTimeout(() => setActiveModal(null), 2200);
     } catch (err: any) {
-      setModalErrorMsg(err?.message || "Failed to update quantity. Please try again.");
+      if (err?.data?.error === "INSUFFICIENT_WALLET_BALANCE") setNeedsTopUp(true);
+      setModalErrorMsg(err?.message || "Failed to request the quantity change. Please try again.");
     } finally {
       setModalLoading(false);
     }
@@ -485,10 +517,18 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
               <div className="pt-3 mt-2 border-t border-[#E8DFD4] flex items-baseline justify-between">
                 <div>
                   <span className="text-sm font-bold text-[#1A1008] block">
-                    Total Amount Paid
+                    {!isPerDeliveryOrder(order)
+                      ? "Total Amount Paid"
+                      : order.settlementStatus === "SETTLED"
+                      ? "Amount Charged"
+                      : "Expected Charge"}
                   </span>
                   <span className="text-[10px] text-[#8C7A6B] font-mono">
-                    {order.totalPaise
+                    {isPerDeliveryOrder(order)
+                      ? order.settlementStatus === "SETTLED"
+                        ? "Deducted from wallet"
+                        : "Charged only when delivered"
+                      : order.totalPaise
                       ? `(${order.totalPaise.toLocaleString("en-IN")} integer paise)`
                       : "Paid in Full"}
                   </span>
@@ -504,8 +544,16 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
               <div className="flex items-center gap-2">
                 <CreditCard size={15} className="text-[#5C1B13]" />
                 <span className="text-[#6B584C]">Payment Status:</span>
-                <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  {order.paymentStatus || "PAID"}
+                <span
+                  className={`font-bold px-2 py-0.5 rounded-full border ${
+                    !isPerDeliveryOrder(order) || order.settlementStatus === "SETTLED"
+                      ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                      : order.settlementStatus === "OUTSTANDING"
+                      ? "text-rose-700 bg-rose-50 border-rose-200"
+                      : "text-amber-800 bg-amber-50 border-amber-200"
+                  }`}
+                >
+                  {orderChargeLabel(order)}
                 </span>
               </div>
               <div className="text-[11px] text-[#8C7A6B] font-mono">
@@ -513,6 +561,8 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
               </div>
             </div>
           </div>
+
+          <OrderBillingInfo order={order} />
 
           {/* ══════════════════════════════════════════════════════════════════
               2. DOWNLOAD INVOICE & RECEIPT ACTIONS
@@ -758,7 +808,17 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
             {modalErrorMsg && (
               <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-rose-600" />
-                <span>{modalErrorMsg}</span>
+                <span>
+                  {modalErrorMsg}
+                  {needsTopUp && (
+                    <>
+                      {" "}
+                      <Link href="/wallet" className="font-bold underline">
+                        Add money to wallet
+                      </Link>
+                    </>
+                  )}
+                </span>
               </div>
             )}
 
@@ -768,6 +828,11 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 <label className="text-xs font-semibold text-[#1A1008] block">
                   Select Litres per Morning:
                 </label>
+                <p className="text-[11px] text-[#6B584C]">
+                  {changesThisDeliveryOnly && order
+                    ? `Applies only to the ${String(order.deliveryDate).slice(0, 10)} delivery (order ${order.orderNumber ?? ""}), after admin approval. The new quantity sets what is charged when it is delivered; an increase needs enough wallet balance.`
+                    : "Applies to your upcoming deliveries after admin approval."}
+                </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[1, 2, 3, 4].map((qty) => (
                     <button
@@ -790,7 +855,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                   onClick={handleActionQuantity}
                   className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
                 >
-                  {modalLoading ? "Saving..." : "Confirm New Quantity"}
+                  {modalLoading ? "Sending..." : "Request New Quantity"}
                 </button>
               </div>
             )}

@@ -1,5 +1,7 @@
 "use client";
 
+import { walletReferenceLabel } from "@/features/wallet/types";
+
 import React, { useState, useEffect } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/Button";
@@ -433,12 +435,22 @@ export function WalletTab({
                           (tx.type === "CREDIT" ? "Wallet Credit" : "Order Payment")}
                       </p>
                       <p className="text-[10px] text-[#8C7A6B] truncate">
-                        {tx.referenceType || "LEDGER"} •{" "}
-                        {new Date(tx.createdAt).toLocaleDateString("en-IN", {
+                        {walletReferenceLabel(tx.referenceType)} •{" "}
+                        {new Date(tx.createdAt).toLocaleString("en-IN", {
                           day: "numeric",
                           month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </p>
+                      {tx.order && (
+                        <p className="text-[10px] text-[#6B584C] truncate">
+                          Order #{tx.order.orderNumber}
+                          {tx.order.scheduledDate
+                            ? ` • Scheduled for ${tx.order.scheduledDate}`
+                            : ""}
+                        </p>
+                      )}
                     </div>
                   </div>
 

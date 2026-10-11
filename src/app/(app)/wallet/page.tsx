@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -11,6 +13,7 @@ import {
   WalletTransactionType,
   WalletCreditRequestStatus,
 } from "@/features/wallet";
+import { walletReferenceLabel } from "@/features/wallet/types";
 import { paymentsApi, PaymentRecord, PaymentStatus } from "@/features/payments";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { EmailVerificationModal } from "@/components/pf";
@@ -1041,10 +1044,34 @@ function WalletContent() {
                               </span>
                               {tx.referenceType && (
                                 <span className="px-1.5 py-0.5 rounded-md bg-[#FAF3EA] text-[#5C1B13] font-bold text-[10px]">
-                                  {tx.referenceType}
+                                  {walletReferenceLabel(tx.referenceType)}
                                 </span>
                               )}
                             </div>
+                            {tx.order && (
+                              <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-[#6B584C]">
+                                <Link
+                                  href={`/orders/${tx.order.id}`}
+                                  className="font-bold text-[#5C1B13] underline hover:no-underline"
+                                >
+                                  Order #{tx.order.orderNumber}
+                                </Link>
+                                {tx.order.scheduledDate && (
+                                  <span>Scheduled for {tx.order.scheduledDate}</span>
+                                )}
+                                {tx.order.deliveredAt && (
+                                  <span>
+                                    • Delivered{" "}
+                                    {new Date(tx.order.deliveredAt).toLocaleString("en-IN", {
+                                      day: "numeric",
+                                      month: "short",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
 

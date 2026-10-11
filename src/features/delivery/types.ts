@@ -13,6 +13,8 @@ export interface ActivePlanView {
   selectionId: string;
   planType: string;
   status: string;
+  /** PER_DELIVERY = charged per delivered order; PREPAID_LEGACY = paid upfront. */
+  billingModel?: string;
   frequency: string | null;
   quantityMode: string | null;
   quantityLitres?: number | null;
@@ -31,6 +33,11 @@ export interface UpcomingDeliveryView {
   status: string;
   canSkip: boolean;
   canModify: boolean;
+  orderId?: string | null;
+  orderNumber?: string | null;
+  /** What this delivery is expected to cost, in paise. */
+  expectedAmountPaise?: number | null;
+  settlementStatus?: string | null;
 }
 
 export interface ManageDeliveryResponse {
@@ -48,6 +55,11 @@ export interface PauseDeliveryPayload {
 
 export interface ChangeQuantityPayload {
   quantityLitres: number;
+  /**
+   * Scheduled date (YYYY-MM-DD) of the one delivery to change. Omit to request
+   * the new quantity for every future delivery.
+   */
+  deliveryDate?: string;
 }
 
 export interface ChangeFrequencyPayload {
@@ -75,4 +87,12 @@ export interface DeliveryRequestItem {
   adminNote?: string;
   createdAt: string;
   reviewedAt?: string;
+  currentConfiguration?: Record<string, any>;
+  requestedConfiguration?: Record<string, any>;
+  /** Set when the request targets one delivery's order. */
+  orderId?: string | null;
+  /** Order total before and after the change, in paise. */
+  currentAmountPaise?: number | null;
+  requestedAmountPaise?: number | null;
+  message?: string;
 }

@@ -17,7 +17,7 @@ import {
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfCard } from "@/components/pf";
 
-type ConfirmStatus = "CONFIRMED" | "PENDING_PAYMENT" | string;
+type ConfirmStatus = "PENDING_APPROVAL" | "CONFIRMED" | "PENDING_PAYMENT" | string;
 
 export function OrderConfirmationView() {
   const searchParams = useSearchParams();
@@ -29,32 +29,42 @@ export function OrderConfirmationView() {
   const planName = searchParams.get("plan") || "Purety Farm Milk Plan";
   const amountRupees = searchParams.get("amount") || "0.00";
   const method = (searchParams.get("method") || "WALLET").toUpperCase();
-  const status: ConfirmStatus = (searchParams.get("status") || "CONFIRMED").toUpperCase();
+  const status: ConfirmStatus = (searchParams.get("status") || "PENDING_APPROVAL").toUpperCase();
   const cashCollectionId = searchParams.get("cashCollectionId") || "";
 
   const isCash = method === "CASH";
   const isConfirmed = status === "CONFIRMED";
   const isPendingPayment = status === "PENDING_PAYMENT";
+  // Per-delivery plan: purchased, nothing charged, awaiting funding + approval.
+  const isPendingApproval = status === "PENDING_APPROVAL";
 
   const headerBadge = isConfirmed
     ? isCash
       ? "Order Confirmed"
       : "Payment Successful"
-    : isPendingPayment
-      ? "Awaiting Cash Collection"
-      : "Submitted";
+    : isPendingApproval
+      ? "Order Pending Approval"
+      : isPendingPayment
+        ? "Awaiting Cash Collection"
+        : "Submitted";
 
   const headerTitle = isConfirmed
     ? "Plan Activated!"
-    : isPendingPayment
-      ? "Cash Collection Pending"
-      : "Order Submitted";
+    : isPendingApproval
+      ? "Plan Purchased — Awaiting Approval"
+      : isPendingPayment
+        ? "Cash Collection Pending"
+        : "Order Submitted";
 
   const headerCopy = isConfirmed
     ? "Thank you for choosing Purety Farm. Your deliveries are scheduled — track the first drop in My Orders."
-    : isPendingPayment
-      ? "Our delivery partner will collect the cash on your doorstep. Deliveries start as soon as the admin confirms the collection."
-      : "Your request has been submitted. Please check My Orders for the latest status.";
+    : isPendingApproval
+      ? isCash
+        ? "Nothing has been deducted. Add cash to your wallet from the Wallet page; once it is confirmed, our team approves your plan and sets your first delivery date. Each delivery is then charged to your wallet only when it is delivered."
+        : "Nothing has been deducted from your wallet. Once your wallet funding is confirmed, our team approves your plan and sets your first delivery date. Each delivery is then charged to your wallet only when it is delivered."
+      : isPendingPayment
+        ? "Our delivery partner will collect the cash on your doorstep. Deliveries start as soon as the admin confirms the collection."
+        : "Your request has been submitted. Please check My Orders for the latest status.";
 
   return (
     <>
@@ -63,7 +73,9 @@ export function OrderConfirmationView() {
         subtitle={
           isConfirmed
             ? "Your farm-fresh A2 milk delivery is scheduled."
-            : "Your plan will activate once payment is confirmed."
+            : isPendingApproval
+              ? "Your plan starts once it is approved and scheduled."
+              : "Your plan will activate once payment is confirmed."
         }
       />
 
@@ -149,12 +161,12 @@ export function OrderConfirmationView() {
                     {isCash ? (
                       <>
                         <Banknote className="h-3.5 w-3.5 text-amber-600" />
-                        <span>Cash on Delivery</span>
+                        <span>{isPendingApproval ? "Cash Wallet Top-up" : "Cash on Delivery"}</span>
                       </>
                     ) : (
                       <>
                         <Wallet className="h-3.5 w-3.5 text-emerald-600" />
-                        <span>Wallet Payment</span>
+                        <span>{isPendingApproval ? "Wallet (per delivery)" : "Wallet Payment"}</span>
                       </>
                     )}
                   </span>
@@ -166,7 +178,9 @@ export function OrderConfirmationView() {
                       ? isCash
                         ? "Collected (confirmed)"
                         : "Paid from wallet"
-                      : "Awaiting cash collection"}
+                      : isPendingApproval
+                        ? "Charged per delivery — nothing deducted yet"
+                        : "Awaiting cash collection"}
                   </span>
                 </div>
                 {cashCollectionId && (
@@ -181,7 +195,9 @@ export function OrderConfirmationView() {
             </div>
 
             <div className="mt-4 flex items-center justify-between border-t border-[var(--pf-border)] pt-3 text-sm">
-              <span className="font-semibold text-[var(--pf-text)]">Total Amount</span>
+              <span className="font-semibold text-[var(--pf-text)]">
+                {isPendingApproval ? "Plan Total (charged per delivery)" : "Total Amount"}
+              </span>
               <span className="font-serif text-lg font-bold text-[#5C1B13]">
                 ₹{Number(amountRupees).toFixed(2)}
               </span>

@@ -7,6 +7,7 @@ import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfButton, PfCard, PfEmptyState, PfSkeleton } from "@/components/pf";
 import { accountApi } from "@/features/account/api/accountApi";
 import type { Order } from "@/types/models";
+import { OrderBillingInfo } from "@/features/orders/components/OrderBillingInfo";
 import {
   formatDeliveryDate,
   normaliseStatus,
@@ -205,6 +206,7 @@ function OrdersList({ orders }: { orders: Order[] }) {
                   </TD>
                   <TD className="text-right font-semibold text-[var(--pf-text)]">
                     {orderTotalRupees(o)}
+                    <OrderBillingInfo order={o} compact />
                   </TD>
                   <TD>
                     <PfBadge tone={statusTone(o.status)} dot>
@@ -257,6 +259,9 @@ function OrdersList({ orders }: { orders: Order[] }) {
                   <div className="text-[14px] font-bold text-[var(--pf-text)]">
                     {orderTotalRupees(o)}
                   </div>
+                </div>
+                <div className="mt-1">
+                  <OrderBillingInfo order={o} compact />
                 </div>
               </Link>
             </li>

@@ -328,17 +328,20 @@ export function useOnboardingFlow() {
     method: "WALLET" | "CASH",
     confirmResult?: {
       selectionId?: string;
-      status?: "CONFIRMED" | "PENDING_PAYMENT" | string;
+      status?: "PENDING_APPROVAL" | "CONFIRMED" | "PENDING_PAYMENT" | string;
       paidAmountPaise?: number;
+      expectedTotalPaise?: number;
       cashCollectionId?: string;
     }
   ) => {
     if (!pendingPlan || !pendingQuote) return;
 
     const selectionId = confirmResult?.selectionId || "";
-    const status = confirmResult?.status || (method === "WALLET" ? "CONFIRMED" : "PENDING_PAYMENT");
+    const status = confirmResult?.status || "PENDING_APPROVAL";
+    // The plan's quoted total, shown for reference. A per-delivery plan debits
+    // nothing at purchase, so `paidAmountPaise` (0) is not what is displayed.
     const amountRupees = (
-      (confirmResult?.paidAmountPaise ?? pendingQuote.totalSellingAmount) / 100
+      (confirmResult?.expectedTotalPaise ?? pendingQuote.totalSellingAmount) / 100
     ).toFixed(2);
 
     try {
@@ -430,7 +433,7 @@ export function useOnboardingFlow() {
       if (strMsg.includes("Quote is no longer pending")) {
         await recordAndRedirectConfirmedOrder("CASH", {
           selectionId: "",
-          status: "PENDING_PAYMENT",
+          status: "PENDING_APPROVAL",
         });
         return;
       }

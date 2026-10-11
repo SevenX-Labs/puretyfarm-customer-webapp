@@ -28,7 +28,52 @@ export interface OrderCutoffPolicy {
   leadDaysAfterCutoff: number;
 }
 
+/** Whether the customer's wallet funding has been confirmed. */
+export interface FundingSummary {
+  status: "CONFIRMED" | "PENDING_APPROVAL" | "NOT_FUNDED";
+  walletBalancePaise: number;
+  hasCompletedCredit: boolean;
+  pendingCreditCount: number;
+  pendingCreditPaise: number;
+}
+
+/** The customer's current plan, with its separate funding/approval/scheduling states. */
+export interface CustomerSubscriptionSummary {
+  selectionId: string;
+  planType: string;
+  /** PENDING_APPROVAL | PENDING_PAYMENT | CONFIRMED | ACTIVE | PAUSED */
+  status: string;
+  /** PER_DELIVERY = charged per delivered order; PREPAID_LEGACY = paid upfront. */
+  billingModel: "PER_DELIVERY" | "PREPAID_LEGACY" | string;
+  frequency: string | null;
+  quantityMode: string | null;
+  quantity: number | null;
+  quantityA: number | null;
+  quantityB: number | null;
+  /** Null until an admin approves the plan and picks the first delivery date. */
+  startDate: string | null;
+  endDate: string | null;
+  purchasedAt: string;
+  funding: FundingSummary;
+  approvalStatus: "PENDING" | "APPROVED";
+  approvedAt: string | null;
+  schedulingStatus: "NOT_SCHEDULED" | "SCHEDULED";
+  expectedTotalPaise: number;
+  sellingPricePerLitrePaise: number;
+  deliveries: {
+    total: number;
+    delivered: number;
+    upcoming: number;
+    skipped: number;
+    cancelled: number;
+  };
+  chargedPaise: number;
+  outstandingPaise: number;
+}
+
 export interface PlansOverviewResponse {
+  /** The customer's current or pending plan. Absent on older server builds. */
+  subscription?: CustomerSubscriptionSummary | null;
   plans: PlanOverviewItem[];
   /** Absent on older server builds; treat as "unavailable", never guess. */
   orderCutoff?: OrderCutoffPolicy;
@@ -89,10 +134,19 @@ export interface ConfirmPlanResponse {
   selectionId: string;
   quoteId: string;
   plan: string;
-  status: "CONFIRMED" | "PENDING_PAYMENT";
+  /**
+   * PENDING_APPROVAL for a per-delivery plan: purchased, nothing charged, and
+   * waiting for admin approval. The other two are from the prepaid model.
+   */
+  status: "PENDING_APPROVAL" | "CONFIRMED" | "PENDING_PAYMENT";
   paymentMethod: "WALLET" | "CASH";
+  /** What was debited at purchase. 0 for a per-delivery plan. */
   paidAmountPaise: number;
   cashCollectionId?: string;
+  billingModel?: "PER_DELIVERY" | "PREPAID_LEGACY";
+  /** The plan's quoted total, for display only; it is not charged upfront. */
+  expectedTotalPaise?: number;
+  funding?: FundingSummary;
   error?: string;
   message?: string;
   currentBalancePaise?: number;

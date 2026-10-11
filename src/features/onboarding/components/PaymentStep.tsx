@@ -9,7 +9,6 @@ import {
   FiArrowLeft,
   FiAlertCircle,
   FiCheckCircle,
-  FiPlusCircle,
   FiRefreshCw,
   FiShield,
   FiLock,
@@ -77,8 +76,9 @@ export function PaymentStep({
   }
 
   const totalPaise = quote.totalSellingAmount;
-  const sufficient = walletBalancePaise >= totalPaise;
-  const shortfallPaise = Math.max(totalPaise - walletBalancePaise, 0);
+  // The plan is charged per delivered order, so the wallet does not need to
+  // hold the plan total to buy it. A low balance is only pointed out.
+  const walletBelowPlanTotal = walletBalancePaise < totalPaise;
 
   const planTitle =
     plan?.name?.toUpperCase() ||
@@ -249,65 +249,48 @@ export function PaymentStep({
                   <span>Cash on Delivery</span>
                 </span>
                 <p className="text-[11px] text-[#715E50] pt-0.5">
-                  Pay on first delivery
+                  Add cash to your wallet
                 </p>
               </div>
             </button>
           </div>
 
+          <p className="text-[11px] text-[#715E50]">
+            Nothing is deducted now. Each delivery is deducted from your wallet only when
+            it is delivered. Plan total at this quantity: {paise(totalPaise)}.
+            {!walletLoading && walletBelowPlanTotal && (
+              <>
+                {" "}
+                Your wallet has {paise(walletBalancePaise)} — add money from the Wallet page
+                so your plan can be approved and deliveries charged.
+              </>
+            )}
+          </p>
+
           {/* Action Button Area */}
           <div className="pt-1">
             {method === "WALLET" ? (
-              sufficient ? (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  disabled={paymentSubmitting}
-                  onClick={onPayFromWallet}
-                  className="h-10 sm:h-10.5 w-full rounded-xl bg-[#5C1B13] hover:bg-[#48150F] text-xs sm:text-[13px] font-bold text-white cursor-pointer disabled:opacity-60 shadow-sm"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {paymentSubmitting ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <FiCheckCircle className="h-4 w-4" />
-                    )}
-                    <span>
-                      {paymentSubmitting
-                        ? "Confirming Subscription..."
-                        : `Pay ${paise(totalPaise)} from Wallet & Activate`}
-                    </span>
-                  </div>
-                </Button>
-              ) : (
-                <div className="space-y-1.5">
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="md"
-                    disabled={paymentSubmitting}
-                    onClick={onPayOnline}
-                    className="h-10 sm:h-10.5 w-full rounded-xl bg-[#5C1B13] hover:bg-[#48150F] text-xs sm:text-[13px] font-bold text-white cursor-pointer disabled:opacity-60 shadow-sm"
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      {paymentSubmitting ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <FiPlusCircle className="h-4 w-4" />
-                      )}
-                      <span>
-                        {paymentSubmitting
-                          ? "Connecting to Payment Gateway..."
-                          : `Pay ${paise(shortfallPaise)} Online & Activate Plan`}
-                      </span>
-                    </div>
-                  </Button>
-                  <p className="text-center text-[10.5px] text-[#715E50]">
-                    UPI (Google Pay / PhonePe / Paytm) • Credit & Debit Cards • NetBanking
-                  </p>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                disabled={paymentSubmitting}
+                onClick={onPayFromWallet}
+                className="h-10 sm:h-10.5 w-full rounded-xl bg-[#5C1B13] hover:bg-[#48150F] text-xs sm:text-[13px] font-bold text-white cursor-pointer disabled:opacity-60 shadow-sm"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  {paymentSubmitting ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <FiCheckCircle className="h-4 w-4" />
+                  )}
+                  <span>
+                    {paymentSubmitting
+                      ? "Confirming Subscription..."
+                      : "Confirm Plan — Charged per Delivery"}
+                  </span>
                 </div>
-              )
+              </Button>
             ) : (
               <Button
                 type="button"
@@ -326,7 +309,7 @@ export function PaymentStep({
                   <span>
                     {paymentSubmitting
                       ? "Registering Order..."
-                      : `Confirm Cash on Delivery (${paise(totalPaise)})`}
+                      : "Confirm Plan — Pay by Cash Top-up"}
                   </span>
                 </div>
               </Button>

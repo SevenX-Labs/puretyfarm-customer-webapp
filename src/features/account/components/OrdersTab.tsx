@@ -5,6 +5,10 @@ import Link from "next/link";
 import { m } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Order } from "@/types/models";
+import {
+  isPerDeliveryOrder,
+  orderChargeLabel,
+} from "@/features/orders/components/OrderBillingInfo";
 import { FiPackage, FiPlus, FiClock, FiMapPin, FiRefreshCw } from "react-icons/fi";
 import { OrderDetailModal } from "./OrderDetailModal";
 
@@ -201,7 +205,9 @@ export function OrdersTab({
                             : "bg-amber-50 text-amber-700 border border-amber-200"
                         }`}
                       >
-                        {order.paymentStatus}
+                        {isPerDeliveryOrder(order)
+                          ? orderChargeLabel(order)
+                          : order.paymentStatus}
                       </span>
                     )}
                     <span className="text-xs text-[#6B584C] flex items-center gap-1 font-medium">

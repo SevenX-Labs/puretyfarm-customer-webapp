@@ -107,6 +107,16 @@ export interface Order {
   reorderedFromOrderId?: string | null;
   /** Server-stamped completion time; present only for COMPLETED orders. */
   completedAt?: string | null;
+  /** PER_DELIVERY = charged when delivered; PREPAID_LEGACY = plan paid upfront. */
+  billingModel?: "PER_DELIVERY" | "PREPAID_LEGACY" | null;
+  /** When the delivery was confirmed. Not the scheduled date. */
+  deliveredAt?: string | null;
+  /** PENDING | SETTLED | OUTSTANDING; null when not charged per delivery. */
+  settlementStatus?: "PENDING" | "SETTLED" | "OUTSTANDING" | null;
+  settledAt?: string | null;
+  walletTransactionId?: string | null;
+  expectedAmountPaise?: number;
+  chargedAmountPaise?: number | null;
   createdAt: string;
   updatedAt?: string;
 }

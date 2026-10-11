@@ -21,6 +21,8 @@ import {
   Info,
 } from "lucide-react";
 import { MonthlyUpgradeModal } from "./components/MonthlyUpgradeModal";
+import { SubscriptionStatusCard } from "./components/SubscriptionStatusCard";
+import { UpcomingDeliveriesList } from "./components/UpcomingDeliveriesList";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfButton, PfCard, PfSectionTitle, PfSkeleton } from "@/components/pf";
 import { manageDeliveryApi } from "@/features/delivery/api/manageDeliveryApi";
@@ -35,7 +37,9 @@ import {
   PlanOverviewItem,
   PlanQuote,
   OrderCutoffPolicy,
+  CustomerSubscriptionSummary,
 } from "@/features/plans/api/plansApi";
+import { formatCurrency } from "@/lib/utils/formatters";
 import {
   formatDeliveryDate,
   formatDeliveryWindowOrLabel as formatDeliveryWindow,
@@ -47,6 +51,7 @@ export function PlanView() {
   const [deliveryData, setDeliveryData] = useState<ManageDeliveryResponse | null>(null);
   const [plansOverview, setPlansOverview] = useState<PlanOverviewItem[]>([]);
   const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
+  const [subscription, setSubscription] = useState<CustomerSubscriptionSummary | null>(null);
   const [changeRequests, setChangeRequests] = useState<DeliveryRequestItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -79,9 +84,11 @@ export function PlanView() {
       if (overviewRes.status === "fulfilled" && overviewRes.value?.plans) {
         setPlansOverview(overviewRes.value.plans);
         setOrderCutoff(overviewRes.value.orderCutoff ?? null);
+        setSubscription(overviewRes.value.subscription ?? null);
       } else {
         setPlansOverview([]);
         setOrderCutoff(null);
+        setSubscription(null);
       }
 
       if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
@@ -252,6 +259,18 @@ export function PlanView() {
         <PlanSkeleton />
       ) : (
         <div className="space-y-10">
+          {/* Plan status: funding, approval, scheduling and per-delivery charges */}
+          {subscription && <SubscriptionStatusCard subscription={subscription} />}
+
+          {deliveryData && (
+            <UpcomingDeliveriesList
+              deliveries={deliveryData.upcomingDeliveries ?? []}
+              chargedPerDelivery={
+                (activePlan?.billingModel ?? subscription?.billingModel) === "PER_DELIVERY"
+              }
+            />
+          )}
+
           {/* Active Plan Hero Card */}
           {activePlan ? (
             <PfCard padding="lg" elevated>
@@ -295,13 +314,24 @@ export function PlanView() {
                   {/* Stats Grid: Price, Next Delivery & Admin Delivery Window */}
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 pt-6 border-t border-[var(--pf-border)]">
                     <Stat
-                      label="Price Paid"
+                      label={
+                        subscription?.billingModel === "PER_DELIVERY"
+                          ? "Charged So Far"
+                          : "Plan Price"
+                      }
                       value={
-                        activePlan.planType === "BUY_ONCE"
-                          ? "₹80.00"
-                          : activePlan.planType === "SEVEN_DAY_TRIAL" || activePlan.planType === "TRIAL"
-                          ? "₹525.00"
-                          : "₹2,250.00"
+                        subscription
+                          ? formatCurrency(
+                              (subscription.billingModel === "PER_DELIVERY"
+                                ? subscription.chargedPaise
+                                : subscription.expectedTotalPaise) / 100
+                            )
+                          : "—"
+                      }
+                      sub={
+                        subscription?.billingModel === "PER_DELIVERY"
+                          ? "Charged per delivered order"
+                          : undefined
                       }
                     />
                     <Stat

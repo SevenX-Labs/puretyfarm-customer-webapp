@@ -130,7 +130,11 @@ export function MonthlyUpgradeModal({
       });
 
       if (res.status === "CONFIRMED" || res.selectionId) {
-        setSuccess("Successfully upgraded to Monthly Subscription!");
+        setSuccess(
+          res.status === "PENDING_APPROVAL"
+            ? "Monthly plan purchased. It is awaiting approval — nothing has been deducted from your wallet."
+            : "Successfully upgraded to Monthly Subscription!"
+        );
         setTimeout(() => {
           onClose();
           onSuccess();
@@ -156,7 +160,10 @@ export function MonthlyUpgradeModal({
 
   const walletBalanceRupees = wallet ? wallet.balancePaise / 100 : 0;
   const shortfallRupees = Math.max(0, Math.ceil(pricingResult.totalPrice - walletBalanceRupees));
-  const isWalletInsufficient =
+  // A plan is charged per delivered order, never as a whole, so a wallet below
+  // the plan total does not stop the purchase. It is only pointed out, with a
+  // top-up link, so the customer can fund the wallet ahead of deliveries.
+  const isWalletLow =
     paymentMethod === "WALLET" &&
     wallet !== null &&
     walletBalanceRupees < pricingResult.totalPrice;
@@ -354,7 +361,7 @@ export function MonthlyUpgradeModal({
                   {wallet && (
                     <span
                       className={`text-[10.5px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                        isWalletInsufficient
+                        isWalletLow
                           ? "bg-rose-100 text-rose-800 border border-rose-200"
                           : "bg-stone-100 text-stone-700"
                       }`}
@@ -364,14 +371,17 @@ export function MonthlyUpgradeModal({
                   )}
                 </div>
                 <p className="text-[11px] text-[#715E50]">
-                  Instant confirmation & auto-deduction from wallet.
+                  Charged per delivery from your wallet. Nothing is deducted now.
                 </p>
 
-                {isWalletInsufficient && (
+                {isWalletLow && (
                   <div className="mt-2 pt-2 border-t border-[#E8DFD4] space-y-1.5">
                     <p className="text-[11px] text-rose-800 font-semibold flex items-center gap-1">
                       <AlertCircle size={13} className="shrink-0 text-rose-600" />
-                      <span>Low Balance: Shortfall ₹{shortfallRupees}</span>
+                      <span>
+                        Wallet is ₹{shortfallRupees} below the full plan total. Add money so
+                        deliveries can be charged.
+                      </span>
                     </p>
                     <Link
                       href="/wallet"
@@ -411,13 +421,8 @@ export function MonthlyUpgradeModal({
                   </span>
                 </div>
                 <p className="text-[11px] text-[#715E50]">
-                  Collect cash on order confirmation at doorstep.
+                  Add cash to your wallet from the Wallet page. Charged per delivery.
                 </p>
-                {isWalletInsufficient && (
-                  <p className="text-[10.5px] text-emerald-800 font-medium mt-2 pt-2 border-t border-[#E8DFD4]">
-                    Tip: Choose cash to activate immediately without topping up.
-                  </p>
-                )}
               </div>
             </div>
           </div>
@@ -448,16 +453,6 @@ export function MonthlyUpgradeModal({
               Cancel
             </button>
 
-            {isWalletInsufficient ? (
-              <Link
-                href="/wallet"
-                target="_blank"
-                className="min-h-[44px] px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-sm"
-              >
-                <span>Top up Wallet (+₹{shortfallRupees})</span>
-                <ExternalLink size={14} />
-              </Link>
-            ) : (
               <button
                 type="button"
                 onClick={handleConfirm}
@@ -473,7 +468,7 @@ export function MonthlyUpgradeModal({
                 {submitting ? (
                   <>
                     <RefreshCw size={14} className="animate-spin" />
-                    <span>Activating...</span>
+                    <span>Confirming...</span>
                   </>
                 ) : isQuoteLoading ? (
                   <>
@@ -483,11 +478,10 @@ export function MonthlyUpgradeModal({
                 ) : (
                   <>
                     <Check size={16} />
-                    <span>Confirm & Activate (₹{pricingResult.totalPrice.toLocaleString("en-IN")})</span>
+                    <span>Confirm Plan (charged per delivery)</span>
                   </>
                 )}
               </button>
-            )}
           </div>
         </div>
       </div>

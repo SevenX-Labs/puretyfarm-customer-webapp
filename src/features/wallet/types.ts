@@ -12,6 +12,8 @@ export type WalletTransactionReferenceType =
   | "CREDIT_REQUEST"
   | "ORDER"
   | "PLAN_SELECTION"
+  | "CASH_COLLECTION"
+  | "ADMIN_ADJUSTMENT"
   | string;
 
 export interface WalletTransaction {
@@ -23,6 +25,32 @@ export interface WalletTransaction {
   referenceId?: string;
   description?: string;
   createdAt: string;
+  /** The order a delivery charge paid for; null for other transactions. */
+  order?: {
+    id: string;
+    orderNumber: string;
+    /** Scheduled delivery date (YYYY-MM-DD). */
+    scheduledDate: string | null;
+    deliveredAt: string | null;
+  } | null;
+}
+
+/** Customer-facing name for what a wallet transaction was for. */
+export function walletReferenceLabel(referenceType?: string): string {
+  switch (referenceType) {
+    case "ORDER":
+      return "Delivery charge";
+    case "CREDIT_REQUEST":
+      return "Wallet top-up";
+    case "CASH_COLLECTION":
+      return "Cash top-up";
+    case "ADMIN_ADJUSTMENT":
+      return "Admin adjustment";
+    case "PLAN_SELECTION":
+      return "Plan payment";
+    default:
+      return referenceType || "Transaction";
+  }
 }
 
 export type WalletCreditRequestStatus =
