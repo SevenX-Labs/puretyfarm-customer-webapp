@@ -17,8 +17,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       if (!path.startsWith("/login") && !path.startsWith("/auth")) {
         router.replace(`/login?redirect=${encodeURIComponent(path)}`);
       }
+      return;
     }
-  }, [status, router]);
+
+    if (status === "authenticated" && user) {
+      const path =
+        typeof window !== "undefined" ? window.location.pathname : "";
+      const isExempt =
+        path.startsWith("/order-confirmation") ||
+        path.startsWith("/payment/result");
+
+      if (!isExempt && user.onboardingStep && user.onboardingStep !== "complete") {
+        if (user.onboardingStep === "location_pending") {
+          router.replace("/onboarding?step=2");
+        } else if (user.onboardingStep === "plan_pending") {
+          router.replace("/onboarding?step=3");
+        } else {
+          router.replace("/onboarding?step=1");
+        }
+      }
+    }
+  }, [status, user, router]);
 
   if (status === "loading") {
     return (
@@ -34,6 +53,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (status !== "authenticated") return null;
+
+  if (user?.onboardingStep && user.onboardingStep !== "complete") {
+    const path = typeof window !== "undefined" ? window.location.pathname : "";
+    if (
+      !path.startsWith("/order-confirmation") &&
+      !path.startsWith("/payment/result")
+    ) {
+      return (
+        <div className="min-h-screen pf-app flex items-center justify-center bg-[#faf7f2]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-[var(--pf-brown)] border-t-transparent animate-spin" />
+            <div className="text-[12px] font-semibold text-[#715e50]">
+              Redirecting to complete onboarding...
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
 
   return (
     <div className="pf-app min-h-screen flex">

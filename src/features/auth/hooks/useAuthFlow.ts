@@ -37,7 +37,7 @@ export function useAuthFlow() {
   // Helper to check if user has not completed onboarding
   const isPendingOnboarding = (u: typeof user) => {
     if (!u) return true;
-    if (u.onboardingStep === "profile_pending") return true;
+    if (u.onboardingStep !== "complete") return true;
     const name = u.name?.trim() || "";
     return !name || name.startsWith("Customer (") || name.toLowerCase() === "customer";
   };
@@ -48,7 +48,13 @@ export function useAuthFlow() {
       const isPending = isPendingOnboarding(user);
 
       if (isPending) {
-        router.replace("/onboarding?step=1");
+        if (user.onboardingStep === "location_pending") {
+          router.replace("/onboarding?step=2");
+        } else if (user.onboardingStep === "plan_pending") {
+          router.replace("/onboarding?step=3");
+        } else {
+          router.replace("/onboarding?step=1");
+        }
       } else {
         const dest = redirectUrl && redirectUrl !== "/onboarding" && redirectUrl !== "/auth" ? redirectUrl : "/account";
         router.replace(dest);
@@ -298,10 +304,10 @@ export function useAuthFlow() {
       }
 
       await refreshUser();
-      setSuccessMessage("Profile saved! Redirecting to your account...");
+      setSuccessMessage("Profile saved! Continuing to address...");
       setTimeout(() => {
-        router.replace("/account");
-      }, 600);
+        router.replace("/onboarding?step=2");
+      }, 500);
     } catch (err: unknown) {
       const errorMsg =
         err instanceof Error ? err.message : "Error updating profile. Please try again.";

@@ -4,6 +4,9 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { useRouter } from "next/navigation";
 import { authApi } from "@/features/auth/api/authApi";
 import { profileApi, CustomerProfile } from "@/features/profile/api/profileApi";
+import { locationApi, CustomerAddress } from "@/features/location/api/locationApi";
+import { manageDeliveryApi } from "@/features/delivery/api/manageDeliveryApi";
+import { accountApi } from "@/features/account/api/accountApi";
 import { tokenStorage } from "@/lib/auth/tokenStorage";
 import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import {
@@ -52,7 +55,9 @@ interface UserDataInput {
 
 function normalizeCustomerUser(
   data: UserDataInput,
-  profile?: CustomerProfile | null
+  profile?: CustomerProfile | null,
+  addresses?: CustomerAddress[],
+  hasActivePlan?: boolean
 ): AuthUser {
   const mobile = profile?.mobile || data.mobile || data.phone || "";
 
@@ -63,14 +68,27 @@ function normalizeCustomerUser(
     fullName = data.name.trim();
   }
 
+  const isPlaceholder =
+    !fullName ||
+    fullName.startsWith("Customer (") ||
+    fullName.toLowerCase() === "customer";
   const displayName = fullName || (mobile ? `Customer (${mobile.slice(-4)})` : "Customer");
 
-  // Derive onboarding step: only complete if a valid customer profile actually exists in database
+  // Derive strict onboarding step:
+  // 1. Profile missing real name -> profile_pending (Step 1)
+  // 2. No serviceable address saved -> location_pending (Step 2)
+  // 3. Address saved, but no active plan / order placed -> plan_pending (Step 3/4)
+  // 4. All complete -> complete
   let onboardingStep: OnboardingStatus = "profile_pending";
-  if (profile && (profile.firstName || profile.lastName)) {
-    onboardingStep = (data.onboardingStep as OnboardingStatus) || "complete";
-  } else if (data.onboardingStep && data.onboardingStep !== "profile_pending") {
-    onboardingStep = data.onboardingStep as OnboardingStatus;
+  if (!isPlaceholder && fullName.length > 0) {
+    const hasAddress = Array.isArray(addresses) && addresses.length > 0;
+    if (!hasAddress) {
+      onboardingStep = "location_pending";
+    } else if (!hasActivePlan) {
+      onboardingStep = "plan_pending";
+    } else {
+      onboardingStep = "complete";
+    }
   }
 
   return {
@@ -97,15 +115,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const fetchFullUserProfile = useCallback(async (): Promise<AuthUser | null> => {
-    // The two lookups are independent, so load them together instead of
-    // waiting for one before starting the other.
-    const [authData, profileData] = await Promise.all([
-      authApi.getMe(),
+    // Load auth, profile, addresses, active plan, and orders in parallel
+    const [authData, profileData, addresses, manageDeliveryRes, ordersRes] = await Promise.all([
+      authApi.getMe().catch(() => null),
       profileApi.getProfile().catch((): CustomerProfile | null => null),
+      locationApi.getAddresses().catch(() => [] as CustomerAddress[]),
+      manageDeliveryApi.getManageDelivery().catch(() => null),
+      accountApi.getOrders().catch(() => ({ success: false, orders: [] })),
     ]);
     if (!authData || !authData.id) return null;
 
-    return normalizeCustomerUser(authData, profileData);
+    const hasOrders = Boolean(ordersRes && ordersRes.orders && ordersRes.orders.length > 0);
+    const hasActivePlan = Boolean(manageDeliveryRes?.activePlan || hasOrders);
+
+    return normalizeCustomerUser(authData, profileData, addresses, hasActivePlan);
   }, []);
 
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {

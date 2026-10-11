@@ -112,7 +112,12 @@ export function useOnboardingFlow() {
         setSelectedCityName(defaultServiceable.city || "Raipur");
       }
 
-      // Determine if user is already an existing user
+      // Only redirect to /account if onboarding is truly COMPLETE
+      if (user.onboardingStep === "complete") {
+        router.replace("/account");
+        return;
+      }
+
       const hasProfile = Boolean(
         user.name &&
         !user.name.startsWith("Customer (") &&
@@ -122,30 +127,17 @@ export function useOnboardingFlow() {
       const hasAddress = Boolean(addresses && addresses.length > 0);
       const requestedStep = searchParams.get("step");
 
-      // If user already exists (profile exists and has address or complete status), route directly to account page
-      if (hasProfile && (hasAddress || user.onboardingStep === "complete")) {
-        if (!requestedStep || requestedStep === "1" || requestedStep === "2") {
-          router.replace("/account");
-          return;
-        }
-      }
-
       if (!hasProfile) {
         setMaxAllowedStep(1);
         setCurrentStep(1);
       } else if (!hasAddress) {
-        // Profile exists, prompt for delivery address if explicitly on onboarding
         setMaxAllowedStep(2);
         setCurrentStep(2);
       } else {
-        setMaxAllowedStep(3);
-        if (
-          requestedStep === "1" ||
-          requestedStep === "2" ||
-          requestedStep === "3" ||
-          requestedStep === "4"
-        ) {
-          setCurrentStep(parseInt(requestedStep, 10) as StepKey);
+        // Profile and delivery address exist; user must complete plan & payment
+        setMaxAllowedStep(4);
+        if (requestedStep === "4") {
+          setCurrentStep(4);
         } else {
           setCurrentStep(3);
         }

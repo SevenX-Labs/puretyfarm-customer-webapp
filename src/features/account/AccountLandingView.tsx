@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Mail,
   Phone,
@@ -67,6 +68,19 @@ const GENDER_OPTIONS = [
 
 export function AccountLandingView() {
   const { user, logout, refreshUser } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.onboardingStep && user.onboardingStep !== "complete") {
+      if (user.onboardingStep === "location_pending") {
+        router.replace("/onboarding?step=2");
+      } else if (user.onboardingStep === "plan_pending") {
+        router.replace("/onboarding?step=3");
+      } else {
+        router.replace("/onboarding?step=1");
+      }
+    }
+  }, [user, router]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingPlan, setLoadingPlan] = useState(true);
