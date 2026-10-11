@@ -24,6 +24,7 @@ export interface AddressFormData {
 export interface OrdersResponse {
   success: boolean;
   orders: Order[];
+  pendingPlanPurchases?: any[];
   error?: string;
 }
 

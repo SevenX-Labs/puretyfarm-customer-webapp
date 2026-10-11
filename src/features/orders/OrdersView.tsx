@@ -8,6 +8,7 @@ import { PfBadge, PfButton, PfCard, PfEmptyState, PfSkeleton } from "@/component
 import { accountApi } from "@/features/account/api/accountApi";
 import type { Order } from "@/types/models";
 import { OrderBillingInfo } from "@/features/orders/components/OrderBillingInfo";
+import { PendingPlanPurchaseCard } from "./components/PendingPlanPurchaseCard";
 import {
   formatDeliveryDate,
   normaliseStatus,
@@ -28,6 +29,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 export function OrdersView() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pendingPurchases, setPendingPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
@@ -37,7 +39,10 @@ export function OrdersView() {
     (async () => {
       try {
         const res = await accountApi.getOrders();
-        if (!cancelled) setOrders(res.orders || []);
+        if (!cancelled) {
+          setOrders(res.orders || []);
+          setPendingPurchases(res.pendingPlanPurchases || []);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -86,6 +91,10 @@ export function OrdersView() {
         subtitle="View and manage your PuretyFarm deliveries."
       />
 
+      {pendingPurchases.map((purchase) => (
+        <PendingPlanPurchaseCard key={purchase.id} purchase={purchase} />
+      ))}
+
       <section className="flex items-center justify-between gap-3 flex-wrap mb-5">
         <div className="flex items-center gap-1 bg-[var(--pf-surface)] border border-[var(--pf-border)] rounded-full p-1 overflow-x-auto max-w-full scrollbar-none">
           {FILTERS.map((f) => (
@@ -127,16 +136,22 @@ export function OrdersView() {
           <PfEmptyState
             icon={<Package size={22} strokeWidth={1.75} />}
             title={
-              orders.length === 0 ? "No orders yet" : "No matching orders"
+              orders.length === 0
+                ? pendingPurchases.length > 0
+                  ? "Daily deliveries will appear here"
+                  : "No orders yet"
+                : "No matching orders"
             }
             description={
               orders.length === 0
-                ? "Your PuretyFarm deliveries will appear here once you place your first order."
+                ? pendingPurchases.length > 0
+                  ? "Your plan has been purchased and is awaiting approval. Once approved and scheduled, each daily delivery order will appear in this list."
+                  : "Your PuretyFarm deliveries will appear here once you place your first order."
                 : "Try changing filters or clearing the search."
             }
             action={
               orders.length === 0 ? (
-                <PfButton href="/plan">Explore Milk Plans</PfButton>
+                <PfButton href="/plan">{pendingPurchases.length > 0 ? "View Milk Plan" : "Explore Milk Plans"}</PfButton>
               ) : (
                 <PfButton
                   variant="secondary"

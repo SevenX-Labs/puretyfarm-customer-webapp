@@ -37,6 +37,7 @@ export const ordersApi = {
     if (res && Array.isArray(res.data)) {
       return {
         data: res.data,
+        pendingPlanPurchases: res.pendingPlanPurchases || [],
         pagination: res.pagination || {
           page: params?.page || 1,
           limit: params?.limit || res.data.length,

@@ -22,6 +22,7 @@ export const accountApi = {
     return {
       success: true,
       orders: (res?.data || []) as any,
+      pendingPlanPurchases: res?.pendingPlanPurchases || [],
     };
   },
 

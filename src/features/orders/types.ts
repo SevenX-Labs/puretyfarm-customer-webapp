@@ -121,8 +121,35 @@ export interface ListOrdersParams {
   limit?: number;
 }
 
+export interface PendingPlanPurchase {
+  id: string;
+  selectionId: string;
+  planType: PlanType | string;
+  status: string;
+  purchaseStatus?: string;
+  approvalStatus: "PENDING" | "APPROVED" | string;
+  schedulingStatus: "NOT_SCHEDULED" | "SCHEDULED" | string;
+  billingModel?: "PER_DELIVERY" | "PREPAID_LEGACY" | string;
+  paymentMethod?: string;
+  frequency?: string | null;
+  quantityMode?: string | null;
+  quantity?: number | null;
+  quantityA?: number | null;
+  quantityB?: number | null;
+  expectedAmountPaise?: number;
+  unitPricePaise?: number;
+  funding: {
+    status: "CONFIRMED" | "PENDING_APPROVAL" | "NOT_FUNDED" | string;
+    walletBalancePaise: number;
+    pendingCreditPaise: number;
+    hasCompletedCredit: boolean;
+  };
+  createdAt: string;
+}
+
 export interface ListOrdersResponse {
   data: CustomerOrder[];
+  pendingPlanPurchases?: PendingPlanPurchase[];
   pagination: {
     page: number;
     limit: number;
