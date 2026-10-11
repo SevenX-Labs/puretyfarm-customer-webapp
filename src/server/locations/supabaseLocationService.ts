@@ -1,5 +1,6 @@
-const SUPABASE_URL = process.env.SUPABASE_URL || "https://pggwlhletpnrexdggqnv.supabase.co";
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnZ3dsaGxldHBucmV4ZGdncW52Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDg0MDU3MCwiZXhwIjoyMTA2NDE2NTcwfQ.pkG9tHrqVye_1tNk8Z5jyxDCvGzR9QCdvrR-tSVyeo4";
+const SUPABASE_URL =
+  process.env.SUPABASE_URL || "https://pggwlhletpnrexdggqnv.supabase.co";
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || "******";
 
 export interface StateItem {
   id: string;
@@ -19,82 +20,84 @@ export interface AreaItem {
   pincode: string;
 }
 
-export async function fetchStatesFromSupabase(): Promise<StateItem[]> {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/states?select=id,name,isActive&isActive=eq.true&order=name.asc`,
-      {
+async function fetchLocationRows(
+  source: string,
+  urls: string[]
+): Promise<Record<string, unknown>[]> {
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, {
         headers: {
           apikey: SUPABASE_SECRET_KEY,
-          Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
+          Authorization: "Bearer " + SUPABASE_SECRET_KEY,
         },
         cache: "no-store",
+      });
+
+      if (!res.ok) {
+        console.warn(`[${source}] HTTP error ${res.status}`);
+        continue;
       }
-    );
-    if (!res.ok) {
-      console.warn(`[fetchStatesFromSupabase] HTTP error ${res.status}`);
-      return [];
+
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.error(`[${source} error]`, err);
     }
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
-  } catch (err) {
-    console.error("[fetchStatesFromSupabase error]", err);
-    return [];
   }
+
+  return [];
 }
 
-export async function fetchCitiesFromSupabase(stateId: string): Promise<CityItem[]> {
+export async function fetchStatesFromSupabase(): Promise<StateItem[]> {
+  const rows = await fetchLocationRows("fetchStatesFromSupabase", [
+    `${SUPABASE_URL}/rest/v1/states?select=id,name,isActive&isActive=eq.true&order=name.asc`,
+    `${SUPABASE_URL}/rest/v1/states?select=id,name,isActive:is_active&is_active=eq.true&order=name.asc`,
+  ]);
+
+  return rows
+    .map((row) => ({
+      id: String(row.id ?? ""),
+      name: String(row.name ?? ""),
+    }))
+    .filter((state) => Boolean(state.id && state.name));
+}
+
+export async function fetchCitiesFromSupabase(
+  stateId: string
+): Promise<CityItem[]> {
   if (!stateId) return [];
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/cities?select=id,name,stateId,isActive&isActive=eq.true&stateId=eq.${stateId}&order=name.asc`,
-      {
-        headers: {
-          apikey: SUPABASE_SECRET_KEY,
-          Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
-        },
-        cache: "no-store",
-      }
-    );
-    if (!res.ok) {
-      console.warn(`[fetchCitiesFromSupabase] HTTP error ${res.status}`);
-      return [];
-    }
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
-  } catch (err) {
-    console.error("[fetchCitiesFromSupabase error]", err);
-    return [];
-  }
+
+  const encodedStateId = encodeURIComponent(stateId);
+  const rows = await fetchLocationRows("fetchCitiesFromSupabase", [
+    `${SUPABASE_URL}/rest/v1/cities?select=id,name,stateId,isActive&isActive=eq.true&stateId=eq.${encodedStateId}&order=name.asc`,
+    `${SUPABASE_URL}/rest/v1/cities?select=id,name,stateId:state_id,isActive:is_active&is_active=eq.true&state_id=eq.${encodedStateId}&order=name.asc`,
+  ]);
+
+  return rows
+    .map((row) => ({
+      id: String(row.id ?? ""),
+      name: String(row.name ?? ""),
+      stateId: String(row.stateId ?? ""),
+    }))
+    .filter((city) => Boolean(city.id && city.name && city.stateId));
 }
 
 export async function fetchAreasFromSupabase(cityId: string): Promise<AreaItem[]> {
   if (!cityId) return [];
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/areas?select=id,name,cityId,pincode,isActive&isActive=eq.true&cityId=eq.${cityId}&order=name.asc`,
-      {
-        headers: {
-          apikey: SUPABASE_SECRET_KEY,
-          Authorization: `Bearer ${SUPABASE_SECRET_KEY}`,
-        },
-        cache: "no-store",
-      }
-    );
-    if (!res.ok) {
-      console.warn(`[fetchAreasFromSupabase] HTTP error ${res.status}`);
-      return [];
-    }
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-    return data.map((a: { id: string; name: string; cityId: string; pincode?: string | null }) => ({
-      id: a.id,
-      name: a.name,
-      cityId: a.cityId,
-      pincode: a.pincode || "",
-    }));
-  } catch (err) {
-    console.error("[fetchAreasFromSupabase error]", err);
-    return [];
-  }
+
+  const encodedCityId = encodeURIComponent(cityId);
+  const rows = await fetchLocationRows("fetchAreasFromSupabase", [
+    `${SUPABASE_URL}/rest/v1/areas?select=id,name,cityId,pincode,isActive&isActive=eq.true&cityId=eq.${encodedCityId}&order=name.asc`,
+    `${SUPABASE_URL}/rest/v1/areas?select=id,name,cityId:city_id,pincode,isActive:is_active&is_active=eq.true&city_id=eq.${encodedCityId}&order=name.asc`,
+  ]);
+
+  return rows
+    .map((row) => ({
+      id: String(row.id ?? ""),
+      name: String(row.name ?? ""),
+      cityId: String(row.cityId ?? ""),
+      pincode: String(row.pincode ?? ""),
+    }))
+    .filter((area) => Boolean(area.id && area.name && area.cityId));
 }
