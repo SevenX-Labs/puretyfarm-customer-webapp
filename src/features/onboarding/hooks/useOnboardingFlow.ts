@@ -314,6 +314,16 @@ export function useOnboardingFlow() {
       setPendingPlan(plan);
       await reloadWallet();
 
+      if (typeof window !== "undefined") {
+        const checkoutPayload = {
+          quoteId: quote.quoteId,
+          planName: plan.name,
+          amountRupees: (quote.totalSellingAmount / 100).toFixed(2),
+        };
+        window.sessionStorage.setItem("purety_pending_plan_checkout", JSON.stringify(checkoutPayload));
+        window.localStorage.setItem("purety_pending_plan_checkout", JSON.stringify(checkoutPayload));
+      }
+
       setMaxAllowedStep((prev) => Math.max(prev, 4) as StepKey);
       setCurrentStep(4);
     } catch (err: any) {
@@ -347,6 +357,7 @@ export function useOnboardingFlow() {
 
     try {
       window.localStorage.removeItem("pf_onboarding_pending_quote");
+      window.localStorage.setItem("pf_onboarding_completed", "true");
     } catch {}
 
     await refreshUser();

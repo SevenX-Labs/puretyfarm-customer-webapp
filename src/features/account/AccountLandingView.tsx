@@ -71,11 +71,9 @@ export function AccountLandingView() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user && user.onboardingStep && user.onboardingStep !== "complete") {
+    if (user && (user.onboardingStep === "location_pending" || user.onboardingStep === "profile_pending")) {
       if (user.onboardingStep === "location_pending") {
         router.replace("/onboarding?step=2");
-      } else if (user.onboardingStep === "plan_pending") {
-        router.replace("/onboarding?step=3");
       } else {
         router.replace("/onboarding?step=1");
       }

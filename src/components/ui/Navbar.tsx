@@ -33,11 +33,9 @@ export function Navbar({ variant = "default" }: { variant?: "default" | "auth" }
 
   const handleAccountClick = () => {
     if (isLoggedIn) {
-      if (user?.onboardingStep && user.onboardingStep !== "complete") {
+      if (user?.onboardingStep === "location_pending" || user?.onboardingStep === "profile_pending") {
         if (user.onboardingStep === "location_pending") {
           router.push("/onboarding?step=2");
-        } else if (user.onboardingStep === "plan_pending") {
-          router.push("/onboarding?step=3");
         } else {
           router.push("/onboarding?step=1");
         }

@@ -84,9 +84,8 @@ function normalizeCustomerUser(
     const hasAddress = Array.isArray(addresses) && addresses.length > 0;
     if (!hasAddress) {
       onboardingStep = "location_pending";
-    } else if (!hasActivePlan) {
-      onboardingStep = "plan_pending";
     } else {
+      // User has established profile and serviceable delivery address
       onboardingStep = "complete";
     }
   }

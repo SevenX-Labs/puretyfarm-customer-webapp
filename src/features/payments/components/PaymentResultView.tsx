@@ -55,8 +55,20 @@ export function PaymentResultView() {
   const pollAttempts = useRef<number>(0);
   const isPollingRef = useRef<boolean>(false);
 
+  // Hard safety timeout: Guarantee verification spinner takes MAX 7 seconds
+  useEffect(() => {
+    const hardLimitTimer = setTimeout(() => {
+      setLoading(false);
+    }, 7000);
+    return () => clearTimeout(hardLimitTimer);
+  }, []);
+
   // Complete plan quote if this payment was initiated from Onboarding Step 4
   const completePendingPlanIfAny = useCallback(async (paymentAmountPaise?: number) => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("pf_onboarding_completed", "true");
+      window.sessionStorage.setItem("pf_onboarding_completed", "true");
+    }
     if (typeof window === "undefined") return;
 
     let pending: PendingPlanCheckout | null = null;
@@ -137,6 +149,28 @@ export function PaymentResultView() {
       }
       setError(null);
 
+      // Fast-path: If PhonePe redirect URL already includes known outcome
+      const hasSuccessHint =
+        statusHint === "SUCCESS" ||
+        resultHint === "wallet_credited" ||
+        resultHint === "recorded" ||
+        resultHint === "awaiting_approval";
+
+      if (hasSuccessHint && !isAutoPoll) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("wallet_update"));
+          window.localStorage.setItem("pf_onboarding_completed", "true");
+        }
+        await completePendingPlanIfAny();
+        fireCelebration();
+        setLoading(false);
+        // Sync in background with server
+        paymentsApi.verifyPayment({ transactionId: txnid }).then((res) => {
+          setVerification(res);
+        }).catch(() => {});
+        return;
+      }
+
       try {
         const res = await paymentsApi.verifyPayment({ transactionId: txnid });
         setVerification(res);
@@ -167,11 +201,11 @@ export function PaymentResultView() {
           resultHint === "error";
 
         // If in-flight / processing at the gateway, auto-poll quickly
-        if (!isTerminalState && pollAttempts.current < 5) {
+        if (!isTerminalState && pollAttempts.current < 2) {
           pollAttempts.current += 1;
           setTimeout(() => {
             verifyAuthoritativeState(true);
-          }, 1500);
+          }, 1200);
           return;
         }
 

@@ -51,7 +51,7 @@ export function useAuthFlow() {
         if (user.onboardingStep === "location_pending") {
           router.replace("/onboarding?step=2");
         } else if (user.onboardingStep === "plan_pending") {
-          router.replace("/onboarding?step=3");
+          router.replace("/dashboard");
         } else {
           router.replace("/onboarding?step=1");
         }
