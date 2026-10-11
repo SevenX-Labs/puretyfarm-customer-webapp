@@ -378,16 +378,7 @@ function WalletContent() {
 
     try {
       if (rechargeMethod === "ONLINE") {
-        // Online gateways (PhonePe) require a verified customer email
-        if (!user?.email) {
-          setShowTopupModal(false);
-          setPendingTopupPaise(amountPaise);
-          setShowEmailModal(true);
-          setIsProcessing(false);
-          return;
-        }
-
-        // Online PhonePe Flow (docs/customer/payments.md)
+        // Online PhonePe Flow (email is optional)
         const res = await paymentsApi.initiateOnlineTopup(amountPaise, {
           autoRedirect: true,
         });

@@ -97,11 +97,8 @@ export function PaymentStep({
   }`;
 
   const handleOnlinePaymentClick = () => {
-    if (user && !user.email) {
-      setIsEmailModalOpen(true);
-    } else {
-      onPayOnline();
-    }
+    // Email is not mandatory for online payment (PhonePe) — proceed directly to payment
+    onPayOnline();
   };
 
   const walletUrl = `/wallet?amount=${Math.ceil(shortfallPaise / 100)}`;
