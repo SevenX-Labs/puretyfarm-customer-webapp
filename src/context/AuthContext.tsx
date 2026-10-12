@@ -12,6 +12,7 @@ import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import {
   bootstrapAuthSession,
   endAuthSession,
+  isDefiniteRefreshRejection,
   refreshSession,
   subscribeToAuthSession,
 } from "@/lib/auth/refreshSession";
@@ -241,19 +242,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {}
       }
 
-      if (typeof window !== "undefined") {
-        fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+      if (!tokenStorage.getRefreshToken() && !tokenStorage.getAccessToken()) {
+        if (typeof window !== "undefined") {
+          fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+        }
+        tokenStorage.clearTokens();
+        setUser(null);
+        setIsProfileLoaded(false);
+        setStatus("unauthenticated");
+        setAuthError(null);
+      } else {
+        setStatus("authenticated");
       }
-      tokenStorage.clearTokens();
-      setUser(null);
-      setIsProfileLoaded(false);
-      setStatus("unauthenticated");
-      setAuthError(null);
-    } catch {
-      setUser(null);
-      setIsProfileLoaded(false);
-      setStatus("unauthenticated");
-      setAuthError(null);
+    } catch (err: any) {
+      if (isDefiniteRefreshRejection(err)) {
+        tokenStorage.clearTokens();
+        setUser(null);
+        setIsProfileLoaded(false);
+        setStatus("unauthenticated");
+      } else if (tokenStorage.hasAccessToken() || Boolean(tokenStorage.getRefreshToken())) {
+        setStatus("authenticated");
+      } else {
+        setStatus("unauthenticated");
+      }
     }
   }, [fetchFullUserProfile]);
 

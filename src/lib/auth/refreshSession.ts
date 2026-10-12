@@ -248,3 +248,5 @@ export function endAuthSession(): void {
     broadcastSessionEvent({ type: "ended" });
   }
 }
+
+export { isDefiniteRefreshRejection } from "./refreshCore.mjs";

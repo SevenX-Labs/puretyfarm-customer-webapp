@@ -37,9 +37,8 @@ export function useAuthFlow() {
   // Helper to check if user has not completed onboarding
   const isPendingOnboarding = (u: typeof user) => {
     if (!u) return true;
-    if (u.onboardingStep !== "complete") return true;
-    const name = u.name?.trim() || "";
-    return !name || name.startsWith("Customer (") || name.toLowerCase() === "customer";
+    const step = u.onboardingStep as string | undefined;
+    return step === "profile_pending" || step === "location_pending" || step === "plan_pending";
   };
 
   // Route existing sessions: only after session is confirmed authenticated

@@ -8,6 +8,7 @@ import { Button } from "./Button";
 import { BrandLogo } from "./BrandLogo";
 import { Magnet } from "@/components/reactbits";
 import { useAuth } from "@/context/AuthContext";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
 import {
   handleTrialClick,
   getPhoneUrl,
@@ -32,7 +33,8 @@ export function Navbar({ variant = "default" }: { variant?: "default" | "auth" }
   const router = useRouter();
 
   const handleAccountClick = () => {
-    if (isLoggedIn) {
+    const hasToken = typeof window !== "undefined" && (tokenStorage.hasAccessToken() || Boolean(tokenStorage.getRefreshToken()));
+    if (isLoggedIn || hasToken) {
       if (user?.onboardingStep === "location_pending" || user?.onboardingStep === "profile_pending") {
         if (user.onboardingStep === "location_pending") {
           router.push("/onboarding?step=2");
@@ -43,7 +45,7 @@ export function Navbar({ variant = "default" }: { variant?: "default" | "auth" }
         router.push("/account");
       }
     } else {
-      router.push("/auth?redirect=/onboarding");
+      router.push("/auth?redirect=/account");
     }
   };
 
