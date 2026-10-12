@@ -43,29 +43,33 @@ export function OrderConfirmationView() {
     ? isCash
       ? "Order Confirmed"
       : "Payment Successful"
-    : isPendingApproval
-      ? "Order Pending Approval"
-      : isPendingPayment
-        ? "Awaiting Cash Collection"
-        : "Submitted";
+    : isCash
+      ? "Awaiting Cash Collection"
+      : isPendingApproval
+        ? "Order Pending Approval"
+        : isPendingPayment
+          ? "Awaiting Cash Collection"
+          : "Submitted";
 
   const headerTitle = isConfirmed
     ? "Plan Activated!"
-    : isPendingApproval
-      ? "Plan Purchased — Awaiting Approval"
-      : isPendingPayment
-        ? "Cash Collection Pending"
-        : "Order Submitted";
+    : isCash
+      ? "Order Placed — Cash Collection Pending"
+      : isPendingApproval
+        ? "Plan Purchased — Awaiting Approval"
+        : isPendingPayment
+          ? "Cash Collection Pending"
+          : "Order Submitted";
 
   const headerCopy = isConfirmed
     ? "Thank you for choosing Purety Farm. Your deliveries are scheduled — track the first drop in My Orders."
-    : isPendingApproval
-      ? isCash
-        ? "Nothing has been deducted. Add cash to your wallet from the Wallet page; once it is confirmed, our team approves your plan and sets your first delivery date. Each delivery is then charged to your wallet only when it is delivered."
-        : "Nothing has been deducted from your wallet. Once your wallet funding is confirmed, our team approves your plan and sets your first delivery date. Each delivery is then charged to your wallet only when it is delivered."
-      : isPendingPayment
-        ? "Our delivery partner will collect the cash on your doorstep. Deliveries start as soon as the admin confirms the collection."
-        : "Your request has been submitted. Please check My Orders for the latest status.";
+    : isCash
+      ? `Our delivery partner will collect ₹${Number(amountRupees).toFixed(2)} in cash at your doorstep. Once confirmed by our depot team, the funds will be credited to your wallet and your milk deliveries will begin!`
+      : isPendingApproval
+        ? "Nothing has been deducted from your wallet. Once your wallet funding is confirmed, our team approves your plan and sets your first delivery date. Each delivery is then charged to your wallet only when it is delivered."
+        : isPendingPayment
+          ? "Our delivery partner will collect the cash on your doorstep. Deliveries start as soon as the admin confirms the collection."
+          : "Your request has been submitted. Please check My Orders for the latest status.";
 
   return (
     <>
@@ -179,9 +183,11 @@ export function OrderConfirmationView() {
                       ? isCash
                         ? "Collected (confirmed)"
                         : "Paid from wallet"
-                      : isPendingApproval
-                        ? "Charged per delivery — nothing deducted yet"
-                        : "Awaiting cash collection"}
+                      : isCash
+                        ? "Awaiting cash collection"
+                        : isPendingApproval
+                          ? "Charged per delivery — nothing deducted yet"
+                          : "Awaiting cash collection"}
                   </span>
                 </div>
                 {cashCollectionId && (
