@@ -121,6 +121,20 @@ export function findNextDelivery(orders: Order[]): Order | null {
   return upcoming[0] || null;
 }
 
+export function findLatestDelivered(orders: Order[]): Order | null {
+  const delivered = orders
+    .filter((o) => {
+      const n = normaliseStatus(o.status);
+      return n === "delivered" || n === "completed";
+    })
+    .sort((a, b) => {
+      const tA = new Date(a.deliveredAt || a.deliveryDate || a.createdAt).getTime();
+      const tB = new Date(b.deliveredAt || b.deliveryDate || b.createdAt).getTime();
+      return tB - tA;
+    });
+  return delivered[0] || null;
+}
+
 export type NormalisedStatus =
   | "pending"
   | "confirmed"
@@ -154,8 +168,8 @@ export function statusLabel(status: OrderStatus) {
       confirmed: "Confirmed",
       processing: "Preparing",
       out_for_delivery: "Out for delivery",
-      delivered: "Delivered",
-      completed: "Completed",
+      delivered: "Order Completed",
+      completed: "Order Completed",
       cancelled: "Cancelled",
       failed: "Failed",
     }[n] || "Scheduled"

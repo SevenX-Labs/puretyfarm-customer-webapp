@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { PfButton, PfCard, PfSectionTitle } from "@/components/pf";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { useDashboardData } from "./useDashboardData";
-import { findNextDelivery } from "./utils";
+import { findNextDelivery, findLatestDelivered } from "./utils";
 import { NextDeliveryCard } from "./components/NextDeliveryCard";
 import { MilkPlanCard } from "./components/MilkPlanCard";
 import { QuickActions } from "./components/QuickActions";
@@ -26,6 +26,8 @@ export function DashboardView() {
     useDashboardData();
 
   const nextDelivery = findNextDelivery(orders);
+  const latestDelivered = findLatestDelivered(orders);
+  const displayDelivery = nextDelivery || latestDelivered;
   const hasPlan = subscription && subscription.status !== "cancelled";
   const needsSetup =
     user?.onboardingStep && user.onboardingStep !== "complete";
@@ -43,14 +45,14 @@ export function DashboardView() {
         <ErrorBlock message={error} />
       ) : needsSetup ? (
         <SetupPrompt step={user?.onboardingStep} />
-      ) : !nextDelivery && !hasPlan ? (
+      ) : !displayDelivery && !hasPlan ? (
         <StarterBlock />
       ) : (
         <div className="space-y-10">
           <section className="grid lg:grid-cols-[2fr_1fr] gap-5">
             <div>
-              {nextDelivery ? (
-                <NextDeliveryCard order={nextDelivery} />
+              {displayDelivery ? (
+                <NextDeliveryCard order={displayDelivery} />
               ) : (
                 <NoUpcomingDelivery hasPlan={!!hasPlan} />
               )}

@@ -310,6 +310,30 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
             />
           </div>
 
+          {/* Order Completed Hero Banner */}
+          {(order.status === "DELIVERED" ||
+            order.status === "COMPLETED" ||
+            order.status?.toLowerCase()?.includes("deliver")) && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-linear-to-r from-emerald-50 via-teal-50 to-[#f0f9f1] border border-emerald-200 text-emerald-950 flex items-start gap-4 shadow-xs no-print">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center shrink-0 text-white shadow-xs">
+                <CheckCircle2 size={24} className="stroke-[2.5]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-base text-emerald-950">
+                    Order Completed • Delivered Successfully
+                  </h3>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900 border border-emerald-300">
+                    Completed
+                  </span>
+                </div>
+                <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
+                  Your fresh A2 cow milk has been delivered to your doorstep. Payment has been verified and your delivery receipt is available below.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ══════════════════════════════════════════════════════════════════
               1. OFFICIAL PURETYFARM RECEIPT DESIGN (NO PROGRESS BAR)
              ══════════════════════════════════════════════════════════════════ */}
@@ -364,7 +388,11 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
               <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4]/80 space-y-1.5">
                 <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-[#8C7A6B]">
                   <Calendar size={13} className="text-[#5C1B13]" />
-                  <span>Scheduled Delivery</span>
+                  <span>
+                    {order.status === "DELIVERED" || order.status === "COMPLETED"
+                      ? "Delivery Completed"
+                      : "Scheduled Delivery"}
+                  </span>
                 </div>
                 <p className="text-sm font-bold text-[#1A1008]">
                   {formatDeliveryDate(order.deliveryDate).label}
@@ -629,11 +657,13 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
           {/* ══════════════════════════════════════════════════════════════════
               3. MONTHLY SUBSCRIPTION MANAGEMENT (MANAGE / CUSTOMIZE / CHANGE)
              ══════════════════════════════════════════════════════════════════ */}
-          {(order.planType === "MONTHLY" ||
-            order.planType === "MONTHLY_PLAN" ||
-            order.items?.some((i) =>
-              (i.productNameSnapshot || i.name || "").toLowerCase().includes("monthly")
-            )) && (
+          {order.status !== "DELIVERED" &&
+            order.status !== "COMPLETED" &&
+            (order.planType === "MONTHLY" ||
+              order.planType === "MONTHLY_PLAN" ||
+              order.items?.some((i) =>
+                (i.productNameSnapshot || i.name || "").toLowerCase().includes("monthly")
+              )) && (
             <div className="bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-2xs space-y-5 no-print">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-[#E8DFD4]">
                 <div>

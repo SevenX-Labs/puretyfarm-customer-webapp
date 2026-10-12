@@ -26,7 +26,7 @@ type Filter = "all" | "upcoming" | "delivered" | "cancelled";
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "upcoming", label: "Upcoming" },
-  { key: "delivered", label: "Delivered" },
+  { key: "delivered", label: "Completed" },
   { key: "cancelled", label: "Cancelled" },
 ];
 

@@ -1016,10 +1016,10 @@ function WalletContent() {
           {/* Preset Recharge Amount Cards (Compact & Mobile-Responsive) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             {[
-              { amount: 500, label: "Starter", desc: "6 Bottles" },
-              { amount: 1000, label: "Popular", desc: "12 Bottles + 5% Bonus" },
-              { amount: 2500, label: "Monthly", desc: "Full Month + 10% Extra" },
-              { amount: 5000, label: "Family", desc: "60L Pack + Free Butter" },
+              { amount: 500, label: "Starter" },
+              { amount: 1000, label: "Popular" },
+              { amount: 2500, label: "Monthly" },
+              { amount: 5000, label: "Family" },
             ].map((preset) => {
               const isSelected = selectedPreset === preset.amount;
               return (
@@ -1034,7 +1034,7 @@ function WalletContent() {
                       : "border-[#E8DFD4] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] hover:border-[#D5C7B8]"
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between">
                     <span className="text-sm sm:text-base font-bold font-mono text-[#1A1008] group-hover:text-[#5C1B13]">
                       ₹{preset.amount}
                     </span>
@@ -1048,9 +1048,6 @@ function WalletContent() {
                       {preset.label}
                     </span>
                   </div>
-                  <p className="text-[10px] sm:text-[11px] text-[#6B584C] font-medium leading-tight truncate">
-                    {preset.desc}
-                  </p>
                 </button>
               );
             })}

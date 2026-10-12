@@ -12,6 +12,11 @@ import { DeliveryTimeline } from "./DeliveryTimeline";
 import type { Order } from "@/types/models";
 
 export function NextDeliveryCard({ order }: { order: Order }) {
+  const isDelivered =
+    order.status === "DELIVERED" ||
+    order.status === "COMPLETED" ||
+    order.status?.toLowerCase()?.includes("deliver");
+
   const { label: dayLabel } = formatDeliveryDate(order.deliveryDate);
   const windowText = formatDeliveryWindow(
     order.deliveryStartTime,
@@ -26,7 +31,7 @@ export function NextDeliveryCard({ order }: { order: Order }) {
         <div>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--pf-text-muted)]">
-              Next Delivery
+              {isDelivered ? "Delivery Status" : "Next Delivery"}
             </span>
             <PfBadge tone={statusTone(order.status)} dot>
               {statusLabel(order.status)}
@@ -34,10 +39,12 @@ export function NextDeliveryCard({ order }: { order: Order }) {
           </div>
 
           <h2 className="text-[26px] sm:text-[32px] md:text-[36px] font-bold leading-[1.05] tracking-tight text-[var(--pf-text)]">
-            {dayLabel}
+            {isDelivered ? "Delivered Successfully 🎉" : dayLabel}
           </h2>
           <p className="mt-1 text-[16px] sm:text-[18px] font-semibold text-[var(--pf-text-secondary)]">
-            {windowText ?? "Delivery window not available"}
+            {isDelivered
+              ? "Fresh A2 milk delivered to your doorstep"
+              : (windowText ?? "Delivery window not available")}
           </p>
 
           <div className="mt-5 flex items-baseline justify-between gap-4 pt-5 border-t border-[var(--pf-border)]">

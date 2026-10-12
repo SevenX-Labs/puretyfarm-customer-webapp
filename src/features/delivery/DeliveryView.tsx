@@ -18,6 +18,7 @@ import { accountApi } from "@/features/account/api/accountApi";
 import type { Address, Order } from "@/types/models";
 import {
   findNextDelivery,
+  findLatestDelivered,
   formatDeliveryDate,
   formatDeliveryWindow,
   orderItemsSummary,
@@ -61,14 +62,20 @@ export function DeliveryView() {
   const defaultAddress =
     addresses.find((a) => a.isDefault) || addresses[0] || null;
   const nextDelivery = findNextDelivery(orders);
+  const latestDelivered = findLatestDelivered(orders);
+  const activeDelivery = nextDelivery || latestDelivered;
+  const isDelivered = Boolean(
+    activeDelivery &&
+      (activeDelivery.status === "DELIVERED" ||
+        activeDelivery.status === "COMPLETED" ||
+        activeDelivery.status?.toLowerCase()?.includes("deliver"))
+  );
   const todayIdx = (new Date().getDay() + 6) % 7;
 
-  // The window comes from the next delivery's own saved snapshot. There is no
-  // hardcoded fallback: this screen has no plan-config call of its own, so when
-  // there is no upcoming delivery the window is genuinely unknown and says so.
+  // The window comes from the delivery's own saved snapshot.
   const windowText = formatDeliveryWindow(
-    nextDelivery?.deliveryStartTime,
-    nextDelivery?.deliveryEndTime
+    activeDelivery?.deliveryStartTime,
+    activeDelivery?.deliveryEndTime
   );
 
   return (
@@ -83,31 +90,30 @@ export function DeliveryView() {
       ) : (
         <div className="grid lg:grid-cols-[1fr_360px] gap-6">
           <div className="space-y-6">
-            {nextDelivery ? (
+            {activeDelivery ? (
               <PfCard padding="lg" elevated>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--pf-text-muted)]">
-                      Next Delivery
+                      {isDelivered ? "Delivery Status" : "Next Delivery"}
                     </div>
                     <h2 className="mt-2 text-[32px] font-bold text-[var(--pf-text)] leading-[1.05]">
-                      {formatDeliveryDate(nextDelivery.deliveryDate).label}
+                      {isDelivered ? "Delivered Successfully 🎉" : formatDeliveryDate(activeDelivery.deliveryDate).label}
                     </h2>
                     <div className="mt-1 text-[16px] text-[var(--pf-text-secondary)] font-semibold">
-                      {formatDeliveryWindow(
-                        nextDelivery.deliveryStartTime,
-                        nextDelivery.deliveryEndTime
-                      ) ?? "Delivery window not available"}
+                      {isDelivered
+                        ? "Fresh A2 milk dropped at your doorstep"
+                        : (windowText ?? "Delivery window not available")}
                     </div>
                   </div>
-                  <PfBadge tone={statusTone(nextDelivery.status)} dot>
-                    {statusLabel(nextDelivery.status)}
+                  <PfBadge tone={statusTone(activeDelivery.status)} dot>
+                    {statusLabel(activeDelivery.status)}
                   </PfBadge>
                 </div>
                 <div className="mt-5 pt-5 border-t border-[var(--pf-border)] flex items-center justify-between gap-3 flex-wrap">
                   <div className="text-[14px] text-[var(--pf-text-secondary)]">
                     {(() => {
-                      const { name, qty, unit } = orderItemsSummary(nextDelivery);
+                      const { name, qty, unit } = orderItemsSummary(activeDelivery);
                       return (
                         <>
                           <span className="font-semibold text-[var(--pf-text)]">
@@ -119,7 +125,7 @@ export function DeliveryView() {
                     })()}
                   </div>
                   <Link
-                    href={`/orders/${nextDelivery.id}`}
+                    href={`/orders/${activeDelivery.id}`}
                     className="pf-focus-ring inline-flex items-center gap-1.5 text-[13px] font-semibold text-[var(--pf-brown)]"
                   >
                     View details
