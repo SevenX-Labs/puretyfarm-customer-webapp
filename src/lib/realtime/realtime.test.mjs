@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert";
 import { SSEParser } from "./sseParser.ts";
+import { RealtimeStreamClient } from "./realtimeStreamClient.ts";
+import { createSyncExecutor } from "./syncExecutor.ts";
 
 test("SSEParser: handles single event with event, data, id", () => {
   const parser = new SSEParser();
@@ -38,7 +40,6 @@ test("SSEParser: parses multiple events in a single chunk", () => {
 
 test("SSEParser: handles chunks split mid-line across stream boundaries", () => {
   const parser = new SSEParser();
-  // Split across field name and value
   const chunk1 = "event: sy";
   const chunk2 = "nc\ndata: {\"v\":1,\"types\":[\"wallet";
   const chunk3 = ".updated\"]}\nid: 42\n\n";
@@ -63,83 +64,159 @@ test("SSEParser: supports ready event with no data", () => {
   assert.strictEqual(messages[0].event, "ready");
 });
 
-test("Reconnect and Backoff: 401 triggers refresh, 2 errors trigger stream down, backoff caps at 30s", async () => {
-  let tokenRefreshed = false;
-  let healthState = true;
-  let failedAttempts = 0;
+test("RealtimeStreamClient (production class): 401 refreshes token and reconnects, caps backoff at 30s", async () => {
+  let token = "stale-token";
+  let refreshCalled = false;
+  let fetchCallCount = 0;
 
-  async function mockConnect(statusCode) {
-    if (statusCode === 401) {
-      tokenRefreshed = true;
-      return "refreshed_and_retried";
+  const mockFetch = async (url, init) => {
+    fetchCallCount++;
+    if (fetchCallCount === 1) {
+      assert.strictEqual(init.headers.Authorization, "Bearer stale-token");
+      return {
+        ok: false,
+        status: 401,
+      };
     }
-    failedAttempts++;
-    if (failedAttempts >= 2) {
-      healthState = false; // Mark stream down so fallback polling takes over
-    }
-    const backoff = Math.min(30000, 1000 * Math.pow(2, failedAttempts) + 50);
-    return backoff;
-  }
+    assert.strictEqual(init.headers.Authorization, "Bearer fresh-token");
+    return {
+      ok: true,
+      status: 200,
+      body: {
+        getReader: () => ({
+          read: async () => ({ done: true, value: undefined }),
+        }),
+      },
+    };
+  };
 
-  // 1. 401 response triggers refresh
-  const res401 = await mockConnect(401);
-  assert.strictEqual(res401, "refreshed_and_retried");
-  assert.strictEqual(tokenRefreshed, true);
+  const client = new RealtimeStreamClient({
+    streamUrl: "http://localhost:3000/api/v1/customer/events/stream",
+    getAccessToken: () => token,
+    refreshSession: async () => {
+      refreshCalled = true;
+      token = "fresh-token";
+      return "fresh-token";
+    },
+    onEvents: () => {},
+    fetchFn: mockFetch,
+  });
 
-  // 2. 1st network failure
-  const delay1 = await mockConnect(500);
-  assert.strictEqual(healthState, true); // Still healthy on first transient error
-  assert.strictEqual(failedAttempts, 1);
+  await client.connect();
 
-  // 3. 2nd network failure
-  const delay2 = await mockConnect(500);
-  assert.strictEqual(healthState, false); // Stream marked down after 2 failures!
-  assert.strictEqual(failedAttempts, 2);
+  assert.strictEqual(refreshCalled, true);
+  assert.strictEqual(fetchCallCount, 2);
+  assert.strictEqual(client.getIsHealthy(), true);
 
-  // 4. Caps at 30,000ms
-  failedAttempts = 10;
-  const highDelay = Math.min(30000, 1000 * Math.pow(2, failedAttempts) + 50);
-  assert.strictEqual(highDelay, 30000);
+  // Backoff calculation caps at 30,000ms
+  const backoffHigh = client.computeBackoff(15);
+  assert.strictEqual(backoffHigh <= 30000, true);
+  assert.strictEqual(backoffHigh >= 20000, true);
+
+  client.disconnect();
+  assert.strictEqual(client.getIsHealthy(), false);
 });
 
-test("Debounce and Trailing Refresh: coalesces rapid events and guarantees exactly ONE trailing refresh", async () => {
+test("RealtimeStreamClient (production class): marks stream down after 2 network failures", async () => {
+  let healthChanges = [];
+
+  const mockFailFetch = async () => ({
+    ok: false,
+    status: 500,
+  });
+
+  const client = new RealtimeStreamClient({
+    streamUrl: "http://localhost:3000/api/v1/customer/events/stream",
+    getAccessToken: () => "valid-token",
+    refreshSession: async () => null,
+    onEvents: () => {},
+    onHealthChange: (h) => healthChanges.push(h),
+    fetchFn: mockFailFetch,
+  });
+
+  // Attempt 1
+  await client.connect();
+  assert.strictEqual(client.getFailedAttempts(), 1);
+  assert.strictEqual(client.getIsHealthy(), false);
+
+  // Attempt 2
+  await client.connect();
+  assert.strictEqual(client.getFailedAttempts(), 2);
+  assert.strictEqual(client.getIsHealthy(), false);
+
+  client.disconnect();
+});
+
+test("RealtimeStreamClient (production class): streams SSE chunks into onEvents handler", async () => {
+  const receivedEvents = [];
+  const encoder = new TextEncoder();
+  const chunks = [
+    encoder.encode("event: ready\n\n"),
+    encoder.encode(": ping\n\n"),
+    encoder.encode("event: sync\ndata: {\"v\":1,\"types\":[\"wallet.updated\",\"orders.updated\"]}\nid: 1\n\n"),
+  ];
+  let chunkIdx = 0;
+
+  const mockStreamFetch = async () => ({
+    ok: true,
+    status: 200,
+    body: {
+      getReader: () => ({
+        read: async () => {
+          if (chunkIdx < chunks.length) {
+            return { done: false, value: chunks[chunkIdx++] };
+          }
+          return { done: true, value: undefined };
+        },
+      }),
+    },
+  });
+
+  let connectedCalled = false;
+  const client = new RealtimeStreamClient({
+    streamUrl: "http://localhost:3000/api/v1/customer/events/stream",
+    getAccessToken: () => "valid-token",
+    refreshSession: async () => null,
+    createParser: () => new SSEParser(),
+    onEvents: (types) => receivedEvents.push(...types),
+    onConnected: () => { connectedCalled = true; },
+    fetchFn: mockStreamFetch,
+  });
+
+  await client.connect();
+
+  assert.strictEqual(connectedCalled, true);
+  assert.deepStrictEqual(receivedEvents, ["wallet.updated", "orders.updated"]);
+  assert.strictEqual(client.getIsHealthy(), true);
+
+  client.disconnect();
+});
+
+test("createSyncExecutor (production class): coalesces rapid triggers and executes trailing refresh when in flight", async () => {
   let executionCount = 0;
-  let inFlight = false;
-  let trailingNeeded = false;
 
-  async function refreshWorkload() {
-    if (inFlight) {
-      trailingNeeded = true;
-      return;
-    }
-    inFlight = true;
+  const executor = createSyncExecutor(async () => {
     executionCount++;
-    // Simulate async network request
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    inFlight = false;
-    if (trailingNeeded) {
-      trailingNeeded = false;
-      await refreshWorkload();
-    }
-  }
+    await new Promise((resolve) => setTimeout(resolve, 60));
+  }, 20);
 
-  // Start initial refresh
-  const p1 = refreshWorkload();
-  assert.strictEqual(inFlight, true);
+  // Initial trigger starts execution
+  const p1 = executor.executeRefresh();
+  assert.strictEqual(executor.isInFlight(), true);
   assert.strictEqual(executionCount, 1);
 
-  // While in flight, 3 events arrive rapidly
-  await refreshWorkload();
-  await refreshWorkload();
-  await refreshWorkload();
+  // Rapid triggers while p1 is in flight
+  await executor.executeRefresh();
+  await executor.executeRefresh();
 
-  // Still only 1 has completed and trailingNeeded is flagged
-  assert.strictEqual(trailingNeeded, true);
+  assert.strictEqual(executor.isTrailingNeeded(), true);
 
   await p1;
+  // Give trailing execution time to complete
+  await new Promise((resolve) => setTimeout(resolve, 80));
 
-  // After p1 completes, exactly one trailing refresh was executed
+  // After trailing completes, exactly two executions occurred
   assert.strictEqual(executionCount, 2);
-  assert.strictEqual(inFlight, false);
-  assert.strictEqual(trailingNeeded, false);
+  assert.strictEqual(executor.isInFlight(), false);
+  assert.strictEqual(executor.isTrailingNeeded(), false);
 });

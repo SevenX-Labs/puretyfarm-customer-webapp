@@ -1,3 +1,4 @@
+import { createSyncExecutor } from "@/lib/realtime/syncExecutor";
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
@@ -80,52 +81,18 @@ export function useRealtimeSync(
   const realtimeCtx = useRealtimeContext();
   const isStreamHealthy = realtimeCtx?.isStreamHealthy ?? false;
 
-  const inFlightRef = useRef(false);
-  const trailingRefreshNeededRef = useRef(false);
-  const isSuspendedRef = useRef(false);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const executorRef = useRef<ReturnType<typeof createSyncExecutor> | null>(null);
+  if (!executorRef.current) {
+    executorRef.current = createSyncExecutor(() => fnRef.current(), 300);
+  }
 
-  const executeRefresh = useCallback(async () => {
-    if (typeof document !== "undefined" && document.visibilityState !== "visible") {
-      return;
-    }
-    if (isSuspendedRef.current) return;
-
-    if (inFlightRef.current) {
-      // An event arrived while a refresh request is already in flight.
-      // Record that a single trailing refresh is required when the current request completes.
-      trailingRefreshNeededRef.current = true;
-      return;
-    }
-
-    inFlightRef.current = true;
-    try {
-      const res = fnRef.current();
-      if (res && typeof (res as Promise<void>).then === "function") {
-        await res;
-      }
-    } catch (err: any) {
-      if (err?.status === 401 || err?.status === 429) {
-        isSuspendedRef.current = true;
-      }
-    } finally {
-      inFlightRef.current = false;
-      // If an event arrived while in-flight, execute ONE trailing refresh
-      if (trailingRefreshNeededRef.current) {
-        trailingRefreshNeededRef.current = false;
-        void executeRefresh();
-      }
-    }
+  const executeRefresh = useCallback(() => {
+    return executorRef.current?.executeRefresh();
   }, []);
 
   const triggerDebouncedRefresh = useCallback(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    debounceTimerRef.current = setTimeout(() => {
-      void executeRefresh();
-    }, 300);
-  }, [executeRefresh]);
+    executorRef.current?.triggerDebounced();
+  }, []);
 
   // 1. Subscribe to SSE events from RealtimeProvider if events are specified
   useEffect(() => {
@@ -140,9 +107,7 @@ export function useRealtimeSync(
 
     return () => {
       unsubscribe();
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      executorRef.current?.cancel();
     };
   }, [enabled, events, realtimeCtx, triggerDebouncedRefresh]);
 
