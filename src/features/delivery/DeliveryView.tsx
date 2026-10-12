@@ -56,7 +56,7 @@ export function DeliveryView() {
   // High-frequency live data sync: sync delivery schedules when admin approves plan in real-time
   useRealtimeSync(() => {
     fetchDeliveryData();
-  });
+  }, { events: ["plan.updated", "orders.updated"] });
 
   const defaultAddress =
     addresses.find((a) => a.isDefault) || addresses[0] || null;

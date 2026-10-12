@@ -73,7 +73,7 @@ export function OrdersView() {
     }
   }, [cacheKey, loadOrders]);
 
-  useRealtimeSync(() => loadOrders(true), { intervalMs: 35000, enabled: Boolean(user) });
+  useRealtimeSync(() => loadOrders(true), { intervalMs: 35000, enabled: Boolean(user), events: ["orders.updated"] });
 
   const filtered = useMemo(() => {
     let list = orders;

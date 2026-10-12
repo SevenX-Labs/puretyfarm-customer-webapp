@@ -326,7 +326,7 @@ function WalletContent() {
 
   // High-frequency live data sync: automatically updates wallet balance,
   // credit requests, and transaction ledger when admin approves or credits/debits in real-time.
-  useRealtimeSync(refreshAll, { enabled: Boolean(user) });
+  useRealtimeSync(refreshAll, { enabled: Boolean(user), events: ["wallet.updated"] });
 
   // Handle PhonePe return txnid & result parameter
   useEffect(() => {

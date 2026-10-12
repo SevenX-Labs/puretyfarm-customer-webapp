@@ -282,7 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (status === "authenticated" && tokenStorage.getAccessToken()) {
       refreshUser();
     }
-  }, { intervalMs: 35000, enabled: status === "authenticated" });
+  }, { intervalMs: 35000, enabled: status === "authenticated", events: ["wallet.updated", "plan.updated"] });
 
   useEffect(
     () =>

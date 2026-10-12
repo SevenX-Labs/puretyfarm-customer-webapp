@@ -53,7 +53,7 @@ export function useDashboardData(): DashboardData {
 
   useRealtimeSync(() => {
     void revalidate();
-  }, { intervalMs: 35000, enabled: Boolean(user) });
+  }, { intervalMs: 35000, enabled: Boolean(user), events: ["wallet.updated", "orders.updated", "plan.updated"] });
 
   return {
     orders: data?.orders ?? [],

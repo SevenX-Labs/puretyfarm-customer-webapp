@@ -1,11 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import { useRealtimeContext } from "@/context/RealtimeContext";
+
+export type CustomerSyncEventType =
+  | "wallet.updated"
+  | "orders.updated"
+  | "plan.updated"
+  | "plans.catalog.updated"
+  | (string & {});
 
 export interface RealtimeSyncOptions {
   /**
-   * Interval in milliseconds for live syncing while tab is active.
-   * Default: 35000ms (35 seconds) to avoid spamming the backend while remaining fresh.
+   * Realtime SSE event types this page cares about.
+   * When a matching event arrives, refreshFn is called with debouncing and trailing-refresh safety.
+   */
+  events?: CustomerSyncEventType[];
+  /**
+   * Fallback interval in milliseconds for polling.
+   * Default: 35000ms when stream is down, 120000ms when stream is healthy.
    */
   intervalMs?: number;
   enabled?: boolean;
@@ -44,60 +57,109 @@ export function triggerGlobalLiveSync(reason?: string) {
 
 /**
  * Live Data Sync:
- * Keeps customer views (Orders, Approvals, Credit/Debit Wallet, Plans, Deliveries)
- * synchronized with backend & admin updates without manual browser reloads.
+ * Synchronizes customer views with backend changes via real-time SSE stream
+ * with fallback safety polling (120s when healthy, ~35s when stream down).
  *
- * 1. Safe background polling (every ~35s by default) when tab is visible.
- * 2. Instant revalidation on window focus, tab visibility return, and network reconnection.
- * 3. Cross-tab and cross-component broadcast synchronization.
- * 4. In-flight request deduplication so slow network requests never stack up.
- * 5. Paused when tab is hidden, stopped on 401 or 429.
+ * 1. Event-driven immediate refresh when matching backend events arrive.
+ * 2. 300ms debounce with in-flight deduplication and trailing-refresh guarantee.
+ * 3. Polling interval: 120s when stream is healthy, 35s when stream is down.
+ * 4. Paused when tab is hidden, stopped on 401 or 429.
+ * 5. Revalidates immediately on reconnect, window focus, tab visibility return, network online.
  */
 export function useRealtimeSync(
   refreshFn: () => void | Promise<void>,
   options: RealtimeSyncOptions = {}
 ) {
-  const { intervalMs = 35000, enabled = true, onFocus = true } = options;
+  const { events, intervalMs = 35000, enabled = true, onFocus = true } = options;
   const fnRef = useRef(refreshFn);
 
   useEffect(() => {
     fnRef.current = refreshFn;
   });
 
-  const isRunningRef = useRef(false);
-  const isSuspendedRef = useRef(false);
+  const realtimeCtx = useRealtimeContext();
+  const isStreamHealthy = realtimeCtx?.isStreamHealthy ?? false;
 
+  const inFlightRef = useRef(false);
+  const trailingRefreshNeededRef = useRef(false);
+  const isSuspendedRef = useRef(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const executeRefresh = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+      return;
+    }
+    if (isSuspendedRef.current) return;
+
+    if (inFlightRef.current) {
+      // An event arrived while a refresh request is already in flight.
+      // Record that a single trailing refresh is required when the current request completes.
+      trailingRefreshNeededRef.current = true;
+      return;
+    }
+
+    inFlightRef.current = true;
+    try {
+      const res = fnRef.current();
+      if (res && typeof (res as Promise<void>).then === "function") {
+        await res;
+      }
+    } catch (err: any) {
+      if (err?.status === 401 || err?.status === 429) {
+        isSuspendedRef.current = true;
+      }
+    } finally {
+      inFlightRef.current = false;
+      // If an event arrived while in-flight, execute ONE trailing refresh
+      if (trailingRefreshNeededRef.current) {
+        trailingRefreshNeededRef.current = false;
+        void executeRefresh();
+      }
+    }
+  }, []);
+
+  const triggerDebouncedRefresh = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      void executeRefresh();
+    }, 300);
+  }, [executeRefresh]);
+
+  // 1. Subscribe to SSE events from RealtimeProvider if events are specified
+  useEffect(() => {
+    if (!enabled || !events || events.length === 0 || !realtimeCtx) return;
+
+    const unsubscribe = realtimeCtx.subscribe(
+      events as any,
+      () => {
+        triggerDebouncedRefresh();
+      }
+    );
+
+    return () => {
+      unsubscribe();
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [enabled, events, realtimeCtx, triggerDebouncedRefresh]);
+
+  // 2. Safety-net polling timer
+  // When stream is healthy, interval is relaxed to 120s; when stream is down, uses intervalMs (~35s).
   useEffect(() => {
     if (!enabled) return;
 
-    const executeRefresh = async () => {
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
-        return;
-      }
-      if (isSuspendedRef.current) return;
-      if (isRunningRef.current) return;
+    const effectiveInterval = isStreamHealthy ? 120000 : intervalMs;
 
-      isRunningRef.current = true;
-      try {
-        const res = fnRef.current();
-        if (res && typeof (res as Promise<void>).then === "function") {
-          await res;
-        }
-      } catch (err: any) {
-        if (err?.status === 401 || err?.status === 429) {
-          isSuspendedRef.current = true;
-        }
-      } finally {
-        isRunningRef.current = false;
-      }
-    };
+    const intervalId = setInterval(() => {
+      void executeRefresh();
+    }, effectiveInterval);
 
-    // 1. Live timer (active when document is visible)
-    const intervalId = setInterval(executeRefresh, intervalMs);
-
-    // 2. Immediate revalidation triggers
+    // Immediate revalidation triggers
     const handleRevalidate = () => {
-      executeRefresh();
+      void executeRefresh();
     };
 
     if (onFocus && typeof window !== "undefined") {
@@ -124,5 +186,5 @@ export function useRealtimeSync(
         }
       }
     };
-  }, [enabled, intervalMs, onFocus]);
+  }, [enabled, isStreamHealthy, intervalMs, onFocus, executeRefresh]);
 }

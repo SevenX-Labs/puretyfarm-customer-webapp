@@ -122,7 +122,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
 
   // High-frequency live data sync: reflects admin status changes, delivery updates,
   // and cancellations in real-time without reloading the page.
-  useRealtimeSync(() => loadOrder(true));
+  useRealtimeSync(() => loadOrder(true), { events: ["orders.updated"] });
 
   // A per-delivery order that is still upcoming can have just its own
   // delivery changed; the server re-checks every one of these conditions.

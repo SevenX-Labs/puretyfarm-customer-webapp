@@ -189,7 +189,7 @@ export function useAccountData() {
     if (user) {
       await fetchWalletData();
     }
-  });
+  }, { events: ["wallet.updated", "orders.updated", "plan.updated"] });
 
   // Check & verify any return txnid from PhonePe
   useEffect(() => {

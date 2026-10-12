@@ -178,7 +178,7 @@ export function PlanView() {
   // High-frequency live data sync: sync active plans, pauses/resumes, and server configs in real-time
   useRealtimeSync(() => {
     loadData(true);
-  }, { intervalMs: 30000 });
+  }, { intervalMs: 30000, events: ["plan.updated", "orders.updated", "plans.catalog.updated"] });
 
   const activePlan: ActivePlanView | undefined =
     deliveryData?.activePlan ||

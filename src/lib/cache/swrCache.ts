@@ -93,6 +93,37 @@ export function clearAllCache(): void {
   inFlightRequests.clear();
 }
 
+/**
+ * Invalidates all cache entries belonging to a given resource domain,
+ * e.g. 'wallet', 'orders', 'plan', 'dashboard'.
+ * Ensures that when an SSE event arrives, any cached 45s values are cleared
+ * so revisiting or re-querying immediately gets fresh data.
+ */
+export function invalidateCacheByResource(
+  resource: 'wallet' | 'orders' | 'plan' | 'dashboard' | string
+): void {
+  const res = resource.toLowerCase();
+  for (const key of Array.from(store.keys())) {
+    const k = key.toLowerCase();
+    let matches = false;
+    if (res === 'wallet' && (k.includes('wallet:') || k.includes(':wallet') || k === 'wallet')) {
+      matches = true;
+    } else if (res === 'orders' && (k.includes('order'))) {
+      matches = true;
+    } else if (res === 'plan' && (k.includes('plan') || k.includes('subscription'))) {
+      matches = true;
+    } else if (res === 'dashboard' && k.includes('dashboard')) {
+      matches = true;
+    } else if (k.includes(res)) {
+      matches = true;
+    }
+
+    if (matches) {
+      store.delete(key);
+    }
+  }
+}
+
 export interface UseSwrOptions<T> {
   staleTime?: number; // ms before data is considered stale (default: 45,000)
   enabled?: boolean;
