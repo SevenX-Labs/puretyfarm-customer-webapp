@@ -3,6 +3,7 @@ import { profileApi } from "@/features/profile/api/profileApi";
 import { locationApi } from "@/features/location/api/locationApi";
 import { ordersApi } from "@/features/orders";
 import { manageDeliveryApi } from "@/features/delivery";
+import type { ListOrdersParams } from "@/features/orders/types";
 import { Subscription } from "@/types/models";
 import {
   OrdersResponse,
@@ -14,14 +15,31 @@ import {
 } from "../types";
 
 export const accountApi = {
-  async getOrders(): Promise<OrdersResponse> {
-    // Backend is the single source of truth for order history. We do not
-    // merge with the local Next.js /api/orders store, and we do not merge
-    // with any browser-side cache. If the call fails, surface the failure.
-    const res = await ordersApi.listOrders();
+  async getOrders(params?: ListOrdersParams): Promise<OrdersResponse> {
+    // Backend is the single source of truth for order history.
+    // Default limit 100 ensures all active and past orders (including completed/delivered) are fetched.
+    const limit = params?.limit ?? 100;
+    const res = await ordersApi.listOrders({ limit, ...params });
+    let ordersList = (res?.data || []) as any[];
+    const totalPages = res?.pagination?.totalPages ?? 1;
+
+    // Fetch remaining pages if more than 100 orders exist
+    if (totalPages > 1 && !params?.page) {
+      const extraPromises = [];
+      for (let p = 2; p <= totalPages && p <= 5; p++) {
+        extraPromises.push(ordersApi.listOrders({ limit, page: p, ...params }));
+      }
+      const extraResults = await Promise.all(extraPromises);
+      for (const extra of extraResults) {
+        if (extra?.data && Array.isArray(extra.data)) {
+          ordersList = ordersList.concat(extra.data);
+        }
+      }
+    }
+
     return {
       success: true,
-      orders: (res?.data || []) as any,
+      orders: ordersList,
       pendingPlanPurchases: res?.pendingPlanPurchases || [],
     };
   },

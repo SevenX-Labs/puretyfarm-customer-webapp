@@ -15,6 +15,7 @@ import { PendingPlanPurchaseCard } from "./components/PendingPlanPurchaseCard";
 import {
   formatDeliveryDate,
   normaliseStatus,
+  isDeliveredOrCompletedStatus,
   orderItemsSummary,
   orderTotalRupees,
   statusLabel,
@@ -65,9 +66,7 @@ export function OrdersView() {
       setOrders(cached.orders);
       setPendingPurchases(cached.pending);
       setLoading(false);
-      if (isCacheStale(cacheKey, 45000)) {
-        void loadOrders(true);
-      }
+      void loadOrders(true);
     } else {
       void loadOrders(false);
     }
@@ -79,19 +78,38 @@ export function OrdersView() {
     let list = orders;
     if (filter !== "all") {
       list = list.filter((o) => {
-        const n = normaliseStatus(o.status);
-        // A completed order is a finished one: it belongs with Delivered, and
-        // must never show under Upcoming.
-        if (filter === "delivered") return n === "delivered" || n === "completed";
-        if (filter === "cancelled") return n === "cancelled" || n === "failed";
-        if (filter === "upcoming")
+        // "Completed" filter matches both DELIVERED and COMPLETED statuses
+        if (filter === "delivered" || (filter as string) === "completed") {
+          return isDeliveredOrCompletedStatus(o.status);
+        }
+        if (filter === "cancelled") {
+          const n = normaliseStatus(o.status);
+          const s = String(o.status).toLowerCase();
+          return n === "cancelled" || n === "failed" || s.includes("cancel") || s.includes("fail");
+        }
+        if (filter === "upcoming") {
+          const s = String(o.status).toLowerCase();
           return (
-            n !== "delivered" &&
-            n !== "completed" &&
-            n !== "cancelled" &&
-            n !== "failed"
+            !isDeliveredOrCompletedStatus(o.status) &&
+            !s.includes("cancel") &&
+            !s.includes("fail")
           );
+        }
         return true;
+      });
+    }
+
+    if (filter === "delivered" || (filter as string) === "completed") {
+      list = [...list].sort((a, b) => {
+        const tA = new Date(a.deliveredAt || a.deliveryDate || a.createdAt).getTime();
+        const tB = new Date(b.deliveredAt || b.deliveryDate || b.createdAt).getTime();
+        return tB - tA;
+      });
+    } else if (filter === "upcoming") {
+      list = [...list].sort((a, b) => {
+        const tA = new Date(a.deliveryDate || a.createdAt).getTime();
+        const tB = new Date(b.deliveryDate || b.createdAt).getTime();
+        return tA - tB;
       });
     }
     const q = query.trim().toLowerCase();

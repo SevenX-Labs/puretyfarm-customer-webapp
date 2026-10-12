@@ -121,6 +121,18 @@ export function findNextDelivery(orders: Order[]): Order | null {
   return upcoming[0] || null;
 }
 
+/** Returns true if an order status represents a finished/delivered/completed order. */
+export function isDeliveredOrCompletedStatus(status: unknown): boolean {
+  if (!status) return false;
+  const s = String(status).toLowerCase();
+  return (
+    s === "delivered" ||
+    s === "completed" ||
+    (s.includes("deliver") && !s.includes("out")) ||
+    s.includes("complet")
+  );
+}
+
 export function findLatestDelivered(orders: Order[]): Order | null {
   const delivered = orders
     .filter((o) => {

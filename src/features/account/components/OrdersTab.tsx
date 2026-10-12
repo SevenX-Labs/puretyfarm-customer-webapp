@@ -66,6 +66,9 @@ export function OrdersTab({
       case "OUT_FOR_DELIVERY":
         return "Out for Delivery";
       case "COMPLETED":
+      case "Completed":
+      case "DELIVERED":
+      case "Delivered":
         return "Completed";
       case "SEVEN_DAY_TRIAL":
         return "7-Day Trial";
