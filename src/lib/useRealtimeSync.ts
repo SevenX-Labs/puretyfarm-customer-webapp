@@ -1,5 +1,6 @@
-import { createSyncExecutor } from "@/lib/realtime/syncExecutor";
 "use client";
+
+import { createSyncExecutor } from "@/lib/realtime/syncExecutor";
 
 import { useEffect, useRef, useCallback } from "react";
 import { useRealtimeContext } from "@/context/RealtimeContext";
