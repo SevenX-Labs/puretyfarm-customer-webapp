@@ -734,39 +734,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 </button>
               </div>
 
-              {/* Server Endpoint Reference & API Transparency Box */}
-              <div className="p-4 rounded-2xl bg-[#FAF3EA]/50 border border-[#E8DFD4] text-xs space-y-2">
-                <div className="flex items-center gap-1.5 font-bold text-[#5C1B13]">
-                  <Info size={14} />
-                  <span>Available Server Endpoints for Manage Delivery:</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] font-mono text-[#6B584C]">
-                  <div className="p-2 rounded-xl bg-white border border-[#E8DFD4]">
-                    <strong className="text-[#1A1008] block">GET /api/v1/customer/manage-delivery</strong>
-                    <span>Fetches active subscription plan & 30-day upcoming delivery calendar.</span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#E8DFD4]">
-                    <strong className="text-[#1A1008] block">POST /api/v1/customer/manage-delivery/change-quantity</strong>
-                    <span>Sets quantityLitres (whole number) for all future scheduled deliveries.</span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#E8DFD4]">
-                    <strong className="text-[#1A1008] block">POST /api/v1/customer/manage-delivery/change-frequency</strong>
-                    <span>Switches frequency between DAILY, ALTERNATE_DAYS, WEEKDAYS, etc.</span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#E8DFD4]">
-                    <strong className="text-[#1A1008] block">POST /api/v1/customer/manage-delivery/skip</strong>
-                    <span>Skips a specific calendar delivery date with zero fee.</span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#E8DFD4]">
-                    <strong className="text-[#1A1008] block">POST /api/v1/customer/manage-delivery/pause</strong>
-                    <span>Pauses recurring deliveries with optional resumeDate (YYYY-MM-DD).</span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#E8DFD4]">
-                    <strong className="text-[#1A1008] block">POST /api/v1/customer/manage-delivery/change-plan</strong>
-                    <span>Switches active subscription between TRIAL, MONTHLY, and BUY_ONCE.</span>
-                  </div>
-                </div>
-              </div>
+
             </div>
           )}
         </div>
