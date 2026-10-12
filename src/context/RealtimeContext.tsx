@@ -70,7 +70,7 @@ interface ActiveToast {
 }
 
 const TOAST_MESSAGES: Record<string, string> = {
-  "wallet.updated": "Your wallet was updated",
+  "wallet.updated": "Amount credited successfully · Wallet balance updated",
   "plan.updated": "Your plan was updated",
   "orders.updated": "Your orders were updated",
 };

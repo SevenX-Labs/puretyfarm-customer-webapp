@@ -35,6 +35,7 @@ import {
   FiList,
   FiChevronLeft,
   FiChevronRight,
+  FiArrowRight,
   FiInfo,
   FiCheck, FiX,
   FiXCircle,
@@ -76,6 +77,8 @@ function WalletContent() {
   const [wallet, setWallet] = useState<CustomerWallet | null>(null);
   const [balance, setBalance] = useState<number>(0);
   const [walletLoading, setWalletLoading] = useState<boolean>(true);
+  const [recentlyCreditedAmount, setRecentlyCreditedAmount] = useState<number | null>(null);
+  const prevBalanceRef = React.useRef<number | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // ─── TOP-UP FORM STATES ───
@@ -164,8 +167,18 @@ function WalletContent() {
     try {
       const res = await walletApi.getWallet();
       if (res && typeof res.balancePaise === "number") {
+        const newBal = res.balancePaise / 100;
+        if (prevBalanceRef.current !== null && newBal > prevBalanceRef.current) {
+          const diff = newBal - prevBalanceRef.current;
+          setRecentlyCreditedAmount(diff);
+          setSuccessBanner({
+            title: "Amount Credited Successfully! 🎉",
+            message: `₹${diff.toFixed(2)} has been added to your PuretyFarm wallet balance. Balance updated to ₹${newBal.toFixed(2)}.`,
+          });
+        }
+        prevBalanceRef.current = newBal;
         setWallet(res);
-        setBalance(res.balancePaise / 100);
+        setBalance(newBal);
         setCacheData(key, res);
       }
     } catch (err) {
@@ -328,6 +341,16 @@ function WalletContent() {
   // credit requests, and transaction ledger when admin approves or credits/debits in real-time.
   useRealtimeSync(refreshAll, { enabled: Boolean(user), events: ["wallet.updated"] });
 
+  // Auto-dismiss recently credited badge after 10 seconds
+  useEffect(() => {
+    if (recentlyCreditedAmount !== null) {
+      const timer = setTimeout(() => {
+        setRecentlyCreditedAmount(null);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [recentlyCreditedAmount]);
+
   // Handle PhonePe return txnid & result parameter
   useEffect(() => {
     const txnid = searchParams.get("txnid");
@@ -355,9 +378,13 @@ function WalletContent() {
                 message: `₹${amtRupees} payment received successfully. As this is your first wallet credit, our depot admin is reviewing it. Your balance will update automatically upon confirmation.`,
               });
             } else {
+              const creditedAmt = parseFloat(amtRupees);
+              if (!isNaN(creditedAmt) && creditedAmt > 0) {
+                setRecentlyCreditedAmount(creditedAmt);
+              }
               setSuccessBanner({
-                title: "Wallet Credited Successfully",
-                message: `₹${amtRupees} has been verified and added to your prepaid balance. Ready for sunrise deliveries!`,
+                title: "Amount Credited Successfully! 🎉",
+                message: `₹${amtRupees} has been verified and added to your prepaid wallet balance. Ready for sunrise deliveries!`,
               });
             }
             refreshAll();
@@ -463,11 +490,12 @@ function WalletContent() {
         // Doorstep Cash Collection Flow
         const res = await paymentsApi.requestCashTopup(amountPaise);
         setShowTopupModal(false);
+        setActiveTab("PAYMENTS");
         setSuccessBanner({
-          title: "Cash Collection Requested",
+          title: "Cash Collection Request Sent Successfully!",
           message:
             res.message ||
-            `Doorstep cash collection of ₹${parsedRupees.toFixed(2)} recorded. Our partner will collect it during delivery, and the admin will credit your wallet upon deposit.`,
+            `Doorstep cash collection request of ₹${parsedRupees.toFixed(2)} recorded. Our delivery associate will collect cash during sunrise delivery, after which your wallet will be credited once verified by the depot.`,
         });
         refreshAll();
       } else if (rechargeMethod === "DIRECT_REQUEST") {
@@ -679,6 +707,13 @@ function WalletContent() {
 
   const isAutoCredit = wallet?.autoCreditEnabled ?? false;
 
+  const pendingCashTopups = paymentsList.filter(
+    (p) => p.paymentMethod === "CASH" && (p.status === "PENDING" || p.status === "PROCESSING")
+  );
+  const pendingCreditRequests = creditRequests.filter(
+    (r) => r.status === "PENDING"
+  );
+
   return (
     <>
       <CustomerHeader
@@ -833,7 +868,7 @@ function WalletContent() {
                 </button>
               </div>
 
-              <div className="flex items-baseline gap-3">
+              <div className="flex items-baseline gap-3 flex-wrap">
                 <span className="text-3xl sm:text-4xl md:text-5xl font-black font-mono tracking-tight text-white drop-shadow-xs">
                   {walletLoading ? "₹---.--" : `₹${balance.toFixed(2)}`}
                 </span>
@@ -842,6 +877,12 @@ function WalletContent() {
                     ? "syncing..."
                     : `(${(balance * 100).toLocaleString("en-IN")} paise)`}
                 </span>
+                {recentlyCreditedAmount !== null && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/50 text-xs font-bold animate-in fade-in zoom-in-95 duration-300 shadow-sm">
+                    <FiCheckCircle className="w-4 h-4 text-emerald-300 shrink-0" />
+                    <span>+₹{recentlyCreditedAmount.toFixed(2)} Credited Successfully!</span>
+                  </span>
+                )}
               </div>
 
               {/* Auto-credit Status Indicator (Spec §3) */}
@@ -882,6 +923,83 @@ function WalletContent() {
             </div>
           </div>
         </div>
+
+        {/* ─── PENDING REQUEST NOTIFICATION BADGE CARD ─── */}
+        {pendingCashTopups.length > 0 && (
+          <div className="rounded-3xl p-4 sm:p-5 bg-gradient-to-r from-amber-50 via-[#FFF8EE] to-amber-50/80 border-2 border-amber-300 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-400 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                  <FiClock className="w-5 h-5 text-amber-700 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-sm font-bold text-[#1A1008]">
+                      Doorstep Cash Collection Request Sent
+                    </h4>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-400 text-[11px] font-extrabold font-mono">
+                      ₹{(pendingCashTopups[0].amountPaise / 100).toFixed(2)} Pending
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#6B584C] mt-1 leading-relaxed">
+                    Your cash collection request has been sent. Our delivery associate will collect cash during sunrise delivery, and it will be credited to your wallet once confirmed by the depot.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center pl-13 sm:pl-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("PAYMENTS");
+                    setPaymentStatusFilter("PENDING");
+                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>View Pending Request</span>
+                  <FiArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {pendingCreditRequests.length > 0 && pendingCashTopups.length === 0 && (
+          <div className="rounded-3xl p-4 sm:p-5 bg-gradient-to-r from-amber-50 via-[#FFF8EE] to-amber-50/80 border-2 border-amber-300 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-400 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                  <FiClock className="w-5 h-5 text-amber-700 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-sm font-bold text-[#1A1008]">
+                      Credit Request Awaiting Approval
+                    </h4>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-400 text-[11px] font-extrabold font-mono">
+                      ₹{(pendingCreditRequests[0].amountPaise / 100).toFixed(2)} Pending
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#6B584C] mt-1 leading-relaxed">
+                    Your credit request is pending depot admin review. Your wallet balance will update automatically upon confirmation.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center pl-13 sm:pl-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("REQUESTS");
+                    setReqStatusFilter("PENDING");
+                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#5C1B13] hover:bg-[#48150f] text-white shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>View Request</span>
+                  <FiArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ─── 2. ADD TO WALLET MODULE ─── */}
         <div className="bg-white rounded-3xl border border-[#E8DFD4] p-4 sm:p-6 shadow-2xs space-y-4">
@@ -1019,13 +1137,18 @@ function WalletContent() {
                   setActiveTab("PAYMENTS");
                   fetchPayments(1, paymentStatusFilter);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   activeTab === "PAYMENTS"
                     ? "bg-[#5C1B13] text-white shadow-xs"
                     : "text-[#6B584C] hover:text-[#1A1008]"
                 }`}
               >
-                Payments {paymentsLoaded ? `(${paymentPagination.total})` : ""}
+                <span>Payments {paymentsLoaded ? `(${paymentPagination.total})` : ""}</span>
+                {pendingCashTopups.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                    {pendingCashTopups.length} Pending
+                  </span>
+                )}
               </button>
 
               <button
@@ -1034,13 +1157,18 @@ function WalletContent() {
                   setActiveTab("REQUESTS");
                   fetchCreditRequests(1, reqStatusFilter);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                   activeTab === "REQUESTS"
                     ? "bg-[#5C1B13] text-white shadow-xs"
                     : "text-[#6B584C] hover:text-[#1A1008]"
                 }`}
               >
-                Credit Requests {reqLoaded ? `(${reqPagination.total})` : ""}
+                <span>Credit Requests {reqLoaded ? `(${reqPagination.total})` : ""}</span>
+                {pendingCreditRequests.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                    {pendingCreditRequests.length} Pending
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -1775,7 +1903,7 @@ function WalletContent() {
                       </span>
                     </div>
                     <p className="text-[11px] text-[#6B584C] mt-0.5">
-                      Hand cash to our cash collection executive during sunrise delivery.
+                      Request cash pickup during delivery. Your wallet will be credited once cash is verified by the depot.
                     </p>
                   </div>
                 </button>
