@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRealtimeSync } from "@/lib/useRealtimeSync";
+import { useAuth } from "@/context/AuthContext";
+import { getScopedKey, getCacheData, setCacheData, isCacheStale } from "@/lib/cache/swrCache";
 import Link from "next/link";
 import { ArrowRight, Package, Search } from "lucide-react";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
@@ -29,32 +31,49 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 export function OrdersView() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [pendingPurchases, setPendingPurchases] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const cacheKey = getScopedKey(user?.id, "orders_view");
+  const initialCached = getCacheData<{ orders: Order[]; pending: any[] }>(cacheKey);
+
+  const [orders, setOrders] = useState<Order[]>(() => initialCached?.orders ?? []);
+  const [pendingPurchases, setPendingPurchases] = useState<any[]>(() => initialCached?.pending ?? []);
+  const [loading, setLoading] = useState(!initialCached);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
   const loadOrders = useCallback(async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
+    const cached = getCacheData<{ orders: Order[]; pending: any[] }>(cacheKey);
+    if (!isSilent && !cached) setLoading(true);
+
     try {
       const res = await accountApi.getOrders();
-      setOrders(res.orders || []);
-      setPendingPurchases(res.pendingPlanPurchases || []);
+      const nextOrders = res.orders || [];
+      const nextPending = res.pendingPlanPurchases || [];
+      setOrders(nextOrders);
+      setPendingPurchases(nextPending);
+      setCacheData(cacheKey, { orders: nextOrders, pending: nextPending });
     } catch {
-      // Background sync swallows error
+      // Background sync swallows error, keeps last good data
     } finally {
-      if (!isSilent) setLoading(false);
+      setLoading(false);
     }
-  }, []);
+  }, [cacheKey]);
 
   useEffect(() => {
-    loadOrders(false);
-  }, [loadOrders]);
+    const cached = getCacheData<{ orders: Order[]; pending: any[] }>(cacheKey);
+    if (cached) {
+      setOrders(cached.orders);
+      setPendingPurchases(cached.pending);
+      setLoading(false);
+      if (isCacheStale(cacheKey, 45000)) {
+        void loadOrders(true);
+      }
+    } else {
+      void loadOrders(false);
+    }
+  }, [cacheKey, loadOrders]);
 
-  // High-frequency live data sync: automatically updates orders and pending approvals
-  // without needing hot reload when admin updates/confirms orders.
-  useRealtimeSync(() => loadOrders(true));
+  useRealtimeSync(() => loadOrders(true), { intervalMs: 35000, enabled: Boolean(user) });
 
   const filtered = useMemo(() => {
     let list = orders;
@@ -133,7 +152,7 @@ export function OrdersView() {
         </div>
       </section>
 
-      {loading ? (
+      {loading && orders.length === 0 ? (
         <OrdersSkeleton />
       ) : filtered.length === 0 ? (
         <PfCard padding="none">

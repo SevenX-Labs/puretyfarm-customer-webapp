@@ -23,7 +23,7 @@ export function CustomerHeader({
   subtitle?: string;
   location?: string;
 }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isProfileLoaded } = useAuth();
   const router = useRouter();
   const firstName = user?.name?.split(" ")[0] || "there";
   const [open, setOpen] = useState(false);
@@ -91,14 +91,18 @@ export function CustomerHeader({
               aria-expanded={open}
               className="pf-focus-ring inline-flex items-center gap-2 h-10 pl-1 pr-2.5 rounded-full bg-[var(--pf-surface)] border border-[var(--pf-border)] cursor-pointer"
             >
-              <span className="w-8 h-8 rounded-full bg-[var(--pf-brown)] text-white flex items-center justify-center text-[12px] font-bold overflow-hidden">
-                {user?.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                ) : (
-                  firstName.charAt(0).toUpperCase()
-                )}
-              </span>
+              {!isProfileLoaded && !user?.avatarUrl ? (
+                <span className="w-8 h-8 rounded-full pf-skeleton" />
+              ) : (
+                <span className="w-8 h-8 rounded-full bg-[var(--pf-brown)] text-white flex items-center justify-center text-[12px] font-bold overflow-hidden">
+                  {user?.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  ) : (
+                    firstName.charAt(0).toUpperCase()
+                  )}
+                </span>
+              )}
               <ChevronDown size={14} strokeWidth={1.75} className="text-[var(--pf-text-secondary)]" />
             </button>
 

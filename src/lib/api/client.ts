@@ -10,6 +10,7 @@ export interface RequestOptions extends RequestInit {
   timeoutMs?: number;
   params?: Record<string, string | number | boolean | undefined>;
   skipAuth?: boolean;
+  retries?: number;
 }
 
 const BACKEND_BASE_URL = (
@@ -78,15 +79,19 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return data as T;
 }
 
+// In-flight GET request deduplication to prevent duplicate network traffic
+const inFlightGetMap = new Map<string, Promise<any>>();
+
 export async function apiClient<T = unknown>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
   const {
-    timeoutMs = 15000,
+    timeoutMs = 10000,
     params,
     headers,
     skipAuth = false,
+    retries = 2,
     signal: callerSignal,
     ...customConfig
   } = options;
@@ -101,84 +106,141 @@ export async function apiClient<T = unknown>(
     if (queryString) url += (url.includes("?") ? "&" : "?") + queryString;
   }
 
-  const requestOnce = async (accessToken?: string | null) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-    const abortFromCaller = () => controller.abort();
-    callerSignal?.addEventListener("abort", abortFromCaller);
+  const isGet = !customConfig.method || customConfig.method.toUpperCase() === "GET";
+  const tokenForDedupe = skipAuth ? "" : (tokenStorage.getAccessToken() || "");
+  const dedupeKey = isGet ? `${url}::${tokenForDedupe}` : "";
 
-    const requestHeaders = new Headers(headers);
-    requestHeaders.set("Accept", "application/json");
-    if (
-      customConfig.body &&
-      !(typeof FormData !== "undefined" && customConfig.body instanceof FormData) &&
-      !requestHeaders.has("Content-Type")
-    ) {
-      requestHeaders.set("Content-Type", "application/json");
-    }
-
-    const token = accessToken === undefined
-      ? tokenStorage.getAccessToken()
-      : accessToken;
-    if (!skipAuth && token) {
-      requestHeaders.set("Authorization", `Bearer ${token}`);
-    }
-
-    try {
-      return await fetch(url, {
-        ...customConfig,
-        headers: requestHeaders,
-        credentials: "include",
-        signal: controller.signal,
-      });
-    } catch (error) {
-      if (error instanceof ApiError) throw error;
-      if (error instanceof Error && error.name === "AbortError") {
-        throw new ApiError(
-          "Request timeout. Please check your connection and try again.",
-          408,
-          "TIMEOUT"
-        );
-      }
-      throw new ApiError(
-        error instanceof Error
-          ? error.message
-          : "A network error occurred. Please try again.",
-        500,
-        "NETWORK_ERROR"
-      );
-    } finally {
-      clearTimeout(timeoutId);
-      callerSignal?.removeEventListener("abort", abortFromCaller);
-    }
-  };
-
-  let response = await requestOnce();
-  if (
-    response.status === 401 &&
-    !skipAuth &&
-    !isAuthEndpoint(endpoint) &&
-    typeof window !== "undefined"
-  ) {
-    try {
-      response = await retryAfterUnauthorized((accessToken) =>
-        requestOnce(accessToken)
-      );
-    } catch (error) {
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error.code === "NO_REFRESH_TOKEN" ||
-          error.code === "REFRESH_TOKEN_REJECTED")
-      ) {
-        endAuthSession();
-      }
-      throw error;
-    }
+  if (dedupeKey && inFlightGetMap.has(dedupeKey)) {
+    return inFlightGetMap.get(dedupeKey) as Promise<T>;
   }
 
-  return parseResponse<T>(response);
+  const doRequest = async (): Promise<T> => {
+    let attempt = 0;
+    const maxRetries = isGet ? Math.min(retries, 2) : 0; // Only retry idempotent GET requests
+
+    while (attempt <= maxRetries) {
+      attempt++;
+
+      const requestOnce = async (accessToken?: string | null) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const abortFromCaller = () => controller.abort();
+        callerSignal?.addEventListener("abort", abortFromCaller);
+
+        const requestHeaders = new Headers(headers);
+        requestHeaders.set("Accept", "application/json");
+        if (
+          customConfig.body &&
+          !(typeof FormData !== "undefined" && customConfig.body instanceof FormData) &&
+          !requestHeaders.has("Content-Type")
+        ) {
+          requestHeaders.set("Content-Type", "application/json");
+        }
+
+        const token = accessToken === undefined
+          ? tokenStorage.getAccessToken()
+          : accessToken;
+        if (!skipAuth && token) {
+          requestHeaders.set("Authorization", `Bearer ${token}`);
+        }
+
+        try {
+          return await fetch(url, {
+            ...customConfig,
+            headers: requestHeaders,
+            credentials: "include",
+            signal: controller.signal,
+          });
+        } catch (error) {
+          if (error instanceof ApiError) throw error;
+          if (error instanceof Error && error.name === "AbortError") {
+            throw new ApiError(
+              "Request timeout. Please check your connection and try again.",
+              408,
+              "TIMEOUT"
+            );
+          }
+          throw new ApiError(
+            error instanceof Error
+              ? error.message
+              : "A network error occurred. Please try again.",
+            500,
+            "NETWORK_ERROR"
+          );
+        } finally {
+          clearTimeout(timeoutId);
+          callerSignal?.removeEventListener("abort", abortFromCaller);
+        }
+      };
+
+      try {
+        let response = await requestOnce();
+
+        // 401 handling: refresh session and retry once
+        if (
+          response.status === 401 &&
+          !skipAuth &&
+          !isAuthEndpoint(endpoint) &&
+          typeof window !== "undefined"
+        ) {
+          try {
+            response = await retryAfterUnauthorized((accessToken) =>
+              requestOnce(accessToken)
+            );
+          } catch (error) {
+            if (
+              typeof error === "object" &&
+              error !== null &&
+              "code" in error &&
+              (error.code === "NO_REFRESH_TOKEN" ||
+                error.code === "REFRESH_TOKEN_REJECTED")
+            ) {
+              endAuthSession();
+            }
+            throw error;
+          }
+        }
+
+        // 429 Rate Limit: Read Retry-After, delay, retry once
+        if (response.status === 429) {
+          const retryAfterSec = parseInt(response.headers.get("Retry-After") || "2", 10) || 2;
+          if (attempt <= maxRetries) {
+            await new Promise((res) => setTimeout(res, Math.min(retryAfterSec, 5) * 1000));
+            continue;
+          }
+        }
+
+        // 5xx Server Error: Bounded retry for GET
+        if (response.status >= 500 && attempt <= maxRetries) {
+          const backoff = attempt === 1 ? 300 : 800;
+          await new Promise((res) => setTimeout(res, backoff));
+          continue;
+        }
+
+        return await parseResponse<T>(response);
+      } catch (err: any) {
+        const isNetworkErr = err?.status === 500 || err?.code === "NETWORK_ERROR";
+        if (isNetworkErr && attempt <= maxRetries) {
+          const backoff = attempt === 1 ? 300 : 800;
+          await new Promise((res) => setTimeout(res, backoff));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    throw new ApiError("Maximum retries exceeded.", 500, "MAX_RETRIES");
+  };
+
+  if (dedupeKey) {
+    const promise = doRequest().finally(() => {
+      inFlightGetMap.delete(dedupeKey);
+    });
+    inFlightGetMap.set(dedupeKey, promise);
+    return promise;
+  }
+
+  return doRequest();
 }
 
 apiClient.get = <T = unknown>(endpoint: string, options?: RequestOptions) =>

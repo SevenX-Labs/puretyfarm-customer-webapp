@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 
 export interface RealtimeSyncOptions {
   /**
-   * Interval in milliseconds for high-frequency live syncing while tab is active.
-   * Default: 3500ms (3.5 seconds) for real-time responsiveness without browser reload.
+   * Interval in milliseconds for live syncing while tab is active.
+   * Default: 35000ms (35 seconds) to avoid spamming the backend while remaining fresh.
    */
   intervalMs?: number;
   enabled?: boolean;
@@ -43,24 +43,29 @@ export function triggerGlobalLiveSync(reason?: string) {
 }
 
 /**
- * High-Frequency Live Data Sync:
- * Automatically keeps customer views (Orders, Approvals, Credit/Debit Wallet, Plans, Deliveries)
- * synchronized with backend & admin updates in real time without manual browser reloads.
+ * Live Data Sync:
+ * Keeps customer views (Orders, Approvals, Credit/Debit Wallet, Plans, Deliveries)
+ * synchronized with backend & admin updates without manual browser reloads.
  *
- * 1. Fast background polling (every ~3.5s by default) when the tab is visible.
+ * 1. Safe background polling (every ~35s by default) when tab is visible.
  * 2. Instant revalidation on window focus, tab visibility return, and network reconnection.
  * 3. Cross-tab and cross-component broadcast synchronization.
  * 4. In-flight request deduplication so slow network requests never stack up.
+ * 5. Paused when tab is hidden, stopped on 401 or 429.
  */
 export function useRealtimeSync(
   refreshFn: () => void | Promise<void>,
   options: RealtimeSyncOptions = {}
 ) {
-  const { intervalMs = 3500, enabled = true, onFocus = true } = options;
+  const { intervalMs = 35000, enabled = true, onFocus = true } = options;
   const fnRef = useRef(refreshFn);
-  fnRef.current = refreshFn;
+
+  useEffect(() => {
+    fnRef.current = refreshFn;
+  });
 
   const isRunningRef = useRef(false);
+  const isSuspendedRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -69,21 +74,25 @@ export function useRealtimeSync(
       if (typeof document !== "undefined" && document.visibilityState !== "visible") {
         return;
       }
+      if (isSuspendedRef.current) return;
       if (isRunningRef.current) return;
+
       isRunningRef.current = true;
       try {
         const res = fnRef.current();
         if (res && typeof (res as Promise<void>).then === "function") {
           await res;
         }
-      } catch {
-        // Silently swallow live sync background errors to avoid UI disruption
+      } catch (err: any) {
+        if (err?.status === 401 || err?.status === 429) {
+          isSuspendedRef.current = true;
+        }
       } finally {
         isRunningRef.current = false;
       }
     };
 
-    // 1. Live high-frequency timer (active when document is visible)
+    // 1. Live timer (active when document is visible)
     const intervalId = setInterval(executeRefresh, intervalMs);
 
     // 2. Immediate revalidation triggers

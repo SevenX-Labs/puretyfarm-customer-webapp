@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { accountApi } from "@/features/account/api/accountApi";
+import { useSwrData, getScopedKey } from "@/lib/cache/swrCache";
 import { useRealtimeSync } from "@/lib/useRealtimeSync";
 import type { Order, Subscription, Address } from "@/types/models";
 
@@ -10,59 +12,58 @@ export interface DashboardData {
   subscription: Subscription | null;
   defaultAddress: Address | null;
   loading: boolean;
+  isRefreshing: boolean;
   error: string | null;
   refresh: () => Promise<void>;
 }
 
+interface DashboardPayload {
+  orders: Order[];
+  subscription: Subscription | null;
+  defaultAddress: Address | null;
+}
+
 export function useDashboardData(): DashboardData {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [defaultAddress, setDefaultAddress] = useState<Address | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const cacheKey = getScopedKey(user?.id, "dashboard");
 
-  const load = useCallback(async (isSilent = false) => {
-    if (!isSilent) setLoading(true);
-    try {
-      const [ordersRes, subRes, addrRes] = await Promise.all([
-        accountApi.getOrders().catch(() => ({ success: false, orders: [] as Order[] })),
-        accountApi
-          .getSubscription()
-          .catch(() => ({ success: false, subscription: null })),
-        accountApi
-          .getAddresses()
-          .catch(() => ({ success: false, addresses: [] as Address[] })),
-      ]);
+  const fetchDashboard = async (): Promise<DashboardPayload> => {
+    const [ordersRes, subRes, addrRes] = await Promise.all([
+      accountApi.getOrders(),
+      accountApi.getSubscription(),
+      accountApi.getAddresses(),
+    ]);
 
-      setOrders(ordersRes.orders || []);
-      setSubscription(subRes.subscription || null);
+    const orders = ordersRes?.orders || [];
+    const subscription = subRes?.subscription || null;
+    const addrs = (addrRes as any)?.addresses || [];
+    const defaultAddress = addrs.find((a: Address) => a.isDefault) || addrs[0] || null;
 
-      const addrs = (addrRes as any).addresses || [];
-      const def =
-        addrs.find((a: Address) => a.isDefault) || addrs[0] || null;
-      setDefaultAddress(def);
-      if (!isSilent) setError(null);
-    } catch (e: any) {
-      if (!isSilent) setError(e?.message || "Could not load your dashboard.");
-    } finally {
-      if (!isSilent) setLoading(false);
+    return { orders, subscription, defaultAddress };
+  };
+
+  const { data, error, isLoading, isRefreshing, revalidate } = useSwrData<DashboardPayload>(
+    cacheKey,
+    fetchDashboard,
+    {
+      staleTime: 45000,
+      enabled: Boolean(user),
     }
-  }, []);
-
-  useEffect(() => {
-    load(false);
-  }, [load]);
+  );
 
   useRealtimeSync(() => {
-    load(true);
-  });
+    void revalidate();
+  }, { intervalMs: 35000, enabled: Boolean(user) });
 
   return {
-    orders,
-    subscription,
-    defaultAddress,
-    loading,
-    error,
-    refresh: load,
+    orders: data?.orders ?? [],
+    subscription: data?.subscription ?? null,
+    defaultAddress: data?.defaultAddress ?? null,
+    loading: isLoading && data === undefined,
+    isRefreshing,
+    error: error?.message ?? null,
+    refresh: async () => {
+      await revalidate();
+    },
   };
 }

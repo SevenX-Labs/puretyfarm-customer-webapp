@@ -389,11 +389,13 @@ body:has([data-onboarding-page]) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pf-skeleton {
-    animation: none;
+  .pf-skeleton,
+  .animate-pulse,
+  .animate-spin {
+    animation: none !important;
   }
   .pf-page-in {
-    animation: none;
+    animation: none !important;
   }
 }
 

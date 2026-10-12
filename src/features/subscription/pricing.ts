@@ -3,7 +3,7 @@ import { PricingOptions, PricingResult } from "./types";
 /**
  * Standard business constants for PuretyFarm Milk Subscriptions
  */
-export const BASE_PRICE_PER_LITRE = 75;
+export const BASE_PRICE_PER_LITRE = 90;
 export const BILLING_CYCLE_DAYS = 30;
 export const DAILY_DELIVERIES = 30;
 export const ALTERNATE_DELIVERIES = 15;
@@ -180,7 +180,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 30,
       totalLitres: 30,
-      totalPrice: 2250,
+      totalPrice: 2700,
       breakdownText: "30 deliveries × 1L = 30L",
       oddDeliveriesCount: 30,
       evenDeliveriesCount: 0,
@@ -195,7 +195,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 15,
       totalLitres: 15,
-      totalPrice: 1125,
+      totalPrice: 1350,
       breakdownText: "15 deliveries × 1L = 15L",
       oddDeliveriesCount: 15,
       evenDeliveriesCount: 0,
@@ -210,7 +210,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 30,
       totalLitres: 150,
-      totalPrice: 11250,
+      totalPrice: 13500,
       breakdownText: "30 deliveries × 5L = 150L",
       oddDeliveriesCount: 30,
       evenDeliveriesCount: 0,
@@ -225,7 +225,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 15,
       totalLitres: 75,
-      totalPrice: 5625,
+      totalPrice: 6750,
       breakdownText: "15 deliveries × 5L = 75L",
       oddDeliveriesCount: 15,
       evenDeliveriesCount: 0,
@@ -240,7 +240,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 30,
       totalLitres: 45,
-      totalPrice: 3375,
+      totalPrice: 4050,
       breakdownText: "15 × 1L + 15 × 2L = 45L",
       oddDeliveriesCount: 15,
       evenDeliveriesCount: 15,
@@ -255,7 +255,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 15,
       totalLitres: 22,
-      totalPrice: 1650,
+      totalPrice: 1980,
       breakdownText: "8 × 1L + 7 × 2L = 22L",
       oddDeliveriesCount: 8,
       evenDeliveriesCount: 7,
@@ -270,7 +270,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 30,
       totalLitres: 105,
-      totalPrice: 7875,
+      totalPrice: 9450,
       breakdownText: "15 × 2L + 15 × 5L = 105L",
       oddDeliveriesCount: 15,
       evenDeliveriesCount: 15,
@@ -285,7 +285,7 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
     expected: {
       totalDeliveries: 15,
       totalLitres: 51,
-      totalPrice: 3825,
+      totalPrice: 4590,
       breakdownText: "8 × 2L + 7 × 5L = 51L",
       oddDeliveriesCount: 8,
       evenDeliveriesCount: 7,

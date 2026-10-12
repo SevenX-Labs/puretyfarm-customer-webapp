@@ -159,10 +159,10 @@ export const accountApi = {
         } else {
           price =
             plan.planType === "BUY_ONCE"
-              ? 1
+              ? 100
               : plan.planType === "SEVEN_DAY_TRIAL" || plan.planType === "TRIAL"
-              ? 525
-              : 2250;
+              ? 665
+              : 2700;
         }
 
         const sub: Subscription = {

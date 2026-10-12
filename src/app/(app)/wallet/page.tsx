@@ -17,6 +17,7 @@ import {
 import { walletReferenceLabel } from "@/features/wallet/types";
 import { paymentsApi, PaymentRecord, PaymentStatus } from "@/features/payments";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
+import { getScopedKey, getCacheData, setCacheData, isCacheStale } from "@/lib/cache/swrCache";
 import { EmailVerificationModal } from "@/components/pf";
 import { Button } from "@/components/ui/Button";
 import {
@@ -42,6 +43,29 @@ import {
 import { LuWallet } from "react-icons/lu";
 
 type TopupMethod = "ONLINE" | "CASH" | "DIRECT_REQUEST";
+
+
+function PassbookSkeleton() {
+  return (
+    <div className="divide-y divide-[#E8DFD4]/70 border border-[#E8DFD4] rounded-2xl overflow-hidden bg-white animate-pulse" aria-busy="true">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full pf-skeleton shrink-0" />
+            <div className="space-y-1.5">
+              <div className="w-40 sm:w-56 h-3.5 pf-skeleton rounded" />
+              <div className="w-24 sm:w-36 h-2.5 pf-skeleton rounded" />
+            </div>
+          </div>
+          <div className="space-y-1.5 text-right">
+            <div className="w-16 h-4 pf-skeleton rounded ml-auto" />
+            <div className="w-20 h-2.5 pf-skeleton rounded ml-auto" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function WalletContent() {
   const router = useRouter();
@@ -117,19 +141,32 @@ function WalletContent() {
 
   // Live Payments (for retryable PhonePe failures)
   const [livePayments, setLivePayments] = useState<PaymentRecord[]>([]);
+  const [txLoaded, setTxLoaded] = useState<boolean>(false);
+  const [paymentsLoaded, setPaymentsLoaded] = useState<boolean>(false);
+  const [reqLoaded, setReqLoaded] = useState<boolean>(false);
 
   // ══════════════════════════════════════════════════════════════════
   //  FETCHERS
   // ══════════════════════════════════════════════════════════════════
 
   // 7.1 GET /api/v1/customer/wallet
-  const fetchWallet = useCallback(async () => {
+  const fetchWallet = useCallback(async (isBackground = false) => {
     if (!user) return;
+    const key = getScopedKey(user.id, "wallet:summary");
+    const cached = getCacheData<CustomerWallet>(key);
+    if (cached && !isBackground) {
+      setWallet(cached);
+      setBalance(cached.balancePaise / 100);
+      setWalletLoading(false);
+      if (!isCacheStale(key, 45000)) return;
+    }
+    if (!isBackground && !cached) setWalletLoading(true);
     try {
       const res = await walletApi.getWallet();
       if (res && typeof res.balancePaise === "number") {
         setWallet(res);
         setBalance(res.balancePaise / 100);
+        setCacheData(key, res);
       }
     } catch (err) {
       console.warn("Error fetching wallet balance:", err);
@@ -140,19 +177,31 @@ function WalletContent() {
 
   // 7.3 GET /api/v1/customer/wallet/transactions
   const fetchTransactions = useCallback(
-    async (page = txPage, type = txTypeFilter) => {
+    async (page = txPage, type = txTypeFilter, isBackground = false) => {
       if (!user) return;
-      setTxLoading(true);
+      const key = getScopedKey(user.id, `wallet:tx:${page}:${type}`);
+      const cached = getCacheData<{ data: WalletTransaction[]; pagination: any }>(key);
+      if (cached && !isBackground) {
+        setTransactions(cached.data);
+        setTxPagination(cached.pagination);
+        setTxLoaded(true);
+        if (!isCacheStale(key, 45000)) return;
+      }
+      if (!isBackground && !cached) {
+        setTxLoading(true);
+      }
       try {
         const res = await walletApi.getTransactions({
           page,
           limit: 10,
           type: type === "ALL" ? undefined : (type as WalletTransactionType),
         });
-        setTransactions(res.data || []);
-        if (res.pagination) {
-          setTxPagination(res.pagination);
-        }
+        const nextData = res.data || [];
+        const nextPagination = res.pagination || { page, limit: 10, total: nextData.length, totalPages: 1 };
+        setTransactions(nextData);
+        setTxPagination(nextPagination);
+        setTxLoaded(true);
+        setCacheData(key, { data: nextData, pagination: nextPagination });
       } catch (err) {
         console.warn("Error fetching ledger transactions:", err);
       } finally {
@@ -164,19 +213,31 @@ function WalletContent() {
 
   // 6.4 GET /api/v1/customer/payments
   const fetchPayments = useCallback(
-    async (page = paymentPage, status = paymentStatusFilter) => {
+    async (page = paymentPage, status = paymentStatusFilter, isBackground = false) => {
       if (!user) return;
-      setPaymentLoading(true);
+      const key = getScopedKey(user.id, `wallet:payments:${page}:${status}`);
+      const cached = getCacheData<{ data: PaymentRecord[]; pagination: any }>(key);
+      if (cached && !isBackground) {
+        setPaymentsList(cached.data);
+        setPaymentPagination(cached.pagination);
+        setPaymentsLoaded(true);
+        if (!isCacheStale(key, 45000)) return;
+      }
+      if (!isBackground && !cached) {
+        setPaymentLoading(true);
+      }
       try {
         const res = await paymentsApi.listPayments({
           page,
           limit: 10,
           status: status === "ALL" ? undefined : status,
         });
-        setPaymentsList(res.data || []);
-        if (res.pagination) {
-          setPaymentPagination(res.pagination);
-        }
+        const nextData = res.data || [];
+        const nextPagination = res.pagination || { page, limit: 10, total: nextData.length, totalPages: 1 };
+        setPaymentsList(nextData);
+        setPaymentPagination(nextPagination);
+        setPaymentsLoaded(true);
+        setCacheData(key, { data: nextData, pagination: nextPagination });
       } catch (err) {
         console.warn("Error fetching payments:", err);
       } finally {
@@ -188,19 +249,31 @@ function WalletContent() {
 
   // 7.4 GET /api/v1/customer/wallet/credit-requests
   const fetchCreditRequests = useCallback(
-    async (page = reqPage, status = reqStatusFilter) => {
+    async (page = reqPage, status = reqStatusFilter, isBackground = false) => {
       if (!user) return;
-      setReqLoading(true);
+      const key = getScopedKey(user.id, `wallet:requests:${page}:${status}`);
+      const cached = getCacheData<{ data: WalletCreditRequest[]; pagination: any }>(key);
+      if (cached && !isBackground) {
+        setCreditRequests(cached.data);
+        setReqPagination(cached.pagination);
+        setReqLoaded(true);
+        if (!isCacheStale(key, 45000)) return;
+      }
+      if (!isBackground && !cached) {
+        setReqLoading(true);
+      }
       try {
         const res = await walletApi.getCreditRequests({
           page,
           limit: 10,
           status: status === "ALL" ? undefined : status,
         });
-        setCreditRequests(res.data || []);
-        if (res.pagination) {
-          setReqPagination(res.pagination);
-        }
+        const nextData = res.data || [];
+        const nextPagination = res.pagination || { page, limit: 10, total: nextData.length, totalPages: 1 };
+        setCreditRequests(nextData);
+        setReqPagination(nextPagination);
+        setReqLoaded(true);
+        setCacheData(key, { data: nextData, pagination: nextPagination });
       } catch (err) {
         console.warn("Error fetching credit requests:", err);
       } finally {
@@ -210,14 +283,14 @@ function WalletContent() {
     [user, reqPage, reqStatusFilter]
   );
 
-  // Refresh all wallet modules
+  // Refresh all wallet modules (background revalidation retains last good data)
   const refreshAll = useCallback(async () => {
     setIsRefreshing(true);
     await Promise.all([
-      fetchWallet(),
-      fetchTransactions(txPage, txTypeFilter),
-      fetchPayments(paymentPage, paymentStatusFilter),
-      fetchCreditRequests(reqPage, reqStatusFilter),
+      fetchWallet(true),
+      fetchTransactions(txPage, txTypeFilter, true),
+      fetchPayments(paymentPage, paymentStatusFilter, true),
+      fetchCreditRequests(reqPage, reqStatusFilter, true),
     ]);
     setIsRefreshing(false);
   }, [fetchWallet, fetchTransactions, fetchPayments, fetchCreditRequests, txPage, txTypeFilter, paymentPage, paymentStatusFilter, reqPage, reqStatusFilter]);
@@ -937,7 +1010,7 @@ function WalletContent() {
                     : "text-[#6B584C] hover:text-[#1A1008]"
                 }`}
               >
-                Ledger ({txPagination.total})
+                Ledger {txLoaded ? `(${txPagination.total})` : ""}
               </button>
 
               <button
@@ -952,7 +1025,7 @@ function WalletContent() {
                     : "text-[#6B584C] hover:text-[#1A1008]"
                 }`}
               >
-                Payments ({paymentPagination.total})
+                Payments {paymentsLoaded ? `(${paymentPagination.total})` : ""}
               </button>
 
               <button
@@ -967,7 +1040,7 @@ function WalletContent() {
                     : "text-[#6B584C] hover:text-[#1A1008]"
                 }`}
               >
-                Credit Requests ({reqPagination.total})
+                Credit Requests {reqLoaded ? `(${reqPagination.total})` : ""}
               </button>
             </div>
           </div>
@@ -1000,16 +1073,13 @@ function WalletContent() {
                 </div>
 
                 <span className="text-[11px] text-[#8C7A6B] font-mono">
-                  Showing {transactions.length} of {txPagination.total}
+                  {txLoaded ? `Showing ${transactions.length} of ${txPagination.total}` : ""}
                 </span>
               </div>
 
               {/* Transactions List */}
-              {txLoading ? (
-                <div className="py-12 flex flex-col items-center justify-center gap-2 text-xs text-[#8C7A6B]">
-                  <FiRefreshCw className="w-5 h-5 animate-spin text-[#5C1B13]" />
-                  <span>Loading ledger rows...</span>
-                </div>
+              {txLoading && transactions.length === 0 ? (
+                <PassbookSkeleton />
               ) : transactions.length > 0 ? (
                 <div className="divide-y divide-[#E8DFD4]/70 border border-[#E8DFD4] rounded-2xl overflow-hidden bg-white">
                   {transactions.map((tx) => {
@@ -1188,7 +1258,7 @@ function WalletContent() {
                 </div>
 
                 <span className="text-[11px] text-[#8C7A6B] font-mono">
-                  Showing {paymentsList.length} of {paymentPagination.total}
+                  {paymentsLoaded ? `Showing ${paymentsList.length} of ${paymentPagination.total}` : ""}
                 </span>
               </div>
 
@@ -1429,7 +1499,7 @@ function WalletContent() {
                 </div>
 
                 <span className="text-[11px] text-[#8C7A6B] font-mono">
-                  Showing {creditRequests.length} of {reqPagination.total}
+                  {reqLoaded ? `Showing ${creditRequests.length} of ${reqPagination.total}` : ""}
                 </span>
               </div>
 

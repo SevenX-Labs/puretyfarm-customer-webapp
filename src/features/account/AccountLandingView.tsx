@@ -27,6 +27,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { getScopedKey, getCacheData, setCacheData, isCacheStale } from "@/lib/cache/swrCache";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { PfBadge, PfButton, PfCard, PfSectionTitle } from "@/components/pf";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
@@ -66,8 +67,44 @@ const GENDER_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
+
+function ProfileCardSkeleton() {
+  return (
+    <PfCard padding="lg">
+      <div className="flex items-center gap-4 flex-wrap animate-pulse" aria-busy="true">
+        <div className="w-16 h-16 rounded-2xl pf-skeleton shrink-0" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="w-40 sm:w-56 h-6 pf-skeleton rounded-md" />
+          <div className="w-28 h-4 pf-skeleton rounded-full" />
+        </div>
+      </div>
+      <div className="mt-6 pt-6 border-t border-[var(--pf-border)] grid sm:grid-cols-2 gap-x-6 gap-y-4">
+        <div className="w-32 h-4 pf-skeleton rounded" />
+        <div className="w-36 h-4 pf-skeleton rounded" />
+      </div>
+    </PfCard>
+  );
+}
+
+function AccountPlanSkeleton() {
+  return (
+    <PfCard padding="md">
+      <div className="flex items-start justify-between gap-4 flex-wrap animate-pulse" aria-busy="true">
+        <div className="space-y-2">
+          <div className="w-48 h-4 pf-skeleton rounded" />
+          <div className="w-32 h-3 pf-skeleton rounded" />
+        </div>
+        <div className="space-y-1.5 text-right">
+          <div className="w-16 h-5 pf-skeleton rounded ml-auto" />
+          <div className="w-12 h-3 pf-skeleton rounded ml-auto" />
+        </div>
+      </div>
+    </PfCard>
+  );
+}
+
 export function AccountLandingView() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser, isProfileLoaded } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -79,9 +116,22 @@ export function AccountLandingView() {
       }
     }
   }, [user, router]);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loadingPlan, setLoadingPlan] = useState(true);
+  const [subscription, setSubscription] = useState<Subscription | null>(() => {
+    if (!user) return null;
+    return getCacheData<Subscription>(getScopedKey(user.id, "subscription")) ?? null;
+  });
+  const [orders, setOrders] = useState<Order[]>(() => {
+    if (!user) return [];
+    return getCacheData<Order[]>(getScopedKey(user.id, "orders")) ?? [];
+  });
+  const [ordersLoaded, setOrdersLoaded] = useState<boolean>(() => {
+    if (!user) return false;
+    return getCacheData<Order[]>(getScopedKey(user.id, "orders")) !== undefined;
+  });
+  const [loadingPlan, setLoadingPlan] = useState<boolean>(() => {
+    if (!user) return true;
+    return getCacheData<Subscription>(getScopedKey(user.id, "subscription")) === undefined;
+  });
 
   // Inline Profile Edit State (right on this page)
   const [isEditing, setIsEditing] = useState(false);
@@ -97,6 +147,21 @@ export function AccountLandingView() {
 
   useEffect(() => {
     let cancelled = false;
+    if (!user) return;
+    const subKey = getScopedKey(user.id, "subscription");
+    const ordKey = getScopedKey(user.id, "orders");
+
+    const cachedSub = getCacheData<Subscription>(subKey);
+    const cachedOrd = getCacheData<Order[]>(ordKey);
+    if (cachedSub) {
+      setSubscription(cachedSub);
+      setLoadingPlan(false);
+    }
+    if (cachedOrd) {
+      setOrders(cachedOrd);
+      setOrdersLoaded(true);
+    }
+
     (async () => {
       try {
         const [subRes, ordRes] = await Promise.all([
@@ -104,16 +169,28 @@ export function AccountLandingView() {
           accountApi.getOrders().catch(() => ({ success: false, orders: [] as Order[] })),
         ]);
         if (cancelled) return;
-        setSubscription(subRes?.subscription || null);
-        setOrders(ordRes?.orders || []);
+        if (subRes?.success) {
+          const s = subRes?.subscription || null;
+          setSubscription(s);
+          setCacheData(subKey, s);
+        }
+        if (ordRes?.success) {
+          const o = ordRes?.orders || [];
+          setOrders(o);
+          setOrdersLoaded(true);
+          setCacheData(ordKey, o);
+        }
       } finally {
-        if (!cancelled) setLoadingPlan(false);
+        if (!cancelled) {
+          setLoadingPlan(false);
+          setOrdersLoaded(true);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [user]);
 
   const startEditing = () => {
     if (!user) return;
@@ -200,6 +277,9 @@ export function AccountLandingView() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Profile Card — VIEW MODE or INLINE EDIT MODE */}
+          {!isEditing && !isProfileLoaded && (!user?.name || user.name.startsWith("Customer")) ? (
+            <ProfileCardSkeleton />
+          ) : (
           <PfCard padding="lg">
             {!isEditing ? (
               /* ─── VIEW MODE ─── */
@@ -489,6 +569,7 @@ export function AccountLandingView() {
               </form>
             )}
           </PfCard>
+          )}
 
           {/* Active Milk Plan & Usage Card */}
           <section>
@@ -502,13 +583,8 @@ export function AccountLandingView() {
               </Link>
             </div>
 
-            {loadingPlan ? (
-              <PfCard padding="md">
-                <div className="flex items-center gap-3 py-4 px-2 text-xs font-semibold text-[var(--pf-text-secondary)]">
-                  <div className="w-4 h-4 rounded-full border-2 border-[var(--pf-brown)] border-t-transparent animate-spin" />
-                  <span>Loading live milk plan & schedule...</span>
-                </div>
-              </PfCard>
+            {loadingPlan && !subscription ? (
+              <AccountPlanSkeleton />
             ) : subscription ? (
               <PfCard padding="md">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -584,7 +660,7 @@ export function AccountLandingView() {
                 href="/orders"
                 className="text-[12px] font-bold text-[var(--pf-brown)] hover:underline inline-flex items-center gap-1"
               >
-                View all orders ({orders.length}) <ArrowRight size={13} />
+                View all orders {ordersLoaded ? `(${orders.length})` : ""} <ArrowRight size={13} />
               </Link>
             </div>
 

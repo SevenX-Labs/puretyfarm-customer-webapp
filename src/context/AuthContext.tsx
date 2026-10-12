@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/features/auth/api/authApi";
 import { profileApi, CustomerProfile } from "@/features/profile/api/profileApi";
@@ -15,6 +15,7 @@ import {
   refreshSession,
   subscribeToAuthSession,
 } from "@/lib/auth/refreshSession";
+import { clearUserCache, clearAllCache, setCacheData, getCacheData } from "@/lib/cache/swrCache";
 import { User, OnboardingStatus } from "@/types/models";
 
 export interface AuthUser extends User {
@@ -27,6 +28,7 @@ interface AuthContextType {
   user: AuthUser | null;
   status: "loading" | "authenticated" | "unauthenticated";
   loading: boolean;
+  isProfileLoaded: boolean;
   authError: string | null;
   isLoggedIn: boolean;
   refreshUser: () => Promise<AuthUser | null>;
@@ -57,28 +59,28 @@ function normalizeCustomerUser(
   data: UserDataInput,
   profile?: CustomerProfile | null,
   addresses?: CustomerAddress[],
-  hasActivePlan?: boolean
+  hasActivePlan?: boolean,
+  prevUser?: AuthUser | null
 ): AuthUser {
-  const mobile = profile?.mobile || data.mobile || data.phone || "";
+  const mobile = profile?.mobile || data.mobile || data.phone || prevUser?.mobile || prevUser?.phone || "";
 
   let fullName = "";
   if (profile && (profile.firstName || profile.lastName)) {
     fullName = `${profile.firstName || ""} ${profile.lastName || ""}`.trim();
   } else if (data.name && data.name.trim()) {
     fullName = data.name.trim();
+  } else if (prevUser && prevUser.name && !prevUser.name.startsWith("Customer")) {
+    fullName = prevUser.name.trim();
   }
 
   const isPlaceholder =
     !fullName ||
     fullName.startsWith("Customer (") ||
     fullName.toLowerCase() === "customer";
+
+  // Only derive "Customer (1566)" fallback if profile truly has no name
   const displayName = fullName || (mobile ? `Customer (${mobile.slice(-4)})` : "Customer");
 
-  // Derive strict onboarding step:
-  // 1. Profile missing real name -> profile_pending (Step 1)
-  // 2. No serviceable address saved -> location_pending (Step 2)
-  // 3. Address saved, but no active plan / order placed -> plan_pending (Step 3/4)
-  // 4. All complete -> complete
   const isMarkedCompleted =
     typeof window !== "undefined" &&
     (window.localStorage.getItem("pf_onboarding_completed") === "true" ||
@@ -98,27 +100,50 @@ function normalizeCustomerUser(
     }
   }
 
+  const avatar = profile?.profileImageUrl || data.avatarUrl || prevUser?.avatarUrl || undefined;
+
   return {
-    id: profile?.userId || data.id || "",
+    id: profile?.userId || data.id || prevUser?.id || "",
     phone: mobile,
     mobile: mobile,
     name: displayName,
-    email: profile?.email || (data.email ? String(data.email) : undefined),
-    emailVerified: Boolean(profile?.emailVerified ?? data.emailVerified),
-    avatarUrl: profile?.profileImageUrl || data.avatarUrl || undefined,
-    role: data.role || "CUSTOMER",
-    gender: profile?.gender?.toLowerCase() || data.gender,
-    dob: profile?.dateOfBirth ? profile.dateOfBirth.split("T")[0] : data.dob,
+    email: profile?.email || (data.email ? String(data.email) : undefined) || prevUser?.email,
+    emailVerified: Boolean(profile?.emailVerified ?? data.emailVerified ?? prevUser?.emailVerified),
+    avatarUrl: avatar,
+    role: data.role || prevUser?.role || "CUSTOMER",
+    gender: profile?.gender?.toLowerCase() || data.gender || prevUser?.gender,
+    dob: profile?.dateOfBirth ? profile.dateOfBirth.split("T")[0] : data.dob || prevUser?.dob,
     onboardingStep,
-    createdAt: profile?.createdAt || data.createdAt,
-    updatedAt: profile?.updatedAt || data.updatedAt,
+    createdAt: profile?.createdAt || data.createdAt || prevUser?.createdAt,
+    updatedAt: profile?.updatedAt || data.updatedAt || prevUser?.updatedAt,
   };
+}
+
+function areUsersEqual(a: AuthUser | null, b: AuthUser | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.id === b.id &&
+    a.name === b.name &&
+    a.email === b.email &&
+    a.avatarUrl === b.avatarUrl &&
+    a.mobile === b.mobile &&
+    a.role === b.role &&
+    a.onboardingStep === b.onboardingStep &&
+    a.emailVerified === b.emailVerified
+  );
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
+  const [isProfileLoaded, setIsProfileLoaded] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const userRef = useRef<AuthUser | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
   const router = useRouter();
 
   const fetchFullUserProfile = useCallback(async (): Promise<AuthUser | null> => {
@@ -132,6 +157,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ]);
     if (!authData || !authData.id) return null;
 
+    if (profileData) {
+      setIsProfileLoaded(true);
+      setCacheData(`profile:${authData.id}`, profileData);
+    }
+
     const hasOrders = Boolean(ordersRes && ordersRes.orders && ordersRes.orders.length > 0);
     const hasPendingPurchases = Boolean(
       ordersRes &&
@@ -142,7 +172,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       manageDeliveryRes?.activePlan || hasOrders || hasPendingPurchases
     );
 
-    return normalizeCustomerUser(authData, profileData, addresses, hasActivePlan);
+    const normalized = normalizeCustomerUser(authData, profileData, addresses, hasActivePlan, userRef.current);
+    return normalized;
   }, []);
 
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
@@ -154,30 +185,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (tokenStorage.getAccessToken()) {
         const authUser = await fetchFullUserProfile();
         if (authUser) {
-          setUser(authUser);
+          setUser((prev) => (areUsersEqual(prev, authUser) ? prev : authUser));
           setAuthError(null);
           setStatus("authenticated");
           return authUser;
         }
       }
 
-      // If user had tokens, do not immediately force unauthenticated on transient API failure
       if (tokenStorage.hasAccessToken()) {
-        return user;
+        return userRef.current;
       }
 
       setUser(null);
+      setIsProfileLoaded(false);
       setStatus("unauthenticated");
       return null;
     } catch (err) {
       console.warn("[AuthContext] Could not refresh the user profile:", err);
-      return user;
+      return userRef.current;
     }
   }, [fetchFullUserProfile]);
 
   const checkSession = useCallback(async () => {
     try {
-      // 1. First attempt bootstrap via refresh token if present
       if (tokenStorage.getRefreshToken()) {
         try {
           const result = await bootstrapAuthSession(async () => {
@@ -188,7 +218,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return authUser;
           });
           if (result.status === "authenticated" && result.value) {
-            setUser(result.value as AuthUser);
+            const nextUser = result.value as AuthUser;
+            setUser((prev) => (areUsersEqual(prev, nextUser) ? prev : nextUser));
             setStatus("authenticated");
             setAuthError(null);
             return;
@@ -198,12 +229,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // 2. Check if accessToken is in storage
       if (tokenStorage.getAccessToken()) {
         try {
           const authUser = await fetchFullUserProfile();
           if (authUser) {
-            setUser(authUser);
+            setUser((prev) => (areUsersEqual(prev, authUser) ? prev : authUser));
             setStatus("authenticated");
             setAuthError(null);
             return;
@@ -211,17 +241,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch {}
       }
 
-      // If backend JWT tokens are not available, user is not authenticated.
-      // Clean up any stale cookies.
       if (typeof window !== "undefined") {
         fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
       }
       tokenStorage.clearTokens();
       setUser(null);
+      setIsProfileLoaded(false);
       setStatus("unauthenticated");
       setAuthError(null);
-    } catch (err) {
+    } catch {
       setUser(null);
+      setIsProfileLoaded(false);
       setStatus("unauthenticated");
       setAuthError(null);
     }
@@ -241,21 +271,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (status === "authenticated" && tokenStorage.getAccessToken()) {
       refreshUser();
     }
-  }, { intervalMs: 8000, enabled: status === "authenticated" });
+  }, { intervalMs: 35000, enabled: status === "authenticated" });
 
   useEffect(
     () =>
       subscribeToAuthSession((event) => {
         if (event.type === "ended") {
           setUser(null);
+          setIsProfileLoaded(false);
           setStatus("unauthenticated");
           setAuthError(null);
+          clearAllCache();
           return;
         }
 
         void fetchFullUserProfile()
           .then((authUser) => {
-            if (authUser) setUser(authUser);
+            if (authUser) {
+              setUser((prev) => (areUsersEqual(prev, authUser) ? prev : authUser));
+            }
             setStatus(authUser ? "authenticated" : "unauthenticated");
             setAuthError(null);
           })
@@ -268,6 +302,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      const currentId = userRef.current?.id;
+      if (currentId) clearUserCache(currentId);
+      clearAllCache();
       await authApi.logout();
       await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     } catch (err) {
@@ -279,6 +316,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Could not clear all local auth storage:", err);
       } finally {
         setUser(null);
+        setIsProfileLoaded(false);
         setStatus("unauthenticated");
         setAuthError(null);
         router.push("/login");
@@ -293,6 +331,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         status,
         loading: status === "loading",
+        isProfileLoaded,
         authError,
         isLoggedIn: Boolean(user),
         refreshUser,
@@ -310,10 +349,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           <span>{authError}</span>
           <button
             type="button"
-                onClick={() => {
-                  setAuthError(null);
-                  void checkSession();
-                }}
+            onClick={() => {
+              setAuthError(null);
+              void checkSession();
+            }}
             className="font-semibold text-[#7a2417] underline underline-offset-2"
           >
             Retry

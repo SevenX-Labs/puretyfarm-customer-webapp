@@ -25,6 +25,8 @@ import { SubscriptionStatusCard } from "./components/SubscriptionStatusCard";
 import { UpcomingDeliveriesList } from "./components/UpcomingDeliveriesList";
 import { CustomerHeader } from "@/components/pf/layout/CustomerHeader";
 import { useRealtimeSync } from "@/lib/useRealtimeSync";
+import { useAuth } from "@/context/AuthContext";
+import { getScopedKey, getCacheData, setCacheData, isCacheStale } from "@/lib/cache/swrCache";
 import { PfBadge, PfButton, PfCard, PfSectionTitle, PfSkeleton } from "@/components/pf";
 import { manageDeliveryApi } from "@/features/delivery/api/manageDeliveryApi";
 import { accountApi } from "@/features/account/api/accountApi";
@@ -51,15 +53,20 @@ import {
 } from "@/features/dashboard/utils";
 
 export function PlanView() {
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const userId = user?.id || "anon";
+  const cacheKey = getScopedKey(userId, "plan_view_data");
+
+  const cachedData = typeof window !== "undefined" ? getCacheData<any>(cacheKey) : undefined;
+  const [loading, setLoading] = useState(() => !cachedData);
   const [refreshing, setRefreshing] = useState(false);
-  const [deliveryData, setDeliveryData] = useState<ManageDeliveryResponse | null>(null);
-  const [plansOverview, setPlansOverview] = useState<PlanOverviewItem[]>([]);
-  const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(null);
-  const [subscription, setSubscription] = useState<CustomerSubscriptionSummary | null>(null);
-  const [fallbackSub, setFallbackSub] = useState<Subscription | null>(null);
-  const [userOrders, setUserOrders] = useState<CustomerOrder[]>([]);
-  const [changeRequests, setChangeRequests] = useState<DeliveryRequestItem[]>([]);
+  const [deliveryData, setDeliveryData] = useState<ManageDeliveryResponse | null>(() => cachedData?.deliveryData ?? null);
+  const [plansOverview, setPlansOverview] = useState<PlanOverviewItem[]>(() => cachedData?.plansOverview ?? []);
+  const [orderCutoff, setOrderCutoff] = useState<OrderCutoffPolicy | null>(() => cachedData?.orderCutoff ?? null);
+  const [subscription, setSubscription] = useState<CustomerSubscriptionSummary | null>(() => cachedData?.subscription ?? null);
+  const [fallbackSub, setFallbackSub] = useState<Subscription | null>(() => cachedData?.fallbackSub ?? null);
+  const [userOrders, setUserOrders] = useState<CustomerOrder[]>(() => cachedData?.userOrders ?? []);
+  const [changeRequests, setChangeRequests] = useState<DeliveryRequestItem[]>(() => cachedData?.changeRequests ?? []);
   const [error, setError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
@@ -67,21 +74,29 @@ export function PlanView() {
   // Upgrade to Monthly Modal State
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const [monthlyConfig, setMonthlyConfig] = useState<any>(null);
+  const [monthlyConfig, setMonthlyConfig] = useState<any>(() => cachedData?.monthlyConfig ?? null);
+  const [trialQuote, setTrialQuote] = useState<PlanQuote | null>(() => cachedData?.trialQuote ?? null);
+  const [buyOnceQuote, setBuyOnceQuote] = useState<PlanQuote | null>(() => cachedData?.buyOnceQuote ?? null);
 
   const loadData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    const hasData = Boolean(cachedData || deliveryData || subscription || plansOverview.length > 0);
+    if (isRefresh || hasData) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
 
     try {
-      const [manageRes, overviewRes, monthlyRes, requestsRes, subRes, ordersRes] = await Promise.allSettled([
+      const [manageRes, overviewRes, monthlyRes, requestsRes, subRes, ordersRes, trialQuoteRes, buyOnceQuoteRes] = await Promise.allSettled([
         manageDeliveryApi.getManageDelivery(),
         plansApi.getPlansOverview(),
         plansApi.getMonthlyConfig(),
         manageDeliveryApi.getRequests(),
         accountApi.getSubscription(),
         ordersApi.listOrders({ limit: 20 }),
+        plansApi.createTrialQuote(1),
+        plansApi.createBuyOnceQuote(1),
       ]);
 
       if (manageRes.status === "fulfilled" && manageRes.value?.activePlan) {
@@ -106,15 +121,40 @@ export function PlanView() {
         setUserOrders(ordersRes.value.data);
       }
 
+      let newMonthlyConfig = monthlyConfig;
       if (monthlyRes.status === "fulfilled" && monthlyRes.value) {
-        setMonthlyConfig(monthlyRes.value);
+        newMonthlyConfig = monthlyRes.value;
+        setMonthlyConfig(newMonthlyConfig);
       }
 
-      // Pending requests drive the "requested, awaiting approval" affordances
-      // so a submitted change is never mistaken for an applied one.
-      setChangeRequests(
-        requestsRes.status === "fulfilled" ? requestsRes.value?.data ?? [] : []
-      );
+      let newTrialQuote = trialQuote;
+      if (trialQuoteRes.status === "fulfilled" && trialQuoteRes.value) {
+        newTrialQuote = trialQuoteRes.value;
+        setTrialQuote(newTrialQuote);
+      }
+
+      let newBuyOnceQuote = buyOnceQuote;
+      if (buyOnceQuoteRes.status === "fulfilled" && buyOnceQuoteRes.value) {
+        newBuyOnceQuote = buyOnceQuoteRes.value;
+        setBuyOnceQuote(newBuyOnceQuote);
+      }
+
+      const newChangeRequests = requestsRes.status === "fulfilled" ? requestsRes.value?.data ?? [] : changeRequests;
+      setChangeRequests(newChangeRequests);
+
+      // Persist to user-scoped SWR cache so navigation back shows immediately without flash
+      setCacheData(cacheKey, {
+        deliveryData: manageRes.status === "fulfilled" ? manageRes.value : deliveryData,
+        plansOverview: overviewRes.status === "fulfilled" ? overviewRes.value?.plans : plansOverview,
+        orderCutoff: overviewRes.status === "fulfilled" ? (overviewRes.value?.orderCutoff ?? null) : orderCutoff,
+        subscription: overviewRes.status === "fulfilled" ? (overviewRes.value?.subscription ?? null) : subscription,
+        fallbackSub: subRes.status === "fulfilled" ? subRes.value?.subscription : fallbackSub,
+        userOrders: ordersRes.status === "fulfilled" ? ordersRes.value?.data : userOrders,
+        changeRequests: newChangeRequests,
+        monthlyConfig: newMonthlyConfig,
+        trialQuote: newTrialQuote,
+        buyOnceQuote: newBuyOnceQuote,
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load plan details";
       setError(msg);
@@ -122,11 +162,16 @@ export function PlanView() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [cacheKey, cachedData, deliveryData, subscription, plansOverview, orderCutoff, fallbackSub, userOrders, changeRequests, monthlyConfig, trialQuote, buyOnceQuote]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    const isStale = isCacheStale(cacheKey, 60000);
+    if (!cachedData || isStale) {
+      void loadData(Boolean(cachedData));
+    } else {
+      setLoading(false);
+    }
+  }, [cacheKey]);
 
   // Real-time sync: when admin approves plan or edits plan configs/cutoffs,
   // updates automatically reflect on customer view without manual refresh.
@@ -224,6 +269,25 @@ export function PlanView() {
     (buyOnceItem?.remainingUses !== undefined && buyOnceItem.remainingUses <= 0) ||
     userOrders.some((o) => o.planType === "BUY_ONCE")
   );
+
+  // Dynamic Plan Rates from Server Quotes / Configs (matching Admin PlanConfig)
+  const trialRate = trialQuote?.sellingPricePerLitre
+    ? Math.round(trialQuote.sellingPricePerLitre / 100)
+    : 95;
+  const trialTotal = trialQuote?.totalSellingAmount
+    ? Math.round(trialQuote.totalSellingAmount / 100)
+    : trialRate * 7;
+
+  const monthlyRate = monthlyConfig?.sellingPricePerLitre
+    ? Math.round(monthlyConfig.sellingPricePerLitre / 100)
+    : 90;
+  const monthlyTotal = monthlyRate * 30;
+
+  const buyOncePrice = buyOnceQuote?.totalSellingAmount
+    ? Math.round(buyOnceQuote.totalSellingAmount / 100)
+    : buyOnceQuote?.sellingPricePerLitre
+    ? Math.round(buyOnceQuote.sellingPricePerLitre / 100)
+    : 100;
 
   const hasUsedTrial = Boolean(
     activePlan?.planType === "SEVEN_DAY_TRIAL" ||
@@ -665,10 +729,16 @@ export function PlanView() {
                     7-Day Trial Plan
                   </h3>
                   <div className="mt-2 text-[22px] font-black text-[var(--pf-brown)]">
-                    ₹525
-                    <span className="text-xs font-normal text-[var(--pf-text-muted)] ml-1">
-                      / 7 days (₹75/L)
-                    </span>
+                    {loading && !trialQuote && !cachedData ? (
+                      <span className="inline-block w-36 h-6 rounded bg-[#E2D5C7] animate-pulse align-middle" />
+                    ) : (
+                      <>
+                        ₹{trialTotal.toLocaleString("en-IN")}
+                        <span className="text-xs font-normal text-[var(--pf-text-muted)] ml-1">
+                          / 7 days (₹{trialRate}/L)
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   <p className="mt-2 text-[13px] text-[var(--pf-text-secondary)]">
@@ -795,10 +865,16 @@ export function PlanView() {
                     Monthly Subscription
                   </h3>
                   <div className="mt-2 text-[22px] font-black text-[var(--pf-brown)]">
-                    ₹2,250
-                    <span className="text-xs font-normal text-[var(--pf-text-muted)] ml-1">
-                      / mo (₹75/L)
-                    </span>
+                    {loading && !monthlyConfig && !cachedData ? (
+                      <span className="inline-block w-36 h-6 rounded bg-[#E2D5C7] animate-pulse align-middle" />
+                    ) : (
+                      <>
+                        ₹{monthlyTotal.toLocaleString("en-IN")}
+                        <span className="text-xs font-normal text-[var(--pf-text-muted)] ml-1">
+                          / mo (₹{monthlyRate}/L)
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   <p className="mt-2 text-[13px] text-[var(--pf-text-secondary)]">
@@ -889,10 +965,16 @@ export function PlanView() {
                     Buy Once (1 Litre)
                   </h3>
                   <div className="mt-2 text-[22px] font-black text-[var(--pf-brown)]">
-                    ₹80
-                    <span className="text-xs font-normal text-[var(--pf-text-muted)] ml-1">
-                      / sample
-                    </span>
+                    {loading && !buyOnceQuote && !cachedData ? (
+                      <span className="inline-block w-24 h-6 rounded bg-[#E2D5C7] animate-pulse align-middle" />
+                    ) : (
+                      <>
+                        ₹{buyOncePrice.toLocaleString("en-IN")}
+                        <span className="text-xs font-normal text-[var(--pf-text-muted)] ml-1">
+                          / sample
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   <p className="mt-2 text-[13px] text-[var(--pf-text-secondary)]">

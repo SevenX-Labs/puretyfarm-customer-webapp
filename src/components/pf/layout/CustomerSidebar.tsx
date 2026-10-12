@@ -28,7 +28,7 @@ const NAV = [
 export function CustomerSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, isProfileLoaded } = useAuth();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -119,27 +119,39 @@ export function CustomerSidebar() {
         {/* Profile mini-card */}
         <div className="p-3">
           <div className="flex items-center gap-3 p-3 rounded-[14px] bg-[var(--pf-surface-soft)] border border-[var(--pf-border)]">
-            <div className="w-9 h-9 rounded-full bg-[var(--pf-brown)] text-white flex items-center justify-center text-[13px] font-bold overflow-hidden">
-              {user?.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.avatarUrl}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                firstName.charAt(0).toUpperCase()
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[13px] font-bold text-[var(--pf-text)] truncate">
-                {firstName}
-              </div>
-              <div className="text-[11px] text-[var(--pf-text-muted)] font-medium">
-                Customer
-              </div>
-            </div>
+            {!isProfileLoaded && !user?.avatarUrl ? (
+              <>
+                <div className="w-9 h-9 rounded-full pf-skeleton shrink-0" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="w-20 h-3.5 pf-skeleton rounded" />
+                  <div className="w-12 h-2.5 pf-skeleton rounded" />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-9 h-9 rounded-full bg-[var(--pf-brown)] text-white flex items-center justify-center text-[13px] font-bold overflow-hidden shrink-0">
+                  {user?.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.avatarUrl}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    firstName.charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-bold text-[var(--pf-text)] truncate">
+                    {firstName}
+                  </div>
+                  <div className="text-[11px] text-[var(--pf-text-muted)] font-medium">
+                    Customer
+                  </div>
+                </div>
+              </>
+            )}
             <button
               type="button"
               onClick={() => setShowLogoutDialog(true)}
