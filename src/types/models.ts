@@ -125,6 +125,9 @@ export interface Subscription {
   id: string;
   userId: string;
   planId: "trial" | "monthly" | "single";
+  planType?: string;
+  billingModel?: string;
+  frequency?: string | null;
   planName: string;
   price: number;
   status: "active" | "paused" | "cancelled";

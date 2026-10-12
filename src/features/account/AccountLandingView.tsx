@@ -606,10 +606,12 @@ export function AccountLandingView() {
                       ₹{subscription.price != null ? subscription.price : 2250}
                     </div>
                     <div className="text-[11px] text-[var(--pf-text-muted)]">
-                      {subscription.planId === "single"
+                      {subscription.planId === "single" || subscription.planType === "BUY_ONCE"
                         ? "one-time sample"
-                        : subscription.planId === "trial"
-                        ? "7-day trial"
+                        : subscription.planId === "trial" || subscription.planType === "SEVEN_DAY_TRIAL"
+                        ? (subscription.price != null && subscription.price < 200 ? "per delivery" : "7-day trial")
+                        : (subscription.billingModel === "PER_DELIVERY" || (subscription.price != null && subscription.price < 500))
+                        ? "per delivery"
                         : "per month"}
                     </div>
                   </div>

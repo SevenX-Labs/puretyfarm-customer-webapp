@@ -211,7 +211,14 @@ export function SubscriptionTab({
               <p className="text-xs text-[#6B584C] mt-0.5">
                 {subscription.dailyQuantity} •{" "}
                 <span className="font-semibold text-[#5C1B13]">
-                  ₹{subscription.price}/month
+                  ₹{subscription.price}
+                  {subscription.planId === "single" || subscription.planType === "BUY_ONCE"
+                    ? " (sample)"
+                    : subscription.planId === "trial" || subscription.planType === "SEVEN_DAY_TRIAL"
+                    ? (subscription.price < 200 ? "/delivery" : "/7 days")
+                    : (subscription.billingModel === "PER_DELIVERY" || (subscription.price < 500))
+                    ? "/delivery"
+                    : "/month"}
                 </span>
               </p>
             </div>

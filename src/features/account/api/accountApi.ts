@@ -128,16 +128,17 @@ export const accountApi = {
 
       if (res && res.activePlan) {
         const plan = res.activePlan;
+        const rawType = (plan.planType || "").toUpperCase();
         const planId =
-          plan.planType === "BUY_ONCE"
+          rawType === "BUY_ONCE"
             ? "single"
-            : plan.planType === "SEVEN_DAY_TRIAL" || plan.planType === "TRIAL"
+            : rawType === "SEVEN_DAY_TRIAL" || rawType === "TRIAL"
             ? "trial"
             : "monthly";
         const planName =
-          plan.planType === "BUY_ONCE"
+          rawType === "BUY_ONCE"
             ? "Buy Once (1 Litre Sample)"
-            : plan.planType === "SEVEN_DAY_TRIAL" || plan.planType === "TRIAL"
+            : rawType === "SEVEN_DAY_TRIAL" || rawType === "TRIAL"
             ? "7-Day Trial Plan"
             : "Monthly Subscription";
         const nextDelivery =
@@ -158,27 +159,35 @@ export const accountApi = {
           price = res.upcomingDeliveries[0].expectedAmountPaise / 100;
         } else {
           price =
-            plan.planType === "BUY_ONCE"
+            rawType === "BUY_ONCE"
               ? 100
-              : plan.planType === "SEVEN_DAY_TRIAL" || plan.planType === "TRIAL"
+              : rawType === "SEVEN_DAY_TRIAL" || rawType === "TRIAL"
               ? 665
               : 2700;
         }
+
+        const frequencyStr = (plan.frequency || "").toUpperCase();
+        const dailyQuantity =
+          rawType === "BUY_ONCE"
+            ? `${plan.quantityLitres || 1}L Sample Bottle`
+            : frequencyStr === "ALTERNATE_DAYS"
+            ? `${plan.quantityLitres || plan.quantityA || 1}L Alternate Days`
+            : `${plan.quantityLitres || 1}L Daily`;
 
         const sub: Subscription = {
           id: plan.selectionId,
           userId: "",
           planId,
+          planType: rawType,
+          billingModel: plan.billingModel,
+          frequency: plan.frequency,
           planName,
           price,
           status:
             plan.status === "ACTIVE" || plan.status === "CONFIRMED"
               ? "active"
               : "paused",
-          dailyQuantity:
-            plan.planType === "BUY_ONCE"
-              ? `${plan.quantityLitres || 1}L Sample Bottle`
-              : `${plan.quantityLitres || 1}L Daily`,
+          dailyQuantity,
           nextDeliveryDate: nextDeliveryDate,
           deliveryStartTime: plan.deliveryStartTime ?? null,
           deliveryEndTime: plan.deliveryEndTime ?? null,

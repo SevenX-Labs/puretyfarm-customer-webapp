@@ -72,10 +72,14 @@ export function MilkPlanCard({ subscription }: { subscription: Subscription | nu
         <Row
           label="Price"
           value={
-            subscription.planId === "single"
+            subscription.planId === "single" || subscription.planType === "BUY_ONCE"
               ? `${priceText} (sample)`
-              : subscription.planId === "trial"
-              ? `${priceText} / 7 days`
+              : subscription.planId === "trial" || subscription.planType === "SEVEN_DAY_TRIAL"
+              ? subscription.price < 200
+                ? `${priceText} / delivery`
+                : `${priceText} / 7 days`
+              : subscription.billingModel === "PER_DELIVERY" || (subscription.price != null && subscription.price < 500)
+              ? `${priceText} / delivery`
               : `${priceText} / month`
           }
         />
