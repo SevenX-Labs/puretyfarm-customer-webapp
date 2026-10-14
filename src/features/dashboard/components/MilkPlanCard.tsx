@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { ArrowRight, Milk } from "lucide-react";
-import type { Subscription } from "@/types/models";
+import type { Subscription, Order } from "@/types/models";
 import { formatDeliveryDate, paiseToRupeesText } from "../utils";
 
-export function MilkPlanCard({ subscription }: { subscription: Subscription | null }) {
+export function MilkPlanCard({
+  subscription,
+  nextDeliveryOrder,
+}: {
+  subscription: Subscription | null;
+  nextDeliveryOrder?: Order | null;
+}) {
   const noPlan = !subscription || subscription.status === "cancelled";
 
   if (noPlan) {
@@ -33,7 +39,9 @@ export function MilkPlanCard({ subscription }: { subscription: Subscription | nu
     );
   }
 
-  const nextDel = formatDeliveryDate(subscription.nextDeliveryDate);
+  // Prioritize active order delivery date if present to ensure 100% sync with left card
+  const activeDate = nextDeliveryOrder?.deliveryDate || subscription.nextDeliveryDate;
+  const nextDel = formatDeliveryDate(activeDate);
   const priceText =
     subscription.price != null
       ? paiseToRupeesText(null, subscription.price)

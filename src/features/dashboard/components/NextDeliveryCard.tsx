@@ -80,17 +80,43 @@ export function NextDeliveryCard({ order }: { order: Order }) {
           </div>
         </div>
 
-        {/* Right — timeline */}
-        <div className="lg:border-l lg:border-[var(--pf-border)] lg:pl-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-9 h-9 rounded-xl bg-[var(--pf-yellow-soft)] flex items-center justify-center">
-              <Milk size={18} strokeWidth={1.75} className="text-[var(--pf-brown)]" />
+        {/* Right — Live Delivery Details */}
+        <div className="lg:border-l lg:border-[var(--pf-border)] lg:pl-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-[var(--pf-yellow-soft)] flex items-center justify-center">
+                <Milk size={16} strokeWidth={2} className="text-[var(--pf-brown)]" />
+              </div>
+              <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--pf-text-muted)]">
+                Delivery Window
+              </span>
             </div>
-            <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--pf-text-muted)]">
-              Status
+
+            <div className="bg-[var(--pf-bg)]/80 rounded-2xl p-4 border border-[var(--pf-border)] space-y-3">
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-[var(--pf-text-muted)]">Expected Slot</span>
+                <span className="font-semibold text-[var(--pf-text)]">{windowText ?? "6:00 AM – 11:00 AM"}</span>
+              </div>
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-[var(--pf-text-muted)]">Dispatch Type</span>
+                <span className="font-semibold text-[var(--pf-text)]">Farm Fresh Chilled</span>
+              </div>
+              <div className="flex items-center justify-between text-[13px]">
+                <span className="text-[var(--pf-text-muted)]">Packaging</span>
+                <span className="font-semibold text-[var(--pf-text)]">Sterilized Glass Bottle</span>
+              </div>
             </div>
           </div>
-          <DeliveryTimeline status={order.status} />
+
+          <div className="mt-4 pt-3 border-t border-[var(--pf-border)] flex items-center justify-between text-[12px] text-[var(--pf-text-secondary)]">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Route Scheduled
+            </span>
+            <span className="font-mono font-medium text-[11px] text-[var(--pf-text-muted)]">
+              #{order.orderNumber || order.id?.slice(-8) || ""}
+            </span>
+          </div>
         </div>
       </div>
     </article>

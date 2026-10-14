@@ -159,8 +159,20 @@ export const accountApi = {
             : rawType === "SEVEN_DAY_TRIAL" || rawType === "TRIAL"
             ? "7-Day Trial Plan"
             : "Monthly Subscription";
+        // Use actual upcoming active order delivery date if present, or upcoming scheduled slot
+        const upcomingOrder = orders
+          .filter(
+            (o: any) =>
+              (o.status === "CONFIRMED" || o.status === "PROCESSING" || o.status === "OUT_FOR_DELIVERY" || o.status === "Confirmed" || o.status === "Placed") &&
+              o.deliveryDate
+          )
+          .sort((a: any, b: any) => new Date(a.deliveryDate).getTime() - new Date(b.deliveryDate).getTime())[0];
+
         const nextDelivery =
-          res.upcomingDeliveries?.[0]?.date || plan.startDate || "";
+          upcomingOrder?.deliveryDate ||
+          res.upcomingDeliveries?.[0]?.date ||
+          plan.startDate ||
+          "";
         const nextDeliveryDate = nextDelivery
           ? new Date(nextDelivery).toISOString().split("T")[0]
           : "";

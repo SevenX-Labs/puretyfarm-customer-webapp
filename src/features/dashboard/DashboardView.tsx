@@ -58,7 +58,7 @@ export function DashboardView() {
               )}
             </div>
             <div>
-              <MilkPlanCard subscription={subscription} />
+              <MilkPlanCard subscription={subscription} nextDeliveryOrder={displayDelivery} />
             </div>
           </section>
 

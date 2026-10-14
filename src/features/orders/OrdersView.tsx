@@ -99,13 +99,16 @@ export function OrdersView() {
       });
     }
 
+    // Always sort cleanly by date:
+    // - For completed/delivered: newest first (descending)
+    // - For upcoming/all/cancelled: chronological order (earliest/today/tomorrow first)
     if (filter === "delivered" || (filter as string) === "completed") {
       list = [...list].sort((a, b) => {
         const tA = new Date(a.deliveredAt || a.deliveryDate || a.createdAt).getTime();
         const tB = new Date(b.deliveredAt || b.deliveryDate || b.createdAt).getTime();
         return tB - tA;
       });
-    } else if (filter === "upcoming") {
+    } else {
       list = [...list].sort((a, b) => {
         const tA = new Date(a.deliveryDate || a.createdAt).getTime();
         const tB = new Date(b.deliveryDate || b.createdAt).getTime();
