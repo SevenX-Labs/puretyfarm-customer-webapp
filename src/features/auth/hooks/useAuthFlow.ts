@@ -173,9 +173,20 @@ export function useAuthFlow() {
         return;
       }
 
-      const refreshedUser = await refreshUser();
+      // When user is newly verified or logging in, check onboarding status immediately
+      const refreshedUserPromise = refreshUser();
+      let refreshedUser: any = null;
+      try {
+        refreshedUser = await Promise.race([
+          refreshedUserPromise,
+          new Promise((resolve) => setTimeout(() => resolve(null), 3000)),
+        ]);
+      } catch {
+        refreshedUser = null;
+      }
 
-      const isPending = isPendingOnboarding(refreshedUser);
+      // If refreshedUser is still pending or not loaded in time, treat as pending onboarding
+      const isPending = refreshedUser ? isPendingOnboarding(refreshedUser) : true;
 
       const targetUrl = isPending
         ? redirectUrl && redirectUrl.startsWith("/onboarding")

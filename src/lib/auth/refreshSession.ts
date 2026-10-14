@@ -242,6 +242,8 @@ export function endAuthSession(): void {
   try {
     tokenStorage.clearTokens();
     if (typeof window !== "undefined") {
+      window.localStorage.removeItem("pf_onboarding_completed");
+      window.sessionStorage.removeItem("pf_onboarding_completed");
       fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     }
   } finally {

@@ -40,7 +40,7 @@ export const profileApi = {
    */
   async getProfile(): Promise<CustomerProfile | null> {
     try {
-      return await apiClient.get<CustomerProfile>("/api/v1/customer/profile/me");
+      return await apiClient.get<CustomerProfile>("/api/v1/customer/profile/me", { retries: 0 });
     } catch (err: any) {
       if (err?.status === 404 || err?.statusCode === 404) {
         return null;

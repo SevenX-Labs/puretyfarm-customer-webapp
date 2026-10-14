@@ -83,6 +83,8 @@ function normalizeCustomerUser(
   const displayName = fullName || (mobile ? `Customer (${mobile.slice(-4)})` : "Customer");
 
   const isMarkedCompleted =
+    !isPlaceholder &&
+    fullName.length > 0 &&
     typeof window !== "undefined" &&
     (window.localStorage.getItem("pf_onboarding_completed") === "true" ||
      window.sessionStorage.getItem("pf_onboarding_completed") === "true");
@@ -322,6 +324,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Logout request failed:", err);
     } finally {
       try {
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("pf_onboarding_completed");
+          window.sessionStorage.removeItem("pf_onboarding_completed");
+        }
         endAuthSession();
       } catch (err) {
         console.error("Could not clear all local auth storage:", err);
