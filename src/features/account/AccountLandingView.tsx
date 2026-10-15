@@ -53,9 +53,9 @@ function initials(name?: string, mobile?: string) {
 }
 
 const SHORTCUTS = [
-  { label: "Delivery info", sub: "Addresses & preferences", href: "/account-settings?tab=addresses", icon: MapPin },
-  { label: "Preferences", sub: "Notifications & timing", href: "/account-settings?tab=preferences", icon: Settings },
-  { label: "Security", sub: "Password & deletion", href: "/account-settings?tab=security", icon: Lock },
+  { label: "Delivery info", sub: "Addresses & preferences", href: "/account", icon: MapPin },
+  { label: "Preferences", sub: "Notifications & timing", href: "/account", icon: Settings },
+  { label: "Security", sub: "Password & deletion", href: "/account", icon: Lock },
   { label: "Wallet", sub: "Balance & payments", href: "/wallet", icon: Wallet },
   { label: "Order history", sub: "All past orders", href: "/orders", icon: Package },
   { label: "Milk plan", sub: "Change or pause", href: "/plan", icon: Milk },

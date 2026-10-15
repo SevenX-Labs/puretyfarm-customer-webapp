@@ -212,7 +212,7 @@ export function DeliveryView() {
                   />
                 </ul>
                 <div className="mt-4">
-                  <PfButton href="/account-settings?tab=preferences" variant="secondary" size="sm">
+                  <PfButton href="/account" variant="secondary" size="sm">
                     Edit preferences
                   </PfButton>
                 </div>
@@ -230,7 +230,7 @@ export function DeliveryView() {
                   </h3>
                 </div>
                 <Link
-                  href="/account-settings?tab=addresses"
+                  href="/account"
                   aria-label="Edit addresses"
                   className="pf-focus-ring w-8 h-8 rounded-full flex items-center justify-center text-[var(--pf-text-secondary)] hover:text-[var(--pf-brown)] hover:bg-[var(--pf-surface-soft)]"
                 >
@@ -245,7 +245,7 @@ export function DeliveryView() {
                     You haven&apos;t added a delivery address yet.
                   </p>
                   <div className="mt-4">
-                    <PfButton href="/account-settings?tab=addresses" size="sm">
+                    <PfButton href="/account" size="sm">
                       Add address
                     </PfButton>
                   </div>

@@ -11,10 +11,10 @@ const TAB_REDIRECTS: Record<string, string> = {
   orders: "/orders",
   subscription: "/plan",
   wallet: "/wallet",
-  addresses: "/account-settings?tab=addresses",
-  preferences: "/account-settings?tab=preferences",
-  security: "/account-settings?tab=security",
-  activity: "/account-settings?tab=activity",
+  addresses: "/account",
+  preferences: "/account",
+  security: "/account",
+  activity: "/account",
 };
 
 export default async function AccountPage({
