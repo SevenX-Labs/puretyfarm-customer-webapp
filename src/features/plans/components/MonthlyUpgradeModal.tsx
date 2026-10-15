@@ -375,23 +375,35 @@ export function MonthlyUpgradeModal({
                 </p>
 
                 {isWalletLow && (
-                  <div className="mt-2 pt-2 border-t border-[#E8DFD4] space-y-1.5">
-                    <p className="text-[11px] text-rose-800 font-semibold flex items-center gap-1">
-                      <AlertCircle size={13} className="shrink-0 text-rose-600" />
-                      <span>
-                        Wallet is ₹{shortfallRupees} below the full plan total. Add money so
-                        deliveries can be charged.
-                      </span>
-                    </p>
-                    <Link
-                      href={`/wallet?amount=${shortfallRupees}`}
-                      target="_blank"
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5C1B13] hover:underline"
-                    >
-                      <span>Top up Wallet (+₹{shortfallRupees})</span>
-                      <ArrowRight size={12} />
-                    </Link>
+                  <div className="mt-2.5 pt-2.5 border-t border-rose-200/80 bg-rose-50/70 -mx-3.5 -mb-3.5 p-3 rounded-b-2xl space-y-2">
+                    <div className="flex items-start gap-1.5">
+                      <AlertCircle size={14} className="shrink-0 text-rose-600 mt-0.5" />
+                      <p className="text-[11px] text-rose-900 font-semibold leading-snug">
+                        Wallet balance (₹{walletBalanceRupees.toFixed(0)}) is low for this plan. Add at least ₹{shortfallRupees} to ensure sunrise morning deliveries:
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <Link
+                        href={`/wallet?amount=${shortfallRupees}&method=ONLINE`}
+                        target="_blank"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#5C1B13] text-white text-[10.5px] font-bold hover:bg-[#48150f] transition-all shadow-2xs"
+                      >
+                        <CreditCard size={11} />
+                        <span>Add via Online (UPI / Card)</span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPaymentMethod("CASH");
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#D5C7B8] text-[#1A1008] text-[10.5px] font-bold hover:bg-[#FAF8F5] transition-all"
+                      >
+                        <Banknote size={11} />
+                        <span>Pay via Cash</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

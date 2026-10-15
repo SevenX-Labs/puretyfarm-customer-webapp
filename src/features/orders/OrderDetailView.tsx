@@ -58,9 +58,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
   // Manage Delivery state (for monthly orders)
   const [manageData, setManageData] = useState<ManageDeliveryResponse | null>(null);
   const [loadingManage, setLoadingManage] = useState(false);
-  const [activeModal, setActiveModal] = useState<
-    "QUANTITY" | "FREQUENCY" | "SKIP" | "PAUSE" | null
-  >(null);
+  const [activeModal, setActiveModal] = useState<"QUANTITY" | "SKIP" | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalSuccessMsg, setModalSuccessMsg] = useState<string | null>(null);
   const [modalErrorMsg, setModalErrorMsg] = useState<string | null>(null);
@@ -689,11 +687,13 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                 </Link>
               </div>
 
-              {/* Action Buttons Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Action Buttons Grid (Only 2 options for this order) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => {
+                    const firstItem = order.items?.[0];
+                    if (firstItem?.quantity) setSelectedQuantity(firstItem.quantity);
                     setActiveModal("QUANTITY");
                     setModalSuccessMsg(null);
                     setModalErrorMsg(null);
@@ -705,31 +705,16 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                   </div>
                   <p className="text-xs font-bold text-[#1A1008]">Change Quantity</p>
                   <p className="text-[11px] text-[#6B584C] mt-0.5">
-                    Adjust daily litres per delivery
+                    Adjust litres for this delivery with live price update
                   </p>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveModal("FREQUENCY");
-                    setModalSuccessMsg(null);
-                    setModalErrorMsg(null);
-                  }}
-                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
-                >
-                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
-                    <Settings2 size={14} />
-                  </div>
-                  <p className="text-xs font-bold text-[#1A1008]">Change Frequency</p>
-                  <p className="text-[11px] text-[#6B584C] mt-0.5">
-                    Daily vs Alternate Days
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
+                    if (order.deliveryDate) {
+                      setSkipDate(String(order.deliveryDate).slice(0, 10));
+                    }
                     setActiveModal("SKIP");
                     setModalSuccessMsg(null);
                     setModalErrorMsg(null);
@@ -741,25 +726,7 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
                   </div>
                   <p className="text-xs font-bold text-[#1A1008]">Skip Delivery</p>
                   <p className="text-[11px] text-[#6B584C] mt-0.5">
-                    Skip a specific calendar morning
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveModal("PAUSE");
-                    setModalSuccessMsg(null);
-                    setModalErrorMsg(null);
-                  }}
-                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
-                >
-                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
-                    <PauseCircle size={14} />
-                  </div>
-                  <p className="text-xs font-bold text-[#1A1008]">Vacation Pause</p>
-                  <p className="text-[11px] text-[#6B584C] mt-0.5">
-                    Pause with auto-resume date
+                    Skip this scheduled order
                   </p>
                 </button>
               </div>
@@ -786,16 +753,12 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
             {/* Modal Titles */}
             <div>
               <h3 className="text-base font-bold text-[#1A1008]">
-                {activeModal === "QUANTITY" && "Change Daily Quantity"}
-                {activeModal === "FREQUENCY" && "Change Delivery Frequency"}
-                {activeModal === "SKIP" && "Skip Next Delivery Date"}
-                {activeModal === "PAUSE" && "Vacation Pause Delivery"}
+                {activeModal === "QUANTITY" && "Change Order Quantity"}
+                {activeModal === "SKIP" && "Skip This Delivery"}
               </h3>
               <p className="text-xs text-[#6B584C] mt-0.5">
-                {activeModal === "QUANTITY" && "Applies to all future scheduled morning deliveries."}
-                {activeModal === "FREQUENCY" && "Updates your recurrence schedule on the server."}
-                {activeModal === "SKIP" && "Select the future delivery date to skip."}
-                {activeModal === "PAUSE" && "Temporarily freeze sunrise dispatches until you return."}
+                {activeModal === "QUANTITY" && "Update litres for this specific delivery. Price recalculates dynamically."}
+                {activeModal === "SKIP" && "Cancel this specific morning delivery from your subscription."}
               </p>
             </div>
 
@@ -824,130 +787,100 @@ export function OrderDetailView({ orderId }: { orderId: string }) {
             )}
 
             {/* Modal Content Bodies */}
-            {activeModal === "QUANTITY" && (
-              <div className="space-y-3">
-                <label className="text-xs font-semibold text-[#1A1008] block">
-                  Select Litres per Morning:
-                </label>
-                <p className="text-[11px] text-[#6B584C]">
-                  {changesThisDeliveryOnly && order
-                    ? `Applies only to the ${String(order.deliveryDate).slice(0, 10)} delivery (order ${order.orderNumber ?? ""}), after admin approval. The new quantity sets what is charged when it is delivered; an increase needs enough wallet balance.`
-                    : "Applies to your upcoming deliveries after admin approval."}
-                </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[1, 2, 3, 4].map((qty) => (
-                    <button
-                      key={qty}
-                      type="button"
-                      onClick={() => setSelectedQuantity(qty)}
-                      className={`py-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
-                        selectedQuantity === qty
-                          ? "bg-[#5C1B13] text-white border-[#5C1B13]"
-                          : "bg-[#FAF8F5] text-[#1A1008] border-[#E8DFD4] hover:bg-[#FAF3EA]"
-                      }`}
-                    >
-                      {qty} Litre{qty > 1 ? "s" : ""}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  disabled={modalLoading}
-                  onClick={handleActionQuantity}
-                  className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
-                >
-                  {modalLoading ? "Sending..." : "Request New Quantity"}
-                </button>
-              </div>
-            )}
+            {activeModal === "QUANTITY" && (() => {
+              const item = order?.items?.[0];
+              const unitPricePaise = item?.unitPricePaise || (item?.price ? item.price * 100 : 9000);
+              const currentQty = item?.quantity || 1;
+              const currentTotalPaise = currentQty * unitPricePaise;
+              const newTotalPaise = selectedQuantity * unitPricePaise;
+              const diffPaise = newTotalPaise - currentTotalPaise;
 
-            {activeModal === "FREQUENCY" && (
-              <div className="space-y-3">
-                <label className="text-xs font-semibold text-[#1A1008] block">
-                  Choose Recurrence:
-                </label>
-                <div className="space-y-2">
-                  {[
-                    { val: "DAILY", label: "Daily (Every Morning)", sub: "Recommended for families" },
-                    { val: "ALTERNATE_DAYS", label: "Alternate Days", sub: "Delivered every other morning" },
-                    { val: "WEEKDAYS_ONLY", label: "Weekdays Only", sub: "Monday through Friday" },
-                  ].map((freq) => (
-                    <button
-                      key={freq.val}
-                      type="button"
-                      onClick={() => setSelectedFrequency(freq.val)}
-                      className={`w-full p-3 rounded-xl border text-left cursor-pointer transition-all flex items-center justify-between ${
-                        selectedFrequency === freq.val
-                          ? "bg-[#FAF3EA] border-[#5C1B13] text-[#1A1008]"
-                          : "bg-white border-[#E8DFD4] text-[#6B584C] hover:bg-[#FAF8F5]"
-                      }`}
-                    >
-                      <div>
-                        <p className="text-xs font-bold">{freq.label}</p>
-                        <p className="text-[11px] text-[#8C7A6B]">{freq.sub}</p>
+              return (
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="text-xs font-bold text-[#1A1008] block">
+                      Select Litres for this Delivery:
+                    </label>
+                    <p className="text-[11px] text-[#6B584C] mt-0.5">
+                      {order?.deliveryDate
+                        ? `Delivery on ${String(order.deliveryDate).slice(0, 10)} (Order ${order.orderNumber ?? ""})`
+                        : "Applies to this specific delivery"}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4].map((qty) => (
+                      <button
+                        key={qty}
+                        type="button"
+                        onClick={() => setSelectedQuantity(qty)}
+                        className={`py-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                          selectedQuantity === qty
+                            ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-xs"
+                            : "bg-[#FAF8F5] text-[#1A1008] border-[#E8DFD4] hover:bg-[#FAF3EA]"
+                        }`}
+                      >
+                        {qty} Litre{qty > 1 ? "s" : ""}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Dynamic Price Calculation Box */}
+                  <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4] space-y-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#6B584C]">Unit Rate:</span>
+                      <span className="font-bold font-mono text-[#1A1008]">₹{(unitPricePaise / 100).toFixed(2)} / Litre</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[#6B584C]">Current Order ({currentQty}L):</span>
+                      <span className="font-mono font-bold text-[#1A1008]">₹{(currentTotalPaise / 100).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs pt-1.5 border-t border-[#E8DFD4]">
+                      <span className="font-bold text-[#1A1008]">New Estimated Total ({selectedQuantity}L):</span>
+                      <span className="font-bold font-mono text-[#5C1B13] text-sm">₹{(newTotalPaise / 100).toFixed(2)}</span>
+                    </div>
+                    {diffPaise !== 0 && (
+                      <div className="text-[11px] text-[#8C7A6B] pt-0.5">
+                        {diffPaise > 0
+                          ? `+₹${(diffPaise / 100).toFixed(2)} will be debited from wallet upon delivery after approval.`
+                          : `-₹${(Math.abs(diffPaise) / 100).toFixed(2)} reduced from order charge.`}
                       </div>
-                      {selectedFrequency === freq.val && (
-                        <Check size={16} className="text-[#5C1B13]" />
-                      )}
-                    </button>
-                  ))}
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={modalLoading}
+                    onClick={handleActionQuantity}
+                    className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
+                  >
+                    {modalLoading ? "Submitting Request..." : "Request Quantity Change"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  disabled={modalLoading}
-                  onClick={handleActionFrequency}
-                  className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
-                >
-                  {modalLoading ? "Saving..." : "Confirm Frequency"}
-                </button>
-              </div>
-            )}
+              );
+            })()}
 
             {activeModal === "SKIP" && (
               <div className="space-y-3">
-                <label className="text-xs font-semibold text-[#1A1008] block">
-                  Select Delivery Date to Skip:
-                </label>
-                <input
-                  type="date"
-                  value={skipDate}
-                  min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
-                  onChange={(e) => setSkipDate(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none"
-                />
-                <button
-                  type="button"
-                  disabled={modalLoading || !skipDate}
-                  onClick={handleActionSkip}
-                  className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
-                >
-                  {modalLoading ? "Skipping..." : "Confirm Skip Delivery"}
-                </button>
-              </div>
-            )}
+                <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4] space-y-1.5">
+                  <p className="text-xs font-bold text-[#1A1008]">
+                    Skip Delivery Scheduled For:
+                  </p>
+                  <p className="text-sm font-black text-[#5C1B13]">
+                    {order?.deliveryDate ? (typeof formatDeliveryDate(String(order.deliveryDate)) === "object" ? formatDeliveryDate(String(order.deliveryDate)).label : String(order.deliveryDate).slice(0, 10)) : "Upcoming Morning"}
+                  </p>
+                  <p className="text-[11px] text-[#6B584C] mt-1">
+                    This specific morning dispatch will be cancelled. Your wallet will not be charged for this order.
+                  </p>
+                </div>
 
-            {activeModal === "PAUSE" && (
-              <div className="space-y-3">
-                <label className="text-xs font-semibold text-[#1A1008] block">
-                  Resume Delivery Date (Optional):
-                </label>
-                <input
-                  type="date"
-                  value={pauseResumeDate}
-                  min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
-                  onChange={(e) => setPauseResumeDate(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none"
-                />
-                <p className="text-[11px] text-[#8C7A6B]">
-                  Leave empty if you wish to pause indefinitely until you unpause manually.
-                </p>
                 <button
                   type="button"
                   disabled={modalLoading}
-                  onClick={handleActionPause}
+                  onClick={handleActionSkip}
                   className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
                 >
-                  {modalLoading ? "Pausing..." : "Pause Deliveries"}
+                  {modalLoading ? "Skipping Delivery..." : "Confirm Skip Delivery"}
                 </button>
               </div>
             )}

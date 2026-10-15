@@ -19,6 +19,10 @@ import {
   CreditCard,
   DollarSign,
   Info,
+  SkipForward,
+  PauseCircle,
+  Settings2,
+  CalendarRange,
 } from "lucide-react";
 import { MonthlyUpgradeModal } from "./components/MonthlyUpgradeModal";
 import { SubscriptionStatusCard } from "./components/SubscriptionStatusCard";
@@ -74,9 +78,122 @@ export function PlanView() {
   // Upgrade to Monthly Modal State
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
+  // Manage Subscription Modals State (Quantity, Frequency, Skip, Pause)
+  const [manageModal, setManageModal] = useState<"QUANTITY" | "FREQUENCY" | "SKIP" | "PAUSE" | null>(null);
+  const [manageLoading, setManageLoading] = useState(false);
+  const [manageError, setManageError] = useState<string | null>(null);
+  const [manageSuccess, setManageSuccess] = useState<string | null>(null);
+
+  // Manage Modal Form State
+  const [quantityScope, setQuantityScope] = useState<"SPECIFIC_DATE" | "COMPLETE_PLAN">("SPECIFIC_DATE");
+  const [selectedTargetDate, setSelectedTargetDate] = useState<string>("");
+  const [manageQuantity, setManageQuantity] = useState<number>(1);
+  const [manageFrequency, setManageFrequency] = useState<string>("DAILY");
+  const [manageCustomMode, setManageCustomMode] = useState<boolean>(false);
+  const [manageQtyA, setManageQtyA] = useState<number>(1);
+  const [manageQtyB, setManageQtyB] = useState<number>(2);
+  const [manageSkipDate, setManageSkipDate] = useState<string>("");
+  const [managePauseResumeDate, setManagePauseResumeDate] = useState<string>("");
+
   const [monthlyConfig, setMonthlyConfig] = useState<any>(() => cachedData?.monthlyConfig ?? null);
   const [trialQuote, setTrialQuote] = useState<PlanQuote | null>(() => cachedData?.trialQuote ?? null);
   const [buyOnceQuote, setBuyOnceQuote] = useState<PlanQuote | null>(() => cachedData?.buyOnceQuote ?? null);
+
+
+  // Handlers for Plan Management Actions
+  const handlePlanQuantityChange = async () => {
+    setManageLoading(true);
+    setManageError(null);
+    try {
+      if (quantityScope === "SPECIFIC_DATE" && !selectedTargetDate) {
+        setManageError("Please select a delivery date to update quantity.");
+        setManageLoading(false);
+        return;
+      }
+      await manageDeliveryApi.changeQuantity({
+        quantityLitres: manageQuantity,
+        ...(quantityScope === "SPECIFIC_DATE" ? { deliveryDate: selectedTargetDate } : {}),
+      });
+      setManageSuccess(
+        quantityScope === "SPECIFIC_DATE"
+          ? `Quantity change request (${manageQuantity}L) for ${selectedTargetDate} submitted for admin approval.`
+          : `Plan-wide quantity change request (${manageQuantity}L daily) submitted for admin approval.`
+      );
+      await loadData(true);
+      setTimeout(() => setManageModal(null), 2000);
+    } catch (err: any) {
+      setManageError(err?.message || "Failed to submit quantity change request.");
+    } finally {
+      setManageLoading(false);
+    }
+  };
+
+  const handlePlanFrequencyChange = async () => {
+    setManageLoading(true);
+    setManageError(null);
+    try {
+      if (manageCustomMode) {
+        await manageDeliveryApi.changeSchedule({
+          frequency: manageFrequency as any,
+          quantityMode: "ALTERNATING" as any,
+          quantityA: manageQtyA,
+          quantityB: manageQtyB,
+        });
+        setManageSuccess(`Custom frequency updated: Day 1 (${manageQtyA}L), Day 2 (${manageQtyB}L) • ${manageFrequency}`);
+      } else {
+        await manageDeliveryApi.changeFrequency({
+          frequency: manageFrequency as any,
+        });
+        setManageSuccess(`Delivery frequency updated to ${manageFrequency.replace("_", " ")}.`);
+      }
+      await loadData(true);
+      setTimeout(() => setManageModal(null), 2000);
+    } catch (err: any) {
+      setManageError(err?.message || "Failed to update frequency.");
+    } finally {
+      setManageLoading(false);
+    }
+  };
+
+  const handlePlanSkipDelivery = async () => {
+    if (!manageSkipDate) {
+      setManageError("Please select a delivery date to skip.");
+      return;
+    }
+    setManageLoading(true);
+    setManageError(null);
+    try {
+      await manageDeliveryApi.skipDelivery({ deliveryDate: manageSkipDate });
+      setManageSuccess(`Delivery for ${manageSkipDate} has been skipped.`);
+      await loadData(true);
+      setTimeout(() => setManageModal(null), 1800);
+    } catch (err: any) {
+      setManageError(err?.message || "Failed to skip delivery.");
+    } finally {
+      setManageLoading(false);
+    }
+  };
+
+  const handlePlanVacationPause = async () => {
+    setManageLoading(true);
+    setManageError(null);
+    try {
+      await manageDeliveryApi.pauseDelivery({
+        resumeDate: managePauseResumeDate || undefined,
+      });
+      setManageSuccess(
+        managePauseResumeDate
+          ? `Deliveries paused until ${managePauseResumeDate}. Auto-resumes on sunrise dispatch.`
+          : "Deliveries paused indefinitely. Resume anytime from your plan."
+      );
+      await loadData(true);
+      setTimeout(() => setManageModal(null), 2000);
+    } catch (err: any) {
+      setManageError(err?.message || "Failed to pause deliveries.");
+    } finally {
+      setManageLoading(false);
+    }
+  };
 
   const loadData = useCallback(async (isRefresh = false) => {
     const hasData = Boolean(cachedData || deliveryData || subscription || plansOverview.length > 0);
@@ -436,14 +553,20 @@ export function PlanView() {
                     </span>
                     <PfBadge
                       tone={
-                        activePlan.status === "CONFIRMED" || activePlan.status === "ACTIVE"
+                        activePlan.status === "PENDING_APPROVAL" || activePlan.status === "PENDING_PAYMENT"
+                          ? "warning"
+                          : activePlan.status === "CONFIRMED" || activePlan.status === "ACTIVE"
                           ? "success"
                           : activePlan.status === "PAUSED"
                           ? "warning"
                           : "neutral"
                       }
                     >
-                      {activePlan.status === "PAUSED" ? "Paused" : "Active"}
+                      {activePlan.status === "PENDING_APPROVAL" || activePlan.status === "PENDING_PAYMENT"
+                        ? "Pending Approval"
+                        : activePlan.status === "PAUSED"
+                        ? "Paused"
+                        : "Active"}
                     </PfBadge>
                   </div>
 
@@ -461,7 +584,9 @@ export function PlanView() {
                     {(activePlan.planType === "SEVEN_DAY_TRIAL" || activePlan.planType === "TRIAL") &&
                       (activePlan.quantityLitres || 1) + "L Daily (7-Day Trial)"}
                     {activePlan.planType === "MONTHLY" &&
-                      (activePlan.quantityLitres || 1) + "L Daily (30L / mo)"}
+                      (activePlan.quantityMode === "ALTERNATING" || (activePlan.quantityA != null && activePlan.quantityB != null)
+                        ? `Day 1: ${activePlan.quantityA ?? 1}L, Day 2: ${activePlan.quantityB ?? 2}L (${activePlan.frequency === "ALTERNATE_DAYS" ? "Alternate Days" : "Daily"})`
+                        : `${activePlan.quantityLitres || 1}L ${activePlan.frequency === "ALTERNATE_DAYS" ? "Alternate Days" : "Daily"} (30L / mo)`)}
                   </p>
 
                   {/* Stats Grid: Price, Next Delivery & Admin Delivery Window */}
@@ -621,9 +746,21 @@ export function PlanView() {
                             </>
                           )}
                         </PfButton>
-                        <PfButton onClick={openUpgradeModal} variant="secondary">
+                        <PfButton
+                          onClick={() => {
+                            if (activePlan.quantityLitres) setManageQuantity(activePlan.quantityLitres);
+                            setManageModal("QUANTITY");
+                            setManageError(null);
+                            setManageSuccess(null);
+                          }}
+                          variant="secondary"
+                        >
                           <Sliders size={15} strokeWidth={2} />
-                          Modify Subscription
+                          Manage Plan
+                        </PfButton>
+                        <PfButton onClick={openUpgradeModal} variant="secondary">
+                          <Sparkles size={15} strokeWidth={2} />
+                          Upgrade Plan
                         </PfButton>
                       </>
                     )}
@@ -668,6 +805,8 @@ export function PlanView() {
                 </div>
               </div>
             </PfCard>
+
+          
           ) : (
             <PfCard padding="lg">
               <div className="flex items-start gap-4">
@@ -688,6 +827,110 @@ export function PlanView() {
               </div>
             </PfCard>
           )}
+
+          {/* Manage Monthly Subscription Grid (Quantity, Frequency, Skip, Pause) */}
+          {activePlan && activePlan.planType === "MONTHLY" && (
+            <div className="bg-white rounded-3xl border border-[#E8DFD4] p-6 shadow-2xs space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-[#E8DFD4]">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 rounded-xl bg-[#FAF3EA] text-[#5C1B13]">
+                      <CalendarRange className="w-4 h-4" />
+                    </span>
+                    <h3 className="text-base font-bold text-[#1A1008]">
+                      Manage Monthly Subscription
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[#6B584C] mt-1">
+                    Customize your daily delivery litres, update recurrence frequency, skip a date, or set vacation pause.
+                  </p>
+                </div>
+              </div>
+
+              {/* 4 Action Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (activePlan.quantityLitres) setManageQuantity(activePlan.quantityLitres);
+                    const upcoming = deliveryData?.upcomingDeliveries?.[0];
+                    if (upcoming?.date) setSelectedTargetDate(upcoming.date);
+                    setQuantityScope("SPECIFIC_DATE");
+                    setManageModal("QUANTITY");
+                    setManageError(null);
+                    setManageSuccess(null);
+                  }}
+                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
+                    <Sliders size={14} />
+                  </div>
+                  <p className="text-xs font-bold text-[#1A1008]">Change Quantity</p>
+                  <p className="text-[11px] text-[#6B584C] mt-0.5">
+                    For specific date or complete plan
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (activePlan.frequency) setManageFrequency(activePlan.frequency);
+                    setManageModal("FREQUENCY");
+                    setManageError(null);
+                    setManageSuccess(null);
+                  }}
+                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
+                    <Settings2 size={14} />
+                  </div>
+                  <p className="text-xs font-bold text-[#1A1008]">Change Frequency</p>
+                  <p className="text-[11px] text-[#6B584C] mt-0.5">
+                    Daily vs Alternate (Day 1 / Day 2)
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const upcoming = deliveryData?.upcomingDeliveries?.[0];
+                    if (upcoming?.date) setManageSkipDate(upcoming.date);
+                    setManageModal("SKIP");
+                    setManageError(null);
+                    setManageSuccess(null);
+                  }}
+                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
+                    <SkipForward size={14} />
+                  </div>
+                  <p className="text-xs font-bold text-[#1A1008]">Skip Delivery</p>
+                  <p className="text-[11px] text-[#6B584C] mt-0.5">
+                    Skip a specific scheduled date
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManageModal("PAUSE");
+                    setManageError(null);
+                    setManageSuccess(null);
+                  }}
+                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
+                >
+                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
+                    <PauseCircle size={14} />
+                  </div>
+                  <p className="text-xs font-bold text-[#1A1008]">Vacation Pause</p>
+                  <p className="text-[11px] text-[#6B584C] mt-0.5">
+                    Pause with auto-resume date
+                  </p>
+                </button>
+              </div>
+            </div>
+          )}
+
 
           {/* Change Plan / Available Plans Section */}
           <section>
@@ -1083,7 +1326,331 @@ export function PlanView() {
       )}
 
       {/* Upgrade / Customize Monthly Plan Modal */}
-      <MonthlyUpgradeModal
+      
+      {/* ══════════════════════════════════════════════════════════════════
+          MANAGE SUBSCRIPTION MODALS (QUANTITY, FREQUENCY, SKIP, PAUSE)
+         ══════════════════════════════════════════════════════════════════ */}
+      {manageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs no-print">
+          <div className="bg-white rounded-3xl border border-[#E8DFD4] shadow-2xl max-w-md w-full p-6 space-y-4 relative animate-in fade-in zoom-in-95 duration-150">
+            <button
+              onClick={() => setManageModal(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-[#FAF3EA] text-[#8C7A6B] cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div>
+              <h3 className="text-base font-bold text-[#1A1008]">
+                {manageModal === "QUANTITY" && "Change Delivery Quantity"}
+                {manageModal === "FREQUENCY" && "Change Delivery Frequency & Pattern"}
+                {manageModal === "SKIP" && "Skip Upcoming Delivery"}
+                {manageModal === "PAUSE" && "Vacation Pause Deliveries"}
+              </h3>
+              <p className="text-xs text-[#6B584C] mt-0.5">
+                {manageModal === "QUANTITY" && "Choose whether to update a specific delivery date or your complete plan."}
+                {manageModal === "FREQUENCY" && "Customize your morning delivery cadence and alternating quantities."}
+                {manageModal === "SKIP" && "Select an upcoming morning date to skip."}
+                {manageModal === "PAUSE" && "Freeze morning deliveries while away; auto-resumes on selected date."}
+              </p>
+            </div>
+
+            {/* Messages */}
+            {manageSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{manageSuccess}</span>
+              </div>
+            )}
+            {manageError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{manageError}</span>
+              </div>
+            )}
+
+            {/* Modal Body: QUANTITY with 2 Options */}
+            {manageModal === "QUANTITY" && (
+              <div className="space-y-4">
+                {/* 2 Options Toggle */}
+                <div className="p-1 rounded-xl bg-[#FAF8F5] border border-[#E8DFD4] flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setQuantityScope("SPECIFIC_DATE")}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      quantityScope === "SPECIFIC_DATE"
+                        ? "bg-[#5C1B13] text-white shadow-xs"
+                        : "text-[#6B584C] hover:text-[#1A1008]"
+                    }`}
+                  >
+                    1. Specific Date
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuantityScope("COMPLETE_PLAN")}
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      quantityScope === "COMPLETE_PLAN"
+                        ? "bg-[#5C1B13] text-white shadow-xs"
+                        : "text-[#6B584C] hover:text-[#1A1008]"
+                    }`}
+                  >
+                    2. Complete Plan
+                  </button>
+                </div>
+
+                {/* Specific Date Picker */}
+                {quantityScope === "SPECIFIC_DATE" && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-[#1A1008] block">
+                      Choose Delivery Date (Within Plan):
+                    </label>
+                    {deliveryData?.upcomingDeliveries && deliveryData.upcomingDeliveries.length > 0 ? (
+                      <select
+                        value={selectedTargetDate}
+                        onChange={(e) => setSelectedTargetDate(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none bg-white"
+                      >
+                        <option value="">Select an upcoming delivery date</option>
+                        {deliveryData.upcomingDeliveries.map((del, idx) => (
+                          <option key={del.date || idx} value={del.date}>
+                            {del.date} ({del.quantityLitres}L scheduled)
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="date"
+                        value={selectedTargetDate}
+                        min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                        onChange={(e) => setSelectedTargetDate(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none"
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Quantity Chips */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#1A1008] block">
+                    {quantityScope === "SPECIFIC_DATE"
+                      ? "Select Litres for this Delivery:"
+                      : "Select Standing Daily Litres (All Future Deliveries):"}
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4].map((qty) => (
+                      <button
+                        key={qty}
+                        type="button"
+                        onClick={() => setManageQuantity(qty)}
+                        className={`py-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                          manageQuantity === qty
+                            ? "bg-[#5C1B13] text-white border-[#5C1B13] shadow-xs"
+                            : "bg-[#FAF8F5] text-[#1A1008] border-[#E8DFD4] hover:bg-[#FAF3EA]"
+                        }`}
+                      >
+                        {qty} Litre{qty > 1 ? "s" : ""}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Calculation Info Box */}
+                <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4] space-y-1.5 text-xs">
+                  <div className="flex justify-between items-center text-[#6B584C]">
+                    <span>Rate per Litre:</span>
+                    <span className="font-mono font-bold text-[#1A1008]">₹90.00</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-[#E8DFD4]">
+                    <span className="font-bold text-[#1A1008]">
+                      {quantityScope === "SPECIFIC_DATE" ? "Delivery Total:" : "Daily Delivery Cost:"}
+                    </span>
+                    <span className="font-mono font-bold text-[#5C1B13] text-sm">
+                      ₹{(manageQuantity * 90).toFixed(2)}
+                      {quantityScope === "COMPLETE_PLAN" ? " / day" : ""}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#8C7A6B]">
+                    {quantityScope === "SPECIFIC_DATE"
+                      ? "Applies to that specific morning delivery after admin approval."
+                      : "Reconfigures all future upcoming deliveries in your monthly subscription."}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={manageLoading}
+                  onClick={handlePlanQuantityChange}
+                  className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
+                >
+                  {manageLoading ? "Submitting Request..." : "Request Quantity Change"}
+                </button>
+              </div>
+            )}
+
+            {/* Modal Body: FREQUENCY with Custom Day 1 / Day 2 Pattern */}
+            {manageModal === "FREQUENCY" && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-[#1A1008] block">Choose Recurrence:</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setManageFrequency("DAILY")}
+                      className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                        manageFrequency === "DAILY"
+                          ? "bg-[#FAF3EA] border-[#5C1B13] text-[#1A1008]"
+                          : "bg-white border-[#E8DFD4] text-[#6B584C] hover:bg-[#FAF8F5]"
+                      }`}
+                    >
+                      <p className="text-xs font-bold">Daily</p>
+                      <p className="text-[10px] text-[#8C7A6B]">Every morning</p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setManageFrequency("ALTERNATE_DAYS")}
+                      className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                        manageFrequency === "ALTERNATE_DAYS"
+                          ? "bg-[#FAF3EA] border-[#5C1B13] text-[#1A1008]"
+                          : "bg-white border-[#E8DFD4] text-[#6B584C] hover:bg-[#FAF8F5]"
+                      }`}
+                    >
+                      <p className="text-xs font-bold">Alternate Days</p>
+                      <p className="text-[10px] text-[#8C7A6B]">Every other morning</p>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Custom Alternating Quantities Toggle */}
+                <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-[#1A1008]">Custom Alternating Litres</p>
+                      <p className="text-[10px] text-[#6B584C]">Different litres on Day 1 vs Day 2</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={manageCustomMode}
+                      onChange={(e) => setManageCustomMode(e.target.checked)}
+                      className="w-4 h-4 accent-[#5C1B13] cursor-pointer"
+                    />
+                  </div>
+
+                  {manageCustomMode && (
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#E8DFD4]">
+                      <div>
+                        <label className="text-[11px] font-bold text-[#1A1008] block mb-1">Day 1 Litres:</label>
+                        <select
+                          value={manageQtyA}
+                          onChange={(e) => setManageQtyA(Number(e.target.value))}
+                          className="w-full p-2 rounded-xl border border-[#D5C7B8] text-xs font-bold bg-white"
+                        >
+                          {[1, 2, 3, 4].map((q) => (
+                            <option key={q} value={q}>{q} Litre{q > 1 ? "s" : ""}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-[#1A1008] block mb-1">Day 2 Litres:</label>
+                        <select
+                          value={manageQtyB}
+                          onChange={(e) => setManageQtyB(Number(e.target.value))}
+                          className="w-full p-2 rounded-xl border border-[#D5C7B8] text-xs font-bold bg-white"
+                        >
+                          {[1, 2, 3, 4].map((q) => (
+                            <option key={q} value={q}>{q} Litre{q > 1 ? "s" : ""}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  disabled={manageLoading}
+                  onClick={handlePlanFrequencyChange}
+                  className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
+                >
+                  {manageLoading ? "Updating Schedule..." : "Confirm Schedule & Pattern"}
+                </button>
+              </div>
+            )}
+
+            {/* Modal Body: SKIP DELIVERY */}
+            {manageModal === "SKIP" && (
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-[#1A1008] block">
+                  Select Scheduled Morning Delivery to Skip:
+                </label>
+                {deliveryData?.upcomingDeliveries && deliveryData.upcomingDeliveries.length > 0 ? (
+                  <select
+                    value={manageSkipDate}
+                    onChange={(e) => setManageSkipDate(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none bg-white"
+                  >
+                    <option value="">Choose an upcoming date</option>
+                    {deliveryData.upcomingDeliveries.map((del, idx) => (
+                      <option key={del.date || idx} value={del.date}>
+                        {del.date} ({del.quantityLitres}L)
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="date"
+                    value={manageSkipDate}
+                    min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                    onChange={(e) => setManageSkipDate(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none"
+                  />
+                )}
+                <p className="text-[11px] text-[#6B584C]">
+                  Skipping will cancel sunrise dispatch for that date. Your wallet will not be charged.
+                </p>
+
+                <button
+                  type="button"
+                  disabled={manageLoading || !manageSkipDate}
+                  onClick={handlePlanSkipDelivery}
+                  className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
+                >
+                  {manageLoading ? "Skipping..." : "Confirm Skip Delivery"}
+                </button>
+              </div>
+            )}
+
+            {/* Modal Body: VACATION PAUSE */}
+            {manageModal === "PAUSE" && (
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-[#1A1008] block">
+                  Resume Delivery Date (Optional):
+                </label>
+                <input
+                  type="date"
+                  value={managePauseResumeDate}
+                  min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                  onChange={(e) => setManagePauseResumeDate(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none"
+                />
+                <p className="text-[11px] text-[#8C7A6B]">
+                  Leave empty if you wish to pause indefinitely until you unpause manually from this page.
+                </p>
+
+                <button
+                  type="button"
+                  disabled={manageLoading}
+                  onClick={handlePlanVacationPause}
+                  className="w-full mt-2 py-2.5 rounded-xl bg-[#5C1B13] hover:bg-[#48150f] text-white text-xs font-bold cursor-pointer transition-all shadow-xs disabled:opacity-50"
+                >
+                  {manageLoading ? "Pausing Deliveries..." : "Confirm Vacation Pause"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+<MonthlyUpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
         onSuccess={() => loadData(true)}

@@ -4,6 +4,7 @@ import { PfBadge, PfEmptyState, PfButton } from "@/components/pf";
 import type { Order } from "@/types/models";
 import {
   formatDeliveryDate,
+  isDeliveredOrCompletedStatus,
   orderItemsSummary,
   orderTotalRupees,
   statusLabel,
@@ -11,16 +12,25 @@ import {
 } from "../utils";
 
 export function RecentOrders({ orders }: { orders: Order[] }) {
-  const recent = orders.slice(0, 5);
+  // Only show completed / delivered orders in Recent Orders on the dashboard, sorted newest first
+  const completedOrders = orders
+    .filter((o) => isDeliveredOrCompletedStatus(o.status))
+    .sort((a, b) => {
+      const tA = new Date(a.deliveredAt || a.deliveryDate || a.createdAt).getTime();
+      const tB = new Date(b.deliveredAt || b.deliveryDate || b.createdAt).getTime();
+      return tB - tA;
+    });
+
+  const recent = completedOrders.slice(0, 5);
 
   if (!recent.length) {
     return (
       <div className="bg-[var(--pf-surface)] border border-[var(--pf-border)] rounded-[20px]">
         <PfEmptyState
           icon={<Package size={22} strokeWidth={1.75} />}
-          title="No orders yet"
-          description="Your PuretyFarm deliveries will appear here once you place your first order."
-          action={<PfButton href="/plan">Explore Plans</PfButton>}
+          title="No completed orders yet"
+          description="Your completed and delivered morning milk orders will appear here."
+          action={<PfButton href="/orders">View All Orders</PfButton>}
         />
       </div>
     );
@@ -34,7 +44,7 @@ export function RecentOrders({ orders }: { orders: Order[] }) {
           <thead>
             <tr className="text-left">
               <TH>Order</TH>
-              <TH>Date</TH>
+              <TH>Delivered Date</TH>
               <TH>Items</TH>
               <TH className="text-right">Amount</TH>
               <TH>Status</TH>
@@ -46,9 +56,7 @@ export function RecentOrders({ orders }: { orders: Order[] }) {
           <tbody>
             {recent.map((o) => {
               const { name, qty, unit } = orderItemsSummary(o);
-              // Never fall back to createdAt: the day an order was placed is
-              // not the day it arrives. A null date reads "Not scheduled".
-              const d = formatDeliveryDate(o.deliveryDate);
+              const d = formatDeliveryDate(o.deliveredAt || o.deliveryDate);
               return (
                 <tr
                   key={o.id}
@@ -99,7 +107,7 @@ export function RecentOrders({ orders }: { orders: Order[] }) {
       <ul className="md:hidden space-y-3">
         {recent.map((o) => {
           const { name, qty, unit } = orderItemsSummary(o);
-          const d = formatDeliveryDate(o.deliveryDate);
+          const d = formatDeliveryDate(o.deliveredAt || o.deliveryDate);
           return (
             <li key={o.id}>
               <Link

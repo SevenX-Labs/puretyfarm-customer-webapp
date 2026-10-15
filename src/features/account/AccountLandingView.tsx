@@ -726,7 +726,7 @@ export function AccountLandingView() {
             <div className="grid sm:grid-cols-2 gap-3">
               {SHORTCUTS.map(({ label, sub, href, icon: Icon }) => (
                 <Link
-                  key={href}
+                  key={label}
                   href={href}
                   className="group pf-focus-ring flex items-center gap-3 p-4 rounded-[14px] bg-[var(--pf-surface)] border border-[var(--pf-border)] hover:border-[var(--pf-border-strong)] transition-colors"
                 >

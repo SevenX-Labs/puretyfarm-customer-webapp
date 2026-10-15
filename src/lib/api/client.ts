@@ -58,7 +58,10 @@ function normalizeError(data: unknown, status: number): ApiError {
   const body = data && typeof data === "object"
     ? (data as Record<string, unknown>)
     : {};
-  const messageValue = body.error || body.message;
+  // In NestJS / standard HTTP errors, body.message contains the specific human error
+  // (e.g. "The order cut-off for the 2026-10-15 delivery has passed"), while body.error is
+  // just the generic HTTP status text (e.g. "Bad Request"). We must prioritize body.message!
+  const messageValue = body.message || body.error;
   const message = Array.isArray(messageValue)
     ? messageValue.join(", ")
     : typeof messageValue === "string"
