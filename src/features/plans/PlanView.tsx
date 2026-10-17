@@ -5,8 +5,6 @@ import Link from "next/link";
 import {
   CheckCircle2,
   Receipt,
-  Pause,
-  Play,
   Sparkles,
   Sliders,
   CalendarDays,
@@ -21,7 +19,6 @@ import {
   Info,
   SkipForward,
   PauseCircle,
-  Settings2,
   CalendarRange,
 } from "lucide-react";
 import { MonthlyUpgradeModal } from "./components/MonthlyUpgradeModal";
@@ -362,9 +359,6 @@ export function PlanView() {
   const activeDeliveryWindowKnown = Boolean(deliveryStartTime && deliveryEndTime);
 
   const pendingRequests = changeRequests.filter((r) => r.status === "PENDING");
-  const hasPendingPauseOrResume = pendingRequests.some(
-    (r) => r.type === "PAUSE" || r.type === "RESUME"
-  );
   // Most recent decided request, so a rejection and its admin note stay
   // visible to the customer rather than vanishing silently.
   const lastDecidedRequest = changeRequests.find(
@@ -442,39 +436,7 @@ export function PlanView() {
     buyOnceItem?.blockedReason !== "PLAN_NOT_CONFIGURED"
   );
 
-  /**
-   * Submits a pause or resume REQUEST for admin review.
-   *
-   * Both are approval-gated server-side, so the plan keeps running until an
-   * admin decides. Two bugs fixed here: resuming used to call the *pause*
-   * endpoint (which skipped every remaining delivery), and both branches
-   * claimed success as though the change had already taken effect.
-   */
-  const handleTogglePause = async () => {
-    if (!activePlan || activePlan.planType !== "MONTHLY") return;
-    const isPaused = activePlan.status === "PAUSED";
-    setUpdating(true);
-    setError(null);
-    try {
-      const res = isPaused
-        ? await manageDeliveryApi.resumeDelivery()
-        : await manageDeliveryApi.pauseDelivery({});
-      // Prefer the server's own wording; it is the authority on what happened.
-      setActionSuccess(
-        res?.message ||
-          (isPaused
-            ? "Resume request submitted. Your plan stays paused until an admin approves it."
-            : "Pause request submitted. Deliveries continue as normal until an admin approves it.")
-      );
-      await loadData(true);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to submit the request";
-      setError(msg);
-    } finally {
-      setUpdating(false);
-      setTimeout(() => setActionSuccess(null), 6000);
-    }
-  };
+
 
   const openUpgradeModal = () => {
     setShowUpgradeModal(true);
@@ -720,32 +682,7 @@ export function PlanView() {
                       </>
                     ) : (
                       <>
-                        {/* Labelled as a request: both actions go to admin
-                            review and change nothing until approved. Disabled
-                            while a decision is outstanding so the customer
-                            cannot queue contradictory requests. */}
-                        <PfButton
-                          onClick={handleTogglePause}
-                          loading={updating}
-                          disabled={updating || hasPendingPauseOrResume}
-                          variant={activePlan.status === "PAUSED" ? "primary" : "secondary"}
-                        >
-                          {activePlan.status === "PAUSED" ? (
-                            <>
-                              <Play size={15} strokeWidth={2} />
-                              {hasPendingPauseOrResume
-                                ? "Resume Requested"
-                                : "Request Resume"}
-                            </>
-                          ) : (
-                            <>
-                              <Pause size={15} strokeWidth={2} />
-                              {hasPendingPauseOrResume
-                                ? "Pause Requested"
-                                : "Request Pause"}
-                            </>
-                          )}
-                        </PfButton>
+
                         <PfButton
                           onClick={() => {
                             if (activePlan.quantityLitres) setManageQuantity(activePlan.quantityLitres);
@@ -842,53 +779,13 @@ export function PlanView() {
                     </h3>
                   </div>
                   <p className="text-xs text-[#6B584C] mt-1">
-                    Customize your daily delivery litres, update recurrence frequency, skip a date, or set vacation pause.
+                    Skip a scheduled delivery date or set vacation pause.
                   </p>
                 </div>
               </div>
 
-              {/* 4 Action Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (activePlan.quantityLitres) setManageQuantity(activePlan.quantityLitres);
-                    const upcoming = deliveryData?.upcomingDeliveries?.[0];
-                    if (upcoming?.date) setSelectedTargetDate(upcoming.date);
-                    setQuantityScope("SPECIFIC_DATE");
-                    setManageModal("QUANTITY");
-                    setManageError(null);
-                    setManageSuccess(null);
-                  }}
-                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
-                >
-                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
-                    <Sliders size={14} />
-                  </div>
-                  <p className="text-xs font-bold text-[#1A1008]">Change Quantity</p>
-                  <p className="text-[11px] text-[#6B584C] mt-0.5">
-                    For specific date or complete plan
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (activePlan.frequency) setManageFrequency(activePlan.frequency);
-                    setManageModal("FREQUENCY");
-                    setManageError(null);
-                    setManageSuccess(null);
-                  }}
-                  className="p-3.5 rounded-2xl border border-[#E8DFD4] hover:border-[#5C1B13] bg-[#FAF8F5]/60 hover:bg-[#FAF3EA] text-left cursor-pointer transition-all group"
-                >
-                  <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DFD4] flex items-center justify-center text-[#5C1B13] mb-2 group-hover:scale-105 transition-transform">
-                    <Settings2 size={14} />
-                  </div>
-                  <p className="text-xs font-bold text-[#1A1008]">Change Frequency</p>
-                  <p className="text-[11px] text-[#6B584C] mt-0.5">
-                    Daily vs Alternate (Day 1 / Day 2)
-                  </p>
-                </button>
+              {/* Action Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                 <button
                   type="button"
