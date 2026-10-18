@@ -92,40 +92,47 @@ export function AuthView() {
           <m.div
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="relative z-10 max-w-[560px] lg:pl-1"
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="relative z-10 max-w-[580px] lg:pl-1"
           >
-            <h1 className="text-[clamp(2.2rem,3.8vw,3.2rem)] font-extrabold leading-[1.04] tracking-[-0.04em] text-[#24130f] xl:text-[54px]">
-              Pure <span className="text-[#7a2417]">Goodness</span>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#7a2417]/25 bg-[#fffaf1]/90 px-3.5 py-1 text-[11px] sm:text-[11.5px] font-semibold text-[#6e2217] shadow-xs backdrop-blur-xs">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-[#7a2417] animate-pulse" />
+              <span className="tracking-wider uppercase text-[10.5px] font-bold">100% Pure Desi Gir Cow Milk</span>
+            </div>
+
+            <h1 className="font-[family-name:var(--font-heading)] text-[clamp(2.35rem,4.1vw,3.55rem)] font-bold leading-[1.08] tracking-[-0.02em] text-[#1f110c] xl:text-[56px]">
+              Pure{" "}
+              <span className="relative inline-block font-serif italic text-[#7a2417]">
+                Goodness
+                <span
+                  aria-hidden="true"
+                  className="absolute bottom-1 sm:bottom-1.5 left-0 right-0 -z-10 h-2.5 sm:h-3 rounded-xs bg-[#f8e94e]/75 -rotate-0.5"
+                />
+              </span>
               <br />
               From Our Farm
               <br />
               To Your Home.
             </h1>
-            <p className="mt-2.5 max-w-[460px] text-[13.5px] leading-[1.5] text-[#3e332c] sm:text-[14.5px] lg:mt-3.5">
-              Fresh A2 milk and natural dairy products,
-              <br className="hidden lg:block" /> straight from our farm to your doorstep.
+            <p className="mt-3 max-w-[480px] text-[14px] sm:text-[15px] font-normal leading-[1.6] text-[#4a362b] lg:mt-3.5">
+              Fresh unadulterated A2 Gir cow milk and Vedic dairy products,
+              <br className="hidden lg:block" /> straight from our sunlit pastures in Raipur to your doorstep.
             </p>
 
-            <div className="mt-4 hidden items-center lg:mt-5 md:hidden lg:flex">
-              {features.map(({ icon: Icon, firstLine, secondLine }, index) => (
-                <div className="flex items-center" key={firstLine}>
-                  {index > 0 && (
-                    <span
-                      className="mx-3 h-10 w-px bg-[#7a593e]/30 xl:mx-4"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <div className="flex items-center gap-2 xl:gap-2.5">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ffe899] text-[#4a1e12] xl:h-11 xl:w-11">
-                      <Icon className="h-4.5 w-4.5 xl:h-5 xl:w-5" aria-hidden="true" />
-                    </span>
-                    <span className="text-[12.5px] font-bold leading-[1.3] text-[#24130f] xl:text-[13.5px]">
-                      {firstLine}
-                      <br />
-                      {secondLine}
-                    </span>
-                  </div>
+            <div className="mt-5 hidden items-center gap-3 lg:flex">
+              {features.map(({ icon: Icon, firstLine, secondLine }) => (
+                <div
+                  key={firstLine}
+                  className="flex items-center gap-2.5 rounded-2xl border border-[#dccab6]/85 bg-[#fffdf8]/85 px-3.5 py-2 shadow-[0_2px_12px_rgba(64,37,18,0.06)] backdrop-blur-sm transition-transform hover:-translate-y-0.5"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffe899] to-[#fed055] text-[#4a1e12] shadow-xs">
+                    <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+                  </span>
+                  <span className="text-[12px] font-bold leading-[1.25] text-[#24130f] tracking-tight">
+                    {firstLine}
+                    <br />
+                    {secondLine}
+                  </span>
                 </div>
               ))}
             </div>
@@ -162,7 +169,7 @@ export function AuthView() {
               </div>
 
               <div className="mb-3.5 sm:mb-4 text-center">
-                <h2 className="text-[20px] font-bold leading-tight tracking-[-0.03em] text-[#24130f] sm:text-[23px] lg:text-[25px]">
+                <h2 className="font-[family-name:var(--font-heading)] text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#22120e] sm:text-[25px] lg:text-[27px]">
                   {heading}
                 </h2>
                 <p className="mx-auto mt-1 max-w-[320px] text-[12px] leading-[1.45] text-[#715e50] sm:text-[13px]">
