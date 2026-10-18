@@ -129,6 +129,11 @@ export function calculateSubscriptionPricing(options: PricingOptions): PricingRe
     }
   }
 
+  if (frequency === 'alternate' && mode === 'pattern') {
+    isValid = false;
+    validationError = 'Alternate days frequency only supports fixed daily volume.';
+  }
+
   const bd = buildBreakdown(mode, totalDeliveries, fixedLitres, day1Litres, day2Litres);
 
   const totalPrice = bd.totalLitres * BASE_PRICE_PER_LITRE;
@@ -249,16 +254,16 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
   {
     id: 6,
     frequency: "alternate",
-    mode: "pattern",
-    litresDesc: "1 / 2",
-    input: { frequency: "alternate", mode: "pattern", day1Litres: 1, day2Litres: 2 },
+    mode: "fixed",
+    litresDesc: "2L",
+    input: { frequency: "alternate", mode: "fixed", fixedLitres: 2 },
     expected: {
       totalDeliveries: 15,
-      totalLitres: 22,
-      totalPrice: 1980,
-      breakdownText: "8 × 1L + 7 × 2L = 22L",
-      oddDeliveriesCount: 8,
-      evenDeliveriesCount: 7,
+      totalLitres: 30,
+      totalPrice: 2700,
+      breakdownText: "15 deliveries × 2L = 30L",
+      oddDeliveriesCount: 15,
+      evenDeliveriesCount: 0,
     },
   },
   {
@@ -279,16 +284,16 @@ export const PRICING_TEST_CASES: PricingTestCase[] = [
   {
     id: 8,
     frequency: "alternate",
-    mode: "pattern",
-    litresDesc: "2 / 5",
-    input: { frequency: "alternate", mode: "pattern", day1Litres: 2, day2Litres: 5 },
+    mode: "fixed",
+    litresDesc: "3L",
+    input: { frequency: "alternate", mode: "fixed", fixedLitres: 3 },
     expected: {
       totalDeliveries: 15,
-      totalLitres: 51,
-      totalPrice: 4590,
-      breakdownText: "8 × 2L + 7 × 5L = 51L",
-      oddDeliveriesCount: 8,
-      evenDeliveriesCount: 7,
+      totalLitres: 45,
+      totalPrice: 4050,
+      breakdownText: "15 deliveries × 3L = 45L",
+      oddDeliveriesCount: 15,
+      evenDeliveriesCount: 0,
     },
   },
 ];

@@ -115,16 +115,17 @@ export function PlanStep({
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.lastQuotedPrice && parsed.lastDeliveries) {
+          const isDailyPattern = parsed.frequency !== "alternate" && parsed.mode === "pattern";
           const bd = buildBreakdown(
-            parsed.mode === "pattern" ? "pattern" : "fixed",
+            isDailyPattern ? "pattern" : "fixed",
             parsed.lastDeliveries,
             parsed.fixedLitres || 1,
-            parsed.mode === "pattern" ? (parsed.day1Litres || 1) : (parsed.fixedLitres || 1),
-            parsed.mode === "pattern" ? (parsed.day2Litres || 2) : (parsed.fixedLitres || 1),
+            isDailyPattern ? (parsed.day1Litres || 1) : (parsed.fixedLitres || 1),
+            isDailyPattern ? (parsed.day2Litres || 2) : (parsed.fixedLitres || 1),
           );
           return {
             frequency: parsed.frequency || "daily",
-            mode: parsed.mode || "fixed",
+            mode: isDailyPattern ? "pattern" : "fixed",
             fixedLitres: parsed.fixedLitres || 1,
             day1Litres: parsed.day1Litres || 1,
             day2Litres: parsed.day2Litres || 2,
@@ -188,7 +189,7 @@ export function PlanStep({
         } catch {}
 
         const monthlyFreq = draft?.frequency === "alternate" ? "ALTERNATE_DAYS" as const : "DAILY" as const;
-        const monthlyMode = draft?.mode === "pattern" ? "ALTERNATING" as const : "FIXED" as const;
+        const monthlyMode = (monthlyFreq === "DAILY" && draft?.mode === "pattern") ? "ALTERNATING" as const : "FIXED" as const;
         const monthlyQuotePayload = {
           frequency: monthlyFreq,
           quantityMode: monthlyMode,
@@ -266,7 +267,7 @@ export function PlanStep({
 
     try {
       const freq = draft.frequency === "alternate" ? "ALTERNATE_DAYS" as const : "DAILY" as const;
-      const qMode = draft.mode === "pattern" ? "ALTERNATING" as const : "FIXED" as const;
+      const qMode = (freq === "DAILY" && draft.mode === "pattern") ? "ALTERNATING" as const : "FIXED" as const;
       const freshQuote = await plansApi.createMonthlyQuote({
         frequency: freq,
         quantityMode: qMode,

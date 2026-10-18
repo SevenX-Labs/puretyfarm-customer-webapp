@@ -129,7 +129,7 @@ export function PlanView() {
     setManageLoading(true);
     setManageError(null);
     try {
-      if (manageCustomMode) {
+      if (manageFrequency === "DAILY" && manageCustomMode) {
         await manageDeliveryApi.changeSchedule({
           frequency: manageFrequency as any,
           quantityMode: "ALTERNATING" as any,
@@ -1404,7 +1404,10 @@ export function PlanView() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setManageFrequency("ALTERNATE_DAYS")}
+                      onClick={() => {
+                        setManageFrequency("ALTERNATE_DAYS");
+                        setManageCustomMode(false);
+                      }}
                       className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
                         manageFrequency === "ALTERNATE_DAYS"
                           ? "bg-[#FAF3EA] border-[#5C1B13] text-[#1A1008]"
@@ -1417,7 +1420,8 @@ export function PlanView() {
                   </div>
                 </div>
 
-                {/* Custom Alternating Quantities Toggle */}
+                {/* Custom Alternating Quantities Toggle (Daily only) */}
+                {manageFrequency === "DAILY" && (
                 <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#E8DFD4] space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1461,6 +1465,7 @@ export function PlanView() {
                     </div>
                   )}
                 </div>
+                )}
 
                 <button
                   type="button"

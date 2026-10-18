@@ -213,14 +213,16 @@ export function SubscriptionPanel({
           disabled={isSubmitting}
         />
 
-        {/* 2. Quantity Pattern Mode */}
-        <ModeSegmentedControl
-          value={mode}
-          onChange={setMode}
-          day1Litres={day1Litres}
-          day2Litres={day2Litres}
-          disabled={isSubmitting}
-        />
+        {/* 2. Quantity Pattern Mode (Daily only) */}
+        {frequency === "daily" && (
+          <ModeSegmentedControl
+            value={mode}
+            onChange={setMode}
+            day1Litres={day1Litres}
+            day2Litres={day2Litres}
+            disabled={isSubmitting}
+          />
+        )}
 
         {/* 3. Quantity Steppers */}
         <div className="space-y-3">
@@ -374,14 +376,16 @@ export function SubscriptionPanel({
                 disabled={isSubmitting}
               />
 
-              {/* 2. Quantity Pattern Mode */}
-              <ModeSegmentedControl
-                value={mode}
-                onChange={setMode}
-                day1Litres={day1Litres}
-                day2Litres={day2Litres}
-                disabled={isSubmitting}
-              />
+              {/* 2. Quantity Pattern Mode (Daily only) */}
+              {frequency === "daily" && (
+                <ModeSegmentedControl
+                  value={mode}
+                  onChange={setMode}
+                  day1Litres={day1Litres}
+                  day2Litres={day2Litres}
+                  disabled={isSubmitting}
+                />
+              )}
 
               {/* 3. Quantity Steppers based on mode */}
               <div className="space-y-3">

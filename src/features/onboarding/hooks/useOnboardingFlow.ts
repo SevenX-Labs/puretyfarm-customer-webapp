@@ -295,7 +295,7 @@ export function useOnboardingFlow() {
         } catch {}
 
         const freq = draft?.frequency === "alternate" ? "ALTERNATE_DAYS" : "DAILY";
-        const mode = draft?.mode === "pattern" ? "ALTERNATING" : "FIXED";
+        const mode = (freq === "DAILY" && draft?.mode === "pattern") ? "ALTERNATING" : "FIXED";
 
         quote = await plansApi.createMonthlyQuote({
           frequency: freq,

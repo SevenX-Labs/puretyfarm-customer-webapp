@@ -71,7 +71,9 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
         if (parsed.frequency === "daily" || parsed.frequency === "alternate") {
           setFrequency(parsed.frequency);
         }
-        if (parsed.mode === "fixed" || parsed.mode === "pattern") {
+        if (parsed.frequency === "alternate") {
+          setMode("fixed");
+        } else if (parsed.mode === "fixed" || parsed.mode === "pattern") {
           setMode(parsed.mode);
         }
         if (typeof parsed.fixedLitres === "number") {
@@ -130,14 +132,15 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     debounceTimerRef.current = setTimeout(async () => {
       try {
         const backendFreq = frequency === "daily" ? "DAILY" : "ALTERNATE_DAYS";
-        const backendMode = mode === "fixed" ? "FIXED" : "ALTERNATING";
+        const effectiveMode = frequency === "alternate" ? "fixed" : mode;
+        const backendMode = effectiveMode === "fixed" ? "FIXED" : "ALTERNATING";
 
         const quote = await plansApi.createMonthlyQuote({
           frequency: backendFreq,
           quantityMode: backendMode,
-          quantity: mode === "fixed" ? fixedLitres : undefined,
-          quantityA: mode === "pattern" ? day1Litres : undefined,
-          quantityB: mode === "pattern" ? day2Litres : undefined,
+          quantity: effectiveMode === "fixed" ? fixedLitres : undefined,
+          quantityA: effectiveMode === "pattern" ? day1Litres : undefined,
+          quantityB: effectiveMode === "pattern" ? day2Litres : undefined,
         });
 
         // Race protection: ignore responses for superseded requests
@@ -240,12 +243,18 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
         }
         return freq;
       });
+      if (freq === "alternate") {
+        setMode("fixed");
+      }
     },
     [markQuotePending]
   );
 
   const handleSetMode = useCallback(
     (m: DeliveryMode) => {
+      if (frequency === "alternate" && m === "pattern") {
+        return;
+      }
       setMode((prev) => {
         if (prev !== m) {
           markQuotePending();
@@ -253,7 +262,7 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
         return m;
       });
     },
-    [markQuotePending]
+    [frequency, markQuotePending]
   );
 
   const handleSetFixedLitres = useCallback(
@@ -312,9 +321,10 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
     setIsSubmitting(true);
     setSubmitError(null);
 
+    const effectiveMode = frequency === "alternate" ? "fixed" : mode;
     const currentDraft: SubscriptionDraft = {
       frequency,
-      mode,
+      mode: effectiveMode,
       fixedLitres,
       day1Litres,
       day2Litres,
@@ -323,10 +333,10 @@ export function useSubscriptionDraft(options?: UseSubscriptionDraftOptions) {
 
     const payload: SubscriptionCustomizationPayload = {
       frequency,
-      mode,
-      fixedLitres: mode === "fixed" ? fixedLitres : undefined,
-      day1Litres: mode === "pattern" ? day1Litres : undefined,
-      day2Litres: mode === "pattern" ? day2Litres : undefined,
+      mode: effectiveMode,
+      fixedLitres: effectiveMode === "fixed" ? fixedLitres : undefined,
+      day1Litres: effectiveMode === "pattern" ? day1Litres : undefined,
+      day2Litres: effectiveMode === "pattern" ? day2Litres : undefined,
       clientTotalAmount: pricingResult.totalPrice,
       clientTotalLitres: pricingResult.totalLitres,
       updatedAt: new Date().toISOString(),
