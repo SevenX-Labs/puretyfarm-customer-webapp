@@ -54,7 +54,7 @@ export function Hero() {
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
           {/* Full-bleed cinematic photo from documentation/images/herobg.png */}
           <Image
-            src="/herobg.webp"
+            src="/herobg.png"
             alt="PuretyFarm Pure A2 Gir Cow Milk on Scenic Raipur Farmland"
             fill
             priority

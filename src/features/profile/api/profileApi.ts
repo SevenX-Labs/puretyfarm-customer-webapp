@@ -40,7 +40,8 @@ export const profileApi = {
    */
   async getProfile(): Promise<CustomerProfile | null> {
     try {
-      return await apiClient.get<CustomerProfile>("/api/v1/customer/profile/me", { retries: 0 });
+      const res = await apiClient.get<CustomerProfile | null>("/api/v1/customer/profile/me", { retries: 0 });
+      return res || null;
     } catch (err: any) {
       if (err?.status === 404 || err?.statusCode === 404) {
         return null;
@@ -102,13 +103,13 @@ export const profileApi = {
     };
 
     try {
-      return await this.updateProfile(dto);
+      return await this.createProfile(dto);
     } catch (err: any) {
-      if (err?.status === 404 || err?.statusCode === 404) {
-        return await this.createProfile(dto);
-      }
       if (err?.status === 409 || err?.statusCode === 409) {
         return await this.updateProfile(dto);
+      }
+      if (err?.status === 404 || err?.statusCode === 404) {
+        return await this.createProfile(dto);
       }
       throw err;
     }

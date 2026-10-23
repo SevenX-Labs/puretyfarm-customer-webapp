@@ -12,6 +12,9 @@ import {
   FiArrowRight,
   FiLogIn,
   FiCheckCircle,
+  FiChevronDown,
+  FiHome,
+  FiBriefcase,
 } from "react-icons/fi";
 import {
   locationApi,
@@ -31,6 +34,24 @@ export interface AddressDetailsStepProps {
   selectedCityName: string;
   selectedPincode: string;
   coords: { lat?: number; lng?: number };
+  addressDraft?: {
+    houseNumber: string;
+    buildingName: string;
+    streetName: string;
+    landmark: string;
+    fullName: string;
+    mobile: string;
+    addressType: "Home" | "Work" | "Other";
+  };
+  onDraftChange?: (draft: {
+    houseNumber: string;
+    buildingName: string;
+    streetName: string;
+    landmark: string;
+    fullName: string;
+    mobile: string;
+    addressType: "Home" | "Work" | "Other";
+  }) => void;
   onStateChange: (stateId: string) => void;
   onCityChange: (cityId: string, cityName?: string) => void;
   onAreaChange: (areaId: string, pincode: string, areaName?: string) => void;
@@ -39,7 +60,7 @@ export interface AddressDetailsStepProps {
   onAddressSaved: (createdAddress?: CustomerAddress) => void;
 }
 
-export function AddressDetailsStep({
+function AddressDetailsStepComponent({
   user,
   selectedStateId,
   selectedCityId,
@@ -48,6 +69,8 @@ export function AddressDetailsStep({
   selectedCityName,
   selectedPincode,
   coords,
+  addressDraft,
+  onDraftChange,
   onStateChange,
   onCityChange,
   onAreaChange,
@@ -67,18 +90,33 @@ export function AddressDetailsStep({
   const [loadingAreas, setLoadingAreas] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
-  // Address Form State
-  const [houseNumber, setHouseNumber] = useState("");
-  const [buildingName, setBuildingName] = useState("");
-  const [streetName, setStreetName] = useState("");
-  const [landmark, setLandmark] = useState("");
+  // Address Form State - initialized from addressDraft to preserve user input on step navigation
   const defaultReceiverName =
     user?.name && !user.name.startsWith("Customer (") && user.name.toLowerCase() !== "customer"
       ? user.name
       : "";
-  const [fullName, setFullName] = useState(defaultReceiverName);
-  const [mobile, setMobile] = useState(user?.phone || "");
-  const [addressType, setAddressType] = useState<"Home" | "Work" | "Other">("Home");
+  const [houseNumber, setHouseNumber] = useState(addressDraft?.houseNumber || "");
+  const [buildingName, setBuildingName] = useState(addressDraft?.buildingName || "");
+  const [streetName, setStreetName] = useState(addressDraft?.streetName || "");
+  const [landmark, setLandmark] = useState(addressDraft?.landmark || "");
+  const [fullName, setFullName] = useState(addressDraft?.fullName || defaultReceiverName);
+  const [mobile, setMobile] = useState(addressDraft?.mobile || user?.phone || "");
+  const [addressType, setAddressType] = useState<"Home" | "Work" | "Other">(
+    addressDraft?.addressType || "Home"
+  );
+
+  // Keep parent draft updated whenever inputs change
+  useEffect(() => {
+    onDraftChange?.({
+      houseNumber,
+      buildingName,
+      streetName,
+      landmark,
+      fullName,
+      mobile,
+      addressType,
+    });
+  }, [houseNumber, buildingName, streetName, landmark, fullName, mobile, addressType, onDraftChange]);
 
   const [savingAddress, setSavingAddress] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -182,7 +220,7 @@ export function AddressDetailsStep({
     } catch {
       // Silently ignore live sync errors in background
     }
-  }, { intervalMs: 3000 });
+  }, { intervalMs: 60000 });
 
   // Load Cities whenever State changes
   useEffect(() => {
@@ -190,11 +228,12 @@ export function AddressDetailsStep({
       setCities([]);
       return;
     }
+    const controller = new AbortController();
     let isMounted = true;
     async function loadCities() {
       setLoadingCities(true);
       try {
-        const cityList = await locationApi.getCities(selectedStateId);
+        const cityList = await locationApi.getCities(selectedStateId, false, controller.signal);
         if (isMounted) {
           setCities(cityList);
           const cityExists = cityList.some((c) => c.id === selectedCityId);
@@ -206,7 +245,7 @@ export function AddressDetailsStep({
           }
         }
       } catch (err: unknown) {
-        if (isMounted) {
+        if (isMounted && !(err instanceof Error && err.name === "AbortError")) {
           console.error("Error loading cities:", err);
         }
       } finally {
@@ -216,8 +255,9 @@ export function AddressDetailsStep({
     loadCities();
     return () => {
       isMounted = false;
+      controller.abort();
     };
-  }, [selectedStateId, selectedCityId, onCityChange]);
+  }, [selectedStateId, selectedCityId, onCityChange, onAreaChange]);
 
   // Load Areas/Hubs whenever City changes
   useEffect(() => {
@@ -225,11 +265,12 @@ export function AddressDetailsStep({
       setAreas([]);
       return;
     }
+    const controller = new AbortController();
     let isMounted = true;
     async function loadAreas() {
       setLoadingAreas(true);
       try {
-        const areaList = await locationApi.getAreas(selectedCityId);
+        const areaList = await locationApi.getAreas(selectedCityId, false, controller.signal);
         if (isMounted) {
           setAreas(areaList);
           const areaExists = areaList.some((a) => a.id === selectedAreaId);
@@ -240,7 +281,7 @@ export function AddressDetailsStep({
           }
         }
       } catch (err: unknown) {
-        if (isMounted) {
+        if (isMounted && !(err instanceof Error && err.name === "AbortError")) {
           console.error("Error loading areas:", err);
         }
       } finally {
@@ -250,8 +291,9 @@ export function AddressDetailsStep({
     loadAreas();
     return () => {
       isMounted = false;
+      controller.abort();
     };
-  }, [selectedCityId]);
+  }, [selectedCityId, selectedAreaId, onAreaChange]);
 
   // Sync default receiver name and mobile if user object updates
   useEffect(() => {
@@ -363,22 +405,22 @@ export function AddressDetailsStep({
       <form onSubmit={handleSaveAddress} className="flex flex-col justify-between flex-1 md:h-full space-y-3">
         <div className="space-y-3">
           {/* Header */}
-          <header className="flex items-center justify-between gap-3 border-b border-[#eee5db] pb-2">
+          <header className="flex items-center justify-between gap-3 border-b border-[#eee5db] pb-2.5 sm:pb-3">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#7a2417] block">
-                Step 2 of 4
+              <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#7a2417] block">
+                Step 2 of 4 • Delivery Location
               </span>
-              <h1 className="font-serif text-base font-bold text-[#24130f] sm:text-lg md:text-xl">
+              <h1 className="font-serif text-lg sm:text-xl lg:text-2xl font-bold text-[#24130f] mt-0.5">
                 Delivery Address
               </h1>
-              <p className="mt-0.5 text-[11px] sm:text-[12px] text-[#715e50]">
-                Select your delivery hub and enter your house & street details for daily morning delivery.
+              <p className="mt-1 text-xs sm:text-[13px] text-[#715e50]">
+                Select your delivery hub and enter your house & street details for morning deliveries.
               </p>
             </div>
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11.5px] font-semibold text-[#7a2417] hover:bg-[#7a2417]/10 transition-colors cursor-pointer"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#7a2417]/20 bg-white px-3 py-1.5 text-xs font-bold text-[#7a2417] hover:bg-[#7a2417]/8 transition-colors cursor-pointer shadow-2xs"
             >
               <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Back to Profile</span>
@@ -386,90 +428,102 @@ export function AddressDetailsStep({
           </header>
 
           {/* Service Area Selection Grid */}
-          <div className="rounded-xl border border-[#e8dfd4] bg-[#faf8f5] p-2.5 sm:p-3 space-y-2">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2.5">
+          <div className="rounded-2xl border border-[#e8dfd4] bg-[#FAF7F2] p-3 sm:p-3.5 space-y-2.5 shadow-2xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#5C1B13] block">
+              1. Select Delivery Service Hub
+            </span>
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3 sm:gap-3">
               {/* State Selector */}
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  State <span className="text-[#7a2417]">*</span>
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
+                  State <span className="text-[#7a2417] font-bold">*</span>
                 </label>
-                <select
-                  value={selectedStateId}
-                  onChange={(e) => {
-                    onStateChange(e.target.value);
-                    onCityChange("", "");
-                    onAreaChange("", "", "");
-                  }}
-                  disabled={loadingStates}
-                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-2.5 text-[12px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
-                >
-                  <option value="">{loadingStates ? "Loading states..." : states.length === 0 ? "No states available" : "Select State"}</option>
-                  {states.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={selectedStateId}
+                    onChange={(e) => {
+                      onStateChange(e.target.value);
+                      onCityChange("", "");
+                      onAreaChange("", "", "");
+                    }}
+                    disabled={loadingStates}
+                    className="h-10.5 sm:h-11 w-full appearance-none cursor-pointer rounded-xl border border-[#DED4C7] bg-white pl-3.5 pr-8 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition-all focus:border-[#7a2417] focus:ring-4 focus:ring-[#7a2417]/10 disabled:opacity-50"
+                  >
+                    <option value="">{loadingStates ? "Loading states..." : states.length === 0 ? "No states available" : "Select State"}</option>
+                    {states.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#715E50]" />
+                </div>
               </div>
 
               {/* City Selector */}
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  City <span className="text-[#7a2417]">*</span>
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
+                  City <span className="text-[#7a2417] font-bold">*</span>
                 </label>
-                <select
-                  value={selectedCityId}
-                  onChange={(e) => {
-                    const chosenCity = cities.find((c) => c.id === e.target.value);
-                    onCityChange(e.target.value, chosenCity?.name || "");
-                    onAreaChange("", "", "");
-                  }}
-                  disabled={!selectedStateId || loadingCities}
-                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-2.5 text-[12px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
-                >
-                  <option value="">
-                    {loadingCities
-                      ? "Loading cities..."
-                      : !selectedStateId
-                      ? "Choose state first"
-                      : cities.length === 0
-                      ? "No cities available"
-                      : "Select City"}
-                  </option>
-                  {cities.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
+                <div className="relative">
+                  <select
+                    value={selectedCityId}
+                    onChange={(e) => {
+                      const chosenCity = cities.find((c) => c.id === e.target.value);
+                      onCityChange(e.target.value, chosenCity?.name || "");
+                      onAreaChange("", "", "");
+                    }}
+                    disabled={!selectedStateId || loadingCities}
+                    className="h-10.5 sm:h-11 w-full appearance-none cursor-pointer rounded-xl border border-[#DED4C7] bg-white pl-3.5 pr-8 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition-all focus:border-[#7a2417] focus:ring-4 focus:ring-[#7a2417]/10 disabled:opacity-50"
+                  >
+                    <option value="">
+                      {loadingCities
+                        ? "Loading cities..."
+                        : !selectedStateId
+                        ? "Choose state first"
+                        : cities.length === 0
+                        ? "No cities available"
+                        : "Select City"}
                     </option>
-                  ))}
-                </select>
+                    {cities.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#715E50]" />
+                </div>
               </div>
 
               {/* Area / Hub Selector */}
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  Delivery Hub / Area <span className="text-[#7a2417]">*</span>
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
+                  Delivery Hub / Area <span className="text-[#7a2417] font-bold">*</span>
                 </label>
-                <select
-                  value={selectedAreaId}
-                  onChange={(e) => handleAreaSelect(e.target.value)}
-                  disabled={!selectedCityId || loadingAreas}
-                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-2.5 text-[12px] font-medium text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-50"
-                >
-                  <option value="">
-                    {loadingAreas
-                      ? "Loading areas..."
-                      : !selectedCityId
-                      ? "Choose city first"
-                      : areas.length === 0
-                      ? "No delivery areas available"
-                      : "Select Delivery Area / Hub"}
-                  </option>
-                  {areas.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} {a.pincode ? `(${a.pincode})` : ""}
+                <div className="relative">
+                  <select
+                    value={selectedAreaId}
+                    onChange={(e) => handleAreaSelect(e.target.value)}
+                    disabled={!selectedCityId || loadingAreas}
+                    className="h-10.5 sm:h-11 w-full appearance-none cursor-pointer rounded-xl border border-[#DED4C7] bg-white pl-3.5 pr-8 text-[12.5px] sm:text-[13px] font-medium text-[#24130f] outline-none transition-all focus:border-[#7a2417] focus:ring-4 focus:ring-[#7a2417]/10 disabled:opacity-50"
+                  >
+                    <option value="">
+                      {loadingAreas
+                        ? "Loading areas..."
+                        : !selectedCityId
+                        ? "Choose city first"
+                        : areas.length === 0
+                        ? "No delivery areas available"
+                        : "Select Delivery Area / Hub"}
                     </option>
-                  ))}
-                </select>
+                    {areas.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} {a.pincode ? `(${a.pincode})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#715E50]" />
+                </div>
               </div>
             </div>
 
@@ -477,34 +531,38 @@ export function AddressDetailsStep({
             {isAreaSelected ? (
               <div
                 role="status"
-                className="flex items-center gap-2 rounded-lg border border-[#cce3cf] bg-[#f0f8f0] px-2.5 py-1.5 text-[11px] text-[#326d3c]"
+                className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/90 px-3 py-2 text-xs text-emerald-900 shadow-2xs"
               >
-                <FiCheckCircle className="h-3.5 w-3.5 shrink-0 text-[#39834a]" />
+                <FiCheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
                 <span>
                   Delivering to Hub: <strong>{currentAreaName}</strong>
                   {currentCityName ? `, ${currentCityName}` : ""}
-                  {activePincode ? ` (${activePincode})` : ""}. House details unlocked.
+                  {activePincode ? ` (${activePincode})` : ""}. House details unlocked below.
                 </span>
               </div>
             ) : (
               <div
                 role="status"
-                className="flex items-center gap-2 rounded-lg border border-[#e8dfd4] bg-white px-2.5 py-1.5 text-[11px] text-[#715e50]"
+                className="flex items-center gap-2 rounded-xl border border-[#e8dfd4] bg-white px-3 py-2 text-xs text-[#715e50] shadow-2xs"
               >
-                <FiMapPin className="h-3.5 w-3.5 shrink-0 text-[#7a2417]" />
+                <FiMapPin className="h-4 w-4 shrink-0 text-[#7a2417]" />
                 <span>
-                  Select your State, City, and Delivery Hub above to enter your house and street details.
+                  Select your State, City, and Delivery Hub above to unlock house & street fields.
                 </span>
               </div>
             )}
           </div>
 
           {/* House & Street Manual Address Block */}
-          <div className="rounded-xl border border-[#e8dfd4] bg-white p-3 sm:p-3.5 shadow-2xs space-y-2.5">
+          <div className="rounded-2xl border border-[#e8dfd4] bg-white p-3.5 sm:p-4 shadow-2xs space-y-3">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#5C1B13] block">
+              2. House & Receiver Details
+            </span>
+
             {saveError && (
-              <div className="flex items-start justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+              <div className="flex items-start justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-800">
                 <div className="flex items-start gap-1.5">
-                  <FiAlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-600" />
+                  <FiAlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
                   <span>{saveError}</span>
                 </div>
                 {isSessionExpired && (
@@ -520,10 +578,10 @@ export function AddressDetailsStep({
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  Flat / House / Unit Number <span className="text-[#7a2417]">*</span>
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
+                  Flat / House / Unit Number <span className="text-[#7a2417] font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -535,12 +593,12 @@ export function AddressDetailsStep({
                     setSaveError(null);
                   }}
                   placeholder={isAreaSelected ? "e.g. Flat 203, Block B" : "Select hub above first"}
-                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  className="h-10.5 sm:h-11 w-full rounded-xl border border-[#DED4C7] bg-[#FDFBF7] px-3.5 text-[13px] text-[#24130f] outline-none transition-all placeholder:text-[#A89A8D] focus:border-[#7a2417] focus:bg-white focus:ring-4 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  Building / Society / Apartment <span className="text-[#7a2417]">*</span>
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
+                  Building / Society / Apartment <span className="text-[#7a2417] font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -552,11 +610,11 @@ export function AddressDetailsStep({
                     setSaveError(null);
                   }}
                   placeholder={isAreaSelected ? "e.g. Sunrise Heights, Tower B" : "Select hub above first"}
-                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  className="h-10.5 sm:h-11 w-full rounded-xl border border-[#DED4C7] bg-[#FDFBF7] px-3.5 text-[13px] text-[#24130f] outline-none transition-all placeholder:text-[#A89A8D] focus:border-[#7a2417] focus:bg-white focus:ring-4 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
                   Street / Road Name
                 </label>
                 <input
@@ -565,11 +623,11 @@ export function AddressDetailsStep({
                   value={streetName}
                   onChange={(e) => setStreetName(e.target.value)}
                   placeholder={isAreaSelected ? "e.g. Station Road" : "Select hub above first"}
-                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  className="h-10.5 sm:h-11 w-full rounded-xl border border-[#DED4C7] bg-[#FDFBF7] px-3.5 text-[13px] text-[#24130f] outline-none transition-all placeholder:text-[#A89A8D] focus:border-[#7a2417] focus:bg-white focus:ring-4 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
                   Landmark (Optional)
                 </label>
                 <input
@@ -578,12 +636,12 @@ export function AddressDetailsStep({
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
                   placeholder={isAreaSelected ? "e.g. Near City Garden" : "Select hub above first"}
-                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  className="h-10.5 sm:h-11 w-full rounded-xl border border-[#DED4C7] bg-[#FDFBF7] px-3.5 text-[13px] text-[#24130f] outline-none transition-all placeholder:text-[#A89A8D] focus:border-[#7a2417] focus:bg-white focus:ring-4 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  Receiver Name <span className="text-[#7a2417]">*</span>
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
+                  Receiver Name <span className="text-[#7a2417] font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -592,12 +650,12 @@ export function AddressDetailsStep({
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder={isAreaSelected ? "Full name of receiver" : "Select hub above first"}
-                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  className="h-10.5 sm:h-11 w-full rounded-xl border border-[#DED4C7] bg-[#FDFBF7] px-3.5 text-[13px] text-[#24130f] outline-none transition-all placeholder:text-[#A89A8D] focus:border-[#7a2417] focus:bg-white focus:ring-4 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
-                  Mobile Number <span className="text-[#7a2417]">*</span>
+                <label className="mb-1 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
+                  Mobile Number <span className="text-[#7a2417] font-bold">*</span>
                 </label>
                 <input
                   type="tel"
@@ -606,38 +664,55 @@ export function AddressDetailsStep({
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder={isAreaSelected ? "+91 98765 43210" : "Select hub above first"}
-                  className="h-9 sm:h-9.5 w-full rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] font-mono text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
+                  className="h-10.5 sm:h-11 w-full rounded-xl border border-[#DED4C7] bg-[#FDFBF7] px-3.5 text-[13px] font-mono text-[#24130f] outline-none transition-all placeholder:text-[#A89A8D] focus:border-[#7a2417] focus:bg-white focus:ring-4 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
                 />
               </div>
-              <div className="sm:col-span-2 lg:col-span-1">
-                <label className="mb-1 block text-[11px] font-semibold text-[#24130f]">
+
+              {/* Address Label Chips */}
+              <div className="sm:col-span-2 lg:col-span-3">
+                <label className="mb-1.5 block text-[11.5px] sm:text-xs font-semibold text-[#24130f]">
                   Address Label
                 </label>
-                <select
-                  disabled={!isAreaSelected}
-                  value={addressType}
-                  onChange={(e) =>
-                    setAddressType(e.target.value as "Home" | "Work" | "Other")
-                  }
-                  className="h-9 sm:h-9.5 w-full cursor-pointer rounded-xl border border-[#ddd2c7] bg-white px-3 text-[12px] text-[#24130f] outline-none transition focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:bg-[#f7f3ed] disabled:text-[#a89b8c] disabled:border-[#e2d8cd] disabled:cursor-not-allowed"
-                >
-                  <option value="Home">Home</option>
-                  <option value="Work">Work</option>
-                  <option value="Other">Other</option>
-                </select>
+                <div className="flex items-center gap-2">
+                  {(
+                    [
+                      { label: "Home", icon: FiHome },
+                      { label: "Work", icon: FiBriefcase },
+                      { label: "Other", icon: FiMapPin },
+                    ] as const
+                  ).map(({ label, icon: LabelIcon }) => {
+                    const isSelected = addressType === label;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        disabled={!isAreaSelected}
+                        onClick={() => setAddressType(label)}
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                          isSelected
+                            ? "bg-[#7a2417] text-white border-[#7a2417] shadow-xs"
+                            : "bg-[#FDFBF7] text-[#24130F] border-[#DED4C7] hover:border-[#7a2417]/40 hover:bg-white"
+                        }`}
+                      >
+                        <LabelIcon className="h-3.5 w-3.5" />
+                        <span>{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer Submit Button */}
-        <div className="flex justify-stretch border-t border-[#eee5db] pt-2.5 sm:justify-end pb-3 sm:pb-0">
+        <div className="mt-5 flex justify-stretch border-t border-[#eee5db] pt-3 sm:justify-end pb-3 sm:pb-0">
           <Button
             type="submit"
             variant="primary"
             size="md"
             disabled={!isAreaSelected || savingAddress}
-            className="min-h-9 sm:min-h-9.5 lg:h-[40px] w-full rounded-xl bg-[#7a2417] py-2 px-5 text-[12px] sm:text-[12.5px] font-semibold text-white shadow-sm hover:bg-[#5f1b12] disabled:cursor-not-allowed disabled:opacity-50 sm:w-[min(100%,300px)] cursor-pointer"
+            className="h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#5C1B13] px-7 text-xs sm:text-[13.5px] font-bold text-white transition-all hover:bg-[#48150F] active:scale-[0.98] shadow-md shadow-[#5C1B13]/20 hover:shadow-lg hover:shadow-[#5C1B13]/30 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span>
               {savingAddress
@@ -646,10 +721,12 @@ export function AddressDetailsStep({
                 ? "Select Delivery Area First"
                 : "Continue to Select Plan"}
             </span>
-            <FiArrowRight className="h-3.5 w-3.5" />
+            <FiArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </form>
     </m.section>
   );
 }
+
+export const AddressDetailsStep = React.memo(AddressDetailsStepComponent);

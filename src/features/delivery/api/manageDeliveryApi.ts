@@ -10,14 +10,53 @@ import {
   DeliveryRequestItem,
 } from "../types";
 
+const MANAGE_DELIVERY_TTL_MS = 30 * 1000; // 30s cache
+let cachedManageDelivery: { data: ManageDeliveryResponse | null; expiresAt: number } | null = null;
+let manageDeliveryPromise: Promise<ManageDeliveryResponse | null> | null = null;
+
 export const manageDeliveryApi = {
+  /**
+   * Clear in-memory delivery cache
+   */
+  clearCache(): void {
+    cachedManageDelivery = null;
+    manageDeliveryPromise = null;
+  },
+
   /**
    * 1. Get active plan and upcoming delivery schedule
    * GET /api/v1/customer/manage-delivery
    */
-  async getManageDelivery(): Promise<ManageDeliveryResponse> {
-    const res = await apiClient.get<any>("/api/v1/customer/manage-delivery");
-    return res;
+  async getManageDelivery(forceRefresh = false): Promise<ManageDeliveryResponse> {
+    const now = Date.now();
+    if (!forceRefresh && cachedManageDelivery && cachedManageDelivery.expiresAt > now) {
+      return (cachedManageDelivery.data || { activePlan: null as any, upcomingDeliveries: [] }) as ManageDeliveryResponse;
+    }
+    if (!forceRefresh && manageDeliveryPromise) {
+      return (await manageDeliveryPromise) as ManageDeliveryResponse;
+    }
+
+    manageDeliveryPromise = apiClient
+      .get<ManageDeliveryResponse>("/api/v1/customer/manage-delivery")
+      .then((res) => {
+        cachedManageDelivery = { data: res, expiresAt: Date.now() + MANAGE_DELIVERY_TTL_MS };
+        return res;
+      })
+      .catch((err: any) => {
+        // When customer has no active subscription, backend returns 404.
+        // Return null/empty plan gracefully without throwing
+        if (err?.status === 404 || err?.statusCode === 404) {
+          const empty: ManageDeliveryResponse = { activePlan: null as any, upcomingDeliveries: [] };
+          cachedManageDelivery = { data: empty, expiresAt: Date.now() + MANAGE_DELIVERY_TTL_MS };
+          return empty;
+        }
+        throw err;
+      })
+      .finally(() => {
+        manageDeliveryPromise = null;
+      });
+
+    return (await manageDeliveryPromise) as ManageDeliveryResponse;
   },
 
   /**
@@ -27,7 +66,12 @@ export const manageDeliveryApi = {
   async skipDelivery(
     payload: SkipDeliveryPayload
   ): Promise<{ success: boolean; message: string; delivery?: any }> {
-    return apiClient.post("/api/v1/customer/manage-delivery/skip", payload);
+    const res = await apiClient.post<{ success: boolean; message: string; delivery?: any }>(
+      "/api/v1/customer/manage-delivery/skip",
+      payload
+    );
+    cachedManageDelivery = null;
+    return res;
   },
 
   /**
@@ -40,22 +84,29 @@ export const manageDeliveryApi = {
   async pauseDelivery(
     payload: PauseDeliveryPayload
   ): Promise<{ success: boolean; message: string; request?: any }> {
-    return apiClient.post("/api/v1/customer/manage-delivery/pause", payload);
+    const res = await apiClient.post<{ success: boolean; message: string; request?: any }>(
+      "/api/v1/customer/manage-delivery/pause",
+      payload
+    );
+    cachedManageDelivery = null;
+    return res;
   },
 
   /**
    * 3b. Request a resume for a PAUSED plan.
    * POST /api/v1/customer/manage-delivery/resume
-   *
-   * Also approval-gated. Takes no body — resuming previously re-used the pause
-   * endpoint, which actually skipped every remaining delivery.
    */
   async resumeDelivery(): Promise<{
     success: boolean;
     message: string;
     request?: any;
   }> {
-    return apiClient.post("/api/v1/customer/manage-delivery/resume", {});
+    const res = await apiClient.post<{ success: boolean; message: string; request?: any }>(
+      "/api/v1/customer/manage-delivery/resume",
+      {}
+    );
+    cachedManageDelivery = null;
+    return res;
   },
 
   /**
@@ -65,10 +116,12 @@ export const manageDeliveryApi = {
   async changeQuantity(
     payload: ChangeQuantityPayload
   ): Promise<{ success: boolean; message: string; request?: any }> {
-    return apiClient.post(
+    const res = await apiClient.post<{ success: boolean; message: string; request?: any }>(
       "/api/v1/customer/manage-delivery/change-quantity",
       payload
     );
+    cachedManageDelivery = null;
+    return res;
   },
 
   /**
@@ -78,10 +131,12 @@ export const manageDeliveryApi = {
   async changeFrequency(
     payload: ChangeFrequencyPayload
   ): Promise<{ success: boolean; message: string; request?: any }> {
-    return apiClient.post(
+    const res = await apiClient.post<{ success: boolean; message: string; request?: any }>(
       "/api/v1/customer/manage-delivery/change-frequency",
       payload
     );
+    cachedManageDelivery = null;
+    return res;
   },
 
   /**
@@ -91,7 +146,12 @@ export const manageDeliveryApi = {
   async changePlan(
     payload: ChangePlanPayload
   ): Promise<{ success: boolean; message: string; request?: any }> {
-    return apiClient.post("/api/v1/customer/manage-delivery/change-plan", payload);
+    const res = await apiClient.post<{ success: boolean; message: string; request?: any }>(
+      "/api/v1/customer/manage-delivery/change-plan",
+      payload
+    );
+    cachedManageDelivery = null;
+    return res;
   },
 
   /**
@@ -101,10 +161,12 @@ export const manageDeliveryApi = {
   async changeSchedule(
     payload: ChangeSchedulePayload
   ): Promise<{ success: boolean; message: string; request?: any }> {
-    return apiClient.post(
+    const res = await apiClient.post<{ success: boolean; message: string; request?: any }>(
       "/api/v1/customer/manage-delivery/change-schedule",
       payload
     );
+    cachedManageDelivery = null;
+    return res;
   },
 
   /**

@@ -223,6 +223,7 @@ export function AuthView() {
                     <PhoneStep
                       phoneNumber={phoneNumber}
                       loading={loading}
+                      countdown={countdown}
                       onPhoneChange={handlePhoneChange}
                       onSubmit={handleSendOtp}
                     />
@@ -280,6 +281,7 @@ export function AuthView() {
                   By continuing, you agree to our{" "}
                   <Link
                     href="/terms-and-conditions"
+                    prefetch={false}
                     className="font-medium text-[#4e382c] underline underline-offset-2 hover:text-[#7a2417]"
                   >
                     Terms of Service
@@ -287,6 +289,7 @@ export function AuthView() {
                   and{" "}
                   <Link
                     href="/privacy"
+                    prefetch={false}
                     className="font-medium text-[#4e382c] underline underline-offset-2 hover:text-[#7a2417]"
                   >
                     Privacy Policy

@@ -51,6 +51,57 @@ async function proxyRequest(
       cache: "no-store",
     });
 
+    // When a customer has no profile yet (e.g. during onboarding), the backend returns 404.
+    // Return 200 with null so the browser console does not log a 404 error for a normal new user state.
+    if (res.status === 404 && targetPath.startsWith("/api/v1/customer/profile/me")) {
+      return NextResponse.json(null);
+    }
+
+    // When a customer has no active delivery plan, the backend returns 404.
+    // Return 200 with activePlan: null so the browser console does not log a 404 error for a normal state.
+    if (res.status === 404 && targetPath.startsWith("/api/v1/customer/manage-delivery")) {
+      return NextResponse.json({
+        activePlan: null,
+        upcomingDeliveries: [],
+      });
+    }
+
+    // When a customer has no saved addresses, if the backend returns 404, return [] cleanly.
+    if (res.status === 404 && targetPath.startsWith("/api/v1/customer/addresses")) {
+      return NextResponse.json([]);
+    }
+
+    // Rate limit handling for auth login/send-otp:
+    // Translate 429 into a clean 200 response with error details so the browser console does not emit unhandled 429 errors.
+    if (res.status === 429 && targetPath.startsWith("/api/v1/auth/customer/login")) {
+      const retryAfter = res.headers.get("retry-after") || "60";
+      return NextResponse.json({
+        success: false,
+        statusCode: 429,
+        error: "Too many OTP requests. Please wait a minute before requesting another code.",
+        message: "Too many OTP requests. Please wait a minute before requesting another code.",
+        remainingCooldown: parseInt(retryAfter, 10) || 60,
+      });
+    }
+
+    // Rejection handling for OTP verification (invalid or expired OTP):
+    // Translate 400 into a clean 200 response with success: false so the browser console does not log an unhandled 400 error.
+    if (res.status === 400 && targetPath.startsWith("/api/v1/auth/customer/verify-otp")) {
+      let message = "Invalid or expired OTP. Please request a new one.";
+      try {
+        const errJson = (await res.json()) as { message?: string | string[] };
+        if (errJson?.message) {
+          message = Array.isArray(errJson.message) ? errJson.message.join(", ") : String(errJson.message);
+        }
+      } catch {}
+      return NextResponse.json({
+        success: false,
+        statusCode: 400,
+        error: message,
+        message,
+      });
+    }
+
     const data = await res.arrayBuffer();
     const responseHeaders = new Headers();
     res.headers.forEach((value, key) => {

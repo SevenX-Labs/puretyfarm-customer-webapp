@@ -154,78 +154,254 @@ export interface ConfirmPlanResponse {
   shortfallPaise?: number;
 }
 
+// ─── IN-MEMORY CACHE & REQUEST DEDUPLICATION ─────────────────────────────────
+
+const PLANS_CACHE_TTL_MS = 60 * 1000; // 60 seconds
+const CONFIG_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes for static config
+
+let cachedOverview: { data: PlansOverviewResponse; expiresAt: number } | null = null;
+let overviewPromise: Promise<PlansOverviewResponse> | null = null;
+
+let cachedMonthlyConfig: { data: MonthlyConfigResponse; expiresAt: number } | null = null;
+let monthlyConfigPromise: Promise<MonthlyConfigResponse> | null = null;
+
+let cachedBuyOnceElig: { data: BuyOnceEligibilityResponse; expiresAt: number } | null = null;
+let buyOnceEligPromise: Promise<BuyOnceEligibilityResponse> | null = null;
+
+let cachedTrialElig: { data: TrialEligibilityResponse; expiresAt: number } | null = null;
+let trialEligPromise: Promise<TrialEligibilityResponse> | null = null;
+
+// Quotes Cache: Map of compositeKey -> { quote: PlanQuote; expiresAt: number }
+const cachedQuotes = new Map<string, { quote: PlanQuote; expiresAt: number }>();
+const inFlightQuotes = new Map<string, Promise<PlanQuote>>();
+
+function isQuoteFresh(quote: PlanQuote, expiresAtTimestamp: number): boolean {
+  if (!quote || !quote.quoteId) return false;
+  // Quote must have at least 30 seconds of life remaining
+  return expiresAtTimestamp > Date.now() + 30000;
+}
+
 export const plansApi = {
+  /**
+   * Clear in-memory plan and quote caches (e.g. after purchasing or on user switch)
+   */
+  clearCache(): void {
+    cachedOverview = null;
+    overviewPromise = null;
+    cachedMonthlyConfig = null;
+    monthlyConfigPromise = null;
+    cachedBuyOnceElig = null;
+    buyOnceEligPromise = null;
+    cachedTrialElig = null;
+    trialEligPromise = null;
+    cachedQuotes.clear();
+    inFlightQuotes.clear();
+  },
+
   /**
    * 2.1 Get Plans Overview
    * GET /api/v1/customer/plans
    */
-  async getPlansOverview(): Promise<PlansOverviewResponse> {
-    return apiClient.get<PlansOverviewResponse>("/api/v1/customer/plans");
+  async getPlansOverview(forceRefresh = false): Promise<PlansOverviewResponse> {
+    const now = Date.now();
+    if (!forceRefresh && cachedOverview && cachedOverview.expiresAt > now) {
+      return cachedOverview.data;
+    }
+    if (!forceRefresh && overviewPromise) {
+      return overviewPromise;
+    }
+
+    overviewPromise = apiClient
+      .get<PlansOverviewResponse>("/api/v1/customer/plans")
+      .then((res) => {
+        cachedOverview = { data: res, expiresAt: Date.now() + PLANS_CACHE_TTL_MS };
+        return res;
+      })
+      .finally(() => {
+        overviewPromise = null;
+      });
+
+    return overviewPromise;
   },
 
   /**
    * 2.2 Get Buy Once Eligibility
    * GET /api/v1/customer/plans/buy-once/eligibility
    */
-  async getBuyOnceEligibility(): Promise<BuyOnceEligibilityResponse> {
-    return apiClient.get<BuyOnceEligibilityResponse>(
-      "/api/v1/customer/plans/buy-once/eligibility"
-    );
+  async getBuyOnceEligibility(forceRefresh = false): Promise<BuyOnceEligibilityResponse> {
+    const now = Date.now();
+    if (!forceRefresh && cachedBuyOnceElig && cachedBuyOnceElig.expiresAt > now) {
+      return cachedBuyOnceElig.data;
+    }
+    if (!forceRefresh && buyOnceEligPromise) {
+      return buyOnceEligPromise;
+    }
+
+    buyOnceEligPromise = apiClient
+      .get<BuyOnceEligibilityResponse>("/api/v1/customer/plans/buy-once/eligibility")
+      .then((res) => {
+        cachedBuyOnceElig = { data: res, expiresAt: Date.now() + PLANS_CACHE_TTL_MS };
+        return res;
+      })
+      .finally(() => {
+        buyOnceEligPromise = null;
+      });
+
+    return buyOnceEligPromise;
   },
 
   /**
    * 2.3 Create Buy Once Quote
    * POST /api/v1/customer/plans/buy-once/quote
    */
-  async createBuyOnceQuote(quantityLitres: number = 1): Promise<PlanQuote> {
-    return apiClient.post<PlanQuote>("/api/v1/customer/plans/buy-once/quote", {
-      quantityLitres,
-    });
+  async createBuyOnceQuote(quantityLitres: number = 1, forceRefresh = false): Promise<PlanQuote> {
+    const cacheKey = `buyonce:${quantityLitres}`;
+    const cached = cachedQuotes.get(cacheKey);
+    if (!forceRefresh && cached && isQuoteFresh(cached.quote, cached.expiresAt)) {
+      return cached.quote;
+    }
+
+    const inFlight = inFlightQuotes.get(cacheKey);
+    if (!forceRefresh && inFlight) {
+      return inFlight;
+    }
+
+    const promise = apiClient
+      .post<PlanQuote>("/api/v1/customer/plans/buy-once/quote", { quantityLitres })
+      .then((quote) => {
+        const expiresAtMs = quote.expiresAt ? new Date(quote.expiresAt).getTime() : Date.now() + 15 * 60 * 1000;
+        cachedQuotes.set(cacheKey, { quote, expiresAt: expiresAtMs });
+        return quote;
+      })
+      .finally(() => {
+        inFlightQuotes.delete(cacheKey);
+      });
+
+    inFlightQuotes.set(cacheKey, promise);
+    return promise;
   },
 
   /**
    * 2.4 Get 7-Day Trial Eligibility
    * GET /api/v1/customer/plans/trial/eligibility
    */
-  async getTrialEligibility(): Promise<TrialEligibilityResponse> {
-    return apiClient.get<TrialEligibilityResponse>(
-      "/api/v1/customer/plans/trial/eligibility"
-    );
+  async getTrialEligibility(forceRefresh = false): Promise<TrialEligibilityResponse> {
+    const now = Date.now();
+    if (!forceRefresh && cachedTrialElig && cachedTrialElig.expiresAt > now) {
+      return cachedTrialElig.data;
+    }
+    if (!forceRefresh && trialEligPromise) {
+      return trialEligPromise;
+    }
+
+    trialEligPromise = apiClient
+      .get<TrialEligibilityResponse>("/api/v1/customer/plans/trial/eligibility")
+      .then((res) => {
+        cachedTrialElig = { data: res, expiresAt: Date.now() + PLANS_CACHE_TTL_MS };
+        return res;
+      })
+      .finally(() => {
+        trialEligPromise = null;
+      });
+
+    return trialEligPromise;
   },
 
   /**
    * 2.5 Create 7-Day Trial Quote
    * POST /api/v1/customer/plans/trial/quote
    */
-  async createTrialQuote(quantityLitres: number = 1): Promise<PlanQuote> {
-    return apiClient.post<PlanQuote>("/api/v1/customer/plans/trial/quote", {
-      quantityLitres,
-    });
+  async createTrialQuote(quantityLitres: number = 1, forceRefresh = false): Promise<PlanQuote> {
+    const cacheKey = `trial:${quantityLitres}`;
+    const cached = cachedQuotes.get(cacheKey);
+    if (!forceRefresh && cached && isQuoteFresh(cached.quote, cached.expiresAt)) {
+      return cached.quote;
+    }
+
+    const inFlight = inFlightQuotes.get(cacheKey);
+    if (!forceRefresh && inFlight) {
+      return inFlight;
+    }
+
+    const promise = apiClient
+      .post<PlanQuote>("/api/v1/customer/plans/trial/quote", { quantityLitres })
+      .then((quote) => {
+        const expiresAtMs = quote.expiresAt ? new Date(quote.expiresAt).getTime() : Date.now() + 15 * 60 * 1000;
+        cachedQuotes.set(cacheKey, { quote, expiresAt: expiresAtMs });
+        return quote;
+      })
+      .finally(() => {
+        inFlightQuotes.delete(cacheKey);
+      });
+
+    inFlightQuotes.set(cacheKey, promise);
+    return promise;
   },
 
   /**
    * 2.6 Get Monthly Plan Configuration Info
    * GET /api/v1/customer/plans/monthly
    */
-  async getMonthlyConfig(): Promise<MonthlyConfigResponse> {
-    return apiClient.get<MonthlyConfigResponse>("/api/v1/customer/plans/monthly");
+  async getMonthlyConfig(forceRefresh = false): Promise<MonthlyConfigResponse> {
+    const now = Date.now();
+    if (!forceRefresh && cachedMonthlyConfig && cachedMonthlyConfig.expiresAt > now) {
+      return cachedMonthlyConfig.data;
+    }
+    if (!forceRefresh && monthlyConfigPromise) {
+      return monthlyConfigPromise;
+    }
+
+    monthlyConfigPromise = apiClient
+      .get<MonthlyConfigResponse>("/api/v1/customer/plans/monthly")
+      .then((res) => {
+        cachedMonthlyConfig = { data: res, expiresAt: Date.now() + CONFIG_CACHE_TTL_MS };
+        return res;
+      })
+      .finally(() => {
+        monthlyConfigPromise = null;
+      });
+
+    return monthlyConfigPromise;
   },
 
   /**
    * 2.7 Create Monthly Plan Quote
    * POST /api/v1/customer/plans/monthly/quote
    */
-  async createMonthlyQuote(payload: {
-    frequency: "DAILY" | "ALTERNATE_DAYS";
-    quantityMode: "FIXED" | "ALTERNATING";
-    quantity?: number;
-    quantityA?: number;
-    quantityB?: number;
-  }): Promise<PlanQuote> {
-    return apiClient.post<PlanQuote>(
-      "/api/v1/customer/plans/monthly/quote",
-      payload
-    );
+  async createMonthlyQuote(
+    payload: {
+      frequency: "DAILY" | "ALTERNATE_DAYS";
+      quantityMode: "FIXED" | "ALTERNATING";
+      quantity?: number;
+      quantityA?: number;
+      quantityB?: number;
+    },
+    forceRefresh = false
+  ): Promise<PlanQuote> {
+    const cacheKey = `monthly:${payload.frequency}:${payload.quantityMode}:${payload.quantity || ""}:${payload.quantityA || ""}:${payload.quantityB || ""}`;
+    const cached = cachedQuotes.get(cacheKey);
+    if (!forceRefresh && cached && isQuoteFresh(cached.quote, cached.expiresAt)) {
+      return cached.quote;
+    }
+
+    const inFlight = inFlightQuotes.get(cacheKey);
+    if (!forceRefresh && inFlight) {
+      return inFlight;
+    }
+
+    const promise = apiClient
+      .post<PlanQuote>("/api/v1/customer/plans/monthly/quote", payload)
+      .then((quote) => {
+        const expiresAtMs = quote.expiresAt ? new Date(quote.expiresAt).getTime() : Date.now() + 15 * 60 * 1000;
+        cachedQuotes.set(cacheKey, { quote, expiresAt: expiresAtMs });
+        return quote;
+      })
+      .finally(() => {
+        inFlightQuotes.delete(cacheKey);
+      });
+
+    inFlightQuotes.set(cacheKey, promise);
+    return promise;
   },
 
   /**
@@ -233,9 +409,13 @@ export const plansApi = {
    * POST /api/v1/customer/plans/confirm
    */
   async confirmPlanQuote(payload: ConfirmPlanPayload): Promise<ConfirmPlanResponse> {
-    return apiClient.post<ConfirmPlanResponse>(
+    const res = await apiClient.post<ConfirmPlanResponse>(
       "/api/v1/customer/plans/confirm",
       payload
     );
+    // After confirming plan quote, invalidate cached quotes and overview to reflect new subscription
+    cachedQuotes.clear();
+    cachedOverview = null;
+    return res;
   },
 };

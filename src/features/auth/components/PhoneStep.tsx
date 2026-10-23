@@ -6,6 +6,7 @@ import { FiArrowRight, FiChevronDown, FiRefreshCw } from "react-icons/fi";
 export interface PhoneStepProps {
   phoneNumber: string;
   loading: boolean;
+  countdown?: number;
   onPhoneChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
@@ -13,9 +14,12 @@ export interface PhoneStepProps {
 export function PhoneStep({
   phoneNumber,
   loading,
+  countdown = 0,
   onPhoneChange,
   onSubmit,
 }: PhoneStepProps) {
+  const isCooldownActive = countdown > 0;
+
   return (
     <form onSubmit={onSubmit} className="space-y-3.5 sm:space-y-4">
       <div>
@@ -63,7 +67,7 @@ export function PhoneStep({
 
       <button
         type="submit"
-        disabled={loading || phoneNumber.length !== 10}
+        disabled={loading || isCooldownActive || phoneNumber.length !== 10}
         className="flex h-11 sm:h-11 lg:h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-[#7a2417] text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#5f1b12] active:bg-[#54170f] disabled:cursor-not-allowed disabled:opacity-55 cursor-pointer"
       >
         {loading ? (
@@ -71,6 +75,8 @@ export function PhoneStep({
             <FiRefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
             <span>Sending OTP...</span>
           </>
+        ) : isCooldownActive ? (
+          <span>Resend in {countdown}s</span>
         ) : (
           <>
             <span>Send OTP</span>

@@ -52,6 +52,8 @@ export function OnboardingView() {
     coords,
     setCoords,
     savedAddress,
+    addressDraft,
+    setAddressDraft,
     handleSaveVerifiedAddress,
     // Step 3: Plan
     selectedPlanId,
@@ -79,6 +81,26 @@ export function OnboardingView() {
     return Math.abs(currentStep - step) <= 1;
   };
 
+  const handleCityChange = React.useCallback((cityId: string, cityName?: string) => {
+    setSelectedCityId(cityId);
+    if (cityName) setSelectedCityName(cityName);
+  }, [setSelectedCityId, setSelectedCityName]);
+
+  const handleAreaChange = React.useCallback((areaId: string, pincode: string, areaName?: string) => {
+    setSelectedAreaId(areaId);
+    setSelectedAreaPincode(pincode);
+    if (areaName) setSelectedAreaName(areaName);
+  }, [setSelectedAreaId, setSelectedAreaPincode, setSelectedAreaName]);
+
+  const handleBackToStep1 = React.useCallback(() => {
+    handleGoToStep(1);
+  }, [handleGoToStep]);
+
+  const handleEmailVerified = React.useCallback(async (email: string) => {
+    setProfileEmail(email);
+    await refreshUser();
+  }, [setProfileEmail, refreshUser]);
+
   if (authLoading || initialLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[#faf7f2]">
@@ -93,11 +115,11 @@ export function OnboardingView() {
   }
 
   return (
-    <div data-onboarding-page="true" className="relative min-h-screen min-h-[100dvh] w-full bg-[#faf7f2] font-sans text-[#24130f] flex flex-col md:justify-center py-2.5 sm:py-3.5 md:py-4 pb-16 sm:pb-10 md:pb-4">
-      <main className="mx-auto w-full max-w-5xl xl:max-w-6xl px-2.5 sm:px-4 flex flex-col items-center md:my-auto shrink-0">
+    <div data-onboarding-page="true" className="relative min-h-screen min-h-[100dvh] w-full bg-[#faf7f2] font-sans text-[#24130f] flex flex-col md:justify-center py-3 sm:py-5 md:py-6 pb-12 sm:pb-8 md:pb-6">
+      <main className="mx-auto w-full max-w-5xl xl:max-w-6xl px-3 sm:px-4 flex flex-col items-center md:my-auto shrink-0">
         <section
           aria-label="Account setup and subscription workflow"
-          className="relative flex flex-col md:flex-row w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl md:min-h-[580px] lg:min-h-[600px] md:max-h-[94vh] overflow-visible md:overflow-hidden"
+          className="relative flex flex-col md:flex-row w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl md:min-h-[580px] lg:min-h-[620px] md:max-h-[92vh] overflow-visible md:overflow-hidden"
         >
           {/* Left Sidebar - Shared across all 4 onboarding steps */}
           <OnboardingSidebar
@@ -107,7 +129,7 @@ export function OnboardingView() {
           />
 
           {/* Right Content Panel - Smooth transition only within right side */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] p-3.5 sm:p-4.5 lg:p-5.5 md:overflow-y-auto md:h-full rounded-b-2xl md:rounded-r-3xl md:rounded-bl-none">
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] p-4 sm:p-5 lg:p-6.5 xl:p-7 md:overflow-y-auto md:h-full rounded-b-2xl md:rounded-r-3xl md:rounded-bl-none">
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div
@@ -136,10 +158,7 @@ export function OnboardingView() {
                     onGenderChange={setProfileGender}
                     onDobChange={setProfileDob}
                     onProfileError={setProfileError}
-                    onEmailVerified={async (email) => {
-                      setProfileEmail(email);
-                      await refreshUser();
-                    }}
+                    onEmailVerified={handleEmailVerified}
                     onSubmit={handleSaveProfile}
                   />
                 </m.div>
@@ -163,18 +182,13 @@ export function OnboardingView() {
                     selectedCityName={selectedCityName}
                     selectedPincode={selectedAreaPincode}
                     coords={coords}
+                    addressDraft={addressDraft}
+                    onDraftChange={setAddressDraft}
                     onStateChange={setSelectedStateId}
-                    onCityChange={(cityId, cityName) => {
-                      setSelectedCityId(cityId);
-                      if (cityName) setSelectedCityName(cityName);
-                    }}
-                    onAreaChange={(areaId, pincode, areaName) => {
-                      setSelectedAreaId(areaId);
-                      setSelectedAreaPincode(pincode);
-                      if (areaName) setSelectedAreaName(areaName);
-                    }}
+                    onCityChange={handleCityChange}
+                    onAreaChange={handleAreaChange}
                     onCoordsChange={setCoords}
-                    onBack={() => handleGoToStep(1)}
+                    onBack={handleBackToStep1}
                     onAddressSaved={handleSaveVerifiedAddress}
                   />
                 </m.div>

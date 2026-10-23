@@ -96,12 +96,12 @@ export function OnboardingSidebar({
 
         {/* Progress bar fill */}
         <div
-          className="h-1 w-full bg-black/25 rounded-full overflow-hidden"
+          className="h-1.5 w-full bg-black/25 rounded-full overflow-hidden"
           role="progressbar"
           aria-valuenow={currentStep}
           aria-valuemin={1}
           aria-valuemax={4}
-          aria-label={`Onboarding progress: Step ${currentStep} of 5`}
+          aria-label={`Onboarding progress: Step ${currentStep} of 4`}
         >
           <div
             className="h-full bg-[#F8E94E] rounded-full transition-all duration-300 ease-out motion-reduce:transition-none"
@@ -111,91 +111,19 @@ export function OnboardingSidebar({
       </div>
 
       {/* ──────────────────────────────────────────────────────────
-          2. TABLET VIEW (768px – 1023px): Compact top banner
+          2. TABLET & DESKTOP VIEW (≥ 768px): Premium vertical sidebar
       ────────────────────────────────────────────────────────── */}
-      <div className="hidden md:flex lg:hidden flex-col p-4 relative z-10 gap-3 border-b border-white/10">
-        <div className="flex items-center justify-between">
-          <div className="relative w-[130px] h-[38px]">
-            <Image
-              src="/newimge/logo-removebg-preview.png"
-              alt="Purety Farm"
-              fill
-              sizes="130px"
-              className="object-contain object-left brightness-0 invert"
-              priority
-            />
-          </div>
-
-          <div className="text-right">
-            <span className="text-xs font-bold text-[#F8E94E] uppercase tracking-wider block">
-              Step {currentStep} of 4
-            </span>
-            <span className="text-xs font-semibold text-[#FFFDF7]">
-              {currentStepConfig.title}
-            </span>
-          </div>
-        </div>
-
-        {/* Horizontal 4-dot stepper indicator */}
-        <div className="flex items-center justify-between gap-2 pt-1">
-          {ONBOARDING_STEPS.map((step) => {
-            const isCompleted = currentStep > step.num;
-            const isCurrent = currentStep === step.num;
-            const isInteractive =
-              step.num <= maxAllowedStep && onGoToStep !== undefined;
-
-            return (
-              <button
-                key={step.num}
-                type="button"
-                disabled={!isInteractive}
-                onClick={() => isInteractive && onGoToStep?.(step.num)}
-                className={`flex-1 flex flex-col items-center gap-1.5 py-1 px-1 rounded-lg transition-colors ${
-                  isInteractive
-                    ? "cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F8E94E]"
-                    : "cursor-default"
-                }`}
-              >
-                <div
-                  className={`h-2.5 w-full rounded-full transition-all duration-300 motion-reduce:transition-none ${
-                    isCompleted
-                      ? "bg-[#F8E94E]"
-                      : isCurrent
-                      ? "bg-[#F8E94E] shadow-[0_0_8px_rgba(248,233,78,0.5)]"
-                      : "bg-white/20"
-                  }`}
-                />
-                <span
-                  className={`text-[10px] font-semibold truncate ${
-                    isCurrent
-                      ? "text-[#F8E94E]"
-                      : isCompleted
-                      ? "text-[#FFFDF7]"
-                      : "text-white/40"
-                  }`}
-                >
-                  {step.title}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ──────────────────────────────────────────────────────────
-          3. DESKTOP VIEW (≥ 1024px): Premium full-height sidebar
-      ────────────────────────────────────────────────────────── */}
-      <div className="hidden lg:flex flex-col justify-between h-full p-6 xl:p-7 relative z-10 overflow-hidden">
+      <div className="hidden md:flex flex-col justify-between h-full p-5 lg:p-6 xl:p-7 relative z-10 overflow-hidden">
         {/* Top Section: Brand + Progress + Stepper */}
-        <div className="space-y-6">
+        <div className="space-y-5 lg:space-y-6">
           {/* Brand Logo: ~154px width, generous breathing room */}
           <div className="pt-1">
-            <div className="relative w-[154px] h-[52px]">
+            <div className="relative w-[140px] lg:w-[154px] h-[46px] lg:h-[52px]">
               <Image
                 src="/newimge/logo-removebg-preview.png"
                 alt="Purety Farm"
                 fill
-                sizes="154px"
+                sizes="(max-width: 1024px) 140px, 154px"
                 className="object-contain object-left brightness-0 invert"
                 priority
               />
@@ -214,7 +142,7 @@ export function OnboardingSidebar({
               aria-valuenow={currentStep}
               aria-valuemin={1}
               aria-valuemax={4}
-              aria-label={`Onboarding progress: Step ${currentStep} of 5`}
+              aria-label={`Onboarding progress: Step ${currentStep} of 4`}
             >
               <div
                 className="h-full bg-[#F8E94E] rounded-full transition-all duration-300 ease-out motion-reduce:transition-none"

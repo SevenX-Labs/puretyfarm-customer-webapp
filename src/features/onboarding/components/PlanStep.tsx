@@ -14,7 +14,7 @@ import {
   BuyOnceEligibilityResponse,
   TrialEligibilityResponse,
 } from "@/features/plans/api/plansApi";
-import { SubscriptionPanel } from "@/features/subscription/components/SubscriptionPanel";
+import dynamic from "next/dynamic";
 import {
   PricingResult,
   SubscriptionDraft,
@@ -23,13 +23,21 @@ import {
 import { buildBreakdown } from "@/features/subscription/pricing";
 import { FiCheck, FiArrowLeft, FiMapPin, FiSliders, FiAlertCircle } from "react-icons/fi";
 
+const SubscriptionPanel = dynamic(
+  () =>
+    import("@/features/subscription/components/SubscriptionPanel").then(
+      (mod) => mod.SubscriptionPanel
+    ),
+  { ssr: false }
+);
+
 export interface PlanStepProps {
   savedAddress: Address | null;
   selectedPlanId: "trial" | "monthly" | "single";
   planSubmitting: boolean;
   planError: string | null;
   onSelectPlanId: (id: "trial" | "monthly" | "single") => void;
-  onCompletePlanSelection: (plan: PlanDefinition) => void;
+  onCompletePlanSelection: (plan: PlanDefinition, existingQuote?: PlanQuote | null) => void;
   onGoToStep: (step: 1 | 2 | 3 | 4) => void;
 }
 
@@ -81,7 +89,7 @@ function PlanCardSkeleton() {
   );
 }
 
-export function PlanStep({
+function PlanStepComponent({
   savedAddress,
   selectedPlanId,
   planSubmitting,
@@ -152,11 +160,41 @@ export function PlanStep({
     async function fetchLivePlanData() {
       setLoadingPlans(true);
       try {
-        const [overviewRes, monthlyRes, buyOnceRes, trialRes] = await Promise.allSettled([
+        let draft: { frequency?: string; mode?: string; fixedLitres?: number; day1Litres?: number; day2Litres?: number } | null = null;
+        try {
+          const raw = typeof window !== "undefined"
+            ? localStorage.getItem("pf_subscription_draft_v2") || localStorage.getItem("pf_subscription_draft")
+            : null;
+          if (raw) draft = JSON.parse(raw);
+        } catch {}
+
+        const monthlyFreq = draft?.frequency === "alternate" ? "ALTERNATE_DAYS" as const : "DAILY" as const;
+        const monthlyMode = (monthlyFreq === "DAILY" && draft?.mode === "pattern") ? "ALTERNATING" as const : "FIXED" as const;
+        const monthlyQuotePayload = {
+          frequency: monthlyFreq,
+          quantityMode: monthlyMode,
+          quantity: monthlyMode === "FIXED" ? (draft?.fixedLitres || 1) : undefined,
+          quantityA: monthlyMode === "ALTERNATING" ? (draft?.day1Litres || 1) : undefined,
+          quantityB: monthlyMode === "ALTERNATING" ? (draft?.day2Litres || 2) : undefined,
+        };
+
+        // Fetch configs, eligibilities, and quotes in a single parallel burst
+        const [
+          overviewRes,
+          monthlyRes,
+          buyOnceRes,
+          trialRes,
+          trialQ,
+          singleQ,
+          monthlyQ,
+        ] = await Promise.allSettled([
           plansApi.getPlansOverview(),
           plansApi.getMonthlyConfig(),
           plansApi.getBuyOnceEligibility(),
           plansApi.getTrialEligibility(),
+          plansApi.createTrialQuote(1),
+          plansApi.createBuyOnceQuote(1),
+          plansApi.createMonthlyQuote(monthlyQuotePayload),
         ]);
 
         if (!isMounted) return;
@@ -176,35 +214,6 @@ export function PlanStep({
         if (trialRes.status === "fulfilled" && trialRes.value) {
           setTrialElig(trialRes.value);
         }
-
-        const trialAvailable = overviews.find((p) => p.type === "SEVEN_DAY_TRIAL")?.available ?? true;
-        const buyOnceAvailable = overviews.find((p) => p.type === "BUY_ONCE")?.available ?? true;
-
-        let draft: { frequency?: string; mode?: string; fixedLitres?: number; day1Litres?: number; day2Litres?: number } | null = null;
-        try {
-          const raw = typeof window !== "undefined"
-            ? localStorage.getItem("pf_subscription_draft_v2") || localStorage.getItem("pf_subscription_draft")
-            : null;
-          if (raw) draft = JSON.parse(raw);
-        } catch {}
-
-        const monthlyFreq = draft?.frequency === "alternate" ? "ALTERNATE_DAYS" as const : "DAILY" as const;
-        const monthlyMode = (monthlyFreq === "DAILY" && draft?.mode === "pattern") ? "ALTERNATING" as const : "FIXED" as const;
-        const monthlyQuotePayload = {
-          frequency: monthlyFreq,
-          quantityMode: monthlyMode,
-          quantity: monthlyMode === "FIXED" ? (draft?.fixedLitres || 1) : undefined,
-          quantityA: monthlyMode === "ALTERNATING" ? (draft?.day1Litres || 1) : undefined,
-          quantityB: monthlyMode === "ALTERNATING" ? (draft?.day2Litres || 2) : undefined,
-        };
-
-        const [trialQ, singleQ, monthlyQ] = await Promise.allSettled([
-          trialAvailable ? plansApi.createTrialQuote(1) : Promise.resolve(null),
-          buyOnceAvailable ? plansApi.createBuyOnceQuote(1) : Promise.resolve(null),
-          plansApi.createMonthlyQuote(monthlyQuotePayload),
-        ]);
-
-        if (!isMounted) return;
 
         const mq = monthlyQ.status === "fulfilled" ? monthlyQ.value : null;
         setLiveQuotes({
@@ -285,7 +294,8 @@ export function PlanStep({
 
   const handleSelectAndComplete = (plan: PlanDefinition) => {
     onSelectPlanId(plan.id);
-    onCompletePlanSelection(plan);
+    const existingQuote = liveQuotes[plan.id as "trial" | "single" | "monthly"];
+    onCompletePlanSelection(plan, existingQuote);
   };
 
   const getPlanEligibility = (planId: "trial" | "monthly" | "single") => {
@@ -384,19 +394,22 @@ export function PlanStep({
       className="flex flex-col justify-between w-full md:h-full space-y-2.5 sm:space-y-3 pb-3 sm:pb-0"
     >
       {/* Header with Back Navigation */}
-      <header className="flex items-start justify-between gap-2 shrink-0">
+      <header className="flex items-start justify-between gap-3 shrink-0 border-b border-[#eee5db] pb-2.5 sm:pb-3">
         <div>
-          <h1 className="font-serif text-base sm:text-lg lg:text-xl font-bold text-[#24130f]">
+          <span className="text-[10.5px] font-extrabold uppercase tracking-wider text-[#7a2417] block">
+            Step 3 of 4 • Choose Your Plan
+          </span>
+          <h1 className="font-serif text-lg sm:text-xl lg:text-2xl font-bold text-[#24130f] mt-0.5">
             Select Your Milk Plan
           </h1>
-          <p className="text-[11px] sm:text-xs text-[#715e50]">
-            Choose the plan that works best for your home.
+          <p className="mt-1 text-xs sm:text-[13px] text-[#715e50]">
+            Choose the plan that best fits your household. Flexible pause & cancel anytime.
           </p>
         </div>
         <button
           type="button"
           onClick={() => onGoToStep(2)}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-[#7a2417] hover:bg-[#7a2417]/10 transition-colors cursor-pointer"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#7a2417]/20 bg-white px-3 py-1.5 text-xs font-bold text-[#7a2417] hover:bg-[#7a2417]/8 transition-colors cursor-pointer shadow-2xs"
         >
           <FiArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Back to Address</span>
@@ -405,17 +418,17 @@ export function PlanStep({
 
       {/* Top Delivery Address Badge */}
       {savedAddress && (
-        <div className="rounded-lg bg-white border border-[#E8DFD4] px-2.5 py-1.5 shadow-2xs flex items-center justify-between gap-2 text-[11px] sm:text-xs text-[#3A241C] shrink-0">
-          <div className="flex items-center gap-1.5 truncate">
-            <FiMapPin className="h-3.5 w-3.5 text-[#5C1B13] shrink-0" />
-            <span className="truncate">
-              Delivering to: <strong>{savedAddress.street}</strong>, {savedAddress.locality} ({savedAddress.pincode})
+        <div className="rounded-2xl bg-[#FAF7F2] border border-[#E8DFD4] px-3.5 py-2 shadow-2xs flex items-center justify-between gap-3 text-xs text-[#3A241C] shrink-0">
+          <div className="flex items-center gap-2 truncate">
+            <FiMapPin className="h-4 w-4 text-[#5C1B13] shrink-0" />
+            <span className="truncate text-xs sm:text-[12.5px]">
+              Delivering to: <strong className="font-semibold text-[#24130F]">{savedAddress.street}</strong>, {savedAddress.locality} ({savedAddress.pincode})
             </span>
           </div>
           <button
             type="button"
             onClick={() => onGoToStep(2)}
-            className="font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0 text-[10.5px] sm:text-[11px]"
+            className="font-bold text-[#5C1B13] hover:underline cursor-pointer shrink-0 text-xs px-2 py-0.5 rounded-md hover:bg-[#5C1B13]/8 transition-colors"
           >
             Change
           </button>
@@ -426,22 +439,22 @@ export function PlanStep({
         <div
           role="alert"
           aria-live="polite"
-          className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2 shrink-0"
+          className="p-3 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-800 flex items-center gap-2 shrink-0 shadow-2xs"
         >
-          <FiAlertCircle className="w-3.5 h-3.5 shrink-0 text-red-600" />
+          <FiAlertCircle className="w-4 h-4 shrink-0 text-red-600" />
           <span>{planError}</span>
         </div>
       )}
 
       {/* Plans Grid: Skeleton Loader when loading, Live Cards when loaded */}
       {loadingPlans ? (
-        <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-3 flex-1">
+        <div className="grid grid-cols-1 gap-3 sm:gap-3.5 lg:grid-cols-3 flex-1">
           <PlanCardSkeleton />
           <PlanCardSkeleton />
           <PlanCardSkeleton />
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-2.5 sm:gap-3 lg:grid-cols-3 flex-1">
+        <div className="grid grid-cols-1 gap-3 sm:gap-3.5 lg:grid-cols-3 flex-1">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isSelected = selectedPlanId === plan.id;
@@ -490,29 +503,35 @@ export function PlanStep({
                 key={plan.id}
                 onClick={() => !isBlocked && onSelectPlanId(plan.id)}
                 className={`
-                  relative rounded-xl border-2 transition-all p-2.5 sm:p-3 lg:p-3.5 flex flex-col justify-between
+                  relative rounded-2xl border-2 transition-all duration-200 p-3 sm:p-3.5 lg:p-4 flex flex-col justify-between
                   bg-gradient-to-b ${plan.gradient}
                   ${
                     isBlocked
                       ? "opacity-60 grayscale-[30%] cursor-not-allowed border-[#E8DFD4]"
                       : isSelected
-                      ? "border-[#5C1B13] ring-2 ring-[#5C1B13]/15 shadow-md shadow-[#5C1B13]/10 cursor-pointer"
-                      : "border-[#E8DFD4] hover:border-[#5C1B13]/40 shadow-2xs cursor-pointer"
+                      ? "border-[#5C1B13] ring-4 ring-[#5C1B13]/15 shadow-md shadow-[#5C1B13]/15 cursor-pointer bg-white"
+                      : "border-[#E8DFD4] hover:border-[#5C1B13]/50 shadow-2xs hover:shadow-sm cursor-pointer"
                   }
                 `}
               >
                 {/* Top badge */}
                 {plan.badge && !isBlocked && (
-                  <div className="absolute -top-2.5 left-4">
-                    <span className="px-2 py-0.5 rounded-full bg-[#5C1B13] text-white text-[9px] font-bold tracking-wider uppercase shadow-xs">
+                  <div className="absolute -top-3 left-4">
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase shadow-xs ${
+                        isMonthly
+                          ? "bg-[#5C1B13] text-[#F8E94E] border border-[#F8E94E]/30"
+                          : "bg-[#7a2417] text-white"
+                      }`}
+                    >
                       {plan.badge}
                     </span>
                   </div>
                 )}
 
                 {isBlocked && (
-                  <div className="absolute -top-2.5 left-4">
-                    <span className="px-2 py-0.5 rounded-full bg-stone-700 text-white text-[9px] font-bold tracking-wider uppercase shadow-xs">
+                  <div className="absolute -top-3 left-4">
+                    <span className="px-2.5 py-0.5 rounded-full bg-stone-700 text-white text-[10px] font-bold tracking-wider uppercase shadow-xs">
                       {eligibility?.blockedReason === "BUY_ONCE_ALREADY_USED"
                         ? "Used"
                         : eligibility?.blockedReason === "TRIAL_ALREADY_USED"
@@ -524,62 +543,62 @@ export function PlanStep({
 
                 <div>
                   {/* Plan header */}
-                  <div className="flex items-center justify-between mb-1.5 mt-0.5">
-                    <div className="w-6 h-6 rounded-lg bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
-                      <Icon className="w-3.5 h-3.5" />
+                  <div className="flex items-center justify-between mb-2 mt-1">
+                    <div className="w-7 h-7 rounded-xl bg-[#5C1B13]/10 text-[#5C1B13] flex items-center justify-center">
+                      <Icon className="w-4 h-4" />
                     </div>
                     {isMonthly && customPricing ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
-                        <FiCheck className="w-2.5 h-2.5" /> Customized
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-bold flex items-center gap-1">
+                        <FiCheck className="w-3 h-3" /> Customized
                       </span>
                     ) : eligibility?.remainingUses !== undefined ? (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10.5px] font-bold">
                         {eligibility.remainingUses} Left
                       </span>
                     ) : displaySavingsText ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-bold">
                         {displaySavingsText}
                       </span>
                     ) : null}
                   </div>
 
-                  <h3 className="text-sm sm:text-[15px] font-serif font-bold text-[#1A1008] leading-tight mb-0.5">
+                  <h3 className="text-sm sm:text-base font-serif font-bold text-[#1A1008] leading-tight mb-1">
                     {plan.name}
                   </h3>
-                  <p className="text-[10px] sm:text-[10.5px] text-[#3A241C]/70 leading-snug line-clamp-2 min-h-[26px]">
+                  <p className="text-[11px] sm:text-xs text-[#3A241C]/75 leading-relaxed line-clamp-2 min-h-[32px]">
                     {plan.description}
                   </p>
 
                   {/* Pricing block */}
-                  <div className="py-1.5 my-1.5 border-y border-[#E8DFD4]/70">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-xl sm:text-2xl font-serif font-bold text-[#5C1B13]">
+                  <div className="py-2 my-2 border-y border-[#E8DFD4]/80">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl font-serif font-bold text-[#5C1B13]">
                         ₹{displayPrice}
                       </span>
                       {displayOriginalPrice && (
-                        <span className="text-[11px] text-[#3A241C]/45 line-through">
+                        <span className="text-xs text-[#3A241C]/50 line-through">
                           ₹{displayOriginalPrice}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10.5px] font-semibold text-[#1A1008] whitespace-nowrap">
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-semibold text-[#1A1008] bg-black/[0.04] px-2 py-0.5 rounded-md whitespace-nowrap">
                         {serverRateText}
                       </span>
-                      <span className="text-[10.5px] text-[#3A241C]/50">•</span>
-                      <span className="text-[10.5px] text-[#3A241C]/65 whitespace-nowrap">
+                      <span className="text-xs text-[#3A241C]/50">•</span>
+                      <span className="text-xs text-[#3A241C]/70 whitespace-nowrap">
                         {displayQuantity}
                       </span>
                     </div>
                   </div>
 
                   {/* Features list */}
-                  <ul className="space-y-1 mb-2 text-[10px] sm:text-[10.5px] text-[#3A241C]/80">
+                  <ul className="space-y-1.5 mb-3 text-xs text-[#3A241C]/85">
                     {plan.features.slice(0, 4).map((feat, idx) => {
                       const FeatIcon = feat.icon;
                       return (
-                        <li key={idx} className="flex items-center gap-1.5 truncate">
-                          <FeatIcon className="w-3 h-3 text-emerald-600 shrink-0" />
+                        <li key={idx} className="flex items-center gap-2 truncate">
+                          <FeatIcon className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                           <span className="truncate">{feat.text}</span>
                         </li>
                       );
@@ -588,7 +607,7 @@ export function PlanStep({
                 </div>
 
                 {/* Actions container */}
-                <div className="space-y-1.5 mt-1">
+                <div className="space-y-2 mt-1">
                   {/* Customize Schedule Button for Monthly Plan */}
                   {isMonthly && (
                     <button
@@ -598,9 +617,9 @@ export function PlanStep({
                         setIsPanelOpen(true);
                       }}
                       aria-label="Customize delivery frequency and quantity schedule"
-                      className="w-full h-7 sm:h-7.5 px-2 rounded-lg border border-[#5C1B13]/30 bg-white hover:bg-[#FAF3EA] text-[#5C1B13] text-[10.5px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                      className="w-full h-8 px-2.5 rounded-xl border border-[#5C1B13]/30 bg-[#FAF3EA] hover:bg-[#F3E7D7] text-[#5C1B13] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                     >
-                      <FiSliders className="w-3 h-3 shrink-0" />
+                      <FiSliders className="w-3.5 h-3.5 shrink-0" />
                       <span>{customPricing ? "Edit Schedule" : "Customize Schedule"}</span>
                     </button>
                   )}
@@ -616,11 +635,15 @@ export function PlanStep({
                       e.stopPropagation();
                       if (!isBlocked) handleSelectAndComplete(plan);
                     }}
-                    className="rounded-lg h-8 sm:h-8.5 lg:h-9 text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
+                    className={`rounded-xl h-9 sm:h-9.5 text-xs font-bold cursor-pointer transition-all disabled:opacity-50 ${
+                      isSelected
+                        ? "bg-[#5C1B13] text-white hover:bg-[#48150F] shadow-sm"
+                        : "border-2 border-[#5C1B13] text-[#5C1B13] hover:bg-[#5C1B13]/8"
+                    }`}
                   >
                     {planSubmitting && selectedPlanId === plan.id ? (
                       <div className="flex items-center justify-center gap-1.5">
-                        <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         <span>Activating...</span>
                       </div>
                     ) : isBlocked ? (
@@ -636,15 +659,19 @@ export function PlanStep({
         </div>
       )}
 
-      {/* Subscription Panel Dialog */}
-      <SubscriptionPanel
-        isOpen={isPanelOpen}
-        onClose={() => setIsPanelOpen(false)}
-        onConfirmPlan={handleConfirmSchedule}
-        deliveryStartTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryStartTime}
-        deliveryEndTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryEndTime}
-        orderCutoff={orderCutoff}
-      />
+      {/* Subscription Panel Dialog - mounted only when opened */}
+      {isPanelOpen && (
+        <SubscriptionPanel
+          isOpen={isPanelOpen}
+          onClose={() => setIsPanelOpen(false)}
+          onConfirmPlan={handleConfirmSchedule}
+          deliveryStartTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryStartTime}
+          deliveryEndTime={planOverviews.find((p: any) => p.type === "MONTHLY")?.deliveryEndTime}
+          orderCutoff={orderCutoff}
+        />
+      )}
     </m.div>
   );
 }
+
+export const PlanStep = React.memo(PlanStepComponent);

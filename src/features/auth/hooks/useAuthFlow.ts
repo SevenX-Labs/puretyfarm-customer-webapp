@@ -110,7 +110,11 @@ export function useAuthFlow() {
       setErrorMessage("Please enter a valid 10-digit Indian mobile number.");
       return;
     }
+    if (loading || isSubmittingRef.current || countdown > 0) {
+      return;
+    }
 
+    isSubmittingRef.current = true;
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -141,6 +145,7 @@ export function useAuthFlow() {
       setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -150,7 +155,7 @@ export function useAuthFlow() {
       redirectLoggedInUser();
       return;
     }
-    if (isSubmittingRef.current) return;
+    if (loading || isSubmittingRef.current) return;
     const code = (codeToVerify || otpValues.join("")).trim();
     if (code.length !== 6) {
       return;
@@ -170,6 +175,10 @@ export function useAuthFlow() {
 
       if (!data.success) {
         setErrorMessage(data.error || data.message || "Invalid verification code.");
+        setOtpValues(["", "", "", "", "", ""]);
+        setTimeout(() => {
+          otpInputRefs.current[0]?.focus();
+        }, 120);
         return;
       }
 
@@ -202,6 +211,10 @@ export function useAuthFlow() {
       const errorMsg =
         err instanceof Error ? err.message : "Verification failed. Please check your connection.";
       setErrorMessage(errorMsg);
+      setOtpValues(["", "", "", "", "", ""]);
+      setTimeout(() => {
+        otpInputRefs.current[0]?.focus();
+      }, 120);
     } finally {
       setLoading(false);
       isSubmittingRef.current = false;

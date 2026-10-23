@@ -209,15 +209,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${headingFont.variable} ${bodyFont.variable} ${scriptFont.variable} ${pfUiFont.variable} ${pfDisplayFont.variable} h-full antialiased`}
     >
-      <head>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <script
+          id="schema-org-jsonld"
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+          suppressHydrationWarning
         />
-      </head>
-      <body className="min-h-full flex flex-col">
         <SmoothScrollProvider>
           <AuthProvider>
             <MarketingMotion>{children}</MarketingMotion>

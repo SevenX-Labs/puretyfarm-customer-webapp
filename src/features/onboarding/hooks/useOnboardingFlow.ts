@@ -44,6 +44,23 @@ export function useOnboardingFlow() {
 
   // Step 2/3: Address state
   const [savedAddress, setSavedAddress] = useState<Address | null>(null);
+  const [addressDraft, setAddressDraft] = useState<{
+    houseNumber: string;
+    buildingName: string;
+    streetName: string;
+    landmark: string;
+    fullName: string;
+    mobile: string;
+    addressType: "Home" | "Work" | "Other";
+  }>({
+    houseNumber: "",
+    buildingName: "",
+    streetName: "",
+    landmark: "",
+    fullName: "",
+    mobile: "",
+    addressType: "Home",
+  });
 
   // Step 3: Plan selection state
   const [selectedPlanId, setSelectedPlanId] = useState<"trial" | "monthly" | "single">("monthly");
@@ -91,6 +108,15 @@ export function useOnboardingFlow() {
 
       if (addresses && addresses.length > 0) {
         const defaultServiceable = addresses[0];
+        setAddressDraft({
+          houseNumber: defaultServiceable.houseNumber || "",
+          buildingName: defaultServiceable.buildingName || "",
+          streetName: defaultServiceable.streetName || "",
+          landmark: defaultServiceable.landmark || "",
+          fullName: defaultServiceable.fullName || "",
+          mobile: defaultServiceable.mobile || "",
+          addressType: "Home",
+        });
         setSavedAddress({
           id: defaultServiceable.id,
           userId: defaultServiceable.userId,
@@ -160,11 +186,11 @@ export function useOnboardingFlow() {
   }, [initUserData]);
 
   // Navigate explicitly between unlocked steps
-  const handleGoToStep = (stepNum: StepKey) => {
+  const handleGoToStep = useCallback((stepNum: StepKey) => {
     if (stepNum <= maxAllowedStep) {
       setCurrentStep(stepNum);
     }
-  };
+  }, [maxAllowedStep]);
 
   // ─── STEP 1 HANDLER: Save Profile ───
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -225,8 +251,17 @@ export function useOnboardingFlow() {
   };
 
   // ─── STEP 2 HANDLER: Address Saved (Immediate Transition to Step 3 Plan) ───
-  const handleSaveVerifiedAddress = (createdAddr?: CustomerAddress) => {
+  const handleSaveVerifiedAddress = useCallback((createdAddr?: CustomerAddress) => {
     if (createdAddr) {
+      setAddressDraft({
+        houseNumber: createdAddr.houseNumber || "",
+        buildingName: createdAddr.buildingName || "",
+        streetName: createdAddr.streetName || "",
+        landmark: createdAddr.landmark || "",
+        fullName: createdAddr.fullName || "",
+        mobile: createdAddr.mobile || "",
+        addressType: "Home",
+      });
       setSavedAddress({
         id: createdAddr.id,
         userId: createdAddr.userId,
@@ -247,8 +282,7 @@ export function useOnboardingFlow() {
     setMaxAllowedStep((prev) => Math.max(prev, 3) as StepKey);
     setCurrentStep(3);
     void refreshUser().catch(() => {});
-    void locationApi.getAddresses().catch(() => []);
-  };
+  }, [selectedAreaName, selectedCityName, selectedAreaPincode, refreshUser]);
 
   // Helper to load wallet balance
   const reloadWallet = useCallback(async () => {
@@ -266,7 +300,10 @@ export function useOnboardingFlow() {
   }, []);
 
   // ─── STEP 3 HANDLER: Select Plan → Build Quote → Advance to Payment (Step 4) ───
-  const handleCompletePlanSelection = async (plan: PlanDefinition) => {
+  const handleCompletePlanSelection = useCallback(async (
+    plan: PlanDefinition,
+    existingQuote?: PlanQuote | null
+  ) => {
     if (!savedAddress) {
       setCurrentStep(2);
       return;
@@ -277,12 +314,21 @@ export function useOnboardingFlow() {
     setPlanError(null);
 
     try {
-      let quote: PlanQuote | null = null;
+      let quotePromise: Promise<PlanQuote | null>;
 
-      if (plan.id === "trial") {
-        quote = await plansApi.createTrialQuote(1);
+      // Check if existing quote is valid and fresh (expires in > 30s)
+      const isQuoteFresh = Boolean(
+        existingQuote &&
+        existingQuote.quoteId &&
+        (!existingQuote.expiresAt || new Date(existingQuote.expiresAt).getTime() > Date.now() + 30000)
+      );
+
+      if (isQuoteFresh) {
+        quotePromise = Promise.resolve(existingQuote!);
+      } else if (plan.id === "trial") {
+        quotePromise = plansApi.createTrialQuote(1);
       } else if (plan.id === "single") {
-        quote = await plansApi.createBuyOnceQuote(1);
+        quotePromise = plansApi.createBuyOnceQuote(1);
       } else {
         let draft = null;
         try {
@@ -297,7 +343,7 @@ export function useOnboardingFlow() {
         const freq = draft?.frequency === "alternate" ? "ALTERNATE_DAYS" : "DAILY";
         const mode = (freq === "DAILY" && draft?.mode === "pattern") ? "ALTERNATING" : "FIXED";
 
-        quote = await plansApi.createMonthlyQuote({
+        quotePromise = plansApi.createMonthlyQuote({
           frequency: freq,
           quantityMode: mode,
           quantity: mode === "FIXED" ? (draft?.fixedLitres || 1) : undefined,
@@ -306,13 +352,14 @@ export function useOnboardingFlow() {
         });
       }
 
+      const quote = await quotePromise;
+
       if (!quote) {
         throw new Error("Could not calculate pricing quote for the selected plan.");
       }
 
       setPendingQuote(quote);
       setPendingPlan(plan);
-      await reloadWallet();
 
       if (typeof window !== "undefined") {
         const checkoutPayload = {
@@ -326,13 +373,14 @@ export function useOnboardingFlow() {
 
       setMaxAllowedStep((prev) => Math.max(prev, 4) as StepKey);
       setCurrentStep(4);
+      void reloadWallet();
     } catch (err: any) {
       const msg = err?.data?.message || err?.message || "Failed to proceed with selected plan.";
       setPlanError(Array.isArray(msg) ? msg.join(", ") : String(msg));
     } finally {
       setPlanSubmitting(false);
     }
-  };
+  }, [savedAddress, reloadWallet]);
 
   // Redirect to Order Confirmation using the backend-authoritative confirm response
   const recordAndRedirectConfirmedOrder = async (
@@ -517,6 +565,8 @@ export function useOnboardingFlow() {
     coords,
     setCoords,
     savedAddress,
+    addressDraft,
+    setAddressDraft,
     handleSaveVerifiedAddress,
     // Step 3: Plan
     selectedPlanId,

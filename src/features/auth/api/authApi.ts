@@ -27,11 +27,25 @@ export const authApi = {
     const mobile = rawMobile.length === 10 ? rawMobile : (payload.mobile || payload.phone || "");
 
     try {
-      const data = await apiClient.post<{ success?: boolean; message?: string }>(
+      const data = await apiClient.post<{
+        success?: boolean;
+        message?: string;
+        error?: string;
+        remainingCooldown?: number;
+      }>(
         "/api/v1/auth/customer/login",
         { mobile },
         { skipAuth: true }
       );
+
+      if (data && data.success === false) {
+        return {
+          success: false,
+          error: data.error || data.message || "Failed to send verification code.",
+          message: data.message || data.error || "Failed to send verification code.",
+          remainingCooldown: data.remainingCooldown || 60,
+        };
+      }
 
       return {
         success: true,
@@ -39,18 +53,20 @@ export const authApi = {
         cooldownSeconds: 60,
       };
     } catch (err: any) {
-      const errorMsg =
-        err?.data?.message ||
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to send OTP.";
+      const is429 = err?.status === 429 || err?.statusCode === 429;
+      const errorMsg = is429
+        ? "Too many OTP requests. Please wait a minute before requesting another code."
+        : err?.data?.message ||
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to send OTP.";
       const message = Array.isArray(errorMsg) ? errorMsg.join(", ") : String(errorMsg);
 
       return {
         success: false,
         error: message,
         message,
-        remainingCooldown: err?.status === 429 ? 60 : undefined,
+        remainingCooldown: is429 ? 60 : undefined,
       };
     }
   },
@@ -66,11 +82,19 @@ export const authApi = {
     const otp = (payload.otp || payload.code || "").trim();
 
     try {
-      const data = await apiClient.post<VerifyOtpResponse>(
+      const data = await apiClient.post<VerifyOtpResponse & { error?: string }>(
         "/api/v1/auth/customer/verify-otp",
         { mobile, otp },
         { skipAuth: true }
       );
+
+      if (data && (data.success === false || !data.accessToken)) {
+        return {
+          success: false,
+          error: data.error || data.message || "Invalid or expired verification code.",
+          message: data.message || data.error || "Invalid or expired verification code.",
+        };
+      }
 
       if (data.accessToken && data.refreshToken) {
         tokenStorage.setTokens({

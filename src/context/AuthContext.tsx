@@ -156,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profileApi.getProfile().catch((): CustomerProfile | null => null),
       locationApi.getAddresses().catch(() => [] as CustomerAddress[]),
       manageDeliveryApi.getManageDelivery().catch(() => null),
-      accountApi.getOrders().catch(() => ({ success: false, orders: [] })),
+      accountApi.getOrders({ limit: 5, page: 1 }).catch(() => ({ success: false, orders: [] })),
     ]);
     if (!authData || !authData.id) return null;
 
