@@ -70,9 +70,9 @@ export function AvatarUpload({
       return;
     }
 
-    // 2. Validate max 3 MB
-    if (file.size > 3 * 1024 * 1024) {
-      onError?.("Image size must be 3 MB or less.");
+    // 2. Validate max 5 MB
+    if (file.size > 5 * 1024 * 1024) {
+      onError?.("Image size must be 5 MB or less.");
       return;
     }
 
@@ -278,10 +278,10 @@ export function AvatarUpload({
       <div className="relative group shrink-0">
         <div
           className={`
-            ${size === "large" ? "w-13 h-13 sm:w-14 sm:h-14 lg:w-15 lg:h-15" : "w-12 h-12 sm:w-14 sm:h-14"} rounded-full border-2 border-[#E8DFD4] 
-            overflow-hidden shadow-sm flex items-center justify-center
-            bg-gradient-to-br from-[#FAF3EA] to-[#F3E7D7] transition-all
-            ${uploading ? "opacity-60" : "group-hover:border-[#5C1B13]"}
+            w-16 h-16 sm:w-18 sm:h-18 rounded-full border-2 border-[#E8DFD4] 
+            overflow-hidden shadow-xs flex items-center justify-center
+            bg-[#F4E6D5] transition-all
+            ${uploading ? "opacity-60" : "group-hover:border-[#671A1B]"}
           `}
         >
           {hasValidAvatar ? (
@@ -294,20 +294,20 @@ export function AvatarUpload({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="flex flex-col items-center justify-center text-[#5C1B13]">
+            <div className="flex flex-col items-center justify-center text-[#3B1510]">
               {name ? (
-                <span className="text-base sm:text-lg font-serif font-bold tracking-wider">
+                <span className="text-xl sm:text-2xl font-serif font-bold tracking-wider">
                   {getInitials(name)}
                 </span>
               ) : (
-                <FiUser className="w-6 h-6 text-[#5C1B13]/70" />
+                <FiUser className="w-7 h-7 text-[#5C1B13]/70" />
               )}
             </div>
           )}
 
           {uploading && (
             <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-[#5C1B13] border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#671A1B] border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
@@ -317,31 +317,31 @@ export function AvatarUpload({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="absolute -bottom-0.5 -right-0.5 w-5.5 h-5.5 sm:w-6 sm:h-6 rounded-full bg-[#5C1B13] text-white flex items-center justify-center shadow-md hover:bg-[#40110D] active:scale-95 transition-all cursor-pointer"
+          className="absolute -bottom-0.5 -right-0.5 w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full bg-[#671A1B] text-white flex items-center justify-center shadow-md hover:bg-[#521314] active:scale-95 transition-all cursor-pointer"
           title="Change profile photo"
           aria-label="Change profile photo"
         >
-          <FiCamera className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+          <FiCamera className="w-3 h-3" />
         </button>
       </div>
 
       {/* Info & action buttons */}
       <div className="flex flex-col items-center sm:items-start text-center sm:text-left space-y-1">
         <div>
-          <h4 className="text-sm font-bold text-[#1A1008]">Profile Picture</h4>
-          <p className="text-[11px] text-[#3A241C]/65">
-            JPG, PNG or WebP · Max 3 MB · Square image
+          <h4 className="text-sm sm:text-base font-bold text-[#1F1410]">Profile Picture</h4>
+          <p className="text-xs text-[#715E50] mt-0.5">
+            JPG, PNG or WebP · Max 5 MB · Square image
           </p>
         </div>
 
-        <div className="flex items-center gap-2 pt-0.5">
+        <div className="flex items-center gap-2 pt-1">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E8DFD4] bg-white px-2.5 py-1 text-[11px] sm:text-xs font-semibold text-[#1A1008] shadow-2xs transition-colors hover:border-[#5C1B13]/40 hover:text-[#5C1B13] cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#7A2417] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#7A2417] shadow-2xs transition-colors hover:bg-[#7A2417]/5 cursor-pointer"
           >
-            <FiUpload className="w-3.5 h-3.5" />
+            <FiCamera className="w-3.5 h-3.5 text-[#7A2417]" />
             <span>{actionLabel || (hasValidAvatar ? "Replace Photo" : "Upload Photo")}</span>
           </button>
 

@@ -16,8 +16,8 @@ export const FLAGS = {
   /** "40+ Lab Quality Tests" claims in SocialProof counters and MarqueeTicker */
   SHOW_40_TESTS_CLAIM: false,
 
-  /** "FSSAI Licensed" claim until 14-digit registration number is provided */
-  SHOW_FSSAI_CLAIM: false,
+  /** "FSSAI Licensed" claim with verified 14-digit registration number 20526048000180 */
+  SHOW_FSSAI_CLAIM: true,
 
   /** "100% money-back guarantee" in TrialOffer */
   SHOW_MONEY_BACK_GUARANTEE: false,

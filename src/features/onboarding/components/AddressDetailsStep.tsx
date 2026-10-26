@@ -105,9 +105,19 @@ function AddressDetailsStepComponent({
     addressDraft?.addressType || "Home"
   );
 
-  // Keep parent draft updated whenever inputs change
+  // Keep parent draft updated whenever inputs change (debounced 250ms to prevent re-rendering parent on every keystroke)
+  const currentDraftRef = React.useRef({
+    houseNumber,
+    buildingName,
+    streetName,
+    landmark,
+    fullName,
+    mobile,
+    addressType,
+  });
+
   useEffect(() => {
-    onDraftChange?.({
+    currentDraftRef.current = {
       houseNumber,
       buildingName,
       streetName,
@@ -115,8 +125,19 @@ function AddressDetailsStepComponent({
       fullName,
       mobile,
       addressType,
-    });
+    };
+    const timer = setTimeout(() => {
+      onDraftChange?.(currentDraftRef.current);
+    }, 250);
+    return () => clearTimeout(timer);
   }, [houseNumber, buildingName, streetName, landmark, fullName, mobile, addressType, onDraftChange]);
+
+  // Flush latest draft on unmount so navigation preserves changes
+  useEffect(() => {
+    return () => {
+      onDraftChange?.(currentDraftRef.current);
+    };
+  }, [onDraftChange]);
 
   const [savingAddress, setSavingAddress] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -220,7 +241,7 @@ function AddressDetailsStepComponent({
     } catch {
       // Silently ignore live sync errors in background
     }
-  }, { intervalMs: 60000 });
+  }, { intervalMs: 120000, onFocus: false });
 
   // Load Cities whenever State changes
   useEffect(() => {

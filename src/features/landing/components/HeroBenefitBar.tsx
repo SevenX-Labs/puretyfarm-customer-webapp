@@ -41,6 +41,13 @@ const BENEFITS = [
     subtitle: "Daily",
   },
   {
+    icon: FiShield,
+    iconColor: "text-amber-700",
+    iconBg: "bg-amber-700/10",
+    title: "FSSAI Licensed",
+    subtitle: "Lic: 20526048000180",
+  },
+  {
     icon: FiDroplet,
     iconColor: "text-emerald-700",
     iconBg: "bg-emerald-700/10",

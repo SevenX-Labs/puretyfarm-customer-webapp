@@ -12,12 +12,21 @@ import {
   PayOrderResponse,
 } from "../types";
 
+const ORDERS_CACHE_TTL_MS = 15 * 1000;
+const cachedOrdersMap = new Map<string, { data: ListOrdersResponse; expiresAt: number }>();
+const inFlightOrdersMap = new Map<string, Promise<ListOrdersResponse>>();
+
 export const ordersApi = {
+  clearCache(): void {
+    cachedOrdersMap.clear();
+    inFlightOrdersMap.clear();
+  },
+
   /**
    * 1. List Orders
    * GET /api/v1/customer/orders
    */
-  async listOrders(params?: ListOrdersParams): Promise<ListOrdersResponse> {
+  async listOrders(params?: ListOrdersParams, forceRefresh = false): Promise<ListOrdersResponse> {
     const queryParams: Record<string, string | number | boolean | undefined> = {};
     if (params) {
       if (params.status) queryParams.status = params.status;
@@ -29,9 +38,20 @@ export const ordersApi = {
       if (params.limit !== undefined) queryParams.limit = params.limit;
     }
 
-    const res = await apiClient.get<any>("/api/v1/customer/orders", {
-      params: queryParams,
-    });
+    const cacheKey = JSON.stringify(queryParams);
+    const now = Date.now();
+    const cached = cachedOrdersMap.get(cacheKey);
+    if (!forceRefresh && cached && cached.expiresAt > now) {
+      return cached.data;
+    }
+    const inFlight = inFlightOrdersMap.get(cacheKey);
+    if (!forceRefresh && inFlight) {
+      return inFlight;
+    }
+
+    const promise = apiClient
+      .get<any>("/api/v1/customer/orders", { params: queryParams })
+      .then((res) => {
 
     // Normalize response if backend returns { data: [...], pagination: {...} }
     if (res && Array.isArray(res.data)) {
@@ -60,28 +80,42 @@ export const ordersApi = {
       };
     }
 
-    // Legacy { orders: [...] } fallback
-    if (res && Array.isArray(res.orders)) {
+      // Legacy { orders: [...] } fallback
+      if (res && Array.isArray(res.orders)) {
+        return {
+          data: res.orders,
+          pagination: {
+            page: 1,
+            limit: res.orders.length,
+            total: res.orders.length,
+            totalPages: 1,
+          },
+        };
+      }
+
       return {
-        data: res.orders,
+        data: [],
         pagination: {
           page: 1,
-          limit: res.orders.length,
-          total: res.orders.length,
-          totalPages: 1,
+          limit: 20,
+          total: 0,
+          totalPages: 0,
         },
       };
-    }
+    })
+    .then((normalizedResult) => {
+      cachedOrdersMap.set(cacheKey, {
+        data: normalizedResult,
+        expiresAt: Date.now() + ORDERS_CACHE_TTL_MS,
+      });
+      return normalizedResult;
+    })
+    .finally(() => {
+      inFlightOrdersMap.delete(cacheKey);
+    });
 
-    return {
-      data: [],
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        totalPages: 0,
-      },
-    };
+    inFlightOrdersMap.set(cacheKey, promise);
+    return promise;
   },
 
   /**
@@ -104,6 +138,7 @@ export const ordersApi = {
    * POST /api/v1/customer/orders
    */
   async createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
+    ordersApi.clearCache();
     const res = await apiClient.post<any>("/api/v1/customer/orders", payload);
     return {
       success: res?.success ?? true,
@@ -117,6 +152,7 @@ export const ordersApi = {
    * POST /api/v1/customer/orders/:id/reorder
    */
   async reorder(orderId: string, payload?: ReorderPayload): Promise<ReorderResponse> {
+    ordersApi.clearCache();
     const res = await apiClient.post<any>(
       `/api/v1/customer/orders/${orderId}/reorder`,
       payload || {}

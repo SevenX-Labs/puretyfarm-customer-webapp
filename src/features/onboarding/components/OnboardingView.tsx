@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { AnimatePresence, m } from "framer-motion";
 import { useOnboardingFlow } from "../hooks/useOnboardingFlow";
 import { ProfileStep } from "./ProfileStep";
@@ -115,11 +116,11 @@ export function OnboardingView() {
   }
 
   return (
-    <div data-onboarding-page="true" className="relative min-h-screen min-h-[100dvh] w-full bg-[#faf7f2] font-sans text-[#24130f] flex flex-col md:justify-center py-3 sm:py-5 md:py-6 pb-12 sm:pb-8 md:pb-6">
-      <main className="mx-auto w-full max-w-5xl xl:max-w-6xl px-3 sm:px-4 flex flex-col items-center md:my-auto shrink-0">
+    <div data-onboarding-page="true" className="relative min-h-screen min-h-[100dvh] w-full bg-[#faf7f2] font-sans text-[#24130f] flex flex-col md:justify-center py-5 sm:py-7 md:py-9 px-4 sm:px-6">
+      <main className="mx-auto w-full max-w-[860px] lg:max-w-[890px] flex flex-col items-center md:my-auto shrink-0">
         <section
           aria-label="Account setup and subscription workflow"
-          className="relative flex flex-col md:flex-row w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-xl md:min-h-[580px] lg:min-h-[620px] md:max-h-[92vh] overflow-visible md:overflow-hidden"
+          className="relative flex flex-col md:flex-row w-full rounded-2xl md:rounded-3xl border border-[#e2d5c7] bg-[#fffdf8] shadow-[0_22px_48px_-12px_rgba(50,30,20,0.14)] md:min-h-[540px] lg:min-h-[560px] md:max-h-[88vh] overflow-visible md:overflow-hidden"
         >
           {/* Left Sidebar - Shared across all 4 onboarding steps */}
           <OnboardingSidebar
@@ -129,7 +130,24 @@ export function OnboardingView() {
           />
 
           {/* Right Content Panel - Smooth transition only within right side */}
-          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] p-4 sm:p-5 lg:p-6.5 xl:p-7 md:overflow-y-auto md:h-full rounded-b-2xl md:rounded-r-3xl md:rounded-bl-none">
+          <div className="relative flex flex-col flex-1 min-h-0 bg-[#fffdf8] p-4 sm:p-5 lg:p-6 md:overflow-y-auto md:h-full rounded-b-2xl md:rounded-r-3xl md:rounded-bl-none overflow-hidden">
+            {/* Pastoral Gir Cow Illustration in top-right corner of the panel */}
+            {currentStep === 1 && (
+              <div
+                className="pointer-events-none absolute top-0 right-0 hidden md:block w-[320px] lg:w-[350px] xl:w-[370px] h-[165px] lg:h-[180px] xl:h-[190px] z-0 select-none overflow-hidden"
+                aria-hidden="true"
+              >
+                <Image
+                  src="/newimge/onboarding-header-cow-transparent.png"
+                  alt="Purety Farm Gir Cow"
+                  fill
+                  sizes="(max-width: 1024px) 320px, 370px"
+                  priority
+                  className="object-contain object-top-right opacity-95"
+                />
+              </div>
+            )}
+
             <AnimatePresence mode="wait" initial={false}>
               {currentStep === 1 && (
                 <m.div

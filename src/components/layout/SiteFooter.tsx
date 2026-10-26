@@ -45,7 +45,7 @@ export function SiteFooter() {
 
             <div className={styles.footerTrustBadge}>
               <FiShield className="w-4 h-4 text-[#F5E729] shrink-0" />
-              <span>FSSAI Certified · Zero Adulteration</span>
+              <span>FSSAI Lic. No. 20526048000180 · Zero Adulteration</span>
             </div>
           </div>
 
@@ -106,6 +106,7 @@ export function SiteFooter() {
         <div className={styles.footerBottomBar}>
           <div className={styles.footerLegalLinks}>
             <span>© {new Date().getFullYear()} PuretyFarm Raipur. All rights reserved.</span>
+            <span className="text-white/60 font-mono text-[11px] tracking-wide">FSSAI: 20526048000180</span>
             {FOOTER_LEGAL_LINKS.map((link) => (
               <Link key={link.label} href={link.href}>
                 {link.label}

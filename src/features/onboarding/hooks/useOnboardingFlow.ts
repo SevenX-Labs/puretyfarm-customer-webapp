@@ -13,6 +13,52 @@ import { Address } from "@/types/models";
 import { PlanDefinition } from "@/features/plans";
 import { StepKey } from "../types";
 
+let prefetchScheduled = false;
+
+function prefetchOnboardingData() {
+  if (typeof window === "undefined" || prefetchScheduled) return;
+  prefetchScheduled = true;
+
+  const runner = (cb: () => void) => {
+    if (typeof (window as any).requestIdleCallback === "function") {
+      (window as any).requestIdleCallback(cb);
+    } else {
+      setTimeout(cb, 150);
+    }
+  };
+
+  runner(() => {
+    // 1. Pre-warm location catalog (states -> cities -> areas for Raipur/CG)
+    locationApi.getStates().then((states) => {
+      const activeState = states[0]?.id;
+      if (activeState) {
+        locationApi.getCities(activeState).then((cities) => {
+          const activeCity = cities[0]?.id;
+          if (activeCity) {
+            locationApi.getAreas(activeCity).catch(() => {});
+          }
+        }).catch(() => {});
+      }
+    }).catch(() => {});
+
+    // 2. Pre-warm plans overview, configs, and pricing quotes in background
+    Promise.allSettled([
+      plansApi.getPlansOverview(),
+      plansApi.getMonthlyConfig(),
+      plansApi.getBuyOnceEligibility(),
+      plansApi.getTrialEligibility(),
+      plansApi.createTrialQuote(1),
+      plansApi.createBuyOnceQuote(1),
+      plansApi.createMonthlyQuote({ frequency: "DAILY", quantityMode: "FIXED", quantity: 1 }),
+    ]).catch(() => {});
+
+    // 3. Pre-warm wallet balance if token is present
+    if (tokenStorage.hasAccessToken()) {
+      walletApi.getWallet().catch(() => {});
+    }
+  });
+}
+
 export function useOnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -174,6 +220,8 @@ export function useOnboardingFlow() {
       }
 
       hasInitialized.current = true;
+      // Pre-warm background data (location catalogs, plan overview, quotes, wallet) in idle time
+      prefetchOnboardingData();
     } catch (err) {
       console.error("[initUserData error]", err);
     } finally {
@@ -193,7 +241,7 @@ export function useOnboardingFlow() {
   }, [maxAllowedStep]);
 
   // ─── STEP 1 HANDLER: Save Profile ───
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSaveProfile = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanName = profileName.trim();
     if (!cleanName || cleanName.startsWith("Customer (") || cleanName.toLowerCase() === "customer") {
@@ -240,15 +288,24 @@ export function useOnboardingFlow() {
         return;
       }
 
-      await refreshUser();
+      // Optimistically advance step immediately without waiting for refreshUser network cascade
       setMaxAllowedStep((prev) => Math.max(prev, 2) as StepKey);
       setCurrentStep(2);
+      void refreshUser().catch(() => {});
     } catch {
       setProfileError("Network error while updating profile. Please try again.");
     } finally {
       setProfileSaving(false);
     }
-  };
+  }, [
+    profileName,
+    profileWhatsapp,
+    profileEmail,
+    profileAvatar,
+    profileGender,
+    profileDob,
+    refreshUser,
+  ]);
 
   // ─── STEP 2 HANDLER: Address Saved (Immediate Transition to Step 3 Plan) ───
   const handleSaveVerifiedAddress = useCallback((createdAddr?: CustomerAddress) => {
@@ -286,6 +343,10 @@ export function useOnboardingFlow() {
 
   // Helper to load wallet balance
   const reloadWallet = useCallback(async () => {
+    if (!tokenStorage.getAccessToken() && !tokenStorage.getRefreshToken()) {
+      setWalletBalancePaise(0);
+      return;
+    }
     setWalletLoading(true);
     try {
       const summary = await walletApi.getWallet();
@@ -383,7 +444,7 @@ export function useOnboardingFlow() {
   }, [savedAddress, reloadWallet]);
 
   // Redirect to Order Confirmation using the backend-authoritative confirm response
-  const recordAndRedirectConfirmedOrder = async (
+  const recordAndRedirectConfirmedOrder = useCallback(async (
     method: "WALLET" | "CASH",
     confirmResult?: {
       selectionId?: string;
@@ -408,7 +469,7 @@ export function useOnboardingFlow() {
       window.localStorage.setItem("pf_onboarding_completed", "true");
     } catch {}
 
-    await refreshUser();
+    void refreshUser().catch(() => {});
 
     const params = new URLSearchParams({
       selectionId,
@@ -421,10 +482,10 @@ export function useOnboardingFlow() {
       params.set("cashCollectionId", confirmResult.cashCollectionId);
     }
     router.push(`/order-confirmation?${params.toString()}`);
-  };
+  }, [pendingPlan, pendingQuote, refreshUser, router]);
 
   // ─── STEP 4 HANDLERS: Payment Methods ───
-  const handlePayFromWallet = async () => {
+  const handlePayFromWallet = useCallback(async () => {
     if (!pendingQuote || !pendingPlan) return;
     setPaymentSubmitting(true);
     setPaymentError(null);
@@ -446,9 +507,9 @@ export function useOnboardingFlow() {
     } finally {
       setPaymentSubmitting(false);
     }
-  };
+  }, [pendingQuote, pendingPlan, recordAndRedirectConfirmedOrder]);
 
-  const handlePayOnline = async () => {
+  const handlePayOnline = useCallback(async () => {
     if (!pendingQuote || !pendingPlan) return;
     setPaymentSubmitting(true);
     setPaymentError(null);
@@ -485,9 +546,9 @@ export function useOnboardingFlow() {
       setPaymentError(Array.isArray(msg) ? msg.join(", ") : String(msg));
       setPaymentSubmitting(false);
     }
-  };
+  }, [pendingQuote, pendingPlan, walletBalancePaise, handlePayFromWallet]);
 
-  const handlePayCash = async () => {
+  const handlePayCash = useCallback(async () => {
     if (!pendingQuote || !pendingPlan) return;
     setPaymentSubmitting(true);
     setPaymentError(null);
@@ -514,15 +575,15 @@ export function useOnboardingFlow() {
     } finally {
       setPaymentSubmitting(false);
     }
-  };
+  }, [pendingQuote, pendingPlan, recordAndRedirectConfirmedOrder]);
 
-  const handleCancelPendingQuote = () => {
+  const handleCancelPendingQuote = useCallback(() => {
     setPendingQuote(null);
     setPendingPlan(null);
     setPaymentError(null);
     setPaymentNotice(null);
     setCurrentStep(3);
-  };
+  }, []);
 
   return {
     user,

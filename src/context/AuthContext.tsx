@@ -148,35 +148,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const router = useRouter();
+  const inFlightProfilePromiseRef = useRef<Promise<AuthUser | null> | null>(null);
 
   const fetchFullUserProfile = useCallback(async (): Promise<AuthUser | null> => {
-    // Load auth, profile, addresses, active plan, and orders in parallel
-    const [authData, profileData, addresses, manageDeliveryRes, ordersRes] = await Promise.all([
-      authApi.getMe().catch(() => null),
-      profileApi.getProfile().catch((): CustomerProfile | null => null),
-      locationApi.getAddresses().catch(() => [] as CustomerAddress[]),
-      manageDeliveryApi.getManageDelivery().catch(() => null),
-      accountApi.getOrders({ limit: 5, page: 1 }).catch(() => ({ success: false, orders: [] })),
-    ]);
-    if (!authData || !authData.id) return null;
-
-    if (profileData) {
-      setIsProfileLoaded(true);
-      setCacheData(`profile:${authData.id}`, profileData);
+    if (inFlightProfilePromiseRef.current) {
+      return inFlightProfilePromiseRef.current;
     }
 
-    const hasOrders = Boolean(ordersRes && ordersRes.orders && ordersRes.orders.length > 0);
-    const hasPendingPurchases = Boolean(
-      ordersRes &&
-      (ordersRes as any).pendingPlanPurchases &&
-      (ordersRes as any).pendingPlanPurchases.length > 0
-    );
-    const hasActivePlan = Boolean(
-      manageDeliveryRes?.activePlan || hasOrders || hasPendingPurchases
-    );
+    const promise = (async () => {
+      try {
+        // Load auth, profile, addresses, active plan, and orders in parallel
+        const [authData, profileData, addresses, manageDeliveryRes, ordersRes] = await Promise.all([
+          authApi.getMe().catch(() => null),
+          profileApi.getProfile().catch((): CustomerProfile | null => null),
+          locationApi.getAddresses().catch(() => [] as CustomerAddress[]),
+          manageDeliveryApi.getManageDelivery().catch(() => null),
+          accountApi.getOrders({ limit: 5, page: 1 }).catch(() => ({ success: false, orders: [] })),
+        ]);
+        if (!authData || !authData.id) return null;
 
-    const normalized = normalizeCustomerUser(authData, profileData, addresses, hasActivePlan, userRef.current);
-    return normalized;
+        if (profileData) {
+          setIsProfileLoaded(true);
+          setCacheData(`profile:${authData.id}`, profileData);
+        }
+
+        const hasOrders = Boolean(ordersRes && ordersRes.orders && ordersRes.orders.length > 0);
+        const hasPendingPurchases = Boolean(
+          ordersRes &&
+          (ordersRes as any).pendingPlanPurchases &&
+          (ordersRes as any).pendingPlanPurchases.length > 0
+        );
+        const hasActivePlan = Boolean(
+          manageDeliveryRes?.activePlan || hasOrders || hasPendingPurchases
+        );
+
+        const normalized = normalizeCustomerUser(authData, profileData, addresses, hasActivePlan, userRef.current);
+        return normalized;
+      } finally {
+        inFlightProfilePromiseRef.current = null;
+      }
+    })();
+
+    inFlightProfilePromiseRef.current = promise;
+    return promise;
   }, []);
 
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {

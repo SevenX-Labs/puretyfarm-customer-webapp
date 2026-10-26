@@ -29,13 +29,15 @@ export const onboardingApi = {
       const firstName = parts[0] || "Customer";
       const lastName = parts.slice(1).join(" ") || "User";
 
-      await profileApi.saveProfile({
+      const savePromise = profileApi.saveProfile({
         firstName,
         lastName,
         gender: payload.gender,
         dateOfBirth: payload.dob,
         whatsappNumber: payload.whatsappNumber,
       });
+
+      const localPatchPromise = apiClient.patch<{ success: boolean }>("/api/me", payload).catch(() => {});
 
       if (payload.avatarUrl && payload.avatarUrl.startsWith("data:image/")) {
         try {
@@ -45,7 +47,7 @@ export const onboardingApi = {
         }
       }
 
-      await apiClient.patch<{ success: boolean }>("/api/me", payload).catch(() => {});
+      await Promise.all([savePromise, localPatchPromise]);
       return { success: true, message: "Profile saved successfully." };
     } catch (err: any) {
       const errorMsg =

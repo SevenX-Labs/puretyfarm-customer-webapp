@@ -10,17 +10,41 @@ import {
   ListCreditRequestsResponse,
 } from "../types";
 
+const WALLET_CACHE_TTL_MS = 15 * 1000;
+let cachedWallet: { data: CustomerWallet; expiresAt: number } | null = null;
+let inFlightWalletPromise: Promise<CustomerWallet> | null = null;
+
 export const walletApi = {
+  clearCache(): void {
+    cachedWallet = null;
+    inFlightWalletPromise = null;
+  },
+
   /**
    * 7.1 Get Customer Wallet Balance and Status
    * GET /api/v1/customer/wallet
    */
-  async getWallet(): Promise<CustomerWallet> {
-    const res = await apiClient.get<any>("/api/v1/customer/wallet");
-    if (res && res.wallet) {
-      return res.wallet;
+  async getWallet(forceRefresh = false): Promise<CustomerWallet> {
+    const now = Date.now();
+    if (!forceRefresh && cachedWallet && cachedWallet.expiresAt > now) {
+      return cachedWallet.data;
     }
-    return res as CustomerWallet;
+    if (!forceRefresh && inFlightWalletPromise) {
+      return inFlightWalletPromise;
+    }
+
+    inFlightWalletPromise = apiClient
+      .get<any>("/api/v1/customer/wallet")
+      .then((res) => {
+        const wallet = (res && res.wallet ? res.wallet : res) as CustomerWallet;
+        cachedWallet = { data: wallet, expiresAt: Date.now() + WALLET_CACHE_TTL_MS };
+        return wallet;
+      })
+      .finally(() => {
+        inFlightWalletPromise = null;
+      });
+
+    return inFlightWalletPromise;
   },
 
   /**
