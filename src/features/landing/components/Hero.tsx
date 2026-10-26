@@ -6,6 +6,7 @@ import Link from "next/link";
 import { m } from "framer-motion";
 import { FiArrowRight, FiPlay, FiShield } from "react-icons/fi";
 import { HeroBenefitBar } from "./HeroBenefitBar";
+import { FLAGS } from "@/config/flags";
 
 export function Hero() {
   const ctaContainerRef = useRef<HTMLDivElement>(null);
@@ -182,26 +183,28 @@ export function Hero() {
         </div>
 
         {/* ─── BOTTOM RIGHT FSSAI BADGE (Dark Background) ─── */}
-        <div className="absolute bottom-[98px] sm:bottom-[70px] lg:bottom-[72px] right-3 sm:right-6 lg:right-8 z-20 pointer-events-auto">
-          <m.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="inline-flex items-center gap-2 sm:gap-2.5 px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-xl bg-[#1A1008]/92 hover:bg-[#1A1008] border border-[#3E2D24] shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md text-white transition-all duration-200 select-none"
-          >
-            <span className="flex h-5 w-5 sm:h-6 sm:w-6 rounded-md sm:rounded-lg bg-[#541711] border border-[#7A281E] items-center justify-center shrink-0 shadow-2xs">
-              <FiShield className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#F5E729]" />
-            </span>
-            <div className="flex flex-col text-left">
-              <span className="text-[8.5px] sm:text-[10px] font-semibold uppercase tracking-wider text-[#D1B89D] leading-none">
-                FSSAI Certified
+        {FLAGS.SHOW_FSSAI_CLAIM && (
+          <div className="absolute bottom-[98px] sm:bottom-[70px] lg:bottom-[72px] right-3 sm:right-6 lg:right-8 z-20 pointer-events-auto">
+            <m.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="inline-flex items-center gap-2 sm:gap-2.5 px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-xl bg-[#1A1008]/92 hover:bg-[#1A1008] border border-[#3E2D24] shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md text-white transition-all duration-200 select-none"
+            >
+              <span className="flex h-5 w-5 sm:h-6 sm:w-6 rounded-md sm:rounded-lg bg-[#541711] border border-[#7A281E] items-center justify-center shrink-0 shadow-2xs">
+                <FiShield className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#F5E729]" />
               </span>
-              <span className="text-[10.5px] sm:text-xs font-bold font-mono tracking-wide text-white leading-tight mt-0.5">
-                Lic. No. 20526048000180
-              </span>
-            </div>
-          </m.div>
-        </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[8.5px] sm:text-[10px] font-semibold uppercase tracking-wider text-[#D1B89D] leading-none">
+                  FSSAI Licensed
+                </span>
+                <span className="text-[10.5px] sm:text-xs font-bold font-mono tracking-wide text-white leading-tight mt-0.5">
+                  Lic. No. 20526048000180
+                </span>
+              </div>
+            </m.div>
+          </div>
+        )}
 
         {/* ─── BOTTOM HERO BENEFIT BAR ─── */}
         <HeroBenefitBar />

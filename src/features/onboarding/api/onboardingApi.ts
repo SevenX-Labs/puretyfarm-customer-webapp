@@ -39,6 +39,8 @@ export const onboardingApi = {
 
       const localPatchPromise = apiClient.patch<{ success: boolean }>("/api/me", payload).catch(() => {});
 
+      await savePromise;
+
       if (payload.avatarUrl && payload.avatarUrl.startsWith("data:image/")) {
         try {
           await profileApi.uploadAvatarFromDataUrl(payload.avatarUrl);
@@ -47,7 +49,7 @@ export const onboardingApi = {
         }
       }
 
-      await Promise.all([savePromise, localPatchPromise]);
+      await localPatchPromise;
       return { success: true, message: "Profile saved successfully." };
     } catch (err: any) {
       const errorMsg =

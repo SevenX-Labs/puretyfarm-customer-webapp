@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FiShield, FiClock, FiDroplet, FiThermometer } from "react-icons/fi";
 import { FaCow, FaLeaf } from "react-icons/fa6";
+import { FLAGS } from "@/config/flags";
 
 const BENEFITS = [
   {
@@ -56,9 +57,13 @@ const BENEFITS = [
   },
 ] as const;
 
+const ACTIVE_BENEFITS = FLAGS.SHOW_FSSAI_CLAIM
+  ? BENEFITS
+  : BENEFITS.filter((item) => item.title !== "FSSAI Licensed");
+
 // 4 copies create a 2-half set (2 copies in the first 50%, 2 copies in the second 50%)
 // ensuring a seamless infinite right-to-left loop on every screen width (including ultra-wide displays)
-const LOOPED_BENEFITS = [...BENEFITS, ...BENEFITS, ...BENEFITS, ...BENEFITS];
+const LOOPED_BENEFITS = [...ACTIVE_BENEFITS, ...ACTIVE_BENEFITS, ...ACTIVE_BENEFITS, ...ACTIVE_BENEFITS];
 
 export function HeroBenefitBar() {
   return (

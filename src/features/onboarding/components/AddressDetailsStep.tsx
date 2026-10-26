@@ -115,6 +115,7 @@ function AddressDetailsStepComponent({
     mobile,
     addressType,
   });
+  const hasSavedRef = React.useRef(false);
 
   useEffect(() => {
     currentDraftRef.current = {
@@ -135,7 +136,9 @@ function AddressDetailsStepComponent({
   // Flush latest draft on unmount so navigation preserves changes
   useEffect(() => {
     return () => {
-      onDraftChange?.(currentDraftRef.current);
+      if (!hasSavedRef.current) {
+        onDraftChange?.(currentDraftRef.current);
+      }
     };
   }, [onDraftChange]);
 
@@ -393,6 +396,7 @@ function AddressDetailsStepComponent({
         longitude: coords.lng,
       });
 
+      hasSavedRef.current = true;
       onAddressSaved(created);
     } catch (err: any) {
       const status = err?.status || err?.statusCode;

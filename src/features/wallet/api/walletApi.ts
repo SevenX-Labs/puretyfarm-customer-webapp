@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api/client";
 import { generateIdempotencyKey } from "@/features/payments/api/paymentsApi";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
 import {
   CustomerWallet,
   CreateCreditRequestPayload,
@@ -10,14 +11,33 @@ import {
   ListCreditRequestsResponse,
 } from "../types";
 
+function getAccountIdentity(): string {
+  const token = tokenStorage.getAccessToken();
+  if (!token) return "anonymous";
+  try {
+    const parts = token.split(".");
+    if (parts.length === 3) {
+      const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const decoded =
+        typeof atob === "function"
+          ? atob(b64)
+          : Buffer.from(b64, "base64").toString("utf-8");
+      const payload = JSON.parse(decoded);
+      return String(payload.userId || payload.sub || payload.id || token);
+    }
+  } catch {}
+  return token;
+}
+
 const WALLET_CACHE_TTL_MS = 15 * 1000;
-let cachedWallet: { data: CustomerWallet; expiresAt: number } | null = null;
-let inFlightWalletPromise: Promise<CustomerWallet> | null = null;
+const cachedWalletMap = new Map<string, { data: CustomerWallet; expiresAt: number }>();
+const inFlightWalletMap = new Map<string, { id: number; promise: Promise<CustomerWallet> }>();
+let nextWalletRequestId = 0;
 
 export const walletApi = {
   clearCache(): void {
-    cachedWallet = null;
-    inFlightWalletPromise = null;
+    cachedWalletMap.clear();
+    inFlightWalletMap.clear();
   },
 
   /**
@@ -25,26 +45,40 @@ export const walletApi = {
    * GET /api/v1/customer/wallet
    */
   async getWallet(forceRefresh = false): Promise<CustomerWallet> {
+    const accountId = getAccountIdentity();
     const now = Date.now();
-    if (!forceRefresh && cachedWallet && cachedWallet.expiresAt > now) {
-      return cachedWallet.data;
+    const cached = cachedWalletMap.get(accountId);
+    if (!forceRefresh && cached && cached.expiresAt > now) {
+      return cached.data;
     }
-    if (!forceRefresh && inFlightWalletPromise) {
-      return inFlightWalletPromise;
+    const inFlightEntry = inFlightWalletMap.get(accountId);
+    if (!forceRefresh && inFlightEntry) {
+      return inFlightEntry.promise;
     }
 
-    inFlightWalletPromise = apiClient
+    const requestId = ++nextWalletRequestId;
+    const promise = apiClient
       .get<any>("/api/v1/customer/wallet")
       .then((res) => {
         const wallet = (res && res.wallet ? res.wallet : res) as CustomerWallet;
-        cachedWallet = { data: wallet, expiresAt: Date.now() + WALLET_CACHE_TTL_MS };
+        const currentEntry = inFlightWalletMap.get(accountId);
+        if (currentEntry?.id === requestId) {
+          cachedWalletMap.set(accountId, {
+            data: wallet,
+            expiresAt: Date.now() + WALLET_CACHE_TTL_MS,
+          });
+        }
         return wallet;
       })
       .finally(() => {
-        inFlightWalletPromise = null;
+        const currentEntry = inFlightWalletMap.get(accountId);
+        if (currentEntry?.id === requestId) {
+          inFlightWalletMap.delete(accountId);
+        }
       });
 
-    return inFlightWalletPromise;
+    inFlightWalletMap.set(accountId, { id: requestId, promise });
+    return promise;
   },
 
   /**

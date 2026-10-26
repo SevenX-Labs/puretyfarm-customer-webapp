@@ -1,4 +1,6 @@
 import { apiClient } from "@/lib/api/client";
+import { tokenStorage } from "@/lib/auth/tokenStorage";
+import { walletApi } from "@/features/wallet/api/walletApi";
 import {
   CustomerOrder,
   ListOrdersParams,
@@ -12,12 +14,33 @@ import {
   PayOrderResponse,
 } from "../types";
 
+function getAccountIdentity(): string {
+  const token = tokenStorage.getAccessToken();
+  if (!token) return "anonymous";
+  try {
+    const parts = token.split(".");
+    if (parts.length === 3) {
+      const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const decoded =
+        typeof atob === "function"
+          ? atob(b64)
+          : Buffer.from(b64, "base64").toString("utf-8");
+      const payload = JSON.parse(decoded);
+      return String(payload.userId || payload.sub || payload.id || token);
+    }
+  } catch {}
+  return token;
+}
+
 const ORDERS_CACHE_TTL_MS = 15 * 1000;
 const cachedOrdersMap = new Map<string, { data: ListOrdersResponse; expiresAt: number }>();
-const inFlightOrdersMap = new Map<string, Promise<ListOrdersResponse>>();
+const inFlightOrdersMap = new Map<string, { id: number; promise: Promise<ListOrdersResponse> }>();
+let nextOrdersRequestId = 0;
+let ordersCacheEpoch = 0;
 
 export const ordersApi = {
   clearCache(): void {
+    ordersCacheEpoch++;
     cachedOrdersMap.clear();
     inFlightOrdersMap.clear();
   },
@@ -38,16 +61,20 @@ export const ordersApi = {
       if (params.limit !== undefined) queryParams.limit = params.limit;
     }
 
-    const cacheKey = JSON.stringify(queryParams);
+    const accountId = getAccountIdentity();
+    const cacheKey = `${accountId}::${JSON.stringify(queryParams)}`;
     const now = Date.now();
     const cached = cachedOrdersMap.get(cacheKey);
     if (!forceRefresh && cached && cached.expiresAt > now) {
       return cached.data;
     }
-    const inFlight = inFlightOrdersMap.get(cacheKey);
-    if (!forceRefresh && inFlight) {
-      return inFlight;
+    const inFlightEntry = inFlightOrdersMap.get(cacheKey);
+    if (!forceRefresh && inFlightEntry) {
+      return inFlightEntry.promise;
     }
+
+    const requestId = ++nextOrdersRequestId;
+    const requestEpoch = ordersCacheEpoch;
 
     const promise = apiClient
       .get<any>("/api/v1/customer/orders", { params: queryParams })
@@ -104,17 +131,22 @@ export const ordersApi = {
       };
     })
     .then((normalizedResult) => {
-      cachedOrdersMap.set(cacheKey, {
-        data: normalizedResult,
-        expiresAt: Date.now() + ORDERS_CACHE_TTL_MS,
-      });
+      if (requestEpoch === ordersCacheEpoch) {
+        cachedOrdersMap.set(cacheKey, {
+          data: normalizedResult,
+          expiresAt: Date.now() + ORDERS_CACHE_TTL_MS,
+        });
+      }
       return normalizedResult;
     })
     .finally(() => {
-      inFlightOrdersMap.delete(cacheKey);
+      const currentEntry = inFlightOrdersMap.get(cacheKey);
+      if (currentEntry?.id === requestId) {
+        inFlightOrdersMap.delete(cacheKey);
+      }
     });
 
-    inFlightOrdersMap.set(cacheKey, promise);
+    inFlightOrdersMap.set(cacheKey, { id: requestId, promise });
     return promise;
   },
 
@@ -138,10 +170,13 @@ export const ordersApi = {
    * POST /api/v1/customer/orders
    */
   async createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
-    ordersApi.clearCache();
     const res = await apiClient.post<any>("/api/v1/customer/orders", payload);
+    const isSuccess = res?.success ?? true;
+    if (isSuccess) {
+      ordersApi.clearCache();
+    }
     return {
-      success: res?.success ?? true,
+      success: isSuccess,
       message: res?.message || "Order created successfully.",
       order: res?.order || res?.data || res,
     };
@@ -152,13 +187,16 @@ export const ordersApi = {
    * POST /api/v1/customer/orders/:id/reorder
    */
   async reorder(orderId: string, payload?: ReorderPayload): Promise<ReorderResponse> {
-    ordersApi.clearCache();
     const res = await apiClient.post<any>(
       `/api/v1/customer/orders/${orderId}/reorder`,
       payload || {}
     );
+    const isSuccess = res?.success ?? true;
+    if (isSuccess) {
+      ordersApi.clearCache();
+    }
     return {
-      success: res?.success ?? true,
+      success: isSuccess,
       message: res?.message || "Reorder created successfully.",
       order: res?.order || res?.data || res,
     };
@@ -191,12 +229,24 @@ export const ordersApi = {
       `/api/v1/customer/orders/${orderId}/pay`,
       payload
     );
+
+    const paymentStatus = res?.paymentStatus || "PAID";
+    const isSuccess = (res?.success ?? true) && paymentStatus !== "FAILED";
+
+    if (isSuccess) {
+      ordersApi.clearCache();
+      const method = payload?.paymentMethod || res?.paymentMethod || "WALLET";
+      if (method === "WALLET") {
+        walletApi.clearCache();
+      }
+    }
+
     return {
-      success: res?.success ?? true,
+      success: isSuccess,
       orderId: res?.orderId || orderId,
-      paymentMethod: res?.paymentMethod || "WALLET",
-      paymentStatus: res?.paymentStatus || "PAID",
-      orderStatus: res?.orderStatus || "CONFIRMED",
+      paymentMethod: res?.paymentMethod || payload?.paymentMethod || "WALLET",
+      paymentStatus,
+      orderStatus: res?.orderStatus || (isSuccess ? "CONFIRMED" : "PENDING"),
       message: res?.message,
     };
   },

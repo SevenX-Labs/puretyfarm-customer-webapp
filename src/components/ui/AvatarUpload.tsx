@@ -278,7 +278,7 @@ export function AvatarUpload({
       <div className="relative group shrink-0">
         <div
           className={`
-            w-16 h-16 sm:w-18 sm:h-18 rounded-full border-2 border-[#E8DFD4] 
+            ${size === "large" ? "w-24 h-24 sm:w-28 sm:h-28" : "w-16 h-16 sm:w-18 sm:h-18"} rounded-full border-2 border-[#E8DFD4] 
             overflow-hidden shadow-xs flex items-center justify-center
             bg-[#F4E6D5] transition-all
             ${uploading ? "opacity-60" : "group-hover:border-[#671A1B]"}

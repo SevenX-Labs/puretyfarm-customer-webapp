@@ -8,6 +8,7 @@ import { FiShield, FiPhone, FiMail, FiMapPin, FiArrowUp } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useLenis } from "@/components/providers/SmoothScrollProvider";
 import { FOOTER_EXPLORE_LINKS, FOOTER_LEGAL_LINKS } from "@/content/navigation";
+import { FLAGS } from "@/config/flags";
 import styles from "./MarketingShell.module.css";
 
 export function SiteFooter() {
@@ -43,10 +44,12 @@ export function SiteFooter() {
               Raipur&apos;s trusted source for 100% raw, unadulterated A2 Gir cow milk. Ethically reared, milked at dawn, chilled at 4°C, and delivered to your doorstep each morning in sanitized glass bottles.
             </p>
 
-            <div className={styles.footerTrustBadge}>
-              <FiShield className="w-4 h-4 text-[#F5E729] shrink-0" />
-              <span>FSSAI Lic. No. 20526048000180 · Zero Adulteration</span>
-            </div>
+            {FLAGS.SHOW_FSSAI_CLAIM && (
+              <div className={styles.footerTrustBadge}>
+                <FiShield className="w-4 h-4 text-[#F5E729] shrink-0" />
+                <span>FSSAI Lic. No. 20526048000180 · Zero Adulteration</span>
+              </div>
+            )}
           </div>
 
           {/* Column 2: Quick Links */}
@@ -106,7 +109,9 @@ export function SiteFooter() {
         <div className={styles.footerBottomBar}>
           <div className={styles.footerLegalLinks}>
             <span>© {new Date().getFullYear()} PuretyFarm Raipur. All rights reserved.</span>
-            <span className="text-white/60 font-mono text-[11px] tracking-wide">FSSAI: 20526048000180</span>
+            {FLAGS.SHOW_FSSAI_CLAIM && (
+              <span className="text-white/60 font-mono text-[11px] tracking-wide">FSSAI: 20526048000180</span>
+            )}
             {FOOTER_LEGAL_LINKS.map((link) => (
               <Link key={link.label} href={link.href}>
                 {link.label}

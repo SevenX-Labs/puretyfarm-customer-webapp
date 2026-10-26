@@ -17,6 +17,8 @@ import {
   subscribeToAuthSession,
 } from "@/lib/auth/refreshSession";
 import { clearUserCache, clearAllCache, setCacheData, getCacheData } from "@/lib/cache/swrCache";
+import { ordersApi } from "@/features/orders/api/ordersApi";
+import { walletApi } from "@/features/wallet/api/walletApi";
 import { User, OnboardingStatus } from "@/types/models";
 
 export interface AuthUser extends User {
@@ -149,11 +151,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const router = useRouter();
   const inFlightProfilePromiseRef = useRef<Promise<AuthUser | null> | null>(null);
+  const sessionEpochRef = useRef<number>(0);
 
   const fetchFullUserProfile = useCallback(async (): Promise<AuthUser | null> => {
     if (inFlightProfilePromiseRef.current) {
       return inFlightProfilePromiseRef.current;
     }
+
+    const sessionEpoch = sessionEpochRef.current;
+    const holder: { promise: Promise<AuthUser | null> | null } = { promise: null };
 
     const promise = (async () => {
       try {
@@ -165,6 +171,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           manageDeliveryApi.getManageDelivery().catch(() => null),
           accountApi.getOrders({ limit: 5, page: 1 }).catch(() => ({ success: false, orders: [] })),
         ]);
+
+        if (sessionEpochRef.current !== sessionEpoch) {
+          return null;
+        }
+
         if (!authData || !authData.id) return null;
 
         if (profileData) {
@@ -185,10 +196,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const normalized = normalizeCustomerUser(authData, profileData, addresses, hasActivePlan, userRef.current);
         return normalized;
       } finally {
-        inFlightProfilePromiseRef.current = null;
+        if (inFlightProfilePromiseRef.current === holder.promise) {
+          inFlightProfilePromiseRef.current = null;
+        }
       }
     })();
 
+    holder.promise = promise;
     inFlightProfilePromiseRef.current = promise;
     return promise;
   }, []);
@@ -200,7 +214,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (tokenStorage.getAccessToken()) {
+        const sessionEpoch = sessionEpochRef.current;
         const authUser = await fetchFullUserProfile();
+        if (sessionEpochRef.current !== sessionEpoch) {
+          return null;
+        }
         if (authUser) {
           setUser((prev) => (areUsersEqual(prev, authUser) ? prev : authUser));
           setAuthError(null);
@@ -227,13 +245,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       if (tokenStorage.getRefreshToken()) {
         try {
+          const sessionEpoch = sessionEpochRef.current;
           const result = await bootstrapAuthSession(async () => {
             const authUser = await fetchFullUserProfile();
-            if (!authUser) {
+            if (sessionEpochRef.current !== sessionEpoch || !authUser) {
               throw new Error("The authenticated customer profile was unavailable.");
             }
             return authUser;
           });
+          if (sessionEpochRef.current !== sessionEpoch) return;
           if (result.status === "authenticated" && result.value) {
             const nextUser = result.value as AuthUser;
             setUser((prev) => (areUsersEqual(prev, nextUser) ? prev : nextUser));
@@ -248,7 +268,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (tokenStorage.getAccessToken()) {
         try {
+          const sessionEpoch = sessionEpochRef.current;
           const authUser = await fetchFullUserProfile();
+          if (sessionEpochRef.current !== sessionEpoch) return;
           if (authUser) {
             setUser((prev) => (areUsersEqual(prev, authUser) ? prev : authUser));
             setStatus("authenticated");
@@ -259,6 +281,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!tokenStorage.getRefreshToken() && !tokenStorage.getAccessToken()) {
+        sessionEpochRef.current += 1;
+        inFlightProfilePromiseRef.current = null;
+        ordersApi.clearCache();
+        walletApi.clearCache();
         if (typeof window !== "undefined") {
           fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
         }
@@ -272,6 +298,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err: any) {
       if (isDefiniteRefreshRejection(err)) {
+        sessionEpochRef.current += 1;
+        inFlightProfilePromiseRef.current = null;
+        ordersApi.clearCache();
+        walletApi.clearCache();
         tokenStorage.clearTokens();
         setUser(null);
         setIsProfileLoaded(false);
@@ -304,6 +334,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () =>
       subscribeToAuthSession((event) => {
         if (event.type === "ended") {
+          sessionEpochRef.current += 1;
+          inFlightProfilePromiseRef.current = null;
+          ordersApi.clearCache();
+          walletApi.clearCache();
           setUser(null);
           setIsProfileLoaded(false);
           setStatus("unauthenticated");
@@ -312,8 +346,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
+        const sessionEpoch = sessionEpochRef.current;
         void fetchFullUserProfile()
           .then((authUser) => {
+            if (sessionEpochRef.current !== sessionEpoch) return;
             if (authUser) {
               setUser((prev) => (areUsersEqual(prev, authUser) ? prev : authUser));
             }
@@ -328,6 +364,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    sessionEpochRef.current += 1;
+    inFlightProfilePromiseRef.current = null;
+    ordersApi.clearCache();
+    walletApi.clearCache();
     try {
       const currentId = userRef.current?.id;
       if (currentId) clearUserCache(currentId);
