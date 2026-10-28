@@ -90,7 +90,7 @@ export async function apiClient<T = unknown>(
   options: RequestOptions = {}
 ): Promise<T> {
   const {
-    timeoutMs = 10000,
+    timeoutMs = 30000,
     params,
     headers,
     skipAuth = false,
