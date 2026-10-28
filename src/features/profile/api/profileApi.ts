@@ -12,6 +12,7 @@ export interface CustomerProfile {
   mobile: string;
   email: string | null;
   emailVerified: boolean;
+  membershipType?: "NORMAL" | "VIP";
   createdAt: string;
   updatedAt: string;
 }

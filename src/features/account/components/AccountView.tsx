@@ -26,7 +26,7 @@ import {
   FiChevronDown,
 } from "react-icons/fi";
 import { LuWallet } from "react-icons/lu";
-import { EmailVerificationModal } from "@/components/pf";
+import { EmailVerificationModal, VipBadge } from "@/components/pf";
 
 export function AccountView() {
   const {
@@ -222,9 +222,10 @@ export function AccountView() {
                   <span>{initials}</span>
                 )}
               </div>
-              <span className="text-xs sm:text-sm text-[#3A241C] font-normal hidden sm:inline flex items-center gap-1">
+              <span className="text-xs sm:text-sm text-[#3A241C] font-normal hidden sm:inline-flex items-center gap-1.5">
                 <span>Namaste,</span>
                 <strong className="text-[#1A1008] font-bold">{user.name || "Customer"}</strong>
+                {user.membershipType === "VIP" && <VipBadge size="xs" />}
               </span>
             </div>
 
@@ -256,7 +257,10 @@ export function AccountView() {
                     {initials}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#1A1008]">{user.name || "Customer"}</p>
+                    <p className="text-xs font-bold text-[#1A1008] flex items-center gap-1.5">
+                      {user.name || "Customer"}
+                      {user.membershipType === "VIP" && <VipBadge size="xs" />}
+                    </p>
                     <p className="text-[10px] text-[#6B584C] font-mono">{user.phone}</p>
                   </div>
                 </div>
@@ -319,10 +323,13 @@ export function AccountView() {
         {/* Welcome Section */}
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-6">
           <div className="max-w-2xl">
-            {/* Raipur Cold-Chain Customer Badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF3EA]/90 border border-[#E8DFD4] text-[#5C1B13] text-xs font-semibold shadow-2xs backdrop-blur-xs">
-              <FiShield className="w-3.5 h-3.5 text-[#5C1B13]" />
-              <span>Raipur Cold-Chain Customer</span>
+            {/* Customer / VIP Badge */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF3EA]/90 border border-[#E8DFD4] text-[#5C1B13] text-xs font-semibold shadow-2xs backdrop-blur-xs">
+                <FiShield className="w-3.5 h-3.5 text-[#5C1B13]" />
+                <span>Raipur Cold-Chain Customer</span>
+              </div>
+              {user.membershipType === "VIP" && <VipBadge size="md" />}
             </div>
 
             {/* Main Greeting */}

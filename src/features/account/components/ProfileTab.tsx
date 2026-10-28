@@ -6,6 +6,7 @@ import React from "react";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { Button } from "@/components/ui/Button";
 import { User } from "@/types/models";
+import { VipBadge } from "@/components/pf/VipBadge";
 import {
   FiCheckCircle,
   FiEdit2,
@@ -110,6 +111,7 @@ export function ProfileTab({
     : "Not specified";
 
   const isEmailVerified = Boolean((user as any).emailVerified);
+  const isVip = user.membershipType === "VIP";
 
   return (
     <div className="w-full">
@@ -173,7 +175,7 @@ export function ProfileTab({
           {/* Main Profile Info Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl bg-[#FAF6F0]/70 border border-[#E8DFD4] gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-[#FAF3EA] border-2 border-[#E8DFD4] flex items-center justify-center shrink-0 shadow-xs">
+              <div className={`w-16 h-16 sm:w-18 sm:h-18 rounded-2xl overflow-hidden bg-[#FAF3EA] border-2 flex items-center justify-center shrink-0 shadow-xs ${isVip ? "border-[#D4A853] ring-2 ring-[#D4A853]/20" : "border-[#E8DFD4]"}`}>
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
@@ -187,8 +189,9 @@ export function ProfileTab({
                 )}
               </div>
               <div className="min-w-0">
-                <h3 className="text-lg sm:text-xl font-bold text-[#1A1008] truncate">
+                <h3 className="text-lg sm:text-xl font-bold text-[#1A1008] truncate flex items-center gap-2">
                   {user.name || "Customer"}
+                  {isVip && <VipBadge />}
                 </h3>
                 <div className="mt-1 flex items-center gap-2 flex-wrap">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF1E2] text-[#5C1B13] border border-[#E8DFD4]">
@@ -315,6 +318,35 @@ export function ProfileTab({
               </p>
             </div>
           </div>
+
+          {/* VIP Membership Banner */}
+          {isVip && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#FBF3DE] via-[#F9EDD0] to-[#F5E4BE] border border-[#D4A853]/25 p-4 sm:p-5 mt-5">
+              <div className="pointer-events-none absolute -right-4 -top-4 w-24 h-24 rounded-full bg-[#D4A853]/8" aria-hidden="true" />
+              <div className="pointer-events-none absolute -right-1 -bottom-6 w-16 h-16 rounded-full bg-[#D4A853]/5" aria-hidden="true" />
+              <div className="relative flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4A853] to-[#B8872E] flex items-center justify-center text-white shrink-0 shadow-sm">
+                  <svg
+                    className="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M5 16L3 5l5.5 5L12 3l3.5 7L21 5l-2 11H5z" />
+                    <path d="M5 19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1H5v1z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[#7A5A10]">
+                    You&apos;re a VIP Member
+                  </p>
+                  <p className="text-[12px] text-[#9B7B2C] mt-0.5 leading-relaxed">
+                    Priority deliveries, exclusive farm perks, and special offers.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Bottom Quote Banner */}
           <div className="rounded-2xl bg-[#FAF4ED] border border-[#E8DFD4]/70 p-4 sm:p-5 flex items-center gap-3.5 mt-5">

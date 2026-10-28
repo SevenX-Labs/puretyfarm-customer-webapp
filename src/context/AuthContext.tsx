@@ -119,6 +119,7 @@ function normalizeCustomerUser(
     gender: profile?.gender?.toLowerCase() || data.gender || prevUser?.gender,
     dob: profile?.dateOfBirth ? profile.dateOfBirth.split("T")[0] : data.dob || prevUser?.dob,
     onboardingStep,
+    membershipType: profile?.membershipType || prevUser?.membershipType,
     createdAt: profile?.createdAt || data.createdAt || prevUser?.createdAt,
     updatedAt: profile?.updatedAt || data.updatedAt || prevUser?.updatedAt,
   };
@@ -135,7 +136,8 @@ function areUsersEqual(a: AuthUser | null, b: AuthUser | null): boolean {
     a.mobile === b.mobile &&
     a.role === b.role &&
     a.onboardingStep === b.onboardingStep &&
-    a.emailVerified === b.emailVerified
+    a.emailVerified === b.emailVerified &&
+    a.membershipType === b.membershipType
   );
 }
 

@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { FiArrowLeft, FiArrowRight, FiRefreshCw } from "react-icons/fi";
+import { FiAlertCircle, FiArrowLeft, FiArrowRight, FiRefreshCw } from "react-icons/fi";
 
 export interface OtpStepProps {
   loading: boolean;
   countdown: number;
   otpValues: string[];
+  errorMessage?: string | null;
   otpInputRefs: React.MutableRefObject<(HTMLInputElement | null)[]>;
   onChangePhone: () => void;
   onOtpDigitChange: (index: number, val: string) => void;
@@ -20,6 +21,7 @@ export function OtpStep({
   loading,
   countdown,
   otpValues,
+  errorMessage,
   otpInputRefs,
   onChangePhone,
   onOtpDigitChange,
@@ -28,6 +30,7 @@ export function OtpStep({
   onResendOtp,
   onSubmit,
 }: OtpStepProps) {
+  const hasError = Boolean(errorMessage);
   return (
     <div>
       <form onSubmit={onSubmit} className="space-y-3.5 sm:space-y-4">
@@ -54,14 +57,26 @@ export function OtpStep({
                 onPaste={onOtpPaste}
                 aria-label={`Verification code digit ${index + 1}`}
                 className={`h-11 sm:h-11 lg:h-[44px] w-full min-w-0 px-0 rounded-xl border text-center text-[18px] sm:text-[19px] font-semibold outline-none transition-colors focus:border-[#7a2417] focus:ring-2 focus:ring-[#7a2417]/10 disabled:opacity-60 ${
-                  digit
-                    ? "border-[#9c705b] bg-[#fffaf3] text-[#7a2417]"
-                    : "border-[#d8d0c6] bg-white text-[#24130f]"
+                  hasError
+                    ? "border-red-400 bg-red-50/50 text-red-700"
+                    : digit
+                      ? "border-[#9c705b] bg-[#fffaf3] text-[#7a2417]"
+                      : "border-[#d8d0c6] bg-white text-[#24130f]"
                 }`}
               />
             ))}
           </div>
         </fieldset>
+
+        {hasError && (
+          <div
+            role="alert"
+            className="flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-[11.5px] font-medium text-red-700"
+          >
+            <FiAlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <div className="flex min-h-[20px] items-center justify-between gap-2 text-[11.5px] sm:text-[12px]">
           <span className="text-[#71665f]">Didn&apos;t receive the code?</span>

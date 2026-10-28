@@ -15,6 +15,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { VipBadge } from "../VipBadge";
 import { LogoutConfirmDialog } from "../LogoutConfirmDialog";
 
 const NAV = [
@@ -143,11 +144,12 @@ export function CustomerSidebar() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-bold text-[var(--pf-text)] truncate">
+                  <div className="text-[13px] font-bold text-[var(--pf-text)] truncate flex items-center gap-1.5">
                     {firstName}
+                    {user?.membershipType === "VIP" && <VipBadge size="xs" />}
                   </div>
-                  <div className="text-[11px] text-[var(--pf-text-muted)] font-medium">
-                    Customer
+                  <div className={`text-[11px] font-medium ${user?.membershipType === "VIP" ? "text-[#B8872E]" : "text-[var(--pf-text-muted)]"}`}>
+                    {user?.membershipType === "VIP" ? "VIP Member" : "Customer"}
                   </div>
                 </div>
               </>

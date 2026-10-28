@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bell, MapPin, ChevronDown, LogOut, Settings, User as UserIcon, CircleHelp } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { VipBadge } from "../VipBadge";
 import { LogoutConfirmDialog } from "../LogoutConfirmDialog";
 
 function greeting(now = new Date()) {
@@ -59,9 +60,12 @@ export function CustomerHeader({
     <>
       <header className="flex items-start sm:items-center justify-between gap-4 pb-6 sm:pb-8 flex-col sm:flex-row">
         <div className="min-w-0">
-          <h1 className="text-[24px] sm:text-[30px] md:text-[36px] font-bold text-[var(--pf-text)] leading-[1.1] tracking-tight break-words">
-            {headingTitle}
-          </h1>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-[24px] sm:text-[30px] md:text-[36px] font-bold text-[var(--pf-text)] leading-[1.1] tracking-tight break-words">
+              {headingTitle}
+            </h1>
+            {user?.membershipType === "VIP" && <VipBadge size="sm" />}
+          </div>
           <p className="mt-1.5 text-[14px] sm:text-[15px] text-[var(--pf-text-secondary)]">
             {headingSubtitle}
           </p>
@@ -112,8 +116,9 @@ export function CustomerHeader({
                 className="absolute right-0 mt-2 w-56 rounded-[14px] bg-white border border-[var(--pf-border)] shadow-[var(--pf-shadow-lg)] overflow-hidden z-30 pf-page-in"
               >
                 <div className="px-4 py-3 border-b border-[var(--pf-border)]">
-                  <div className="text-[13px] font-bold text-[var(--pf-text)] truncate">
+                  <div className="text-[13px] font-bold text-[var(--pf-text)] truncate flex items-center gap-1.5">
                     {user?.name || "Customer"}
+                    {user?.membershipType === "VIP" && <VipBadge size="xs" />}
                   </div>
                   {user?.email && (
                     <div className="text-[12px] text-[var(--pf-text-muted)] truncate">

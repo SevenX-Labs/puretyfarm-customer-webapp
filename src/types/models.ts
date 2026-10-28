@@ -13,6 +13,7 @@ export interface User {
   avatarUrl?: string;
   gender?: string;
   dob?: string;
+  membershipType?: "NORMAL" | "VIP";
   onboardingStep?: OnboardingStatus;
   createdAt?: string;
   updatedAt?: string;

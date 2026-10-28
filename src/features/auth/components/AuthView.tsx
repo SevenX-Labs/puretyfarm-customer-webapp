@@ -241,6 +241,7 @@ export function AuthView() {
                       loading={loading}
                       countdown={countdown}
                       otpValues={otpValues}
+                      errorMessage={errorMessage}
                       otpInputRefs={otpInputRefs}
                       onChangePhone={() => {
                         setStep("phone");
