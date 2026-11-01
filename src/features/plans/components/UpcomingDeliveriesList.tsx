@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PfBadge, PfCard } from "@/components/pf";
 import type { UpcomingDeliveryView } from "@/features/delivery/types";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { CalendarClock, AlertCircle, CalendarX } from "lucide-react";
 
 const VISIBLE_ROWS = 10;
 
@@ -15,8 +16,7 @@ function statusTone(status: string): "success" | "warning" | "neutral" {
 
 /**
  * The plan's upcoming deliveries, one row per day: scheduled date, order
- * number, quantity and what that delivery is expected to cost. Every value is
- * the server's; an amount is shown only when the delivery has an order.
+ * number, quantity, skip/reschedule reason and what that delivery is expected to cost.
  */
 export function UpcomingDeliveriesList({
   deliveries,
@@ -47,34 +47,87 @@ export function UpcomingDeliveriesList({
       )}
 
       <ul className="mt-4 divide-y divide-[var(--pf-border)]">
-        {visible.map((d) => (
-          <li
-            key={d.date}
-            className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2.5"
-          >
-            <div className="min-w-0">
-              <div className="text-[14px] font-semibold text-[var(--pf-text)]">{d.date}</div>
-              <div className="text-[12px] text-[var(--pf-text-muted)]">
-                {d.orderNumber ? `Order #${d.orderNumber}` : "Order not created yet"} ·{" "}
-                {d.quantityLitres}L
+        {visible.map((d) => {
+          const isSkipped = d.status === "SKIPPED";
+          const isRescheduled = Boolean(d.rescheduledFrom);
+
+          return (
+            <li
+              key={d.date}
+              className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 py-3"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[14px] font-semibold text-[var(--pf-text)]">{d.date}</span>
+                  {isRescheduled && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                      <CalendarClock size={11} className="shrink-0" />
+                      Rescheduled
+                    </span>
+                  )}
+                  {isSkipped && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                      <CalendarX size={11} className="shrink-0" />
+                      {d.actionBy === "ADMIN" ? "Skipped by Admin" : "Skipped"}
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-[12px] text-[var(--pf-text-muted)] mt-0.5">
+                  {d.orderNumber ? `Order #${d.orderNumber}` : "Order not created yet"} ·{" "}
+                  {d.quantityLitres}L
+                </div>
+
+                {/* Rescheduled Notice */}
+                {isRescheduled && (
+                  <div className="mt-1.5 text-[12px] text-sky-950 bg-sky-50/80 border border-sky-200 rounded-lg p-2">
+                    <div className="font-medium">
+                      Originally scheduled for <strong>{d.rescheduledFrom}</strong> · Moved to this date
+                    </div>
+                    {d.adminNote && (
+                      <div className="mt-0.5 text-[11.5px] text-sky-800">
+                        Reason: &ldquo;{d.adminNote}&rdquo;
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Skipped Notice */}
+                {isSkipped && (
+                  <div className="mt-1.5 text-[12px] text-amber-950 bg-amber-50/80 border border-amber-200 rounded-lg p-2">
+                    <div className="font-medium">
+                      {d.actionBy === "ADMIN"
+                        ? "This delivery was skipped by Purety Farm Admin."
+                        : d.actionBy === "CUSTOMER"
+                        ? "You skipped this delivery."
+                        : "This delivery was skipped."}
+                    </div>
+                    {d.adminNote && (
+                      <div className="mt-0.5 text-[11.5px] text-amber-800">
+                        Reason: &ldquo;{d.adminNote}&rdquo;
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {d.expectedAmountPaise != null && d.status !== "SKIPPED" && (
-                <span className="text-[14px] font-bold text-[var(--pf-text)]">
-                  {formatCurrency(d.expectedAmountPaise / 100)}
-                </span>
-              )}
-              <PfBadge tone={statusTone(d.status)} dot>
-                {d.status === "SCHEDULED"
-                  ? "Scheduled"
-                  : d.status === "SKIPPED"
-                  ? "Skipped"
-                  : "Delivered"}
-              </PfBadge>
-            </div>
-          </li>
-        ))}
+
+              <div className="flex items-center gap-3 shrink-0 pt-0.5">
+                {d.expectedAmountPaise != null && !isSkipped && (
+                  <span className="text-[14px] font-bold text-[var(--pf-text)]">
+                    {formatCurrency(d.expectedAmountPaise / 100)}
+                  </span>
+                )}
+                <PfBadge tone={statusTone(d.status)} dot>
+                  {d.status === "SCHEDULED"
+                    ? (isRescheduled ? "Rescheduled" : "Scheduled")
+                    : isSkipped
+                    ? "Skipped"
+                    : "Delivered"}
+                </PfBadge>
+              </div>
+            </li>
+          );
+        })}
       </ul>
       {hidden > 0 && (
         <p className="mt-3 text-[12.5px] text-[var(--pf-text-muted)]">

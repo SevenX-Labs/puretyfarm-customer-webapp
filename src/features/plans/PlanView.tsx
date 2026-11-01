@@ -20,6 +20,8 @@ import {
   SkipForward,
   PauseCircle,
   CalendarRange,
+  CalendarClock,
+  CalendarX,
 } from "lucide-react";
 import { MonthlyUpgradeModal } from "./components/MonthlyUpgradeModal";
 import { SubscriptionStatusCard } from "./components/SubscriptionStatusCard";
@@ -501,6 +503,90 @@ export function PlanView() {
                 (activePlan?.billingModel ?? subscription?.billingModel) === "PER_DELIVERY"
               }
             />
+          )}
+
+          {/* Schedule Updates & Change Requests Audit Card */}
+          {changeRequests && changeRequests.length > 0 && (
+            <PfCard padding="lg">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <CalendarClock size={18} className="text-[var(--pf-brown)]" />
+                  <h3 className="text-[16px] font-bold text-[var(--pf-text)]">
+                    Schedule Updates & Change Requests
+                  </h3>
+                </div>
+                <span className="text-[12px] font-mono text-[var(--pf-text-muted)]">
+                  {changeRequests.length} update{changeRequests.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <p className="mt-1 text-[12.5px] text-[var(--pf-text-secondary)]">
+                Transparent record of schedule changes made by you or Purety Farm admin.
+              </p>
+
+              <div className="mt-4 divide-y divide-[var(--pf-border)]">
+                {changeRequests.slice(0, 5).map((req) => {
+                  const isSkip = req.type === "SKIP";
+                  const isReschedule = req.type === "RESCHEDULE";
+                  const skipDate = req.requestedConfiguration?.deliveryDate || req.currentConfiguration?.deliveryDate;
+                  const fromDate = req.requestedConfiguration?.fromDate || req.currentConfiguration?.deliveryDate;
+                  const toDate = req.requestedConfiguration?.toDate;
+                  const note = req.adminNote || req.reason;
+
+                  return (
+                    <div key={req.id} className="py-3 first:pt-0 last:pb-0 flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[13.5px] font-bold text-[var(--pf-text)]">
+                            {isSkip
+                              ? `Delivery on ${skipDate || "date"} skipped`
+                              : isReschedule
+                              ? `Delivery moved from ${fromDate || "date"} to ${toDate || "date"}`
+                              : `${req.type.replace(/_/g, " ")}`}
+                          </span>
+                          <PfBadge
+                            tone={
+                              req.status === "APPROVED"
+                                ? isSkip || isReschedule ? "brand" : "success"
+                                : req.status === "PENDING"
+                                ? "warning"
+                                : "error"
+                            }
+                            dot
+                          >
+                            {isSkip
+                              ? "Skipped (Admin)"
+                              : isReschedule
+                              ? "Rescheduled (Admin)"
+                              : req.status === "PENDING"
+                              ? "Pending Approval"
+                              : req.status === "APPROVED"
+                              ? "Approved"
+                              : "Rejected"}
+                          </PfBadge>
+                        </div>
+
+                        {note && (
+                          <div className="mt-1.5 text-[12px] text-[var(--pf-text-secondary)] bg-[var(--pf-surface-soft)] rounded-md px-2.5 py-1 border border-[var(--pf-border)] inline-block max-w-full">
+                            <span className="font-semibold text-[var(--pf-text)]">Reason: </span>
+                            <span>&ldquo;{note}&rdquo;</span>
+                          </div>
+                        )}
+
+                        {req.message && !note && (
+                          <p className="mt-1 text-[12px] text-[var(--pf-text-secondary)]">
+                            {req.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="text-[11.5px] font-mono text-[var(--pf-text-muted)] shrink-0 pt-0.5">
+                        {req.createdAt ? new Date(req.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : ""}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </PfCard>
           )}
 
           {/* Active Plan Hero Card */}
@@ -1491,11 +1577,13 @@ export function PlanView() {
                     className="w-full p-2.5 rounded-xl border border-[#D5C7B8] focus:border-[#5C1B13] text-xs font-semibold focus:outline-none bg-white"
                   >
                     <option value="">Choose an upcoming date</option>
-                    {deliveryData.upcomingDeliveries.map((del, idx) => (
-                      <option key={del.date || idx} value={del.date}>
-                        {del.date} ({del.quantityLitres}L)
-                      </option>
-                    ))}
+                    {deliveryData.upcomingDeliveries
+                      .filter((del) => del.canSkip !== false && del.status === "SCHEDULED")
+                      .map((del, idx) => (
+                        <option key={del.date || idx} value={del.date}>
+                          {del.date} ({del.quantityLitres}L)
+                        </option>
+                      ))}
                   </select>
                 ) : (
                   <input

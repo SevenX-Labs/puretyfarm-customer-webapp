@@ -38,6 +38,9 @@ export interface UpcomingDeliveryView {
   /** What this delivery is expected to cost, in paise. */
   expectedAmountPaise?: number | null;
   settlementStatus?: string | null;
+  actionBy?: "CUSTOMER" | "ADMIN" | string | null;
+  adminNote?: string | null;
+  rescheduledFrom?: string | null;
 }
 
 export interface ManageDeliveryResponse {
@@ -82,7 +85,7 @@ export interface DeliveryRequestItem {
   id: string;
   type: string;
   status: string;
-  requestedChanges: any;
+  requestedChanges?: any;
   reason?: string;
   adminNote?: string;
   createdAt: string;
