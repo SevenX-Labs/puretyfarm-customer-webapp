@@ -26,6 +26,7 @@ import {
   plansApi,
   OrderCutoffPolicy,
 } from "@/features/plans/api/plansApi";
+import { paymentsApi } from "@/features/payments/api/paymentsApi";
 import { walletApi } from "@/features/wallet/api/walletApi";
 import { CustomerWallet } from "@/features/wallet/types";
 import { formatDeliveryWindow } from "@/features/dashboard/utils";
@@ -116,6 +117,13 @@ export function MonthlyUpgradeModal({
 
   const resolvedDeliveryWindow = formatDeliveryWindow(deliveryStartTime, deliveryEndTime);
 
+  const walletBalanceRupees = wallet ? wallet.balancePaise / 100 : 0;
+  const shortfallRupees = Math.max(0, Math.ceil(pricingResult.totalPrice - walletBalanceRupees));
+  const isWalletLow =
+    paymentMethod === "WALLET" &&
+    wallet !== null &&
+    shortfallRupees > 0;
+
   const handleConfirm = async () => {
     if (submitting || isQuoteLoading || !serverQuote || !pricingResult.isValid) return;
 
@@ -124,6 +132,29 @@ export function MonthlyUpgradeModal({
     setSuccess(null);
 
     try {
+      // If paying via wallet and wallet balance is lower than plan total, route to payment gateway checkout
+      if (paymentMethod === "WALLET" && shortfallRupees > 0) {
+        if (typeof window !== "undefined") {
+          const checkoutPayload = {
+            quoteId: serverQuote.quoteId,
+            planName: "Monthly Subscription",
+            amountRupees: pricingResult.totalPrice.toFixed(2),
+          };
+          window.sessionStorage.setItem("purety_pending_plan_checkout", JSON.stringify(checkoutPayload));
+          window.localStorage.setItem("purety_pending_plan_checkout", JSON.stringify(checkoutPayload));
+        }
+
+        const shortfallPaise = Math.round(shortfallRupees * 100);
+        const res = await paymentsApi.initiateOnlineTopup(shortfallPaise, {
+          autoRedirect: true,
+        });
+
+        if (!res.checkout) {
+          setSuccess("Payment initialized. Redirecting to payment gateway...");
+        }
+        return;
+      }
+
       const res = await plansApi.confirmPlanQuote({
         quoteId: serverQuote.quoteId,
         paymentMethod,
@@ -131,8 +162,10 @@ export function MonthlyUpgradeModal({
 
       if (res.status === "CONFIRMED" || res.selectionId) {
         setSuccess(
-          res.status === "PENDING_APPROVAL"
-            ? "Monthly plan purchased. It is awaiting approval — nothing has been deducted from your wallet."
+          paymentMethod === "CASH"
+            ? "Monthly plan registered! Doorstep cash collection has been requested and is awaiting verification."
+            : res.status === "PENDING_APPROVAL"
+            ? "Monthly plan confirmed. Deliveries will be charged per delivery from your wallet."
             : "Successfully upgraded to Monthly Subscription!"
         );
         setTimeout(() => {
@@ -157,16 +190,6 @@ export function MonthlyUpgradeModal({
   };
 
   if (!isOpen || !mounted) return null;
-
-  const walletBalanceRupees = wallet ? wallet.balancePaise / 100 : 0;
-  const shortfallRupees = Math.max(0, Math.ceil(pricingResult.totalPrice - walletBalanceRupees));
-  // A plan is charged per delivered order, never as a whole, so a wallet below
-  // the plan total does not stop the purchase. It is only pointed out, with a
-  // top-up link, so the customer can fund the wallet ahead of deliveries.
-  const isWalletLow =
-    paymentMethod === "WALLET" &&
-    wallet !== null &&
-    walletBalanceRupees < pricingResult.totalPrice;
 
   return createPortal(
     <div
@@ -371,7 +394,7 @@ export function MonthlyUpgradeModal({
                   )}
                 </div>
                 <p className="text-[11px] text-[#715E50]">
-                  Charged per delivery from your wallet. Nothing is deducted now.
+                  Charged per delivery from your wallet. If balance is below plan total, you will be redirected to payment gateway to fund your wallet.
                 </p>
 
                 {isWalletLow && (
@@ -379,29 +402,20 @@ export function MonthlyUpgradeModal({
                     <div className="flex items-start gap-1.5">
                       <AlertCircle size={14} className="shrink-0 text-rose-600 mt-0.5" />
                       <p className="text-[11px] text-rose-900 font-semibold leading-snug">
-                        Wallet balance (₹{walletBalanceRupees.toFixed(0)}) is low for this plan. Add at least ₹{shortfallRupees} to ensure sunrise morning deliveries:
+                        Wallet balance (₹{walletBalanceRupees.toFixed(0)}) is lower than this plan total (₹{pricingResult.totalPrice.toFixed(0)}). Click &ldquo;Pay Online &amp; Upgrade&rdquo; below to complete checkout via PhonePe, or switch to Doorstep Cash:
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Link
-                        href={`/wallet?amount=${shortfallRupees}&method=ONLINE`}
-                        target="_blank"
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#5C1B13] text-white text-[10.5px] font-bold hover:bg-[#48150f] transition-all shadow-2xs"
-                      >
-                        <CreditCard size={11} />
-                        <span>Add via Online (UPI / Card)</span>
-                      </Link>
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setPaymentMethod("CASH");
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#D5C7B8] text-[#1A1008] text-[10.5px] font-bold hover:bg-[#FAF8F5] transition-all"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#D5C7B8] text-[#1A1008] text-[10.5px] font-bold hover:bg-[#FAF8F5] transition-all cursor-pointer"
                       >
                         <Banknote size={11} />
-                        <span>Pay via Cash</span>
+                        <span>Switch to Doorstep Cash</span>
                       </button>
                     </div>
                   </div>
@@ -480,17 +494,31 @@ export function MonthlyUpgradeModal({
                 {submitting ? (
                   <>
                     <RefreshCw size={14} className="animate-spin" />
-                    <span>Confirming...</span>
+                    <span>
+                      {paymentMethod === "WALLET" && shortfallRupees > 0
+                        ? "Connecting to Payment Gateway..."
+                        : "Confirming Plan..."}
+                    </span>
                   </>
                 ) : isQuoteLoading ? (
                   <>
                     <RefreshCw size={14} className="animate-spin" />
                     <span>Updating Quote...</span>
                   </>
-                ) : (
+                ) : paymentMethod === "WALLET" && shortfallRupees > 0 ? (
+                  <>
+                    <CreditCard size={15} />
+                    <span>Pay ₹{shortfallRupees.toLocaleString("en-IN")} Online & Upgrade</span>
+                  </>
+                ) : paymentMethod === "WALLET" ? (
                   <>
                     <Check size={16} />
-                    <span>Confirm Plan (charged per delivery)</span>
+                    <span>Confirm Plan (Pay from Wallet)</span>
+                  </>
+                ) : (
+                  <>
+                    <Banknote size={16} />
+                    <span>Confirm Plan (Doorstep Cash)</span>
                   </>
                 )}
               </button>
