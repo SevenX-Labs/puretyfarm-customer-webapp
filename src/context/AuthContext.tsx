@@ -79,23 +79,25 @@ function normalizeCustomerUser(
   const isPlaceholder =
     !fullName ||
     fullName.startsWith("Customer (") ||
-    fullName.toLowerCase() === "customer";
+    fullName.toLowerCase() === "customer" ||
+    fullName.toLowerCase() === "customer user";
 
   // Only derive "Customer (1566)" fallback if profile truly has no name
   const displayName = fullName || (mobile ? `Customer (${mobile.slice(-4)})` : "Customer");
 
-  const isMarkedCompleted =
-    !isPlaceholder &&
-    fullName.length > 0 &&
-    typeof window !== "undefined" &&
-    (window.localStorage.getItem("pf_onboarding_completed") === "true" ||
-     window.sessionStorage.getItem("pf_onboarding_completed") === "true");
+  // Profile setup is fundamentally required: if user has no real profile, onboarding cannot be complete
+  const isProfileIncomplete = isPlaceholder || fullName.length === 0 || !profile;
 
   let onboardingStep: OnboardingStatus = "complete";
-  if (!isMarkedCompleted && !hasActivePlan) {
-    if (isPlaceholder || fullName.length === 0) {
-      onboardingStep = "profile_pending";
-    } else {
+  if (isProfileIncomplete) {
+    onboardingStep = "profile_pending";
+  } else {
+    const isMarkedCompleted =
+      typeof window !== "undefined" &&
+      (window.localStorage.getItem("pf_onboarding_completed") === "true" ||
+       window.sessionStorage.getItem("pf_onboarding_completed") === "true");
+
+    if (!isMarkedCompleted && !hasActivePlan) {
       const hasAddress = Array.isArray(addresses) && addresses.length > 0;
       if (!hasAddress) {
         onboardingStep = "location_pending";

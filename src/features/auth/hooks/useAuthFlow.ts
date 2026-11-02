@@ -37,6 +37,13 @@ export function useAuthFlow() {
   // Helper to check if user has not completed onboarding
   const isPendingOnboarding = (u: typeof user) => {
     if (!u) return true;
+    const hasValidName =
+      u.name &&
+      !u.name.startsWith("Customer (") &&
+      u.name.toLowerCase() !== "customer" &&
+      u.name.toLowerCase() !== "customer user" &&
+      u.name.trim() !== "";
+    if (!hasValidName) return true;
     const step = u.onboardingStep as string | undefined;
     return step === "profile_pending" || step === "location_pending" || step === "plan_pending";
   };
@@ -198,9 +205,7 @@ export function useAuthFlow() {
       const isPending = refreshedUser ? isPendingOnboarding(refreshedUser) : true;
 
       const targetUrl = isPending
-        ? redirectUrl && redirectUrl.startsWith("/onboarding")
-          ? redirectUrl
-          : "/onboarding?step=1"
+        ? "/onboarding?step=1"
         : redirectUrl && redirectUrl !== "/onboarding" && redirectUrl !== "/auth"
         ? redirectUrl
         : "/account";

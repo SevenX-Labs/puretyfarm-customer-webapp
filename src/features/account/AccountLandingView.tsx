@@ -108,11 +108,22 @@ export function AccountLandingView() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user && (user.onboardingStep === "location_pending" || user.onboardingStep === "profile_pending")) {
+    if (user) {
+      const hasValidProfile =
+        user.name &&
+        !user.name.startsWith("Customer (") &&
+        user.name.toLowerCase() !== "customer" &&
+        user.name.toLowerCase() !== "customer user" &&
+        user.name.trim() !== "" &&
+        user.onboardingStep !== "profile_pending";
+
+      if (!hasValidProfile) {
+        router.replace("/onboarding?step=1");
+        return;
+      }
+
       if (user.onboardingStep === "location_pending") {
         router.replace("/onboarding?step=2");
-      } else {
-        router.replace("/onboarding?step=1");
       }
     }
   }, [user, router]);

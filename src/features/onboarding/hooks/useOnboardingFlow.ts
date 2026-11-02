@@ -188,25 +188,31 @@ export function useOnboardingFlow() {
         setSelectedCityName(defaultServiceable.city || "Raipur");
       }
 
-      // Only redirect to /account if onboarding is truly COMPLETE
-      if (user.onboardingStep === "complete") {
-        router.replace("/account");
-        return;
-      }
-
       const hasProfile = Boolean(
         user.name &&
         !user.name.startsWith("Customer (") &&
+        user.name.toLowerCase() !== "customer" &&
+        user.name.toLowerCase() !== "customer user" &&
         user.name.trim() !== "" &&
         user.onboardingStep !== "profile_pending"
       );
       const hasAddress = Boolean(addresses && addresses.length > 0);
       const requestedStep = searchParams.get("step");
 
+      // If user profile setup is not completed, lock to Step 1 and NEVER redirect to /account
       if (!hasProfile) {
         setMaxAllowedStep(1);
         setCurrentStep(1);
-      } else if (!hasAddress) {
+        return;
+      }
+
+      // Only redirect to /account if onboarding is truly COMPLETE
+      if (user.onboardingStep === "complete") {
+        router.replace("/account");
+        return;
+      }
+
+      if (!hasAddress) {
         setMaxAllowedStep(2);
         setCurrentStep(2);
       } else {

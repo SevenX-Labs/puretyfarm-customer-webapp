@@ -462,13 +462,13 @@ function WalletContent() {
 
     const amountPaise = Math.round(parsedRupees * 100);
 
-    // Spec min/max check: default 100 paise (₹1) to 1,000,000 paise (₹10,000)
+    // Spec min/max check: default 100 paise (₹1) to 100,000,000 paise (₹10,00,000)
     if (amountPaise < 100) {
       setErrorBanner({ message: "Minimum wallet top-up is ₹1 (100 paise)." });
       return;
     }
-    if (amountPaise > 1000000) {
-      setErrorBanner({ message: "Maximum single top-up allowed is ₹10,000." });
+    if (amountPaise > 100000000) {
+      setErrorBanner({ message: "Maximum single top-up allowed is ₹10,00,000." });
       return;
     }
 
