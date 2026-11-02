@@ -68,7 +68,7 @@ export function UpcomingDeliveriesList({
                   {isSkipped && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                       <CalendarX size={11} className="shrink-0" />
-                      {d.actionBy === "ADMIN" ? "Skipped by Admin" : "Skipped"}
+                      Skipped
                     </span>
                   )}
                 </div>
@@ -95,16 +95,15 @@ export function UpcomingDeliveriesList({
                 {/* Skipped Notice */}
                 {isSkipped && (
                   <div className="mt-1.5 text-[12px] text-amber-950 bg-amber-50/80 border border-amber-200 rounded-lg p-2">
-                    <div className="font-medium">
-                      {d.actionBy === "ADMIN"
-                        ? "This delivery was skipped by Purety Farm Admin."
-                        : d.actionBy === "CUSTOMER"
-                        ? "You skipped this delivery."
-                        : "This delivery was skipped."}
-                    </div>
-                    {d.adminNote && (
-                      <div className="mt-0.5 text-[11.5px] text-amber-800">
+                    {d.adminNote ? (
+                      <div className="font-medium text-amber-900">
                         Reason: &ldquo;{d.adminNote}&rdquo;
+                      </div>
+                    ) : (
+                      <div className="font-medium">
+                        {d.actionBy === "CUSTOMER"
+                          ? "You skipped this delivery."
+                          : "This delivery was skipped."}
                       </div>
                     )}
                   </div>

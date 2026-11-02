@@ -554,9 +554,9 @@ export function PlanView() {
                             dot
                           >
                             {isSkip
-                              ? "Skipped (Admin)"
+                              ? "Skipped"
                               : isReschedule
-                              ? "Rescheduled (Admin)"
+                              ? "Rescheduled"
                               : req.status === "PENDING"
                               ? "Pending Approval"
                               : req.status === "APPROVED"
